@@ -16,28 +16,53 @@ TOOLTIPS = {
     "gut_reaction": "How viscerally the brain responds (anterior insula)",
 }
 
+USER_MEANING = {
+    "personal_resonance": "feels more personally relevant",
+    "social_thinking": "pulls more social reasoning",
+    "brain_effort": "demands more thinking effort",
+    "language_depth": "engages deeper meaning-making",
+    "gut_reaction": "lands more viscerally",
+}
+
+
+def _strength_label(magnitude: float) -> str:
+    if magnitude < 0.005:
+        return "Very small"
+    if magnitude < 0.02:
+        return "Subtle"
+    if magnitude < 0.06:
+        return "Moderate"
+    if magnitude < 0.14:
+        return "Strong"
+    return "Very strong"
+
 
 def enrich_dimension_payload(diff: dict[str, dict[str, Any]]) -> list[dict[str, Any]]:
     rows: list[dict[str, Any]] = []
-    max_mag = max((v["magnitude"] for v in diff.values()), default=0.0)
+    max_mag = max((float(v["magnitude"]) for v in diff.values()), default=0.0)
     max_mag = max(max_mag, 1e-9)
     for key, payload in diff.items():
         magnitude = float(payload["magnitude"])
         direction = payload["direction"]
+        winner = "Version B" if direction == "B_higher" else "Version A" if direction == "A_higher" else "Neither version"
+        confidence = payload["confidence"]
         rows.append(
             {
                 "key": key,
                 "label": UI_LABELS[key],
                 "tooltip": TOOLTIPS[key],
+                "meaning": USER_MEANING[key],
                 "score_a": payload["score_a"],
                 "score_b": payload["score_b"],
                 "delta": payload["delta"],
                 "direction": direction,
                 "magnitude": magnitude,
-                "confidence": payload["confidence"],
-                "low_confidence": payload["confidence"] == "low",
-                "delta_display": f"~{payload['delta']:+.3f}" if payload["confidence"] == "low" else f"{payload['delta']:+.3f}",
+                "confidence": confidence,
+                "low_confidence": confidence == "low",
+                "delta_display": f"{payload['delta']:+.3f}",
                 "bar_fraction": round(magnitude / max_mag, 6),
+                "winner": winner,
+                "strength": _strength_label(magnitude),
             }
         )
     rows.sort(key=lambda row: row["magnitude"], reverse=True)
@@ -56,4 +81,3 @@ def winner_summary(rows: list[dict[str, Any]]) -> dict[str, int]:
         else:
             a_wins += 1
     return {"b_wins": b_wins, "a_wins": a_wins, "tied": tied}
-

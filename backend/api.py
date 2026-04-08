@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import json
 import logging
 import os
@@ -20,10 +21,12 @@ from backend.model_service import TribeService
 from backend.narrative import build_headline
 from backend.preflight import build_preflight_report
 from backend.result_semantics import enrich_dimension_payload, winner_summary
+from backend.insight_engine import build_insight_payload
 from backend.schemas import DiffRequest, JobStartResponse
 from backend.scorer import score_predictions
 from backend.startup_manifest import build_startup_manifest, write_startup_manifest
 from backend.status_store import JobStore
+from backend.telemetry_store import TelemetryStore
 
 logger = logging.getLogger("braindiff.api")
 
@@ -31,6 +34,8 @@ job_store = JobStore()
 tribe_service = TribeService(model_revision=os.getenv("TRIBEV2_REVISION", "facebook/tribev2"))
 masks: dict[str, dict[str, Any]] = {}
 LOG_DIR = os.getenv("BRAIN_DIFF_LOG_DIR", "logs")
+TELEMETRY_DB_PATH = os.getenv("BRAIN_DIFF_TELEMETRY_DB", os.path.join(LOG_DIR, "telemetry.sqlite3"))
+telemetry_store = TelemetryStore(TELEMETRY_DB_PATH)
 
 
 def _error_code_for_exception(err: Exception) -> tuple[str, str]:
@@ -73,9 +78,59 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title="Brain Diff API", version="0.1.0", lifespan=lifespan)
 
 
+
+
+
+
+def _hash_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:12]
+
+
+def _persist_run(*, job_id: str, request_id: str, created_at: str, status: str, success: bool,
+                 payload: DiffRequest, stage_times: dict[str, int], warnings: list[str],
+                 text_a_timesteps: int, text_b_timesteps: int, total_ms: int,
+                 error_code: str | None = None, error_message: str | None = None) -> None:
+    runtime = {}
+    if getattr(tribe_service, 'runtime_profile', None) is not None:
+        runtime = {
+            'device': tribe_service.runtime_profile.device,
+            'backend': tribe_service.runtime_profile.backend,
+        }
+    telemetry_store.upsert_run({
+        'job_id': job_id,
+        'request_id': request_id,
+        'created_at': created_at,
+        'status': status,
+        'success': success,
+        'text_a_length': len(payload.text_a),
+        'text_b_length': len(payload.text_b),
+        'text_a_hash': _hash_text(payload.text_a),
+        'text_b_hash': _hash_text(payload.text_b),
+        'text_a_timesteps': text_a_timesteps,
+        'text_b_timesteps': text_b_timesteps,
+        'total_ms': total_ms,
+        'stage_times': stage_times,
+        'warnings': warnings,
+        'runtime': runtime,
+        'error_code': error_code,
+        'error_message': error_message,
+    })
+def _coerce_prediction_output(output: Any) -> tuple[np.ndarray, Any, dict[str, int]]:
+    if isinstance(output, tuple):
+        if len(output) == 3:
+            preds, segments, timing = output
+            return preds, segments, timing
+        if len(output) == 2:
+            preds, segments = output
+            return preds, segments, {"events_ms": 0, "predict_ms": 0}
+    raise ValueError(f"Unexpected prediction output shape: {type(output).__name__}")
+
+
 def _warnings_for_input(text_a: str, text_b: str) -> list[str]:
     warnings: list[str] = []
-    if len(text_a) < 10 or len(text_b) < 10:
+    words_a = len([w for w in text_a.strip().split() if w])
+    words_b = len([w for w in text_b.strip().split() if w])
+    if words_a < 3 or words_b < 3:
         warnings.append("Very short text may produce unreliable results")
     min_len = max(1, min(len(text_a), len(text_b)))
     max_len = max(len(text_a), len(text_b))
@@ -86,6 +141,7 @@ def _warnings_for_input(text_a: str, text_b: str) -> list[str]:
 
 def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
     started_at = time.perf_counter()
+    created_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     warnings = _warnings_for_input(payload.text_a, payload.text_b)
     stage_times: dict[str, int] = {}
     route = "/api/diff/start"
@@ -104,11 +160,15 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             dimension_rows = enrich_dimension_payload(diff)
             summary = winner_summary(dimension_rows)
             vertex_delta = np.zeros(20484, dtype=np.float32)
+            t_heat = time.perf_counter()
             heatmap = generate_heatmap_artifact(vertex_delta)
+            stage_times["heatmap_ms"] = int((time.perf_counter() - t_heat) * 1000)
             processing_time_ms = int((time.perf_counter() - started_at) * 1000)
+            insights = build_insight_payload(dimension_rows, warnings)
             result = {
                 "diff": diff,
                 "dimensions": dimension_rows,
+                "insights": insights,
                 "vertex_delta": vertex_delta.astype(float).tolist(),
                 "warnings": warnings,
                 "meta": {
@@ -135,20 +195,21 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             }
             job_store.set_result(job_id, result)
             job_store.update_status(job_id, "done", "Done")
+            _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=0, text_b_timesteps=0, total_ms=processing_time_ms)
             return
 
         job_store.update_status(job_id, "predicting_version_a", "Predicting neural response for Version A...")
-        t0 = time.perf_counter()
-        preds_a, _ = tribe_service.text_to_predictions(payload.text_a)
-        stage_times["predict_a_ms"] = int((time.perf_counter() - t0) * 1000)
+        preds_a, _, timing_a = _coerce_prediction_output(tribe_service.text_to_predictions(payload.text_a))
+        stage_times["events_a_ms"] = timing_a.get("events_ms", 0)
+        stage_times["predict_a_ms"] = timing_a.get("predict_ms", 0)
 
         if (time.perf_counter() - started_at) * 1000 > 15000:
             job_store.update_status(job_id, "slow_processing", "Still processing - longer texts take more time")
 
         job_store.update_status(job_id, "predicting_version_b", "Predicting neural response for Version B...")
-        t1 = time.perf_counter()
-        preds_b, _ = tribe_service.text_to_predictions(payload.text_b)
-        stage_times["predict_b_ms"] = int((time.perf_counter() - t1) * 1000)
+        preds_b, _, timing_b = _coerce_prediction_output(tribe_service.text_to_predictions(payload.text_b))
+        stage_times["events_b_ms"] = timing_b.get("events_ms", 0)
+        stage_times["predict_b_ms"] = timing_b.get("predict_ms", 0)
 
         job_store.update_status(job_id, "computing_brain_contrast", "Computing brain contrast...")
         t2 = time.perf_counter()
@@ -157,14 +218,18 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         diff = compute_diff(scores_a, scores_b)
         dimension_rows = enrich_dimension_payload(diff)
         summary = winner_summary(dimension_rows)
+        stage_times["score_diff_ms"] = int((time.perf_counter() - t2) * 1000)
+        t_heat = time.perf_counter()
         vertex_delta = compute_vertex_delta(preds_a, preds_b)
         heatmap = generate_heatmap_artifact(vertex_delta)
-        stage_times["score_diff_ms"] = int((time.perf_counter() - t2) * 1000)
+        stage_times["heatmap_ms"] = int((time.perf_counter() - t_heat) * 1000)
 
         processing_time_ms = int((time.perf_counter() - started_at) * 1000)
+        insights = build_insight_payload(dimension_rows, warnings)
         result = {
             "diff": diff,
             "dimensions": dimension_rows,
+            "insights": insights,
             "vertex_delta": vertex_delta.astype(float).tolist(),
             "warnings": warnings,
             "meta": {
@@ -190,6 +255,7 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         }
         job_store.set_result(job_id, result)
         job_store.update_status(job_id, "done", "Done")
+        _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=int(preds_a.shape[0]), text_b_timesteps=int(preds_b.shape[0]), total_ms=processing_time_ms)
         logger.info(
             "diff_job:ok request_id=%s job_id=%s a_len=%s b_len=%s total_ms=%s",
             request_id,
@@ -222,6 +288,7 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                 "message": message,
             },
         )
+        _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="error", success=False, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=0, text_b_timesteps=0, total_ms=int((time.perf_counter()-started_at)*1000), error_code=code, error_message=message)
 
 
 @app.post("/api/diff/start", response_model=JobStartResponse)
@@ -282,6 +349,20 @@ async def preflight() -> JSONResponse:
     report = build_preflight_report(model_loaded=tribe_service.model is not None, masks_ready=len(masks) > 0)
     return JSONResponse(report)
 
+
+
+
+@app.get("/api/telemetry/recent")
+async def telemetry_recent(limit: int = 20) -> JSONResponse:
+    return JSONResponse({"runs": telemetry_store.get_recent(limit)})
+
+
+@app.get("/api/telemetry/run/{job_id}")
+async def telemetry_run(job_id: str) -> JSONResponse:
+    run = telemetry_store.get_run(job_id)
+    if not run:
+        raise HTTPException(status_code=404, detail=f"Unknown job_id: {job_id}")
+    return JSONResponse(run)
 
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 

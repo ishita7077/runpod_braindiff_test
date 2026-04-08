@@ -1,2 +1,0 @@
-"""Brain Diff backend package."""
-

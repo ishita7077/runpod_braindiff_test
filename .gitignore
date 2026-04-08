@@ -16,3 +16,6 @@ tribev2_save/
 
 # Upstream dependency clone (managed separately)
 tribev2/
+
+# Local agent mistake log (not for git)
+MISTAKES_AGENT.md

@@ -32,6 +32,7 @@ def build_startup_manifest(
     model_revision: str,
     atlas_dir: str = "atlases",
     requirements_lock_path: str = "backend/requirements_frozen.txt",
+    runtime: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     atlas_path = Path(atlas_dir)
     lh = atlas_path / "lh.HCP-MMP1.annot"
@@ -72,6 +73,7 @@ def build_startup_manifest(
         "text_encoder_auth": text_encoder_auth,
         "gpu_name": gpu_name,
         "gpu_memory_gb": gpu_memory_gb,
+        "runtime": runtime or {},
         "host": {
             "platform": platform.platform(),
             "pid": os.getpid(),

@@ -1,3 +1,4 @@
+from pathlib import Path
 import logging
 import base64
 import io
@@ -8,7 +9,8 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-from nilearn import datasets, plotting
+
+from backend.scorer import reference_scale
 
 logger = logging.getLogger("braindiff.heatmap")
 
@@ -18,17 +20,24 @@ _FSAVERAGE = None
 def _get_fsaverage():
     global _FSAVERAGE
     if _FSAVERAGE is None:
-        _FSAVERAGE = datasets.fetch_surf_fsaverage(mesh="fsaverage5")
+        from nilearn import datasets
+
+        data_dir = str(Path("atlases/nilearn_data").resolve()) if Path("atlases/nilearn_data").exists() else None
+        _FSAVERAGE = datasets.fetch_surf_fsaverage(mesh="fsaverage5", data_dir=data_dir)
     return _FSAVERAGE
 
 
 def compute_vertex_delta(preds_a: np.ndarray, preds_b: np.ndarray) -> np.ndarray:
     if preds_a.shape[1] != 20484 or preds_b.shape[1] != 20484:
         raise ValueError(f"Vertex mismatch: A={preds_a.shape}, B={preds_b.shape}")
-    return preds_b.mean(axis=0) - preds_a.mean(axis=0)
+    norm_a = preds_a.mean(axis=0) / reference_scale(preds_a)
+    norm_b = preds_b.mean(axis=0) / reference_scale(preds_b)
+    return norm_b - norm_a
 
 
 def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
+    from nilearn import plotting
+
     logger.info("generate_heatmap_artifact:start vertex_len=%s", len(vertex_delta))
     if vertex_delta.shape[0] != 20484:
         raise ValueError(f"Expected 20484 vertex values, got {vertex_delta.shape[0]}")
@@ -74,4 +83,3 @@ def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
         "format": "png_base64",
         "image_base64": encoded,
     }
-

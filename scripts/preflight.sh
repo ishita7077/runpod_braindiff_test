@@ -21,6 +21,7 @@ async def run():
     masks_ready = False
     mask_error = None
     model_error = None
+    runtime = None
 
     try:
         build_vertex_masks("atlases")
@@ -32,10 +33,12 @@ async def run():
         service = TribeService()
         service.load()
         model_loaded = True
+        runtime = getattr(service, "runtime_profile", None)
     except Exception as err:
         model_error = str(err)
 
-    report = build_preflight_report(model_loaded=model_loaded, masks_ready=masks_ready)
+    runtime_payload = {"device": runtime.device, "backend": runtime.backend} if model_loaded and runtime else {}
+    report = build_preflight_report(model_loaded=model_loaded, masks_ready=masks_ready, runtime=runtime_payload)
     if mask_error:
         report["mask_error"] = mask_error
     if model_error:

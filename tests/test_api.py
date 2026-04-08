@@ -6,6 +6,7 @@ from backend import api
 
 class _DummyTribeService:
     model_revision = "facebook/tribev2@test"
+    runtime_profile = type("Runtime", (), {"device": "cpu", "backend": "cpu"})()
 
     def text_to_predictions(self, text: str):
         base = np.zeros((6, 20484), dtype=np.float32)
@@ -13,7 +14,7 @@ class _DummyTribeService:
             base[:, :100] = 0.05
         else:
             base[:, :100] = 0.01
-        return base, []
+        return base, [], {"events_ms": 1, "predict_ms": 2}
 
 
 def _dummy_masks():
@@ -46,6 +47,8 @@ def test_api_sync_shape(monkeypatch):
     payload = response.json()
     assert "diff" in payload
     assert "dimensions" in payload
+    assert "insights" in payload
+    assert payload["insights"]["headline"]
     assert len(payload["vertex_delta"]) == 20484
     assert payload["meta"]["atlas"] == "HCP_MMP1.0"
 

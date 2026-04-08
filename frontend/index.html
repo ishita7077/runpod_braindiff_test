@@ -7,66 +7,273 @@
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header class="topbar">
-      <div>Brain Diff</div>
-      <a href="./methodology.html">Methodology →</a>
+    <div class="page-ambient ambient-a"></div>
+    <div class="page-ambient ambient-b"></div>
+
+    <header class="topbar glassy">
+      <div class="brand-lockup">
+        <span class="brand-mark">◉</span>
+        <span>Brain Diff</span>
+      </div>
+      <nav class="top-nav">
+        <a href="#landing">Compare</a>
+        <a href="#result">Result</a>
+        <button id="diagToggle" class="top-nav-btn" type="button">Diagnostics</button>
+        <a href="./methodology.html">Methodology →</a>
+      </nav>
     </header>
 
     <main class="container">
-      <section id="landing">
-        <h1>Brain Diff</h1>
-        <p class="subtitle">See how two pieces of content land differently in the human brain.</p>
+      <section id="landing" class="hero-shell panel glassy">
+        <div class="hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Average-brain contrast, not generic copy scoring</p>
+            <h1>See where two versions land differently in the cortical response.</h1>
+            <p class="subtitle">
+              Compare two headlines, tweets, pitches, or paragraphs and surface where their predicted brain response diverges — with a verdict, contrast map, and next-step guidance.
+            </p>
+            <div class="hero-pills">
+              <span class="hero-pill">TRIBEv2 cortical compare</span>
+              <span class="hero-pill">Population-average brain</span>
+              <span class="hero-pill">Compare, not predict</span>
+            </div>
+          </div>
 
-        <section class="inputs">
-          <label>
-            Version A
-            <textarea id="textA" maxlength="5000" placeholder="Paste your first version here"></textarea>
-            <span class="count" id="countA">0 / 5000</span>
-          </label>
-          <label>
-            Version B
-            <textarea id="textB" maxlength="5000" placeholder="Paste your second version here"></textarea>
-            <span class="count" id="countB">0 / 5000</span>
-          </label>
-        </section>
-
-        <button id="runBtn" disabled>Brain Diff</button>
-        <div class="examples">
-          Try an example:
-          <button class="example" data-a="Q3 revenue grew 3.2% YoY across all segments." data-b="You nearly died today. Your family waited outside the hospital.">Corporate vs Human</button>
-          <button class="example" data-a="This trick will change your life forever. Click now." data-b="This method works for some teams. Here are the trade-offs.">Clickbait vs Honest</button>
+          <div class="hero-stage">
+            <canvas id="heroCanvas" aria-hidden="true"></canvas>
+            <div class="stage-glow stage-glow-a"></div>
+            <div class="stage-glow stage-glow-b"></div>
+            <div class="stage-shell">
+              <div class="stage-copy">
+                <span class="stage-label">Neural contrast preview</span>
+                <h2>Version deltas, rendered like an instrument.</h2>
+                <p>Fast enough for editing decisions. Rich enough to feel like a research tool.</p>
+              </div>
+              <div class="stage-mini-bars">
+                <div class="mini-row"><span>Self-relevance</span><div class="mini-track"><div class="mini-fill mini-fill-b" style="width:74%"></div></div></div>
+                <div class="mini-row"><span>Social thinking</span><div class="mini-track"><div class="mini-fill mini-fill-a" style="width:58%"></div></div></div>
+                <div class="mini-row"><span>Gut reaction</span><div class="mini-track"><div class="mini-fill mini-fill-b" style="width:84%"></div></div></div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <section class="inputs-grid">
+          <section class="inputs panel panel-soft">
+            <label>
+              <span class="field-label">Version A</span>
+              <textarea id="textA" maxlength="5000" placeholder="Paste your first version here"></textarea>
+              <span class="count" id="countA">0 / 5000</span>
+            </label>
+            <label>
+              <span class="field-label">Version B</span>
+              <textarea id="textB" maxlength="5000" placeholder="Paste your second version here"></textarea>
+              <span class="count" id="countB">0 / 5000</span>
+            </label>
+          </section>
+
+          <aside class="control-rail panel panel-soft">
+            <div>
+              <p class="rail-label">How to use it</p>
+              <h3>Compare two variants that aim at the same job.</h3>
+              <p class="muted">Best when the two inputs are trying to solve the same communication problem.</p>
+            </div>
+
+            <div class="cta-stack">
+              <button id="runBtn" disabled>Compare Brain Diff</button>
+              <p class="cta-note">TRIBEv2 predicts population-average cortical response. Text is processed through speech timing.</p>
+              <span id="runMeta" class="run-meta">Diagnostics stay hidden until you need them.</span>
+            </div>
+
+            <div class="examples">
+              <span>Try an example</span>
+              <button class="example" data-a="Q3 revenue grew 3.2% YoY across all segments." data-b="You nearly died today. Your family waited outside the hospital.">Corporate vs Human</button>
+              <button class="example" data-a="This trick will change your life forever. Click now." data-b="This method works for some teams. Here are the trade-offs.">Clickbait vs Honest</button>
+              <button class="example" data-a="We enable workflow optimization across verticals." data-b="We help small teams ship faster without losing control.">Abstract vs Concrete</button>
+            </div>
+          </aside>
+        </section>
       </section>
 
-      <section id="loading" class="panel hidden">
-        <h2>◉ Processing through TRIBEv2...</h2>
-        <ul id="loadingSteps">
-          <li data-step="converting_text_to_speech">Converting text to speech...</li>
-          <li data-step="predicting_version_a">Predicting neural response for Version A...</li>
-          <li data-step="predicting_version_b">Predicting neural response for Version B...</li>
-          <li data-step="computing_brain_contrast">Computing brain contrast...</li>
+      <section id="loading" class="panel glassy hidden loading-panel">
+        <div class="loading-head">
+          <div>
+            <p class="eyebrow">Working</p>
+            <h2>Rendering a cortical contrast through TRIBEv2…</h2>
+          </div>
+          <div class="loading-orb" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+        <ul id="loadingSteps" class="loading-steps">
+          <li data-step="converting_text_to_speech">Converting text to speech</li>
+          <li data-step="predicting_version_a">Predicting neural response for Version A</li>
+          <li data-step="predicting_version_b">Predicting neural response for Version B</li>
+          <li data-step="computing_brain_contrast">Computing cortical contrast and render</li>
         </ul>
-        <p id="loadingHint"></p>
+        <p id="loadingHint" class="loading-hint"></p>
+        <div id="loadingTelemetry" class="loading-telemetry hidden"></div>
         <button id="retryBtn" class="hidden retry-btn" type="button">Retry</button>
       </section>
 
-      <section id="result" class="result hidden panel">
-        <h2 id="headline" class="stage stage-1"></h2>
-        <p id="winner" class="winner stage stage-2"></p>
-        <div id="bars" class="bars stage stage-3"></div>
-        <div id="heatmapWrap" class="heatmap stage stage-4">
-          <img id="heatmapImg" alt="Brain heatmap" />
-        </div>
-        <p id="explanation" class="stage stage-5"></p>
-        <button id="shareBtn" class="stage stage-6">Share</button>
+      <section id="result" class="result hidden">
+        <section class="panel result-hero glassy stage stage-1">
+          <div class="hero-text">
+            <p class="eyebrow">Result</p>
+            <h2 id="headline"></h2>
+            <p id="winner" class="winner"></p>
+            <p id="subhead" class="subhead"></p>
+          </div>
+          <div class="hero-side">
+            <div id="heroMetrics" class="hero-metrics"></div>
+            <div class="hero-kicker">
+              <span class="hero-pill">Whole-brain contrast</span>
+              <span class="hero-pill">5 cortical dimensions</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="result-grid stage stage-2">
+          <div class="panel snapshots-card glassy">
+            <div class="section-header">
+              <div>
+                <h3>Compared inputs</h3>
+                <p class="muted">A fast snapshot of what the model actually saw.</p>
+              </div>
+              <div class="section-chip">Input pair</div>
+            </div>
+            <div class="snapshots">
+              <div class="snapshot-box snapshot-a">
+                <div class="snapshot-label">Version A</div>
+                <p id="snapshotA"></p>
+              </div>
+              <div class="snapshot-box snapshot-b">
+                <div class="snapshot-label">Version B</div>
+                <p id="snapshotB"></p>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel bars-card glassy">
+            <div class="section-header">
+              <div>
+                <h3>Where the strongest differences are</h3>
+                <p class="muted">Read these as directional contrasts, not absolute truth meters.</p>
+              </div>
+              <div class="section-chip">Primary signal</div>
+            </div>
+            <div id="bars" class="bars"></div>
+          </div>
+        </section>
+
+        <section class="result-grid stage stage-3">
+          <div class="panel insights-card glassy">
+            <div class="section-header">
+              <div>
+                <h3>What changed</h3>
+                <p class="muted">The deltas most worth paying attention to.</p>
+              </div>
+              <div class="section-chip">Difference</div>
+            </div>
+            <div id="whatChanged" class="insight-list"></div>
+          </div>
+
+          <div class="panel similarities-card glassy">
+            <div class="section-header">
+              <div>
+                <h3>What stayed similar</h3>
+                <p class="muted">What is probably not driving the decision.</p>
+              </div>
+              <div class="section-chip">Stability</div>
+            </div>
+            <div id="whatStayedSimilar" class="insight-list"></div>
+          </div>
+        </section>
+
+        <section class="result-grid stage stage-4">
+          <div class="panel actions-card glassy">
+            <div class="section-header">
+              <div>
+                <h3>How to use this</h3>
+                <p class="muted">Turn the contrast into an editing move.</p>
+              </div>
+              <div class="section-chip">Actionable</div>
+            </div>
+            <div id="actionables" class="insight-list"></div>
+          </div>
+
+          <div class="panel science-card glassy">
+            <div class="section-header">
+              <div>
+                <h3>Why this is interesting</h3>
+                <p class="muted">The cool part of what the model lets us see.</p>
+              </div>
+              <div class="section-chip">Scientific angle</div>
+            </div>
+            <p id="coolFactor" class="science-copy"></p>
+            <p id="scientificNote" class="science-note"></p>
+          </div>
+        </section>
+
+        <section class="panel heatmap-panel glassy stage stage-5">
+          <div class="section-header heatmap-header">
+            <div>
+              <h3>Whole-brain contrast view</h3>
+              <p class="muted">Red = Version B higher · Blue = Version A higher</p>
+            </div>
+            <div class="heatmap-actions">
+              <div class="section-chip">Full cortex</div>
+              <button id="shareBtn">Share</button>
+            </div>
+          </div>
+          <div class="heatmap-legend-rail">
+            <span class="legend-dot legend-b"></span><span>Version B stronger</span>
+            <span class="legend-dot legend-a"></span><span>Version A stronger</span>
+          </div>
+          <div id="heatmapWrap" class="heatmap frame-glow">
+            <img id="heatmapImg" alt="Brain heatmap" />
+          </div>
+        </section>
         <pre id="resultJson" class="hidden"></pre>
       </section>
+    
+</main>
 
-    </main>
-    <footer class="footer">
+<aside id="diagDrawer" class="diag-drawer hidden" aria-hidden="true">
+  <div class="diag-header">
+    <div>
+      <h3>Run diagnostics</h3>
+      <p>Latency, backend, and recent run history. Safe to ignore unless you are debugging or tuning.</p>
+    </div>
+    <button id="diagClose" class="ghost-btn" type="button">Close</button>
+  </div>
+  <section class="diag-section" id="preflightSection">
+    <div class="diag-section-head">
+      <h4>System readiness</h4>
+      <span id="preflightStatus" class="status-pill pending">Checking...</span>
+    </div>
+    <div id="preflightList" class="kv-list"></div>
+  </section>
+  <section class="diag-section">
+    <div class="diag-section-head">
+      <h4>Current run</h4>
+      <span id="currentRunStatus" class="status-pill muted">No run yet</span>
+    </div>
+    <div id="currentRunPanel" class="kv-list compact"></div>
+  </section>
+  <section class="diag-section">
+    <div class="diag-section-head">
+      <h4>Recent runs</h4>
+      <button id="diagRefresh" class="ghost-btn small" type="button">Refresh</button>
+    </div>
+    <div id="recentRuns" class="recent-runs empty">No runs recorded yet.</div>
+  </section>
+</aside>
+<div id="diagBackdrop" class="diag-backdrop hidden"></div>
+
+    <footer class="footer glassy">
       Predictions for the population-average brain (TRIBEv2, Meta FAIR). Text processed as speech. Individual responses vary.
     </footer>
     <script src="./app.js"></script>
   </body>
 </html>
-

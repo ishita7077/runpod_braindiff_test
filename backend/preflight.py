@@ -13,7 +13,6 @@ def check_ffmpeg() -> tuple[bool, str]:
             return True, str(fp)
     try:
         import imageio_ffmpeg  # type: ignore
-
         ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
         if Path(ffmpeg_exe).exists():
             return True, f"imageio_ffmpeg:{ffmpeg_exe}"
@@ -24,18 +23,20 @@ def check_ffmpeg() -> tuple[bool, str]:
 
 def check_hf_gated_access() -> tuple[bool, str]:
     try:
-        from huggingface_hub import hf_hub_download
-        from huggingface_hub.errors import GatedRepoError
+        from huggingface_hub import HfApi, scan_cache_dir
     except Exception:
         return False, "huggingface_hub not installed"
-
     try:
-        hf_hub_download("meta-llama/Llama-3.2-3B", "config.json")
-        return True, "ok"
-    except GatedRepoError:
-        return False, "missing access to meta-llama/Llama-3.2-3B"
-    except Exception as err:  # network/offline/etc
-        return False, f"unable to verify access: {err}"
+        cache_info = scan_cache_dir()
+        for repo in cache_info.repos:
+            if repo.repo_id == "meta-llama/Llama-3.2-3B":
+                return True, "local_cache_present"
+    except Exception:
+        pass
+    token = HfApi().token
+    if token:
+        return True, "token_present_unverified"
+    return False, "no local gated-model cache and no Hugging Face token found"
 
 
 def check_uvx() -> tuple[bool, str]:
@@ -45,7 +46,7 @@ def check_uvx() -> tuple[bool, str]:
     return False, "uvx command not found on PATH (install uv and ensure uvx is available)"
 
 
-def build_preflight_report(*, model_loaded: bool, masks_ready: bool) -> dict[str, Any]:
+def build_preflight_report(*, model_loaded: bool, masks_ready: bool, runtime: dict[str, Any] | None = None) -> dict[str, Any]:
     ffmpeg_ok, ffmpeg_detail = check_ffmpeg()
     hf_ok, hf_detail = check_hf_gated_access()
     uvx_ok, uvx_detail = check_uvx()
@@ -64,9 +65,9 @@ def build_preflight_report(*, model_loaded: bool, masks_ready: bool) -> dict[str
         "ok": len(blockers) == 0,
         "model_loaded": model_loaded,
         "masks_ready": masks_ready,
+        "runtime": runtime or {},
         "ffmpeg": {"ok": ffmpeg_ok, "detail": ffmpeg_detail},
         "uvx": {"ok": uvx_ok, "detail": uvx_detail},
         "hf_gated_model_access": {"ok": hf_ok, "detail": hf_detail},
         "blockers": blockers,
     }
-
