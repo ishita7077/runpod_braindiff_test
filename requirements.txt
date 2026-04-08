@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+numpy
+nibabel
+pydantic
+pytest
+nilearn
+
