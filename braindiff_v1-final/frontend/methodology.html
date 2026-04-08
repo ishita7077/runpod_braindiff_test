@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brain Diff Methodology</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div>Brain Diff Methodology</div>
+      <a href="./index.html">Back to Brain Diff →</a>
+    </header>
+
+    <main class="container panel">
+      <h1>How Brain Diff Works</h1>
+      <p class="subtitle">
+        Brain Diff compares two pieces of text by predicting how an average human brain responds to each one.
+        It reports where Version B is higher, where Version A is higher, and where differences are too small to trust.
+      </p>
+
+      <h2>1) What Brain Diff does</h2>
+      <p>
+        Brain Diff takes two texts and runs each through TRIBEv2 to estimate population-level neural response patterns.
+        We then compute signed contrasts across five interpretable dimensions and show the difference.
+      </p>
+
+      <h2>2) Where brain data comes from</h2>
+      <p>
+        The model is based on fMRI data from 700+ participants in prior neuroimaging datasets and maps text through a text-to-speech pipeline before prediction.
+        This aligns comparisons to the speech-driven setup used in model development.
+      </p>
+
+      <h2>3) What the 20,484 numbers are</h2>
+      <p>
+        For each text, the model predicts activity over 20,484 cortical surface vertices.
+        Think of these as many tiny points spread across the brain surface.
+      </p>
+
+      <h2>4) Why these 5 dimensions</h2>
+      <p>
+        We collapse vertex predictions into five cortical dimensions selected for interpretability and content relevance:
+        Personal Resonance, Social Thinking, Brain Effort, Language Depth, and Gut Reaction.
+      </p>
+
+      <h2>5) How scoring works</h2>
+      <p>
+        Each dimension uses a signed mean over its region mask and is normalized within each stimulus using median scaling.
+        The shown value is Version B minus Version A, so positive means B is higher.
+      </p>
+
+      <h2>6) What this is not</h2>
+      <p>
+        This is not a readout of any individual person's brain.
+        It is not an engagement, virality, or conversion predictor and should not be interpreted as one.
+      </p>
+
+      <h2>7) Key studies in plain language</h2>
+      <p>
+        Research has shown that stronger activation in valuation and self-relevance regions can predict some behavior changes at the population level.
+        In short: specific neural patterns can carry signal about what messages people act on (for example, Falk et al., 2012).
+      </p>
+
+      <h2>8) Whose brain is "average"</h2>
+      <p>
+        "Average" here means an aggregate from available study samples, which are often WEIRD-leaning (Western, Educated, Industrialized, Rich, Democratic).
+        Generalization limits apply across cultures, languages, and contexts.
+      </p>
+    </main>
+
+    <footer class="footer">
+      Predictions for the population-average brain (TRIBEv2, Meta FAIR). Text processed as speech. Individual responses vary.
+    </footer>
+  </body>
+</html>
