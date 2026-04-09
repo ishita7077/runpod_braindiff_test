@@ -24,11 +24,11 @@ def _mock_psutil(total_bytes: int):
 
 
 class TestResolveTextBackendStrategy:
-    def test_mps_high_ram_picks_mps_split(self, monkeypatch):
+    def test_mps_auto_defaults_to_cpu_llama(self, monkeypatch):
         monkeypatch.delenv("BRAIN_DIFF_TEXT_BACKEND", raising=False)
         with patch("backend.model_service.psutil", _mock_psutil(_16GIB)):
             strategy = _resolve_text_backend_strategy(_MPS_PROFILE)
-        assert strategy == "mps_split"
+        assert strategy == "cpu"
 
     def test_mps_low_ram_picks_cpu(self, monkeypatch):
         monkeypatch.delenv("BRAIN_DIFF_TEXT_BACKEND", raising=False)
@@ -61,11 +61,11 @@ class TestResolveTextBackendStrategy:
         strategy = _resolve_text_backend_strategy(_MPS_PROFILE)
         assert strategy == "mps_full_fp32"
 
-    def test_explicit_env_auto_defers_to_ram(self, monkeypatch):
+    def test_explicit_env_auto_on_mps_defaults_cpu_llama(self, monkeypatch):
         monkeypatch.setenv("BRAIN_DIFF_TEXT_BACKEND", "auto")
         with patch("backend.model_service.psutil", _mock_psutil(_16GIB)):
             strategy = _resolve_text_backend_strategy(_MPS_PROFILE)
-        assert strategy == "mps_split"
+        assert strategy == "cpu"
 
     def test_psutil_unavailable_falls_back_to_cpu(self, monkeypatch):
         monkeypatch.delenv("BRAIN_DIFF_TEXT_BACKEND", raising=False)
@@ -113,26 +113,40 @@ class TestApplyTextBackendStrategy:
 
 
 class TestConfigureWhisperDefaults:
-    def test_cuda_leaves_env_untouched(self, monkeypatch):
+    def test_cuda_sets_float16_compute_only(self, monkeypatch):
         monkeypatch.delenv("TRIBEV2_WHISPERX_DEVICE", raising=False)
+        monkeypatch.delenv("TRIBEV2_WHISPERX_COMPUTE_TYPE", raising=False)
         _configure_whisper_defaults(_CUDA_PROFILE)
         assert "TRIBEV2_WHISPERX_DEVICE" not in os.environ
+        assert os.environ["TRIBEV2_WHISPERX_COMPUTE_TYPE"] == "float16"
 
     def test_mps_sets_cpu_defaults(self, monkeypatch):
-        for key in ("TRIBEV2_WHISPERX_DEVICE", "TRIBEV2_WHISPERX_MODEL", "TRIBEV2_WHISPERX_BATCH_SIZE"):
+        for key in (
+            "TRIBEV2_WHISPERX_DEVICE",
+            "TRIBEV2_WHISPERX_MODEL",
+            "TRIBEV2_WHISPERX_BATCH_SIZE",
+            "TRIBEV2_WHISPERX_COMPUTE_TYPE",
+        ):
             monkeypatch.delenv(key, raising=False)
         _configure_whisper_defaults(_MPS_PROFILE)
         assert os.environ["TRIBEV2_WHISPERX_DEVICE"] == "cpu"
         assert os.environ["TRIBEV2_WHISPERX_MODEL"] == "tiny.en"
         assert os.environ["TRIBEV2_WHISPERX_BATCH_SIZE"] == "4"
+        assert os.environ["TRIBEV2_WHISPERX_COMPUTE_TYPE"] == "int8"
 
     def test_cpu_profile_sets_cpu_defaults(self, monkeypatch):
-        for key in ("TRIBEV2_WHISPERX_DEVICE", "TRIBEV2_WHISPERX_MODEL", "TRIBEV2_WHISPERX_BATCH_SIZE"):
+        for key in (
+            "TRIBEV2_WHISPERX_DEVICE",
+            "TRIBEV2_WHISPERX_MODEL",
+            "TRIBEV2_WHISPERX_BATCH_SIZE",
+            "TRIBEV2_WHISPERX_COMPUTE_TYPE",
+        ):
             monkeypatch.delenv(key, raising=False)
         _configure_whisper_defaults(_CPU_PROFILE)
         assert os.environ["TRIBEV2_WHISPERX_DEVICE"] == "cpu"
         assert os.environ["TRIBEV2_WHISPERX_MODEL"] == "tiny.en"
         assert os.environ["TRIBEV2_WHISPERX_BATCH_SIZE"] == "4"
+        assert os.environ["TRIBEV2_WHISPERX_COMPUTE_TYPE"] == "int8"
 
     def test_user_overrides_are_respected(self, monkeypatch):
         monkeypatch.setenv("TRIBEV2_WHISPERX_DEVICE", "cpu")

@@ -6,10 +6,10 @@ Apple Silicon + Llama for HuggingFaceText (neuralset ``device=accelerate``):
 
 Default strategy is resolved by ``model_service._resolve_text_backend_strategy``:
 - ``cpu``: Llama loaded in float32 on CPU. Brain/audio still use MPS.
-  Active when BRAIN_DIFF_LLAMA_ON_CPU=1 (default for <16 GiB RAM).
-- ``mps_split``: fp16 + ``device_map=auto`` + ``max_memory`` so hot layers stay on MPS,
-  the rest spills to CPU. Default MPS cap is 3500 MiB for >=16 GiB RAM.
-  Active when BRAIN_DIFF_LLAMA_ON_CPU=0 and BRAIN_DIFF_MPS_LLAMA_FP32_FULL=0.
+  Recommended default on Apple Silicon (avoids MPS placeholder bugs in Llama).
+- ``mps_split``: fp16 + ``device_map=auto`` + ``max_memory`` (hot on MPS, rest on CPU).
+  Opt-in via ``BRAIN_DIFF_TEXT_BACKEND=mps_split`` — can raise
+  ``Placeholder storage has not been allocated on MPS device`` on some PyTorch builds.
 - ``mps_full_fp32``: fp32 full ``.to("mps")``. Large-RAM machines only.
   Active when BRAIN_DIFF_MPS_LLAMA_FP32_FULL=1.
 

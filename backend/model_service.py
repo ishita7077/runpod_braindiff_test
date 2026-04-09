@@ -26,7 +26,12 @@ def _resolve_text_backend_strategy(profile: RuntimeProfile) -> str:
 
     Priority order:
     1. Explicit BRAIN_DIFF_TEXT_BACKEND env (auto | cpu | mps_split | mps_full_fp32)
-    2. Auto-detect: non-MPS runtime → cpu; MPS with >=16 GiB RAM → mps_split; else cpu.
+    2. Auto: Llama stays on CPU unless you opt into mps_split / mps_full_fp32.
+
+    On Apple Silicon, auto-used-to pick mps_split for 16+ GiB RAM, but accelerate +
+    device_map on MPS routinely crashes in Llama embed_tokens with
+    ``RuntimeError: Placeholder storage has not been allocated on MPS device!``.
+    TRIBEv2 brain/audio encoders still use MPS; only the text tower moves off GPU.
 
     Returns one of: "cpu" | "mps_split" | "mps_full_fp32"
     """
@@ -42,16 +47,7 @@ def _resolve_text_backend_strategy(profile: RuntimeProfile) -> str:
     if profile.device != "mps":
         return "cpu"
 
-    try:
-        if psutil is None:
-            raise ImportError("psutil not available")
-        total_ram = psutil.virtual_memory().total
-    except Exception:
-        logger.warning("model_service: psutil unavailable; defaulting text backend to cpu")
-        return "cpu"
-
-    if total_ram >= 16 * _GIB:
-        return "mps_split"
+    # Safe default for MPS hosts (see docstring).
     return "cpu"
 
 
@@ -84,11 +80,14 @@ def _configure_whisper_defaults(profile: RuntimeProfile) -> None:
     Only overrides vars that have not been set by the user.
     """
     if profile.device == "cuda":
+        # faster-whisper on CUDA uses float16; CPU/MPS hosts must use int8 (float16 is unsupported on CPU).
+        os.environ.setdefault("TRIBEV2_WHISPERX_COMPUTE_TYPE", "float16")
         return
     os.environ.setdefault("TRIBEV2_WHISPERX_DEVICE", "cpu")
     os.environ.setdefault("TRIBEV2_WHISPERX_MODEL", "tiny.en")
     os.environ.setdefault("TRIBEV2_WHISPERX_BATCH_SIZE", "4")
     os.environ.setdefault("TRIBEV2_WHISPERX_ALIGN_MODEL", "WAV2VEC2_ASR_LARGE_LV60K_960H")
+    os.environ.setdefault("TRIBEV2_WHISPERX_COMPUTE_TYPE", "int8")
 
 
 class TribeService:

@@ -24,7 +24,7 @@ def check_ffmpeg() -> tuple[bool, str]:
 
 def check_hf_gated_access() -> tuple[bool, str]:
     try:
-        from huggingface_hub import HfApi, scan_cache_dir
+        from huggingface_hub import HfApi, get_token, scan_cache_dir
     except Exception:
         return False, "huggingface_hub not installed"
     try:
@@ -34,7 +34,9 @@ def check_hf_gated_access() -> tuple[bool, str]:
                 return True, "local_cache_present"
     except Exception:
         pass
-    token = HfApi().token
+    # huggingface_hub>=1.8 often leaves HfApi().token unset even when ~/.cache/huggingface/token exists;
+    # get_token() matches what `hf auth login` / HF_TOKEN actually use at runtime.
+    token = HfApi().token or get_token()
     if token:
         return True, "token_present_unverified"
     return False, "no local gated-model cache and no Hugging Face token found"
@@ -81,6 +83,7 @@ def build_preflight_report(
         "model": os.environ.get("TRIBEV2_WHISPERX_MODEL", "unknown"),
         "batch_size": os.environ.get("TRIBEV2_WHISPERX_BATCH_SIZE", "unknown"),
         "align_model": os.environ.get("TRIBEV2_WHISPERX_ALIGN_MODEL", "unknown"),
+        "compute_type": os.environ.get("TRIBEV2_WHISPERX_COMPUTE_TYPE", "unknown"),
     }
 
     blockers: list[str] = []
