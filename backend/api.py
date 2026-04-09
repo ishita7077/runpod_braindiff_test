@@ -30,12 +30,33 @@ from backend.telemetry_store import TelemetryStore
 
 logger = logging.getLogger("braindiff.api")
 
+SLOW_NOTICE_MS = 180_000
+HARD_TIMEOUT_MS = 1_200_000
+
 job_store = JobStore()
 tribe_service = TribeService(model_revision=os.getenv("TRIBEV2_REVISION", "facebook/tribev2"))
 masks: dict[str, dict[str, Any]] = {}
 LOG_DIR = os.getenv("BRAIN_DIFF_LOG_DIR", "logs")
 TELEMETRY_DB_PATH = os.getenv("BRAIN_DIFF_TELEMETRY_DB", os.path.join(LOG_DIR, "telemetry.sqlite3"))
 telemetry_store = TelemetryStore(TELEMETRY_DB_PATH)
+
+# Single-job concurrency guard for local (mps/cpu) execution.
+# CUDA users can raise the limit via BRAIN_DIFF_MAX_CONCURRENT_JOBS.
+_diff_semaphore: asyncio.Semaphore | None = None
+
+
+def _get_diff_semaphore() -> asyncio.Semaphore:
+    global _diff_semaphore
+    if _diff_semaphore is None:
+        runtime_backend = ""
+        if getattr(tribe_service, "runtime_profile", None) is not None:
+            runtime_backend = tribe_service.runtime_profile.backend
+        default_limit = 1  # conservative default for mps/cpu
+        if runtime_backend == "cuda":
+            default_limit = 4
+        limit = int(os.getenv("BRAIN_DIFF_MAX_CONCURRENT_JOBS", str(default_limit)))
+        _diff_semaphore = asyncio.Semaphore(limit)
+    return _diff_semaphore
 
 
 def _error_code_for_exception(err: Exception) -> tuple[str, str]:
@@ -71,12 +92,20 @@ def _initialize_app() -> None:
             logger.info("startup:warmup:ok")
         except Exception as werr:
             logger.warning("startup:warmup:failed_non_fatal: %s", werr, exc_info=True)
+    runtime_dict: dict[str, Any] = {}
+    if getattr(tribe_service, "runtime_profile", None) is not None:
+        runtime_dict = {
+            "device": tribe_service.runtime_profile.device,
+            "backend": tribe_service.runtime_profile.backend,
+        }
     manifest = build_startup_manifest(
         model_revision=tribe_service.model_revision,
         atlas_dir=os.getenv("BRAIN_DIFF_ATLAS_DIR", "atlases"),
         requirements_lock_path=os.getenv(
             "BRAIN_DIFF_REQUIREMENTS_LOCK", "backend/requirements_frozen.txt"
         ),
+        runtime=runtime_dict,
+        text_backend_strategy=getattr(tribe_service, "text_backend_strategy", None),
     )
     write_startup_manifest(manifest, output_path="backend/startup_manifest.json")
     logger.info("startup:ok")
@@ -304,12 +333,18 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="error", success=False, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=0, text_b_timesteps=0, total_ms=int((time.perf_counter()-started_at)*1000), error_code=code, error_message=message)
 
 
+async def _guarded_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
+    sem = _get_diff_semaphore()
+    async with sem:
+        await asyncio.to_thread(_run_diff_job, job_id, request_id, payload)
+
+
 @app.post("/api/diff/start", response_model=JobStartResponse)
 async def start_diff(payload: DiffRequest) -> JobStartResponse:
     request_id = str(uuid.uuid4())
     job_id = str(uuid.uuid4())
     job_store.create(job_id, request_id)
-    asyncio.create_task(asyncio.to_thread(_run_diff_job, job_id, request_id, payload))
+    asyncio.create_task(_guarded_diff_job(job_id, request_id, payload))
     return JobStartResponse(job_id=job_id, request_id=request_id, status="queued")
 
 
@@ -348,7 +383,9 @@ async def diff_sync(payload: DiffRequest) -> JSONResponse:
     request_id = str(uuid.uuid4())
     job_id = str(uuid.uuid4())
     job_store.create(job_id, request_id)
-    await asyncio.to_thread(_run_diff_job, job_id, request_id, payload)
+    sem = _get_diff_semaphore()
+    async with sem:
+        await asyncio.to_thread(_run_diff_job, job_id, request_id, payload)
     job = job_store.get(job_id)
     if not job:
         raise HTTPException(status_code=500, detail={"request_id": request_id, "message": "Job missing"})
@@ -359,7 +396,24 @@ async def diff_sync(payload: DiffRequest) -> JSONResponse:
 
 @app.get("/api/preflight")
 async def preflight() -> JSONResponse:
-    report = build_preflight_report(model_loaded=tribe_service.model is not None, masks_ready=len(masks) > 0)
+    runtime_dict: dict[str, Any] = {}
+    if getattr(tribe_service, "runtime_profile", None) is not None:
+        runtime_dict = {
+            "device": tribe_service.runtime_profile.device,
+            "backend": tribe_service.runtime_profile.backend,
+        }
+    runtime_backend = runtime_dict.get("backend", "")
+    default_max_jobs = 1 if runtime_backend in ("mps", "cpu", "") else 4
+    max_concurrent_jobs = int(os.getenv("BRAIN_DIFF_MAX_CONCURRENT_JOBS", str(default_max_jobs)))
+    report = build_preflight_report(
+        model_loaded=tribe_service.model is not None,
+        masks_ready=len(masks) > 0,
+        runtime=runtime_dict,
+        text_backend_strategy=getattr(tribe_service, "text_backend_strategy", None),
+        slow_notice_ms=SLOW_NOTICE_MS,
+        hard_timeout_ms=HARD_TIMEOUT_MS,
+        max_concurrent_jobs=max_concurrent_jobs,
+    )
     return JSONResponse(report)
 
 

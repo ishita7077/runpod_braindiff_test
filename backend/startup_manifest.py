@@ -33,6 +33,7 @@ def build_startup_manifest(
     atlas_dir: str = "atlases",
     requirements_lock_path: str = "backend/requirements_frozen.txt",
     runtime: dict[str, Any] | None = None,
+    text_backend_strategy: str | None = None,
 ) -> dict[str, Any]:
     atlas_path = Path(atlas_dir)
     lh = atlas_path / "lh.HCP-MMP1.annot"
@@ -77,6 +78,8 @@ def build_startup_manifest(
         "gpu_name": gpu_name,
         "gpu_memory_gb": gpu_memory_gb,
         "runtime": runtime or {},
+        "text_backend_strategy": text_backend_strategy or "unknown",
+        "mps_text_memory_cap": os.environ.get("BRAIN_DIFF_MPS_TEXT_MAX_MEMORY") if text_backend_strategy == "mps_split" else None,
         "host": {
             "platform": platform.platform(),
             "pid": os.getpid(),

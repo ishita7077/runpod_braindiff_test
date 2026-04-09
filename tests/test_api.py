@@ -108,6 +108,62 @@ def test_preflight_endpoint(monkeypatch):
     assert "blockers" in payload
 
 
+def test_preflight_returns_runtime_and_limits(monkeypatch):
+    """Preflight must include runtime, text_backend_strategy, and limits."""
+    monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
+    monkeypatch.setattr(api, "masks", _dummy_masks())
+    monkeypatch.setattr(api.tribe_service, "model", object())
+
+    client = TestClient(api.app)
+    response = client.get("/api/preflight")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "runtime" in payload
+    assert "text_backend_strategy" in payload
+    limits = payload.get("limits", {})
+    assert "slow_notice_ms" in limits
+    assert "hard_timeout_ms" in limits
+    assert limits["hard_timeout_ms"] == api.HARD_TIMEOUT_MS
+    assert limits["slow_notice_ms"] == api.SLOW_NOTICE_MS
+
+
+def test_preflight_cpu_runtime_accelerate_not_a_blocker(monkeypatch):
+    """On cpu runtime, missing accelerate must NOT appear in blockers."""
+    import backend.preflight as pf
+
+    monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
+    monkeypatch.setattr(api, "masks", _dummy_masks())
+    monkeypatch.setattr(api.tribe_service, "model", object())
+    # Simulate cpu runtime profile.
+    from backend.runtime import _profile_for_device
+    monkeypatch.setattr(api.tribe_service, "runtime_profile", _profile_for_device("cpu"))
+    # Simulate accelerate missing.
+    monkeypatch.setattr(pf, "check_accelerate", lambda: (False, "accelerate not installed"))
+
+    client = TestClient(api.app)
+    response = client.get("/api/preflight")
+    assert response.status_code == 200
+    payload = response.json()
+    assert "accelerate_missing" not in payload["blockers"]
+
+
+def test_api_works_on_cpu_when_accelerate_unavailable(monkeypatch):
+    """Diff jobs must succeed on cpu runtime even when accelerate is not installed."""
+    monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
+    monkeypatch.setattr(api, "tribe_service", _DummyTribeService())
+    monkeypatch.setattr(api, "masks", _dummy_masks())
+    monkeypatch.setattr(
+        api,
+        "generate_heatmap_artifact",
+        lambda vertex_delta: {"format": "png_base64", "image_base64": "x"},
+    )
+
+    client = TestClient(api.app)
+    response = client.post("/api/diff", json={"text_a": "Version A text here", "text_b": "Version B text here"})
+    assert response.status_code == 200
+    assert "diff" in response.json()
+
+
 def test_identical_texts_have_zero_delta(monkeypatch):
     monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
     monkeypatch.setattr(api, "tribe_service", _DummyTribeService())

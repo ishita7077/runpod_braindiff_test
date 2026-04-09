@@ -1,7 +1,7 @@
 import os
+import shutil
 from pathlib import Path
 from typing import Any
-import shutil
 
 
 def check_ffmpeg() -> tuple[bool, str]:
@@ -13,6 +13,7 @@ def check_ffmpeg() -> tuple[bool, str]:
             return True, str(fp)
     try:
         import imageio_ffmpeg  # type: ignore
+
         ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
         if Path(ffmpeg_exe).exists():
             return True, f"imageio_ffmpeg:{ffmpeg_exe}"
@@ -56,12 +57,33 @@ def check_accelerate() -> tuple[bool, str]:
         return False, "accelerate not installed (pip install accelerate) — needed for Llama with device_map"
 
 
-def build_preflight_report(*, model_loaded: bool, masks_ready: bool, runtime: dict[str, Any] | None = None) -> dict[str, Any]:
+def build_preflight_report(
+    *,
+    model_loaded: bool,
+    masks_ready: bool,
+    runtime: dict[str, Any] | None = None,
+    text_backend_strategy: str | None = None,
+    slow_notice_ms: int = 180_000,
+    hard_timeout_ms: int = 1_200_000,
+    max_concurrent_jobs: int = 1,
+) -> dict[str, Any]:
     ffmpeg_ok, ffmpeg_detail = check_ffmpeg()
     hf_ok, hf_detail = check_hf_gated_access()
     uvx_ok, uvx_detail = check_uvx()
     accelerate_ok, accelerate_detail = check_accelerate()
-    blockers = []
+
+    runtime_backend = (runtime or {}).get("backend", "")
+    # accelerate is only required when the runtime actually uses device_map=auto (mps).
+    accelerate_required = runtime_backend == "mps"
+
+    effective_whisper = {
+        "device": os.environ.get("TRIBEV2_WHISPERX_DEVICE", "unknown"),
+        "model": os.environ.get("TRIBEV2_WHISPERX_MODEL", "unknown"),
+        "batch_size": os.environ.get("TRIBEV2_WHISPERX_BATCH_SIZE", "unknown"),
+        "align_model": os.environ.get("TRIBEV2_WHISPERX_ALIGN_MODEL", "unknown"),
+    }
+
+    blockers: list[str] = []
     if not model_loaded:
         blockers.append("model_not_loaded")
     if not masks_ready:
@@ -72,16 +94,28 @@ def build_preflight_report(*, model_loaded: bool, masks_ready: bool, runtime: di
         blockers.append("uvx_missing")
     if not hf_ok:
         blockers.append("hf_auth_or_access_missing")
-    if not accelerate_ok:
+    if accelerate_required and not accelerate_ok:
         blockers.append("accelerate_missing")
+
     return {
         "ok": len(blockers) == 0,
         "model_loaded": model_loaded,
         "masks_ready": masks_ready,
         "runtime": runtime or {},
+        "text_backend_strategy": text_backend_strategy or "unknown",
+        "effective_whisper_defaults": effective_whisper,
+        "limits": {
+            "slow_notice_ms": slow_notice_ms,
+            "hard_timeout_ms": hard_timeout_ms,
+            "max_concurrent_jobs": max_concurrent_jobs,
+        },
         "ffmpeg": {"ok": ffmpeg_ok, "detail": ffmpeg_detail},
         "uvx": {"ok": uvx_ok, "detail": uvx_detail},
-        "accelerate": {"ok": accelerate_ok, "detail": accelerate_detail},
+        "accelerate": {
+            "ok": accelerate_ok,
+            "detail": accelerate_detail,
+            "required": accelerate_required,
+        },
         "hf_gated_model_access": {"ok": hf_ok, "detail": hf_detail},
         "blockers": blockers,
     }

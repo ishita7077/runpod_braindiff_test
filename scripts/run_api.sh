@@ -7,4 +7,8 @@ if [ -d ".venv" ]; then
   export PATH="$(pwd)/.venv/bin:${PATH}"
 fi
 
-uvicorn backend.api:app --host 0.0.0.0 --port 8000 --reload
+if [ "${UVICORN_RELOAD:-0}" = "1" ]; then
+  uvicorn backend.api:app --host 0.0.0.0 --port 8000 --reload
+else
+  uvicorn backend.api:app --host 0.0.0.0 --port 8000
+fi

@@ -1,6 +1,5 @@
 import logging
 import os
-import platform
 import shutil
 import sys
 import tempfile
@@ -9,10 +8,87 @@ from typing import Any
 
 import numpy as np
 
+try:
+    import psutil as psutil
+except Exception:
+    psutil = None  # type: ignore[assignment]
+
 from backend.neuralset_mps_patch import apply_huggingface_text_mps_dtype_patch
 from backend.runtime import RuntimeProfile, _profile_for_device, detect_runtime_profile
 
 logger = logging.getLogger("braindiff.model_service")
+
+_GIB = 1024 ** 3
+
+
+def _resolve_text_backend_strategy(profile: RuntimeProfile) -> str:
+    """Resolve the text-encoder placement strategy.
+
+    Priority order:
+    1. Explicit BRAIN_DIFF_TEXT_BACKEND env (auto | cpu | mps_split | mps_full_fp32)
+    2. Auto-detect: non-MPS runtime → cpu; MPS with >=16 GiB RAM → mps_split; else cpu.
+
+    Returns one of: "cpu" | "mps_split" | "mps_full_fp32"
+    """
+    explicit = os.environ.get("BRAIN_DIFF_TEXT_BACKEND", "").strip().lower()
+    if explicit in ("cpu", "mps_split", "mps_full_fp32"):
+        return explicit
+    if explicit and explicit != "auto":
+        logger.warning(
+            "model_service: unknown BRAIN_DIFF_TEXT_BACKEND=%r; using auto",
+            explicit,
+        )
+
+    if profile.device != "mps":
+        return "cpu"
+
+    try:
+        if psutil is None:
+            raise ImportError("psutil not available")
+        total_ram = psutil.virtual_memory().total
+    except Exception:
+        logger.warning("model_service: psutil unavailable; defaulting text backend to cpu")
+        return "cpu"
+
+    if total_ram >= 16 * _GIB:
+        return "mps_split"
+    return "cpu"
+
+
+def _apply_text_backend_strategy(strategy: str) -> None:
+    """Set compatibility env flags so neuralset_mps_patch reads them correctly."""
+    if strategy == "cpu":
+        os.environ["BRAIN_DIFF_LLAMA_ON_CPU"] = "1"
+        os.environ["BRAIN_DIFF_MPS_LLAMA_FP32_FULL"] = "0"
+    elif strategy == "mps_split":
+        os.environ["BRAIN_DIFF_LLAMA_ON_CPU"] = "0"
+        os.environ["BRAIN_DIFF_MPS_LLAMA_FP32_FULL"] = "0"
+        if "BRAIN_DIFF_MPS_TEXT_MAX_MEMORY" not in os.environ:
+            try:
+                if psutil is None:
+                    raise ImportError("psutil not available")
+                total_ram = psutil.virtual_memory().total
+            except Exception:
+                total_ram = 0
+            cap = "3500MiB" if total_ram >= 16 * _GIB else "2500MiB"
+            os.environ["BRAIN_DIFF_MPS_TEXT_MAX_MEMORY"] = cap
+    elif strategy == "mps_full_fp32":
+        os.environ["BRAIN_DIFF_LLAMA_ON_CPU"] = "0"
+        os.environ["BRAIN_DIFF_MPS_LLAMA_FP32_FULL"] = "1"
+
+
+def _configure_whisper_defaults(profile: RuntimeProfile) -> None:
+    """Set honest WhisperX defaults for each load attempt.
+
+    CTranslate2/WhisperX has no MPS backend, so non-CUDA runs always use CPU.
+    Only overrides vars that have not been set by the user.
+    """
+    if profile.device == "cuda":
+        return
+    os.environ.setdefault("TRIBEV2_WHISPERX_DEVICE", "cpu")
+    os.environ.setdefault("TRIBEV2_WHISPERX_MODEL", "tiny.en")
+    os.environ.setdefault("TRIBEV2_WHISPERX_BATCH_SIZE", "4")
+    os.environ.setdefault("TRIBEV2_WHISPERX_ALIGN_MODEL", "WAV2VEC2_ASR_LARGE_LV60K_960H")
 
 
 class TribeService:
@@ -21,6 +97,7 @@ class TribeService:
         self.cache_folder = cache_folder
         self.model = None
         self.runtime_profile: RuntimeProfile | None = None
+        self.text_backend_strategy: str | None = None
 
     def load(self) -> None:
         logger.info("TribeService.load:start model_revision=%s", self.model_revision)
@@ -34,19 +111,33 @@ class TribeService:
         except Exception as err:
             raise RuntimeError("Failed to import TRIBEv2. Install facebookresearch/tribev2 first.") from err
 
-        # Llama on CPU avoids MPS matmul/OOM/buffer limits on many M1/M2 configs; brain + audio still use MPS.
-        if platform.system() == "Darwin":
-            os.environ.setdefault("BRAIN_DIFF_LLAMA_ON_CPU", "1")
-
         apply_huggingface_text_mps_dtype_patch()
 
         requested = detect_runtime_profile()
-        self._configure_whisper_defaults(requested)
         last_err: Exception | None = None
         for device in requested.fallback_chain:
             profile = requested if device == requested.device else _profile_for_device(device)
+            strategy = _resolve_text_backend_strategy(profile)
+            _apply_text_backend_strategy(strategy)
+            _configure_whisper_defaults(profile)
+
+            whisper_device = os.environ.get("TRIBEV2_WHISPERX_DEVICE", "cuda" if profile.device == "cuda" else "cpu")
+            whisper_model = os.environ.get("TRIBEV2_WHISPERX_MODEL", "—")
+            whisper_batch = os.environ.get("TRIBEV2_WHISPERX_BATCH_SIZE", "—")
+            mps_cap = os.environ.get("BRAIN_DIFF_MPS_TEXT_MAX_MEMORY", "—") if strategy == "mps_split" else "n/a"
+
+            logger.info(
+                "TribeService.load:attempt device=%s backend=%s text_strategy=%s "
+                "whisper_device=%s whisper_model=%s whisper_batch=%s mps_cap=%s",
+                profile.device,
+                profile.backend,
+                strategy,
+                whisper_device,
+                whisper_model,
+                whisper_batch,
+                mps_cap,
+            )
             try:
-                logger.info("TribeService.load:attempt device=%s backend=%s", profile.device, profile.backend)
                 self.model = TribeModel.from_pretrained(
                     self.model_revision,
                     cache_folder=self.cache_folder,
@@ -54,27 +145,23 @@ class TribeService:
                     config_update=profile.config_update,
                 )
                 self.runtime_profile = profile
-                logger.info("TribeService.load:ok device=%s backend=%s", profile.device, profile.backend)
+                self.text_backend_strategy = strategy
+                logger.info(
+                    "TribeService.load:ok device=%s backend=%s text_strategy=%s",
+                    profile.device,
+                    profile.backend,
+                    strategy,
+                )
                 return
             except Exception as err:
                 last_err = err
-                logger.warning("TribeService.load:attempt_failed device=%s err=%s", profile.device, err, exc_info=True)
+                logger.warning(
+                    "TribeService.load:attempt_failed device=%s err=%s",
+                    profile.device,
+                    err,
+                    exc_info=True,
+                )
         raise RuntimeError(f"Failed to load model {self.model_revision}: {last_err}") from last_err
-
-    @staticmethod
-    def _configure_whisper_defaults(profile: RuntimeProfile) -> None:
-        if profile.device == "cuda":
-            return
-        if profile.device == "mps":
-            # TRIBEv2 uses MPS/accelerate; WhisperX (CTranslate2) has no MPS — force CPU for subprocess.
-            os.environ.setdefault("TRIBEV2_WHISPERX_DEVICE", "cpu")
-            os.environ.setdefault("TRIBEV2_WHISPERX_BATCH_SIZE", "8")
-            os.environ.setdefault("TRIBEV2_WHISPERX_ALIGN_MODEL", "WAV2VEC2_ASR_LARGE_LV60K_960H")
-            return
-        # Actual CPU-only fallback: lighter Whisper defaults
-        os.environ.setdefault("TRIBEV2_WHISPERX_MODEL", "tiny.en")
-        os.environ.setdefault("TRIBEV2_WHISPERX_BATCH_SIZE", "4")
-        os.environ.setdefault("TRIBEV2_WHISPERX_ALIGN_MODEL", "WAV2VEC2_ASR_LARGE_LV60K_960H")
 
     @staticmethod
     def _ensure_uvx_on_path() -> None:

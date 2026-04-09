@@ -41,7 +41,14 @@ def main() -> int:
     if code != 200 or not isinstance(pre, dict):
         print("e2e: FAIL preflight", code, pre, flush=True)
         return 1
-    print("e2e: preflight", json.dumps({k: pre.get(k) for k in ("ok", "blockers", "model_loaded")}, indent=2), flush=True)
+    print(
+        "e2e: preflight",
+        json.dumps(
+            {k: pre.get(k) for k in ("ok", "blockers", "model_loaded", "runtime", "text_backend_strategy", "limits")},
+            indent=2,
+        ),
+        flush=True,
+    )
     if not pre.get("ok"):
         print("e2e: FAIL preflight not ok — fix blockers first", flush=True)
         return 1
@@ -85,6 +92,29 @@ def main() -> int:
         print("e2e: FAIL missing result", flush=True)
         return 1
     print("e2e: OK dimensions count", len(result.get("dimensions", [])), flush=True)
+
+    # Fetch telemetry for this run.
+    tel_code, tel = _req("GET", f"/api/telemetry/run/{job_id}", timeout=30)
+    if tel_code == 200 and isinstance(tel, dict):
+        runtime = tel.get("runtime") or {}
+        stage_times = tel.get("stage_times") or {}
+        print(
+            "e2e: telemetry",
+            json.dumps(
+                {
+                    "runtime_device": runtime.get("device"),
+                    "runtime_backend": runtime.get("backend"),
+                    "text_backend_strategy": tel.get("text_backend_strategy"),
+                    "total_ms": tel.get("total_ms"),
+                    "stage_times": stage_times,
+                },
+                indent=2,
+            ),
+            flush=True,
+        )
+    else:
+        print(f"e2e: telemetry fetch failed (status={tel_code})", flush=True)
+
     return 0
 
 

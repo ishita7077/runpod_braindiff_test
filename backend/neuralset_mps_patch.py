@@ -2,15 +2,22 @@
 Apple Silicon + Llama for HuggingFaceText (neuralset ``device=accelerate``):
 
 - fp16 + ``device_map=auto`` on MPS-only can hit bad ``mps.matmul`` kernels.
-- fp32 + full ``.to("mps")`` often OOMs next to the TRIBEv2 brain model (~9GB MPS cap).
+- fp32 + full ``.to("mps")`` often OOMs next to the TRIBEv2 brain model (~9 GB MPS cap).
 
-Default: **fp16** + ``device_map=auto`` + **max_memory** so part of Llama stays on MPS
-and the rest spills to CPU (still uses GPU; not CPU-only).
+Default strategy is resolved by ``model_service._resolve_text_backend_strategy``:
+- ``cpu``: Llama loaded in float32 on CPU. Brain/audio still use MPS.
+  Active when BRAIN_DIFF_LLAMA_ON_CPU=1 (default for <16 GiB RAM).
+- ``mps_split``: fp16 + ``device_map=auto`` + ``max_memory`` so hot layers stay on MPS,
+  the rest spills to CPU. Default MPS cap is 3500 MiB for >=16 GiB RAM.
+  Active when BRAIN_DIFF_LLAMA_ON_CPU=0 and BRAIN_DIFF_MPS_LLAMA_FP32_FULL=0.
+- ``mps_full_fp32``: fp32 full ``.to("mps")``. Large-RAM machines only.
+  Active when BRAIN_DIFF_MPS_LLAMA_FP32_FULL=1.
 
 Env:
-- ``BRAIN_DIFF_MPS_TEXT_MAX_MEMORY`` — cap for MPS slice (default ``4500MiB``).
-- ``BRAIN_DIFF_MPS_LLAMA_FP32_FULL=1`` — force full fp32 on MPS (large RAM only).
-- ``BRAIN_DIFF_DISABLE_MPS_FP32_PATCH=1`` — disable this module (use stock neuralset).
+- ``BRAIN_DIFF_MPS_TEXT_MAX_MEMORY`` — MPS cap for mps_split (default ``3500MiB`` on >=16 GiB RAM).
+- ``BRAIN_DIFF_LLAMA_ON_CPU=1``      — force Llama to CPU (float32). Wins over fp32-full-device.
+- ``BRAIN_DIFF_MPS_LLAMA_FP32_FULL=1`` — force fp32 full MPS (large RAM only, LLAMA_ON_CPU must be 0).
+- ``BRAIN_DIFF_DISABLE_MPS_FP32_PATCH=1`` — skip this module entirely.
 """
 from __future__ import annotations
 
@@ -64,32 +71,20 @@ def apply_huggingface_text_mps_dtype_patch() -> None:
         elif "Llama-3.2-11B-Vision" in self.model_name:
             from transformers import MllamaForConditionalGeneration as Model
 
-        mps_ok = bool(getattr(th.backends, "mps", None)) and th.backends.mps.is_available()
+        mps_available = bool(getattr(th.backends, "mps", None)) and th.backends.mps.is_available()
 
-        if mps_ok:
-            # Full fp32 .to(mps) OOMs beside the brain model on ~9GB MPS caps; full fp16 device_map
-            # hit bad mps.matmul kernels. Split with max_memory: hot layers on MPS, spill to CPU.
-            use_fp32_single = os.getenv("BRAIN_DIFF_MPS_LLAMA_FP32_FULL", "0") == "1"
-            if use_fp32_single:
-                dtype = th.float32
-                logger.info("neuralset_mps_patch: MPS Llama fp32 full-device (BRAIN_DIFF_MPS_LLAMA_FP32_FULL=1)")
-                model = Model.from_pretrained(self.model_name, torch_dtype=dtype)
-                if not self.pretrained:
-                    rawmodel = Model.from_config(model.config)
-                    with th.no_grad():
-                        for p1, p2 in itertools.zip_longest(model.parameters(), rawmodel.parameters()):
-                            p1.data = p2.to(p1)
-                elif self.pretrained == "part-reversal":
-                    with th.no_grad():
-                        for p in model.parameters():
-                            part_reversal(p)
-                model.to(th.device("mps"))
-                model.eval()
-                return model
+        if mps_available:
+            # Precedence: LLAMA_ON_CPU wins over fp32-full-device regardless of order.
+            llama_on_cpu = os.getenv("BRAIN_DIFF_LLAMA_ON_CPU", "0") == "1"
+            use_fp32_single = (
+                os.getenv("BRAIN_DIFF_MPS_LLAMA_FP32_FULL", "0") == "1" and not llama_on_cpu
+            )
 
-            if os.getenv("BRAIN_DIFF_LLAMA_ON_CPU", "0") == "1":
-                logger.info("neuralset_mps_patch: Llama on CPU only (BRAIN_DIFF_LLAMA_ON_CPU=1); brain/audio may still use MPS")
-                model = Model.from_pretrained(self.model_name, torch_dtype=th.float16)
+            if llama_on_cpu:
+                logger.info(
+                    "neuralset_mps_patch: Llama on CPU float32 (BRAIN_DIFF_LLAMA_ON_CPU=1); brain/audio may still use MPS"
+                )
+                model = Model.from_pretrained(self.model_name, torch_dtype=th.float32)
                 if not self.pretrained:
                     rawmodel = Model.from_config(model.config)
                     with th.no_grad():
@@ -103,14 +98,34 @@ def apply_huggingface_text_mps_dtype_patch() -> None:
                 model.eval()
                 return model
 
-            mps_cap = os.getenv("BRAIN_DIFF_MPS_TEXT_MAX_MEMORY", "2500MiB")
+            if use_fp32_single:
+                logger.info(
+                    "neuralset_mps_patch: MPS Llama fp32 full-device (BRAIN_DIFF_MPS_LLAMA_FP32_FULL=1)"
+                )
+                model = Model.from_pretrained(self.model_name, torch_dtype=th.float32)
+                if not self.pretrained:
+                    rawmodel = Model.from_config(model.config)
+                    with th.no_grad():
+                        for p1, p2 in itertools.zip_longest(model.parameters(), rawmodel.parameters()):
+                            p1.data = p2.to(p1)
+                elif self.pretrained == "part-reversal":
+                    with th.no_grad():
+                        for p in model.parameters():
+                            part_reversal(p)
+                model.to(th.device("mps"))
+                model.eval()
+                return model
+
+            # mps_split: hot layers on MPS, rest spills to CPU.
+            mps_cap = os.getenv("BRAIN_DIFF_MPS_TEXT_MAX_MEMORY", "3500MiB")
             load_kw: dict[str, Any] = {
                 "device_map": "auto",
                 "torch_dtype": th.float16,
                 "max_memory": {"mps": mps_cap, "cpu": "200GiB"},
             }
             logger.info(
-                "neuralset_mps_patch: MPS+CPU split Llama fp16 max_memory[mps]=%s (set BRAIN_DIFF_MPS_TEXT_MAX_MEMORY to tune)",
+                "neuralset_mps_patch: MPS+CPU split Llama fp16 max_memory[mps]=%s "
+                "(set BRAIN_DIFF_MPS_TEXT_MAX_MEMORY to tune)",
                 mps_cap,
             )
             model = Model.from_pretrained(self.model_name, **load_kw)

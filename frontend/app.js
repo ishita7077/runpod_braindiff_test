@@ -46,6 +46,9 @@ let isSubmitting = false;
 let preflightState = null;
 let latestShareData = null;
 
+const DEFAULT_SLOW_NOTICE_MS = 180_000;
+const DEFAULT_HARD_TIMEOUT_MS = 1_200_000;
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -64,8 +67,11 @@ function updateFormState() {
   countA.textContent = `${textA.value.length} / 5000`;
   countB.textContent = `${textB.value.length} / 5000`;
   const hasContent = !!textA.value.trim() && !!textB.value.trim();
-  const preflightOk = preflightState ? !!preflightState.ok : true;
-  runBtn.disabled = !hasContent || !preflightOk || isSubmitting;
+  // Only block on real blockers. accelerate_missing on cpu runtime is not a blocker.
+  const blockers = preflightState?.blockers || [];
+  const realBlockers = blockers.filter((b) => b !== "accelerate_missing");
+  const modelBlockers = preflightState ? realBlockers.length > 0 : false;
+  runBtn.disabled = !hasContent || modelBlockers || isSubmitting;
 }
 
 function formatJobError(errorPayload) {
@@ -214,6 +220,20 @@ function renderKV(target, rows) {
   });
 }
 
+function _runtimeLabel(report) {
+  const backend = report?.runtime?.backend;
+  const device = report?.runtime?.device;
+  const strategy = report?.text_backend_strategy;
+  if (!backend) return "unknown";
+  let label = `${backend} · ${device}`;
+  if (backend === "mps" && strategy === "mps_split") {
+    label += " — Apple Silicon: MPS for brain path, CPU for Whisper transcription";
+  } else if (strategy === "cpu") {
+    label += " — CPU compatibility path (slower)";
+  }
+  return label;
+}
+
 function renderPreflightDiagnostics(report) {
   if (!preflightStatus || !preflightList) return;
   preflightStatus.textContent = report?.ok ? "Ready" : "Needs attention";
@@ -224,7 +244,9 @@ function renderPreflightDiagnostics(report) {
     ["FFmpeg", report?.ffmpeg?.detail || (report?.ffmpeg?.ok ? "ok" : "missing")],
     ["uvx", report?.uvx?.detail || (report?.uvx?.ok ? "ok" : "missing")],
     ["HF access", report?.hf_gated_model_access?.detail || (report?.hf_gated_model_access?.ok ? "ok" : "missing")],
-    ["Runtime", report?.runtime?.backend ? `${report.runtime.backend} · ${report.runtime.device}` : "unknown"],
+    ["Runtime", _runtimeLabel(report)],
+    ["Text backend", report?.text_backend_strategy || "unknown"],
+    ["Hard timeout", report?.limits?.hard_timeout_ms ? `${(report.limits.hard_timeout_ms / 1000).toFixed(0)} s` : "—"],
   ];
   if (report?.blockers?.length) rows.push(["Blockers", report.blockers.join(", ")]);
   renderKV(preflightList, rows);
@@ -306,7 +328,7 @@ async function fetchPreflight() {
       if (runMeta) runMeta.textContent = "Ready. Diagnostics stay tucked away until you need them.";
     }
   } catch {
-    preflightState = { ok: false, errors: ["Unable to reach local API preflight"] };
+    preflightState = { ok: false, blockers: [], errors: ["Unable to reach local API preflight"] };
     ctaNote.textContent = "Unable to verify local model readiness. Start the API first.";
   }
   updateFormState();
@@ -314,25 +336,48 @@ async function fetchPreflight() {
 
 async function pollStatus(jobId) {
   const started = performance.now();
+  const slowNoticeMs = preflightState?.limits?.slow_notice_ms ?? DEFAULT_SLOW_NOTICE_MS;
+  const hardTimeoutMs = preflightState?.limits?.hard_timeout_ms ?? DEFAULT_HARD_TIMEOUT_MS;
+  let slowNoticeFired = false;
+  let seenEventCount = 0;
+
   while (true) {
-    if (performance.now() - started > 180000) {
-      throw new Error("Run exceeded 180s. This system likely needs diagnostics / acceleration.");
+    const elapsed = performance.now() - started;
+
+    if (elapsed > hardTimeoutMs) {
+      throw new Error(
+        `Run exceeded ${(hardTimeoutMs / 1000).toFixed(0)} s hard timeout. Check server logs.`
+      );
     }
+
     const res = await fetch(`/api/diff/status/${jobId}`);
     if (!res.ok) throw new Error(`Status request failed (${res.status})`);
     const payload = await res.json();
-    (payload.events || []).forEach((event) => {
-      if (loadingTelemetry) {
-        const elapsed = performance.now() - started;
-        loadingTelemetry.classList.remove("hidden");
-        loadingTelemetry.innerHTML = `<strong>Live timing</strong><div>Total elapsed: ${formatMs(elapsed)}</div>`;
-      }
+
+    if (loadingTelemetry) {
+      loadingTelemetry.classList.remove("hidden");
+      loadingTelemetry.innerHTML = `<strong>Live timing</strong><div>Total elapsed: ${formatMs(elapsed)}</div>`;
+    }
+
+    // Only process new events since last poll.
+    const allEvents = payload.events || [];
+    const newEvents = allEvents.slice(seenEventCount);
+    seenEventCount = allEvents.length;
+
+    newEvents.forEach((event) => {
       if (event.status === "slow_processing") {
         loadingHintEl.textContent = "Still processing — this run is taking longer than expected.";
       } else {
         markLoadingStep(event.status);
       }
     });
+
+    if (!slowNoticeFired && elapsed > slowNoticeMs) {
+      slowNoticeFired = true;
+      loadingHintEl.textContent =
+        "This is taking a while — on CPU or MPS that is normal for the first run. Hang tight.";
+    }
+
     if (payload.status === "done") return payload.result;
     if (payload.status === "error") throw new Error(formatJobError(payload.error));
     await new Promise((resolve) => setTimeout(resolve, 500));
