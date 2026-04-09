@@ -48,7 +48,7 @@ BRAIN_DIFF_SKIP_STARTUP=1 PYTHONPATH=. .venv/bin/pytest tests/ -q
 ## Notes
 
 - **Device selection is automatic:** NVIDIA CUDA if available, else **Apple MPS** on macOS when available, else CPU. To force a specific backend (e.g. debugging), set `BRAIN_DIFF_DEVICE` to `cuda`, `mps`, or `cpu`.
-- **WhisperX** (text→speech transcription) should use the same order (`cuda` → `mps` → `cpu`). This repo’s local `tribev2/tribev2/eventstransforms.py` implements that (upstream defaults are cuda/cpu only). Override anytime with `TRIBEV2_WHISPERX_DEVICE=cuda|mps|cpu` if your `uvx whisperx` build rejects a device.
+- **WhisperX** uses **CTranslate2**, which supports **`cuda` and `cpu` only** (no Apple MPS). On Apple Silicon, transcription runs on **CPU** while TRIBEv2 encoders still use **MPS** via `accelerate`. Set `TRIBEV2_WHISPERX_DEVICE=cuda` only on NVIDIA; otherwise leave unset or use `cpu`.
 - If the atlas cannot build an exact fsaverage → fsaverage5 mapping locally, dev mode falls back to an approximate downsample and surfaces a warning. Set `BRAIN_DIFF_STRICT_ATLAS=1` to hard-fail instead.
 - If preflight says Hugging Face access is missing, inference will not run until the token/access issue is fixed.
 - WhisperX runs via `uvx`; ensure `uv` is installed (`pip install uv` in the venv adds `uvx` on PATH).

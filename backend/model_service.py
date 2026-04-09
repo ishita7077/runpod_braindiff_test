@@ -58,7 +58,8 @@ class TribeService:
         if profile.device == "cuda":
             return
         if profile.device == "mps":
-            # Apple Silicon GPU for TRIBEv2; WhisperX can use MPS when supported (see eventstransforms).
+            # TRIBEv2 uses MPS/accelerate; WhisperX (CTranslate2) has no MPS — force CPU for subprocess.
+            os.environ.setdefault("TRIBEV2_WHISPERX_DEVICE", "cpu")
             os.environ.setdefault("TRIBEV2_WHISPERX_BATCH_SIZE", "8")
             os.environ.setdefault("TRIBEV2_WHISPERX_ALIGN_MODEL", "WAV2VEC2_ASR_LARGE_LV60K_960H")
             return
@@ -112,13 +113,32 @@ class TribeService:
             return preds_np, segments, {"events_ms": events_ms, "predict_ms": predict_ms}
         except Exception as err:
             msg = str(err)
+            low = msg.lower()
+            cause = str(err.__cause__) if err.__cause__ is not None else ""
+            cause_low = cause.lower()
+            blob = f"{low} {cause_low}"
             if "gated repo" in msg or "meta-llama/Llama-3.2-3B" in msg or "401 Client Error" in msg:
                 raise RuntimeError(
                     "HF_AUTH_REQUIRED: Access to meta-llama/Llama-3.2-3B is required. Run `huggingface-cli login` with an approved token."
                 ) from err
-            if "ffmpeg" in msg.lower():
+            if "whisperx failed" in low or "unsupported device" in blob or "ctranslate2" in blob:
+                raise RuntimeError(
+                    "WHISPERX_FAILED: Text transcription (WhisperX) failed. "
+                    "On Apple Silicon, Whisper runs on CPU only; TRIBEv2 still uses the GPU. "
+                    f"Detail: {msg}"
+                ) from err
+            if (
+                "ffmpeg" in low
+                and not ("whisperx failed" in low)
+                and (
+                    "not found" in low
+                    or "missing" in low
+                    or "no such file" in low
+                    or "could not find" in low
+                )
+            ):
                 raise RuntimeError("FFMPEG_REQUIRED: ffmpeg is required for text->speech transcription path.") from err
-            if "'uvx'" in msg or "No such file or directory: 'uvx'" in msg:
+            if "'uvx'" in msg or "no such file or directory: 'uvx'" in low:
                 raise RuntimeError("UVX_REQUIRED: uv/uvx is required for text->speech transcription path.") from err
             raise
         finally:

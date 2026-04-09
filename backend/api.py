@@ -44,6 +44,10 @@ def _error_code_for_exception(err: Exception) -> tuple[str, str]:
         return "HF_AUTH_REQUIRED", msg
     if msg.startswith("FFMPEG_REQUIRED:"):
         return "FFMPEG_REQUIRED", msg
+    if msg.startswith("UVX_REQUIRED:"):
+        return "UVX_REQUIRED", msg
+    if msg.startswith("WHISPERX_FAILED:"):
+        return "WHISPERX_FAILED", msg
     if "Missing atlas area" in msg:
         return "ATLAS_MAPPING_ERROR", msg
     return "DIFF_JOB_FAILED", msg

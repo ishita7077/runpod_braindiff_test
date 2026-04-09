@@ -72,6 +72,9 @@ function formatJobError(errorPayload) {
   const code = errorPayload?.code;
   if (code === "HF_AUTH_REQUIRED") return "Model access required. Authenticate HuggingFace for the gated text encoder.";
   if (code === "FFMPEG_REQUIRED") return "ffmpeg is missing for text-to-speech transcription.";
+  if (code === "UVX_REQUIRED") return "uv/uvx is missing (needed for WhisperX transcription). Install uv in your venv.";
+  if (code === "WHISPERX_FAILED")
+    return "Transcription (WhisperX) failed. On Mac, Whisper uses CPU; check logs or try a smaller TRIBEV2_WHISPERX_MODEL.";
   if (code === "ATLAS_MAPPING_ERROR") return "Atlas mapping failed. Check HCP atlas files and labels.";
   return errorPayload?.message || "Diff job failed";
 }
