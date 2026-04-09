@@ -48,6 +48,8 @@ def _error_code_for_exception(err: Exception) -> tuple[str, str]:
         return "UVX_REQUIRED", msg
     if msg.startswith("WHISPERX_FAILED:"):
         return "WHISPERX_FAILED", msg
+    if msg.startswith("LLAMA_LOAD_FAILED:"):
+        return "LLAMA_LOAD_FAILED", msg
     if "Missing atlas area" in msg:
         return "ATLAS_MAPPING_ERROR", msg
     return "DIFF_JOB_FAILED", msg
@@ -62,6 +64,13 @@ def _initialize_app() -> None:
     global masks
     masks = build_vertex_masks(atlas_dir=os.getenv("BRAIN_DIFF_ATLAS_DIR", "atlases"))
     tribe_service.load()
+    if os.getenv("BRAIN_DIFF_STARTUP_WARMUP", "0") == "1":
+        logger.info("startup:warmup:running one text pipeline (set BRAIN_DIFF_STARTUP_WARMUP=0 to skip)")
+        try:
+            tribe_service.text_to_predictions("Hi.")
+            logger.info("startup:warmup:ok")
+        except Exception as werr:
+            logger.warning("startup:warmup:failed_non_fatal: %s", werr, exc_info=True)
     manifest = build_startup_manifest(
         model_revision=tribe_service.model_revision,
         atlas_dir=os.getenv("BRAIN_DIFF_ATLAS_DIR", "atlases"),

@@ -75,6 +75,7 @@ function formatJobError(errorPayload) {
   if (code === "UVX_REQUIRED") return "uv/uvx is missing (needed for WhisperX transcription). Install uv in your venv.";
   if (code === "WHISPERX_FAILED")
     return "Transcription (WhisperX) failed. On Mac, Whisper uses CPU; check logs or try a smaller TRIBEV2_WHISPERX_MODEL.";
+  if (code === "LLAMA_LOAD_FAILED") return "Llama text encoder failed to load or move to device. See server logs; try BRAIN_DIFF_MPS_TEXT_MAX_MEMORY on Mac.";
   if (code === "ATLAS_MAPPING_ERROR") return "Atlas mapping failed. Check HCP atlas files and labels.";
   return errorPayload?.message || "Diff job failed";
 }

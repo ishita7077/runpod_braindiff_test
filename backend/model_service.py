@@ -1,5 +1,6 @@
 import logging
 import os
+import platform
 import shutil
 import sys
 import tempfile
@@ -8,6 +9,7 @@ from typing import Any
 
 import numpy as np
 
+from backend.neuralset_mps_patch import apply_huggingface_text_mps_dtype_patch
 from backend.runtime import RuntimeProfile, _profile_for_device, detect_runtime_profile
 
 logger = logging.getLogger("braindiff.model_service")
@@ -31,6 +33,12 @@ class TribeService:
                 from tribev2.demo_utils import TribeModel  # type: ignore
         except Exception as err:
             raise RuntimeError("Failed to import TRIBEv2. Install facebookresearch/tribev2 first.") from err
+
+        # Llama on CPU avoids MPS matmul/OOM/buffer limits on many M1/M2 configs; brain + audio still use MPS.
+        if platform.system() == "Darwin":
+            os.environ.setdefault("BRAIN_DIFF_LLAMA_ON_CPU", "1")
+
+        apply_huggingface_text_mps_dtype_patch()
 
         requested = detect_runtime_profile()
         self._configure_whisper_defaults(requested)
@@ -140,6 +148,8 @@ class TribeService:
                 raise RuntimeError("FFMPEG_REQUIRED: ffmpeg is required for text->speech transcription path.") from err
             if "'uvx'" in msg or "no such file or directory: 'uvx'" in low:
                 raise RuntimeError("UVX_REQUIRED: uv/uvx is required for text->speech transcription path.") from err
+            if "model loading went wrong" in low and err.__cause__ is not None:
+                raise RuntimeError(f"LLAMA_LOAD_FAILED: {err.__cause__}") from err
             raise
         finally:
             os.unlink(temp_path)
