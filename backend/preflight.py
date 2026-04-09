@@ -46,10 +46,21 @@ def check_uvx() -> tuple[bool, str]:
     return False, "uvx command not found on PATH (install uv and ensure uvx is available)"
 
 
+def check_accelerate() -> tuple[bool, str]:
+    """Required when HuggingFaceText uses device=accelerate (device_map=auto), e.g. on Apple Silicon."""
+    try:
+        import accelerate  # noqa: F401
+
+        return True, getattr(accelerate, "__version__", "installed")
+    except Exception:
+        return False, "accelerate not installed (pip install accelerate) — needed for Llama with device_map"
+
+
 def build_preflight_report(*, model_loaded: bool, masks_ready: bool, runtime: dict[str, Any] | None = None) -> dict[str, Any]:
     ffmpeg_ok, ffmpeg_detail = check_ffmpeg()
     hf_ok, hf_detail = check_hf_gated_access()
     uvx_ok, uvx_detail = check_uvx()
+    accelerate_ok, accelerate_detail = check_accelerate()
     blockers = []
     if not model_loaded:
         blockers.append("model_not_loaded")
@@ -61,6 +72,8 @@ def build_preflight_report(*, model_loaded: bool, masks_ready: bool, runtime: di
         blockers.append("uvx_missing")
     if not hf_ok:
         blockers.append("hf_auth_or_access_missing")
+    if not accelerate_ok:
+        blockers.append("accelerate_missing")
     return {
         "ok": len(blockers) == 0,
         "model_loaded": model_loaded,
@@ -68,6 +81,7 @@ def build_preflight_report(*, model_loaded: bool, masks_ready: bool, runtime: di
         "runtime": runtime or {},
         "ffmpeg": {"ok": ffmpeg_ok, "detail": ffmpeg_detail},
         "uvx": {"ok": uvx_ok, "detail": uvx_detail},
+        "accelerate": {"ok": accelerate_ok, "detail": accelerate_detail},
         "hf_gated_model_access": {"ok": hf_ok, "detail": hf_detail},
         "blockers": blockers,
     }

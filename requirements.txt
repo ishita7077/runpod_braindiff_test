@@ -10,6 +10,7 @@ scipy==1.14.1
 pandas==2.2.3
 torch==2.4.1
 huggingface_hub==0.25.2
+accelerate>=0.34.0
 imageio-ffmpeg==0.5.1
 anyio==4.6.0
 httpx==0.27.2
