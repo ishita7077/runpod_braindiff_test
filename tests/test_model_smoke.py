@@ -33,31 +33,21 @@ def _tribe_model_class():
 
 def test_tribe_model_loads_from_hub() -> None:
     """Fast check: checkpoint + weights load (no WhisperX / predict)."""
-    os.environ.setdefault("TRIBEV2_NUM_WORKERS", "0")
     TribeModel = _tribe_model_class()
-    model = TribeModel.from_pretrained(
-        "facebook/tribev2",
-        cache_folder="./cache",
-        config_update={"data.num_workers": 0},
-    )
+    model = TribeModel.from_pretrained("facebook/tribev2", cache_folder="./cache")
     assert model._model is not None
 
 
 @pytest.mark.skipif(
     os.environ.get("TRIBEV2_E2E_PREDICT", "") != "1",
-    reason="Full TRIBEv2 predict + WhisperX: set TRIBEV2_E2E_PREDICT=1 (slow; Linux+CUDA most reliable).",
+    reason="Full TRIBEv2 predict + WhisperX: set TRIBEV2_E2E_PREDICT=1 (slow).",
 )
 def test_model_loads_and_predicts() -> None:
-    os.environ.setdefault("TRIBEV2_NUM_WORKERS", "0")
     _ensure_uvx_path()
     TribeModel = _tribe_model_class()
 
     logger.info("Loading TRIBEv2 model...")
-    model = TribeModel.from_pretrained(
-        "facebook/tribev2",
-        cache_folder="./cache",
-        config_update={"data.num_workers": 0},
-    )
+    model = TribeModel.from_pretrained("facebook/tribev2", cache_folder="./cache")
 
     with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as handle:
         handle.write("The quick brown fox jumps over the lazy dog.")

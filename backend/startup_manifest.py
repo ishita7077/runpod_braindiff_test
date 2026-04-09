@@ -54,6 +54,9 @@ def build_startup_manifest(
             gpu_name = torch.cuda.get_device_name(0)
             mem_bytes = torch.cuda.get_device_properties(0).total_memory
             gpu_memory_gb = round(mem_bytes / (1024**3), 2)
+        elif getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+            gpu_name = "Apple Silicon (MPS)"
+            gpu_memory_gb = "unified_memory"
     except Exception:
         logger.warning("Torch metadata unavailable for startup manifest", exc_info=True)
 

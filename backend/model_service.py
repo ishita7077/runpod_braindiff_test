@@ -57,6 +57,12 @@ class TribeService:
     def _configure_whisper_defaults(profile: RuntimeProfile) -> None:
         if profile.device == "cuda":
             return
+        if profile.device == "mps":
+            # Apple Silicon GPU for TRIBEv2; WhisperX can use MPS when supported (see eventstransforms).
+            os.environ.setdefault("TRIBEV2_WHISPERX_BATCH_SIZE", "8")
+            os.environ.setdefault("TRIBEV2_WHISPERX_ALIGN_MODEL", "WAV2VEC2_ASR_LARGE_LV60K_960H")
+            return
+        # Actual CPU-only fallback: lighter Whisper defaults
         os.environ.setdefault("TRIBEV2_WHISPERX_MODEL", "tiny.en")
         os.environ.setdefault("TRIBEV2_WHISPERX_BATCH_SIZE", "4")
         os.environ.setdefault("TRIBEV2_WHISPERX_ALIGN_MODEL", "WAV2VEC2_ASR_LARGE_LV60K_960H")

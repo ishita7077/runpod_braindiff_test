@@ -43,13 +43,13 @@ BRAIN_DIFF_SKIP_STARTUP=1 PYTHONPATH=. .venv/bin/pytest tests/ -q
 ```
 
 - Default suite includes a fast `test_tribe_model_loads_from_hub` (loads weights, no WhisperX).
-- Full predict + WhisperX smoke: `TRIBEV2_E2E_PREDICT=1 PYTHONPATH=. .venv/bin/pytest tests/test_model_smoke.py -k predicts` (slow; best on Linux+CUDA).
+- Full predict + WhisperX smoke: `TRIBEV2_E2E_PREDICT=1 PYTHONPATH=. .venv/bin/pytest tests/test_model_smoke.py -k predicts` (slow).
 
 ## Notes
 
-- Runtime device auto-detects: CUDA → MPS (Apple Silicon) → CPU fallback. Override with `BRAIN_DIFF_DEVICE=cpu` if needed.
-- On Apple Silicon, the app tries MPS first and falls back to CPU only if needed.
+- **Device selection is automatic:** NVIDIA CUDA if available, else **Apple MPS** on macOS when available, else CPU. To force a specific backend (e.g. debugging), set `BRAIN_DIFF_DEVICE` to `cuda`, `mps`, or `cpu`.
+- **WhisperX** (text→speech transcription) should use the same order (`cuda` → `mps` → `cpu`). This repo’s local `tribev2/tribev2/eventstransforms.py` implements that (upstream defaults are cuda/cpu only). Override anytime with `TRIBEV2_WHISPERX_DEVICE=cuda|mps|cpu` if your `uvx whisperx` build rejects a device.
 - If the atlas cannot build an exact fsaverage → fsaverage5 mapping locally, dev mode falls back to an approximate downsample and surfaces a warning. Set `BRAIN_DIFF_STRICT_ATLAS=1` to hard-fail instead.
 - If preflight says Hugging Face access is missing, inference will not run until the token/access issue is fixed.
 - WhisperX runs via `uvx`; ensure `uv` is installed (`pip install uv` in the venv adds `uvx` on PATH).
-- Optional tuning: `TRIBEV2_WHISPERX_MODEL`, `TRIBEV2_WHISPERX_BATCH_SIZE`, `TRIBEV2_NUM_WORKERS` (see `backend/model_service.py` and `tribev2/tribev2/grids/defaults.py`).
+- Optional tuning: `TRIBEV2_WHISPERX_MODEL`, `TRIBEV2_WHISPERX_DEVICE`, `TRIBEV2_WHISPERX_BATCH_SIZE`, `TRIBEV2_NUM_WORKERS` (see `backend/model_service.py` and `tribev2/tribev2/eventstransforms.py` / `grids/defaults.py`).
