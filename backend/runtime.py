@@ -22,17 +22,20 @@ def _profile_for_device(device: str) -> RuntimeProfile:
     if device == "cuda":
         return RuntimeProfile("cuda", "cuda", {}, ("cuda", "cpu"))
     if device == "mps":
+        # TRIBEv2 / neuralset HuggingFace extractors only allow
+        # auto | cpu | cuda | accelerate — not the string "mps".
+        # Use accelerate + device_map="auto" so Transformers can place weights on MPS when supported.
         return RuntimeProfile(
             "mps",
             "mps",
             {
                 "data.audio_feature.device": "cpu",
                 "data.audio_feature.infra.gpus_per_node": 0,
-                "data.text_feature.device": "mps",
+                "data.text_feature.device": "accelerate",
                 "data.text_feature.infra.gpus_per_node": 0,
-                "data.image_feature.image.device": "mps",
+                "data.image_feature.image.device": "accelerate",
                 "data.image_feature.infra.gpus_per_node": 0,
-                "data.video_feature.image.device": "mps",
+                "data.video_feature.image.device": "accelerate",
                 "data.video_feature.infra.gpus_per_node": 0,
             },
             ("mps", "cpu"),
