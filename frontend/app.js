@@ -41,6 +41,9 @@ const loadingTelemetry = document.getElementById("loadingTelemetry");
 const resultJson = document.getElementById("resultJson");
 const heroCanvas = document.getElementById("heroCanvas");
 const exampleBtns = [...document.querySelectorAll(".example")];
+const apiReadyPill = document.getElementById("apiReadyPill");
+const dimensionRadar = document.getElementById("dimensionRadar");
+const atlasPeakLabel = document.getElementById("atlasPeakLabel");
 
 let isSubmitting = false;
 let preflightState = null;
@@ -116,6 +119,98 @@ function renderMetricCards(metrics) {
   });
 }
 
+const RADAR_DIM_ORDER = [
+  "personal_resonance",
+  "social_thinking",
+  "brain_effort",
+  "language_depth",
+  "gut_reaction"
+];
+
+function renderDimensionRadar(dimensions) {
+  const canvas = dimensionRadar;
+  if (!canvas?.getContext) return;
+  const ctx = canvas.getContext("2d");
+  const w = canvas.width;
+  const h = canvas.height;
+  const cx = w / 2;
+  const cy = h / 2;
+  const R = Math.min(w, h) * 0.36;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "rgba(6,8,14,0.65)";
+  ctx.fillRect(0, 0, w, h);
+  const byKey = Object.fromEntries((dimensions || []).map((d) => [d.key, d]));
+  const n = RADAR_DIM_ORDER.length;
+  const angles = Array.from({ length: n }, (_, i) => (-Math.PI / 2) + (i * 2 * Math.PI) / n);
+  const vals = RADAR_DIM_ORDER.map((k) => {
+    const row = byKey[k];
+    if (!row) return 0;
+    return Math.min(1, Math.max(0, Number(row.bar_fraction ?? row.magnitude ?? 0)));
+  });
+
+  ctx.strokeStyle = "rgba(148,163,184,0.25)";
+  ctx.lineWidth = 1;
+  for (let ring = 1; ring <= 4; ring += 1) {
+    const r = (R * ring) / 4;
+    ctx.beginPath();
+    angles.forEach((ang, i) => {
+      const x = cx + r * Math.cos(ang);
+      const y = cy + r * Math.sin(ang);
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    });
+    ctx.closePath();
+    ctx.stroke();
+  }
+  angles.forEach((ang, i) => {
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + R * Math.cos(ang), cy + R * Math.sin(ang));
+    ctx.stroke();
+    const label = byKey[RADAR_DIM_ORDER[i]]?.label || RADAR_DIM_ORDER[i];
+    const lx = cx + (R + 14) * Math.cos(ang);
+    const ly = cy + (R + 14) * Math.sin(ang);
+    ctx.fillStyle = "rgba(203,213,225,0.9)";
+    ctx.font = '10px "IBM Plex Mono", monospace';
+    ctx.textAlign = lx >= cx ? "left" : "right";
+    ctx.fillText(String(label).split(" ")[0], lx, ly);
+  });
+
+  ctx.beginPath();
+  angles.forEach((ang, i) => {
+    const v = vals[i];
+    const r = R * (0.15 + 0.85 * v);
+    const x = cx + r * Math.cos(ang);
+    const y = cy + r * Math.sin(ang);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+  ctx.closePath();
+  ctx.fillStyle = "rgba(45,212,191,0.22)";
+  ctx.fill();
+  ctx.strokeStyle = "rgba(45,212,191,0.85)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  ctx.fillStyle = "rgba(248,250,252,0.85)";
+  ctx.font = '11px "IBM Plex Mono", monospace';
+  ctx.textAlign = "center";
+  ctx.fillText("magnitude → edge", cx, h - 18);
+}
+
+async function refreshBrain3d(payload) {
+  try {
+    const mod = await import("./brain3d.js");
+    mod.disposeBrainViewer();
+    if (!payload?.vertex_delta || payload.vertex_delta.length !== 20484) return;
+    const mesh = await mod.fetchBrainMesh();
+    const wrap = document.getElementById("brain3dWrap");
+    if (wrap) mod.mountBrainViewer(wrap, payload.vertex_delta, mesh);
+  } catch {
+    /* PNG fallback only */
+  }
+}
+
 function renderBars(dimensions) {
   barsEl.innerHTML = "";
   (dimensions || []).forEach((row) => {
@@ -174,6 +269,18 @@ function choreographReveal(payload, submittedA, submittedB) {
   renderInsightList(actionablesEl, insights.actionables, "No actionable rewrite guidance available for this run.");
   coolFactorEl.textContent = insights.cool_factor || "";
   scientificNoteEl.textContent = insights.scientific_note || "";
+  renderDimensionRadar(payload.dimensions || []);
+  void refreshBrain3d(payload);
+  if (atlasPeakLabel) {
+    const peak = payload.meta?.atlas_peak;
+    if (peak?.label) {
+      atlasPeakLabel.classList.remove("hidden");
+      atlasPeakLabel.textContent = `Largest |Δ| surface point (HCP): ${peak.label} (${peak.hemisphere} hemisphere)`;
+    } else {
+      atlasPeakLabel.classList.add("hidden");
+      atlasPeakLabel.textContent = "";
+    }
+  }
   if (payload.meta?.heatmap?.image_base64) {
     heatmapImg.src = `data:image/png;base64,${payload.meta.heatmap.image_base64}`;
   }
@@ -310,6 +417,32 @@ async function fetchRecentTelemetry() {
   } catch {
     recentRuns.className = "recent-runs empty";
     recentRuns.textContent = "Unable to load telemetry.";
+  }
+}
+
+async function fetchApiReady() {
+  if (!apiReadyPill) return;
+  try {
+    const res = await fetch("/api/ready");
+    if (!res.ok) throw new Error("ready");
+    const j = await res.json();
+    if (j.startup_skipped) {
+      apiReadyPill.textContent = "Startup skipped";
+      apiReadyPill.title = "BRAIN_DIFF_SKIP_STARTUP=1 — models not loaded in this process";
+      apiReadyPill.className = "api-ready-pill warn";
+      return;
+    }
+    const ok = j.ok && j.model_loaded && j.masks_ready;
+    apiReadyPill.textContent = ok ? "Models ready" : "Not ready";
+    apiReadyPill.title = "";
+    apiReadyPill.className = `api-ready-pill ${ok ? "ok" : "error"}`;
+    if (j.warmup_requested && !j.warmup_completed && j.warmup_error) {
+      apiReadyPill.textContent = "Warmup issue";
+      apiReadyPill.title = j.warmup_error;
+    }
+  } catch {
+    apiReadyPill.textContent = "API offline";
+    apiReadyPill.className = "api-ready-pill error";
   }
 }
 
@@ -484,6 +617,13 @@ async function buildShareImageBlob() {
   ctx.fillStyle = "#dbe7f6";
   ctx.font = '22px "Iowan Old Style", serif';
   drawWrappedText(ctx, result.insights?.subhead || "", 54, 254, 650, 30, 3);
+
+  const topDims = (result.dimensions || []).slice(0, 2);
+  if (topDims.length) {
+    ctx.fillStyle = "#94a3b8";
+    ctx.font = '14px "IBM Plex Mono", monospace';
+    ctx.fillText(`${topDims.map((r) => `${r.label} (${r.winner})`).join(" · ")}`, 54, 310);
+  }
 
   function panel(x, y, w, h) {
     ctx.fillStyle = "rgba(11,17,31,0.84)";
@@ -667,7 +807,24 @@ exampleBtns.forEach((btn) => {
   });
 });
 
+document.querySelectorAll("[data-brain-hemi]").forEach((btn) => {
+  btn.addEventListener("click", async () => {
+    const mode = btn.getAttribute("data-brain-hemi");
+    if (!mode) return;
+    try {
+      const mod = await import("./brain3d.js");
+      mod.setBrainHemisphere(mode);
+    } catch {
+      /* viewer not loaded yet */
+    }
+    document.querySelectorAll("[data-brain-hemi]").forEach((b) => {
+      b.classList.toggle("active", b === btn);
+    });
+  });
+});
+
 initHeroStage();
 fetchPreflight();
+fetchApiReady();
 fetchRecentTelemetry();
 updateFormState();

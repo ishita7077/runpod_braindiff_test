@@ -9,6 +9,11 @@ fi
 # Ensure global uv (and uvx) is also reachable regardless of venv state.
 export PATH="/opt/homebrew/bin:${PATH}"
 
+# Warm the full text→predict path once at startup so first user diff is faster (adds startup time).
+export BRAIN_DIFF_STARTUP_WARMUP="${BRAIN_DIFF_STARTUP_WARMUP:-1}"
+# sober | punchy — headline voice for insights (see backend/insight_engine.py)
+export BRAIN_DIFF_NARRATIVE_TONE="${BRAIN_DIFF_NARRATIVE_TONE:-sober}"
+
 # Apple Silicon (M-series) — WhisperX has no MPS backend; keep it on CPU.
 export TRIBEV2_WHISPERX_DEVICE="${TRIBEV2_WHISPERX_DEVICE:-cpu}"
 # Use base.en for better transcription quality; M-series CPU handles it well.

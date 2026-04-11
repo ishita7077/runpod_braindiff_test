@@ -14,6 +14,7 @@
       <div class="brand-lockup">
         <span class="brand-mark">◉</span>
         <span>Brain Diff</span>
+        <span id="apiReadyPill" class="api-ready-pill" title="API readiness">Checking…</span>
       </div>
       <nav class="top-nav">
         <a href="#landing">Compare</a>
@@ -116,7 +117,7 @@
         <button id="retryBtn" class="hidden retry-btn" type="button">Retry</button>
       </section>
 
-      <section id="result" class="result hidden">
+      <section id="result" class="result result-theme-dark hidden">
         <section class="panel result-hero glassy stage stage-1">
           <div class="hero-text">
             <p class="eyebrow">Result</p>
@@ -163,6 +164,10 @@
               <div class="section-chip">Primary signal</div>
             </div>
             <div id="bars" class="bars"></div>
+            <div class="radar-wrap">
+              <p class="radar-label">Five-dimension snapshot</p>
+              <canvas id="dimensionRadar" width="340" height="340" class="dimension-radar-canvas" aria-label="Radar chart of cortical dimensions"></canvas>
+            </div>
           </div>
         </section>
 
@@ -211,18 +216,26 @@
               <div class="section-chip">Scientific angle</div>
             </div>
             <p id="coolFactor" class="science-copy"></p>
-            <p id="scientificNote" class="science-note"></p>
+            <details class="science-details">
+              <summary>Why this isn’t a popularity score</summary>
+              <p id="scientificNote" class="science-note"></p>
+            </details>
           </div>
         </section>
 
-        <section class="panel heatmap-panel glassy stage stage-5">
+        <section class="panel heatmap-panel glassy stage stage-5 brain-viz-panel">
           <div class="section-header heatmap-header">
             <div>
-              <h3>Whole-brain contrast view</h3>
-              <p class="muted">Red = Version B higher · Blue = Version A higher</p>
+              <h3>Whole-brain contrast</h3>
+              <p class="muted">Interactive 3D (drag to rotate) · Static multi-view below · Red = B higher · Blue = A higher</p>
             </div>
             <div class="heatmap-actions">
               <div class="section-chip">Full cortex</div>
+              <div class="brain-hemi-toolbar" role="group" aria-label="Hemisphere visibility">
+                <button type="button" class="brain-hemi-btn active" data-brain-hemi="both">Both</button>
+                <button type="button" class="brain-hemi-btn" data-brain-hemi="left">Left</button>
+                <button type="button" class="brain-hemi-btn" data-brain-hemi="right">Right</button>
+              </div>
               <button id="shareBtn">Share</button>
             </div>
           </div>
@@ -230,8 +243,10 @@
             <span class="legend-dot legend-b"></span><span>Version B stronger</span>
             <span class="legend-dot legend-a"></span><span>Version A stronger</span>
           </div>
-          <div id="heatmapWrap" class="heatmap frame-glow">
-            <img id="heatmapImg" alt="Brain heatmap" />
+          <div id="heatmapWrap" class="heatmap frame-glow brain-heatmap-stack">
+            <div id="brain3dWrap" class="brain-3d-host" aria-label="3D cortical contrast"></div>
+            <p id="atlasPeakLabel" class="atlas-peak-hint muted hidden" aria-live="polite"></p>
+            <img id="heatmapImg" alt="Brain heatmap multi-view" />
           </div>
         </section>
         <pre id="resultJson" class="hidden"></pre>

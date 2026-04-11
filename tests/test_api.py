@@ -51,6 +51,42 @@ def test_api_sync_shape(monkeypatch):
     assert payload["insights"]["headline"]
     assert len(payload["vertex_delta"]) == 20484
     assert payload["meta"]["atlas"] == "HCP_MMP1.0"
+    assert "atlas_peak" in payload["meta"]
+
+
+def test_api_ready_reports_skip_startup(monkeypatch):
+    monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
+    monkeypatch.setattr(api, "masks", _dummy_masks())
+    monkeypatch.setattr(api.tribe_service, "model", object())
+
+    # Context manager runs ASGI lifespan so _initialize_app sees BRAIN_DIFF_SKIP_STARTUP.
+    with TestClient(api.app) as client:
+        response = client.get("/api/ready")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["startup_skipped"] is True
+    assert body["ok"] is False
+    assert "warmup_requested" in body
+    assert "runtime" in body
+
+
+def test_brain_mesh_endpoint_uses_payload_builder(monkeypatch):
+    monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
+    monkeypatch.setattr(api, "masks", _dummy_masks())
+    monkeypatch.setattr(api.tribe_service, "model", object())
+    fake_mesh = {
+        "format": "fsaverage5_pial",
+        "lh_coord": [0.0, 0.0, 0.0],
+        "lh_faces": [0, 1, 2],
+        "rh_coord": [1.0, 0.0, 0.0],
+        "rh_faces": [0, 1, 2],
+    }
+    monkeypatch.setattr("backend.brain_mesh.build_brain_mesh_payload", lambda **kwargs: fake_mesh)
+
+    with TestClient(api.app) as client:
+        response = client.get("/api/brain-mesh")
+    assert response.status_code == 200
+    assert response.json() == fake_mesh
 
 
 def test_api_validation_and_warnings(monkeypatch):

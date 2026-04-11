@@ -13,6 +13,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
+from backend.atlas_peaks import describe_peak_abs_delta
 from backend.brain_regions import build_vertex_masks
 from backend.differ import compute_diff
 from backend.heatmap import compute_vertex_delta, generate_heatmap_artifact
@@ -32,6 +33,14 @@ logger = logging.getLogger("braindiff.api")
 
 SLOW_NOTICE_MS = 180_000
 HARD_TIMEOUT_MS = 1_200_000
+
+# Populated by _initialize_app for /api/ready diagnostics.
+startup_info: dict[str, Any] = {
+    "skip_startup": False,
+    "warmup_requested": False,
+    "warmup_completed": False,
+    "warmup_error": None,
+}
 
 job_store = JobStore()
 tribe_service = TribeService(model_revision=os.getenv("TRIBEV2_REVISION", "facebook/tribev2"))
@@ -77,20 +86,33 @@ def _error_code_for_exception(err: Exception) -> tuple[str, str]:
 
 
 def _initialize_app() -> None:
+    global startup_info
     configure_logging(log_dir=LOG_DIR)
     logger.info("startup:start")
     if os.getenv("BRAIN_DIFF_SKIP_STARTUP", "0") == "1":
         logger.warning("startup:skipped via BRAIN_DIFF_SKIP_STARTUP=1")
+        startup_info = {
+            "skip_startup": True,
+            "warmup_requested": False,
+            "warmup_completed": False,
+            "warmup_error": None,
+        }
         return
     global masks
     masks = build_vertex_masks(atlas_dir=os.getenv("BRAIN_DIFF_ATLAS_DIR", "atlases"))
     tribe_service.load()
-    if os.getenv("BRAIN_DIFF_STARTUP_WARMUP", "0") == "1":
+    warmup_on = os.getenv("BRAIN_DIFF_STARTUP_WARMUP", "0") == "1"
+    startup_info["warmup_requested"] = warmup_on
+    if warmup_on:
         logger.info("startup:warmup:running one text pipeline (set BRAIN_DIFF_STARTUP_WARMUP=0 to skip)")
         try:
             tribe_service.text_to_predictions("Hi.")
+            startup_info["warmup_completed"] = True
+            startup_info["warmup_error"] = None
             logger.info("startup:warmup:ok")
         except Exception as werr:
+            startup_info["warmup_completed"] = False
+            startup_info["warmup_error"] = str(werr)
             logger.warning("startup:warmup:failed_non_fatal: %s", werr, exc_info=True)
     runtime_dict: dict[str, Any] = {}
     if getattr(tribe_service, "runtime_profile", None) is not None:
@@ -206,7 +228,8 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             heatmap = generate_heatmap_artifact(vertex_delta)
             stage_times["heatmap_ms"] = int((time.perf_counter() - t_heat) * 1000)
             processing_time_ms = int((time.perf_counter() - started_at) * 1000)
-            insights = build_insight_payload(dimension_rows, warnings)
+            tone = os.environ.get("BRAIN_DIFF_NARRATIVE_TONE", "sober").strip().lower() or "sober"
+            insights = build_insight_payload(dimension_rows, warnings, narrative_tone=tone)
             result = {
                 "diff": diff,
                 "dimensions": dimension_rows,
@@ -233,6 +256,7 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                     "median_b": 0.0,
                     "heatmap": heatmap,
                     "identical_text_short_circuit": True,
+                    "atlas_peak": describe_peak_abs_delta(vertex_delta),
                 },
             }
             job_store.set_result(job_id, result)
@@ -267,7 +291,8 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         stage_times["heatmap_ms"] = int((time.perf_counter() - t_heat) * 1000)
 
         processing_time_ms = int((time.perf_counter() - started_at) * 1000)
-        insights = build_insight_payload(dimension_rows, warnings)
+        tone = os.environ.get("BRAIN_DIFF_NARRATIVE_TONE", "sober").strip().lower() or "sober"
+        insights = build_insight_payload(dimension_rows, warnings, narrative_tone=tone)
         result = {
             "diff": diff,
             "dimensions": dimension_rows,
@@ -293,6 +318,7 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                 "median_a": median_a,
                 "median_b": median_b,
                 "heatmap": heatmap,
+                "atlas_peak": describe_peak_abs_delta(vertex_delta),
             },
         }
         job_store.set_result(job_id, result)
@@ -415,6 +441,39 @@ async def preflight() -> JSONResponse:
         max_concurrent_jobs=max_concurrent_jobs,
     )
     return JSONResponse(report)
+
+
+@app.get("/api/ready")
+async def api_ready() -> JSONResponse:
+    """Lightweight readiness probe (after lifespan startup). Model/masks are warm."""
+    runtime_dict: dict[str, Any] = {}
+    if getattr(tribe_service, "runtime_profile", None) is not None:
+        runtime_dict = {
+            "device": tribe_service.runtime_profile.device,
+            "backend": tribe_service.runtime_profile.backend,
+        }
+    model_ok = tribe_service.model is not None
+    masks_ok = len(masks) > 0
+    return JSONResponse(
+        {
+            "ok": model_ok and masks_ok and not startup_info.get("skip_startup"),
+            "model_loaded": model_ok,
+            "masks_ready": masks_ok,
+            "startup_skipped": startup_info.get("skip_startup", False),
+            "warmup_requested": startup_info.get("warmup_requested", False),
+            "warmup_completed": startup_info.get("warmup_completed", False),
+            "warmup_error": startup_info.get("warmup_error"),
+            "runtime": runtime_dict,
+        }
+    )
+
+
+@app.get("/api/brain-mesh")
+async def brain_mesh() -> JSONResponse:
+    """fsaverage5 pial coordinates for left/right hemispheres (WebGL viewer)."""
+    from backend.brain_mesh import build_brain_mesh_payload
+
+    return JSONResponse(build_brain_mesh_payload())
 
 
 

@@ -66,8 +66,14 @@ def _top_sides(rows: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, dict[
     return top_a, top_b
 
 
-def build_insight_payload(rows: list[dict[str, Any]], warnings: list[str] | None = None) -> dict[str, Any]:
+def build_insight_payload(
+    rows: list[dict[str, Any]],
+    warnings: list[str] | None = None,
+    *,
+    narrative_tone: str = "sober",
+) -> dict[str, Any]:
     warnings = warnings or []
+    punchy = narrative_tone.strip().lower() == "punchy"
     ordered = sorted(rows, key=lambda row: float(row["magnitude"]), reverse=True)
     strongest = ordered[0] if ordered else None
     top_a, top_b = _top_sides(ordered)
@@ -93,6 +99,12 @@ def build_insight_payload(rows: list[dict[str, Any]], warnings: list[str] | None
     if strongest["direction"] == "neutral" or strongest.get("low_confidence"):
         headline = "The versions are close, with only weak directional differences"
         subhead = "This looks more like a nuance tradeoff than a clear winner."
+    elif punchy:
+        headline = f"{winning_version} wins the headline battle on {strongest['label']}"
+        subhead = (
+            f"{strength} split on how the message {frame['plain']} — "
+            f"that's the sharpest contrast in this run."
+        )
     else:
         headline = f"{winning_version} shifts the brain response most on {strongest['label'].lower()}"
         subhead = f"The clearest tradeoff is a {strength.lower()} contrast in how the message {frame['plain']}."
@@ -168,10 +180,15 @@ def build_insight_payload(rows: list[dict[str, Any]], warnings: list[str] | None
             }
         )
 
-    cool_factor = (
-        "This comparison comes from predicted cortical contrasts across two versions of your content — "
-        "the interesting part is not the score itself, but where the average-brain response is diverging."
-    )
+    if punchy:
+        cool_factor = (
+            "Two drafts, one cortical scoreboard — the fun part is watching *where* they diverge, not chasing a single number."
+        )
+    else:
+        cool_factor = (
+            "This comparison comes from predicted cortical contrasts across two versions of your content — "
+            "the interesting part is not the score itself, but where the average-brain response is diverging."
+        )
     scientific_note = (
         "Read this as a directional neuroscience-informed compare, not a literal behavioral forecast. "
         "TRIBEv2 predicts average cortical response patterns; it does not predict clicks, likes, or individual minds."

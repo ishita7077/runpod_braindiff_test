@@ -53,6 +53,35 @@ def main() -> int:
         print("e2e: FAIL preflight not ok — fix blockers first", flush=True)
         return 1
 
+    code, ready = _req("GET", "/api/ready", timeout=30)
+    if code != 200 or not isinstance(ready, dict):
+        print("e2e: FAIL /api/ready", code, ready, flush=True)
+        return 1
+    for key in ("model_loaded", "masks_ready", "startup_skipped", "warmup_requested", "warmup_completed", "ok"):
+        if key not in ready:
+            print("e2e: FAIL /api/ready missing key", key, flush=True)
+            return 1
+    print(
+        "e2e: ready",
+        json.dumps(
+            {k: ready.get(k) for k in ("ok", "model_loaded", "masks_ready", "startup_skipped", "warmup_completed", "warmup_error")},
+            indent=2,
+        ),
+        flush=True,
+    )
+
+    mesh_timeout = float(os.environ.get("BRAIN_DIFF_E2E_BRAIN_MESH_TIMEOUT", "240"))
+    code, mesh = _req("GET", "/api/brain-mesh", timeout=mesh_timeout)
+    if code != 200 or not isinstance(mesh, dict):
+        print("e2e: FAIL /api/brain-mesh", code, mesh, flush=True)
+        return 1
+    for key in ("format", "lh_coord", "lh_faces", "rh_coord", "rh_faces"):
+        if key not in mesh:
+            print("e2e: FAIL /api/brain-mesh missing key", key, flush=True)
+            return 1
+    lh_n = len(mesh["lh_coord"]) if isinstance(mesh["lh_coord"], list) else 0
+    print("e2e: brain-mesh ok format=", mesh.get("format"), "lh_coord_len=", lh_n, flush=True)
+
     fast = os.environ.get("BRAIN_DIFF_E2E_FAST", "0") == "1"
     if fast:
         payload = {"text_a": "identical short smoke", "text_b": "identical short smoke"}
