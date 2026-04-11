@@ -270,6 +270,9 @@ function choreographReveal(payload, submittedA, submittedB) {
   coolFactorEl.textContent = insights.cool_factor || "";
   scientificNoteEl.textContent = insights.scientific_note || "";
   renderDimensionRadar(payload.dimensions || []);
+  document.querySelectorAll("[data-brain-hemi]").forEach((b) => {
+    b.classList.toggle("active", b.getAttribute("data-brain-hemi") === "both");
+  });
   void refreshBrain3d(payload);
   if (atlasPeakLabel) {
     const peak = payload.meta?.atlas_peak;
