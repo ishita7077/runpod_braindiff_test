@@ -20,7 +20,7 @@ export function mountLoadingBrainCanvas(canvas) {
   if (!canvas) return () => {};
 
   const frame = canvas.closest(".loading-brain-frame");
-  const height = 300;
+  const height = 260;
 
   const scene = new THREE.Scene();
   scene.background = null;
@@ -39,20 +39,23 @@ export function mountLoadingBrainCanvas(canvas) {
   const root = new THREE.Group();
   scene.add(root);
 
-  scene.add(new THREE.AmbientLight(0xaaccff, 0.22));
-  const key = new THREE.DirectionalLight(0xffffff, 0.95);
+  scene.add(new THREE.AmbientLight(0xc8e8f0, 0.32));
+  const key = new THREE.DirectionalLight(0xffffff, 1.05);
   key.position.set(50, 90, 70);
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0x44ddcc, 0.35);
+  const fill = new THREE.DirectionalLight(0xa8d4e8, 0.45);
+  fill.position.set(-40, 20, 60);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(0x66e8d8, 0.42);
   rim.position.set(-60, -20, -80);
   scene.add(rim);
 
   const brainMat = new THREE.MeshStandardMaterial({
-    color: 0x152a28,
-    emissive: 0x062e2c,
-    emissiveIntensity: 0.55,
-    metalness: 0.22,
-    roughness: 0.5,
+    color: 0x1a3836,
+    emissive: 0x0d3d38,
+    emissiveIntensity: 0.72,
+    metalness: 0.18,
+    roughness: 0.42,
   });
 
   function addFallbackMesh() {

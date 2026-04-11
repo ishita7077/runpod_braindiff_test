@@ -1,6 +1,5 @@
 /**
- * fsaverage5 brain viewer (Three.js). Default: one WebGL context (contrast map).
- * Optional: dual viewers for Version A / B side by side (2× WebGL).
+ * fsaverage5 brain viewer (Three.js). Default UI: dual A/B surfaces; optional single contrast view.
  */
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -54,6 +53,63 @@ const DIM_LABELS = {
   language_depth: "Language Depth",
   gut_reaction: "Gut Reaction",
 };
+
+/** Short plain-language gloss for HCP MMP1 area codes (keys = annot core, e.g. "8BL" from L_8BL_ROI). */
+const PARCEL_GLOSS = {
+  "8BL": "Frontal area 8B — lateral (control / goals)",
+  "8Av": "Frontal area 8A — ventral",
+  "8C": "Frontal area 8C",
+  "46": "Dorsolateral prefrontal cortex (area 46)",
+  "p9-46v": "Posterior ventral area 9-46 (effort / control)",
+  "a9-46v": "Anterior ventral area 9-46",
+  "44": "Inferior frontal — speech production (area 44)",
+  "45": "Inferior frontal — language (area 45)",
+  OFC: "Orbitofrontal cortex (decision / value)",
+  PSL: "Perisylvian language zone",
+  STV: "Superior temporal — voice / speech",
+  STSdp: "Superior temporal sulcus — dorsal posterior",
+  STSvp: "Superior temporal sulcus — ventral posterior",
+  "10r": "Frontal pole — self / relevance (10r)",
+  "10v": "Ventromedial frontal pole (10v)",
+  "9m": "Dorsomedial prefrontal (area 9m)",
+  "10d": "Dorsal frontal pole (10d)",
+  "32": "Anterior cingulate / medial wall (area 32)",
+  "25": "Subgenual frontal / affect (area 25)",
+  PGi: "Inferior parietal — integration & social context",
+  PGs: "Superior parietal — spatial / social maps",
+  TPOJ1: "Temporo-parietal junction (social attention)",
+  TPOJ2: "Temporo-parietal junction (social meaning)",
+  TPOJ3: "Temporo-parietal junction (extended social)",
+  AVI: "Insular cortex — visceral / affect",
+  AAIC: "Anterior agranular insula",
+  MI: "Mid insula — salience",
+  d32: "Cingulate 32 — dorsal division",
+  p32: "Cingulate 32 — posterior division",
+  s32: "Cingulate 32 — subgenual strip",
+  a32pr: "Pregenual anterior 32",
+  p32pr: "Posterior 32 (p32pr)",
+};
+
+function _humanizeRegionTitle(raw) {
+  if (!raw || raw === "unknown" || raw === "???") {
+    return {
+      title: "Unlabeled cortical location",
+      subtitle: "Could not match this point to a named HCP parcel.",
+    };
+  }
+  const m = raw.match(/^(L|R)_(.+)_ROI$/);
+  const hemiWord = m ? (m[1] === "L" ? "Left" : "Right") : "";
+  const core = m ? m[2] : raw.replace(/_ROI$/, "").replace(/^(L|R)_/, "");
+  const gloss = PARCEL_GLOSS[core];
+  const plain = core.replace(/_/g, " ");
+  const title = gloss
+    ? `${hemiWord ? `${hemiWord} · ` : ""}${gloss}`
+    : `${hemiWord ? `${hemiWord} · ` : ""}Cortical area ${plain}`;
+  return {
+    title,
+    subtitle: "Standard brain atlas region (HCP-MMP1).",
+  };
+}
 
 /** Blue–white–red (matches static matplotlib `bwr`): negative → blue, 0 → white, positive → red. */
 function _bwr(t) {
@@ -114,6 +170,7 @@ function _geometryFromPayload(coord, faces) {
 
 let _dispose = null;
 let _setHemisphere = null;
+let _resetBrainCamera = null;
 
 export function disposeBrainViewer() {
   if (typeof _dispose === "function") {
@@ -121,6 +178,39 @@ export function disposeBrainViewer() {
     _dispose = null;
   }
   _setHemisphere = null;
+  _resetBrainCamera = null;
+}
+
+/** Recenters and reframes the mesh (OrbitControls target + distance limits). */
+export function resetBrainCamera() {
+  if (typeof _resetBrainCamera === "function") _resetBrainCamera();
+}
+
+/**
+ * Frame the LH+RH group in view using vertical FOV and aspect (handles narrow dual-pane canvases).
+ */
+function _applyBrainCameraFit(camera, controls, group, margin = 1.14) {
+  const box = new THREE.Box3().setFromObject(group);
+  if (!box || box.isEmpty()) return;
+  const center = new THREE.Vector3();
+  const size = new THREE.Vector3();
+  box.getCenter(center);
+  box.getSize(size);
+  const maxDim = Math.max(size.x, size.y, size.z, 1e-6);
+  controls.target.copy(center);
+  const vFovRad = (camera.fov * Math.PI) / 180;
+  const tanHalf = Math.tan(vFovRad / 2);
+  const distV = (maxDim * margin) / (2 * tanHalf);
+  const halfW = maxDim * 0.5;
+  const distH = (halfW * margin) / (Math.max(camera.aspect, 0.2) * tanHalf);
+  const dist = Math.max(distV, distH);
+  camera.position.set(center.x, center.y + maxDim * 0.08, center.z + dist);
+  camera.near = Math.max(0.05, dist / 120);
+  camera.far = Math.max(800, dist * 28);
+  camera.updateProjectionMatrix();
+  controls.minDistance = maxDim * 0.18;
+  controls.maxDistance = maxDim * 6.5;
+  controls.update();
 }
 
 export function setBrainHemisphere(mode) {
@@ -145,7 +235,7 @@ function _createScene(container, fullVertexArr, meshPayload, h, opts = {}) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000);
 
-  const camera = new THREE.PerspectiveCamera(36, w / h, 1, 600);
+  const camera = new THREE.PerspectiveCamera(36, w / h, 0.05, 2000);
   camera.position.set(0, 20, 200);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -159,8 +249,8 @@ function _createScene(container, fullVertexArr, meshPayload, h, opts = {}) {
   controls.enableDamping = !slave;
   controls.dampingFactor = 0.06;
   controls.enablePan = false;
-  controls.minDistance = 110;
-  controls.maxDistance = 320;
+  controls.minDistance = 20;
+  controls.maxDistance = 800;
   controls.autoRotate = !slave;
   controls.autoRotateSpeed = 0.5;
   if (slave) {
@@ -304,9 +394,21 @@ function _clearRegionHighlight(sceneObj) {
   sceneObj._lastHlKey = "";
 }
 
-function _setupHover(sceneObj, container, regionMap, atlas, tooltipEl, vertexArr, labelPrimary, comparePair = null) {
+/**
+ * @param {object} hoverOpts
+ * @param {"contrast" | "dual"} hoverOpts.mode
+ * @param {Float32Array} [hoverOpts.delta] — B−A contrast (single-brain view)
+ * @param {Float32Array} [hoverOpts.arrA] — Version A vertex values (dual view)
+ * @param {Float32Array} [hoverOpts.arrB] — Version B vertex values (dual view)
+ * @param {string} [hoverOpts.labelA] — Short label for Version A text (dual)
+ * @param {string} [hoverOpts.labelB] — Short label for Version B text (dual)
+ */
+function _setupHover(sceneObj, container, regionMap, atlas, tooltipEl, hoverOpts) {
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
+  const mode = hoverOpts?.mode === "dual" ? "dual" : "contrast";
+  const labelA = (hoverOpts?.labelA || "Version A").trim();
+  const labelB = (hoverOpts?.labelB || "Version B").trim();
 
   function onMove(e) {
     const rect = container.getBoundingClientRect();
@@ -352,7 +454,7 @@ function _setupHover(sceneObj, container, regionMap, atlas, tooltipEl, vertexArr
 
     const regionName = atlas?.labels?.[flatIdx] || "unknown";
     const dimKeys = atlas?.dimensions?.[regionName] || [];
-    const dimNames = dimKeys.map((k) => DIM_LABELS[k] || k).join(" · ") || "—";
+    const dimPretty = dimKeys.map((k) => DIM_LABELS[k] || k).join(" · ");
 
     const regionVerts = regionMap.get(regionName);
     if (regionName && regionVerts?.length) {
@@ -361,22 +463,56 @@ function _setupHover(sceneObj, container, regionMap, atlas, tooltipEl, vertexArr
       _clearRegionHighlight(sceneObj);
     }
 
-    const val = vertexArr[flatIdx] ?? 0;
-    const cp = comparePair;
-    const otherRow =
-      cp && cp.arr?.length === 20484
-        ? `<div class="tt-stat"><span class="tt-stat-k">${_escapeHtml(cp.label)}</span><span class="tt-stat-v">${cp.arr[flatIdx]?.toFixed(4) ?? "—"}</span></div>`
-        : "";
+    const human = _humanizeRegionTitle(regionName);
+
+    const explainerDual =
+      `<p class="tt-explainer">The bright outline is the <strong>entire</strong> named region; everything else is dimmed so you can see the parcel as a whole.</p>` +
+      `<p class="tt-explainer tt-explainer-tight">On <strong>${_escapeHtml(labelA)}</strong> and <strong>${_escapeHtml(labelB)}</strong>, color is hotter or cooler than that version’s <em>own</em> middle value—so you can compare shape between the two brains fairly.</p>`;
+
+    const explainerContrast =
+      `<p class="tt-explainer">The bright outline is the <strong>entire</strong> atlas region on the surface.</p>` +
+      `<p class="tt-explainer tt-explainer-tight">Colors show <strong>Version B minus Version A</strong> (red = more modeled activity for B, blue = more for A). Same idea as the static multi-view figure below.</p>`;
+
+    const explainer = mode === "dual" ? explainerDual : explainerContrast;
+
+    const dimBlock = dimPretty
+      ? `<div class="tt-dims"><span class="tt-dims-k">Themes</span><span class="tt-dims-v">${_escapeHtml(dimPretty)}</span></div>`
+      : `<div class="tt-dims tt-dims-muted">Not one of the five headline themes in this app—you can still read the numbers as higher vs lower modeled response in this spot.</div>`;
+
+    let statsBlock = "";
+    if (mode === "dual" && hoverOpts.arrA?.length === 20484 && hoverOpts.arrB?.length === 20484) {
+      const va = hoverOpts.arrA[flatIdx] ?? 0;
+      const vb = hoverOpts.arrB[flatIdx] ?? 0;
+      const diff = vb - va;
+      statsBlock =
+        `<div class="tt-stat-grid">` +
+        `<p class="tt-stat-lead">Values at this point</p>` +
+        `<div class="tt-stat"><span class="tt-stat-k">${_escapeHtml(labelA)} — normalized</span><span class="tt-stat-v">${va.toFixed(3)}</span></div>` +
+        `<div class="tt-stat"><span class="tt-stat-k">${_escapeHtml(labelB)} — normalized</span><span class="tt-stat-v">${vb.toFixed(3)}</span></div>` +
+        `<div class="tt-stat tt-stat-em"><span class="tt-stat-k">Difference (B − A)</span><span class="tt-stat-v">${diff >= 0 ? "+" : ""}${diff.toFixed(3)}</span></div>` +
+        `</div>` +
+        `<p class="tt-stat-foot">Same scaling family as the flat maps. For comparing drafts only—not a clinical or diagnostic score.</p>`;
+    } else if (mode === "contrast" && hoverOpts.delta?.length === 20484) {
+      const val = hoverOpts.delta[flatIdx] ?? 0;
+      statsBlock =
+        `<div class="tt-stat-grid">` +
+        `<p class="tt-stat-lead">Contrast at this point</p>` +
+        `<div class="tt-stat"><span class="tt-stat-k">B minus A (signed)</span><span class="tt-stat-v">${val >= 0 ? "+" : ""}${val.toFixed(3)}</span></div>` +
+        `</div>` +
+        `<p class="tt-stat-foot">Positive means Version B is modeled higher here; negative means Version A. Matches the static heatmap colors.</p>`;
+    } else {
+      statsBlock = `<p class="tt-stat-foot">Values unavailable for this view.</p>`;
+    }
 
     tooltipEl.innerHTML =
       `<div class="tt-card">` +
-      `<div class="tt-region-name">${_escapeHtml(regionName)}</div>` +
-      `<div class="tt-region-meta"><span class="tt-hemi-pill">${hemiLong}</span></div>` +
-      `<div class="tt-dims">${_escapeHtml(dimNames)}</div>` +
-      `<div class="tt-stat-grid">` +
-      `<div class="tt-stat"><span class="tt-stat-k">${_escapeHtml(labelPrimary)}</span><span class="tt-stat-v">${val.toFixed(4)}</span></div>` +
-      otherRow +
-      `</div></div>`;
+      `<div class="tt-region-title">${_escapeHtml(human.title)}</div>` +
+      `<div class="tt-region-sub">${_escapeHtml(human.subtitle)}</div>` +
+      `<div class="tt-hemi-row"><span class="tt-hemi-pill">${hemiLong}</span></div>` +
+      explainer +
+      dimBlock +
+      statsBlock +
+      `</div>`;
     tooltipEl.classList.remove("hidden");
     const wrap = container.closest(".brain-dual-wrap");
     const wr = wrap ? wrap.getBoundingClientRect() : { left: 0, top: 0 };
@@ -400,8 +536,10 @@ function _setupHover(sceneObj, container, regionMap, atlas, tooltipEl, vertexArr
 
 /**
  * Single viewer: signed contrast (B − A) on one mesh, one WebGL context.
+ * @param {object} [viewerOpts] reserved for future hover copy
  */
-export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, tooltipEl) {
+export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, tooltipEl, viewerOpts) {
+  void viewerOpts;
   disposeBrainViewer();
   if (!container || !vertexDelta || !meshPayload?.lh_coord) return;
 
@@ -418,7 +556,7 @@ export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, too
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x000000);
 
-  const camera = new THREE.PerspectiveCamera(36, w / h, 1, 600);
+  const camera = new THREE.PerspectiveCamera(36, w / h, 0.05, 2000);
   camera.position.set(0, 20, 200);
 
   const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -432,8 +570,8 @@ export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, too
   controls.enableDamping = true;
   controls.dampingFactor = 0.06;
   controls.enablePan = false;
-  controls.minDistance = 110;
-  controls.maxDistance = 320;
+  controls.minDistance = 20;
+  controls.maxDistance = 800;
   controls.autoRotate = true;
   controls.autoRotateSpeed = 0.5;
 
@@ -485,12 +623,19 @@ export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, too
   group.add(mR);
   scene.add(group);
 
+  function refitBrain() {
+    _applyBrainCameraFit(camera, controls, group);
+  }
+  refitBrain();
+  _resetBrainCamera = refitBrain;
+
   const regionMap = _buildRegionVertexMap(atlas?.labels);
   const sceneObj = {
     scene,
     camera,
     renderer,
     controls,
+    group,
     mL,
     mR,
     gL,
@@ -503,7 +648,7 @@ export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, too
   };
 
   const cleanHover = atlas && tooltipEl
-    ? _setupHover(sceneObj, container, regionMap, atlas, tooltipEl, arr, "Contrast (B − A)", null)
+    ? _setupHover(sceneObj, container, regionMap, atlas, tooltipEl, { mode: "contrast", delta: arr })
     : null;
 
   _setHemisphere = (mode) => {
@@ -530,6 +675,7 @@ export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, too
 
   _dispose = () => {
     _setHemisphere = null;
+    _resetBrainCamera = null;
     cancelAnimationFrame(rafId);
     ro.disconnect();
     cleanHover?.();
@@ -546,8 +692,11 @@ export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, too
 
 /**
  * Mount dual brain viewers (Version A + Version B) side by side.
+ * @param {object} [viewerOpts]
+ * @param {string} [viewerOpts.labelA] short label for hover (e.g. truncated input A)
+ * @param {string} [viewerOpts.labelB] short label for hover (e.g. truncated input B)
  */
-export function mountDualBrainViewer(containerA, containerB, vertexA, vertexB, meshPayload, atlas, tooltipEl) {
+export function mountDualBrainViewer(containerA, containerB, vertexA, vertexB, meshPayload, atlas, tooltipEl, viewerOpts) {
   disposeBrainViewer();
   if (!containerA || !containerB || !vertexA || !vertexB || !meshPayload?.lh_coord) return;
 
@@ -560,11 +709,24 @@ export function mountDualBrainViewer(containerA, containerB, vertexA, vertexB, m
   const sceneA = _createScene(containerA, arrA, meshPayload, h, { slave: false });
   const sceneB = _createScene(containerB, arrB, meshPayload, h, { slave: true });
 
+  function refitDual() {
+    _applyBrainCameraFit(sceneA.camera, sceneA.controls, sceneA.group);
+  }
+  refitDual();
+  _resetBrainCamera = refitDual;
+
+  const dualHoverOpts = {
+    mode: "dual",
+    arrA,
+    arrB,
+    labelA: viewerOpts?.labelA || "Version A",
+    labelB: viewerOpts?.labelB || "Version B",
+  };
   const cleanHoverA = atlas && tooltipEl
-    ? _setupHover(sceneA, containerA, regionMap, atlas, tooltipEl, arrA, "Version A", { arr: arrB, label: "Version B" })
+    ? _setupHover(sceneA, containerA, regionMap, atlas, tooltipEl, dualHoverOpts)
     : null;
   const cleanHoverB = atlas && tooltipEl
-    ? _setupHover(sceneB, containerB, regionMap, atlas, tooltipEl, arrB, "Version B", { arr: arrA, label: "Version A" })
+    ? _setupHover(sceneB, containerB, regionMap, atlas, tooltipEl, dualHoverOpts)
     : null;
 
   _setHemisphere = (mode) => {
@@ -605,6 +767,7 @@ export function mountDualBrainViewer(containerA, containerB, vertexA, vertexB, m
 
   _dispose = () => {
     _setHemisphere = null;
+    _resetBrainCamera = null;
     cancelAnimationFrame(rafId);
     roA.disconnect();
     roB.disconnect();

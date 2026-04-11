@@ -82,14 +82,17 @@ def build_vertex_atlas_payload(atlas_dir: str | None = None) -> dict[str, Any]:
         lab = int(labels_rh[i])
         vertex_labels.append(str(names_rh[lab]) if 0 <= lab < len(names_rh) else "???")
 
-    from backend.brain_regions import REQUIRED_AREAS
+    from backend.brain_regions import REQUIRED_AREAS, _candidates
+
+    # Vertex labels match HCP annot strings (e.g. L_8BL_ROI); map every candidate alias to Brain Diff dimensions.
     dim_map: dict[str, list[str]] = {}
     for dim_name, hemis in REQUIRED_AREAS.items():
-        for areas in hemis.values():
+        for hemi, areas in hemis.items():
             for area in areas:
-                dim_map.setdefault(area, [])
-                if dim_name not in dim_map[area]:
-                    dim_map[area].append(dim_name)
+                for cand in _candidates(area, hemi):
+                    dim_map.setdefault(cand, [])
+                    if dim_name not in dim_map[cand]:
+                        dim_map[cand].append(dim_name)
 
     _ATLAS_PAYLOAD = {"labels": vertex_labels, "dimensions": dim_map}
     return _ATLAS_PAYLOAD

@@ -9,12 +9,20 @@ import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.colors import LinearSegmentedColormap
 
 from backend.scorer import reference_scale
 
 logger = logging.getLogger("braindiff.heatmap")
 
 _FSAVERAGE = None
+
+# Muted diverging map (easier on the eyes than raw matplotlib "bwr" on OLED black).
+_SOFT_DIVERGING = LinearSegmentedColormap.from_list(
+    "braindiff_soft_div",
+    ["#1e3555", "#4a6288", "#9aa3b0", "#e4e2de", "#c4a398", "#8f4d52", "#5c2f38"],
+    N=256,
+)
 
 
 def _get_fsaverage():
@@ -51,7 +59,7 @@ def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
     vmax = float(np.percentile(np.abs(vertex_delta), 98))
     vmax = max(vmax, 1e-6)
 
-    _bg = "#000000"
+    _bg = "#0a0c10"
     fig = plt.figure(figsize=(13, 7), dpi=180, facecolor=_bg)
     axes = [fig.add_subplot(2, 2, i + 1, projection="3d") for i in range(4)]
     view_labels = ["Left lateral", "Right lateral", "Left medial", "Right medial"]
@@ -68,7 +76,7 @@ def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
             hemi=hemi,
             view=view,
             bg_map=bg,
-            cmap="bwr",
+            cmap=_SOFT_DIVERGING,
             symmetric_cbar=True,
             threshold=0.0,
             colorbar=False,
@@ -79,7 +87,7 @@ def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
             ax.set_facecolor(_bg)
         except Exception:
             pass
-        ax.set_title(vlabel, color="#aaaaaa", fontsize=9, pad=4)
+        ax.set_title(vlabel, color="#9aa3ad", fontsize=9, pad=4)
         for spine in ax.spines.values():
             spine.set_visible(False)
         ax.xaxis.pane.fill = False
@@ -88,9 +96,12 @@ def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
         ax.set_axis_off()
 
     fig.text(
-        0.5, 0.01,
-        "Red = Version B stronger    ·    Blue = Version A stronger",
-        ha="center", color="#888888", fontsize=9,
+        0.5,
+        0.01,
+        "Population-level model contrast (TRIBEv2): warmer = Version B higher · cooler = Version A higher · not medical imaging",
+        ha="center",
+        color="#7d8692",
+        fontsize=8.5,
     )
     fig.subplots_adjust(wspace=0.02, hspace=0.06, bottom=0.06, top=0.95)
     buf = io.BytesIO()

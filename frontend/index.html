@@ -21,8 +21,21 @@
 
     <header class="topbar">
       <div class="brand-lockup">
-        <span class="brand-mark">◉</span>
-        <span>Brain Diff</span>
+        <a href="#landing" class="brand-home" aria-label="Brain Diff — Compare">
+          <svg class="brand-logo" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="topbarBrandMarkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6ee7d8" />
+                <stop offset="100%" stop-color="#5ab0d8" />
+              </linearGradient>
+            </defs>
+            <rect x="1" y="1" width="38" height="38" rx="11" fill="rgba(12,18,22,0.95)" stroke="url(#topbarBrandMarkGrad)" stroke-width="1.25" />
+            <ellipse cx="14.5" cy="20" rx="6.5" ry="9.5" fill="url(#topbarBrandMarkGrad)" opacity="0.88" />
+            <ellipse cx="25.5" cy="20" rx="6.5" ry="9.5" fill="url(#topbarBrandMarkGrad)" opacity="0.88" />
+            <path d="M20 9.5c-1.2 2.8-1.2 18.2 0 21" stroke="rgba(0,0,0,0.35)" stroke-width="1.2" fill="none" />
+          </svg>
+          <span class="brand-wordmark"><span class="brand-word">Brain</span><span class="brand-word-accent">Diff</span></span>
+        </a>
         <span id="apiReadyPill" class="api-ready-pill" title="API readiness">Checking…</span>
       </div>
       <nav class="top-nav">
@@ -106,38 +119,54 @@
       <section id="loading" class="panel hidden loading-panel">
         <div class="loading-shell">
           <div class="loading-main-col">
-            <div class="loading-head">
-              <div>
-                <p class="eyebrow">Working</p>
-                <h2>Rendering a cortical contrast…</h2>
+            <div class="loading-main-top">
+              <div class="loading-head">
+                <div>
+                  <p class="eyebrow">Working</p>
+                  <h2>Rendering a cortical contrast…</h2>
+                </div>
+                <div class="loading-orb" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                </div>
               </div>
-              <div class="loading-orb" aria-hidden="true">
-                <span></span><span></span><span></span>
-              </div>
+              <ul id="loadingSteps" class="loading-steps">
+                <li data-step="converting_text_to_speech">Converting text to speech</li>
+                <li data-step="predicting_version_a">Predicting neural response for Version A</li>
+                <li data-step="predicting_version_b">Predicting neural response for Version B</li>
+                <li data-step="computing_brain_contrast">Computing cortical contrast</li>
+              </ul>
+              <p id="loadingHint" class="loading-hint"></p>
             </div>
-            <ul id="loadingSteps" class="loading-steps">
-              <li data-step="converting_text_to_speech">Converting text to speech</li>
-              <li data-step="predicting_version_a">Predicting neural response for Version A</li>
-              <li data-step="predicting_version_b">Predicting neural response for Version B</li>
-              <li data-step="computing_brain_contrast">Computing cortical contrast</li>
-            </ul>
-            <p id="loadingHint" class="loading-hint"></p>
-            <div id="loadingTelemetry" class="loading-telemetry hidden"></div>
-            <button id="retryBtn" class="hidden retry-btn" type="button">Retry</button>
+            <div class="loading-main-bottom">
+              <div id="loadingTelemetry" class="loading-telemetry hidden"></div>
+              <button id="retryBtn" class="hidden retry-btn" type="button">Retry</button>
+            </div>
           </div>
           <aside class="loading-side-col" aria-label="While you wait">
-            <div class="loading-brain-frame">
-              <canvas id="loadingBrainCanvas" width="320" height="300" aria-hidden="true"></canvas>
-            </div>
             <p class="loading-side-label">While the model runs</p>
-            <div id="loadingFactCard" class="loading-fact-card"></div>
-            <div id="loadingFactDots" class="loading-fact-dots" role="tablist" aria-label="Research notes"></div>
-            <a id="loadingFactSource" class="loading-fact-source hidden" target="_blank" rel="noopener noreferrer">Source</a>
+            <div class="loading-visual-row">
+              <div class="loading-brain-frame">
+                <canvas id="loadingBrainCanvas" width="280" height="260" aria-hidden="true"></canvas>
+              </div>
+              <div class="loading-facts-col">
+                <div id="loadingFactCard" class="loading-fact-card"></div>
+                <div id="loadingFactDots" class="loading-fact-dots" role="tablist" aria-label="Research notes"></div>
+                <a id="loadingFactSource" class="loading-fact-source hidden" target="_blank" rel="noopener noreferrer">Source</a>
+              </div>
+            </div>
           </aside>
         </div>
       </section>
 
       <section id="result" class="result hidden">
+        <div class="product-note-callout panel stage stage-0" role="note">
+          <p class="product-note-title">How to read this report</p>
+          <p class="product-note-body">
+            Brain Diff uses a <strong>population-level</strong> model (TRIBEv2) to estimate cortical response to your two texts—not a personal brain scan and not medical advice.
+            <strong>Version A</strong> and <strong>Version B</strong> are your drafts; charts and maps highlight where the model predicts stronger activity for one wording versus the other.
+          </p>
+        </div>
+
         <section class="panel result-hero stage stage-1">
           <div class="hero-text">
             <p class="eyebrow">Result</p>
@@ -225,13 +254,14 @@
           <div class="section-header heatmap-header">
             <div class="heatmap-title-block">
               <h3>Cortical contrast</h3>
-              <p class="muted heatmap-lead">Interactive 3D surface, then publication-style static maps. Hover a parcel to highlight the full HCP region.</p>
+              <p class="muted heatmap-lead">Spin the 3D cortex (two brains by default), hover any spot to see the named region and A/B values. Below: the same contrast as a static four-view figure.</p>
             </div>
             <div class="heatmap-actions">
-              <label class="dual-brain-toggle muted" title="Two WebGL canvases; heavier GPU load">
-                <input type="checkbox" id="dualBrain3d" />
-                Side-by-side A/B
+              <label class="dual-brain-toggle muted" title="Default: two brains. Uncheck for one contrast surface only.">
+                <input type="checkbox" id="dualBrain3d" checked />
+                Side-by-side A / B (default)
               </label>
+              <button type="button" id="brainResetView" class="brain-reset-btn" title="Recenter and frame the full surface">Reset view</button>
               <div class="brain-hemi-toolbar" role="group" aria-label="Hemisphere visibility">
                 <button type="button" class="brain-hemi-btn active" data-brain-hemi="both">Both</button>
                 <button type="button" class="brain-hemi-btn" data-brain-hemi="left">Left</button>
@@ -251,7 +281,7 @@
               </div>
             </div>
             <p id="bwrLegendHint" class="bwr-legend-hint muted">Run a comparison to load the cortical surface and legend notes.</p>
-            <div id="brainDualWrap" class="brain-dual-wrap is-single">
+            <div id="brainDualWrap" class="brain-dual-wrap">
               <div class="brain-viewer-col">
                 <p class="brain-viewer-label" id="brainViewerLabelA">Cortical contrast (B − A)</p>
                 <div id="brain3dWrapA" class="brain-3d-host" aria-label="3D cortical contrast map"></div>
@@ -266,7 +296,7 @@
           </div>
 
           <div class="static-heatmap-card">
-            <p class="static-heatmap-label muted">Static difference map · multi-view</p>
+            <p class="static-heatmap-label muted">Static figure · four views · same signed contrast (B − A)</p>
             <img id="heatmapImg" alt="Brain heatmap multi-view" />
           </div>
         </section>

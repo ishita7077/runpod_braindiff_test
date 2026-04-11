@@ -146,7 +146,10 @@ function renderDimensionRadar(dimensions) {
   const cy = h / 2;
   const R = Math.min(w, h) * 0.36;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(5,5,5,0.8)";
+  const grd = ctx.createRadialGradient(cx, cy, 20, cx, cy, R + 40);
+  grd.addColorStop(0, "rgba(18, 22, 30, 0.95)");
+  grd.addColorStop(1, "rgba(8, 10, 14, 0.92)");
+  ctx.fillStyle = grd;
   ctx.fillRect(0, 0, w, h);
   const byKey = Object.fromEntries((dimensions || []).map((d) => [d.key, d]));
   const n = RADAR_DIM_ORDER.length;
@@ -157,8 +160,8 @@ function renderDimensionRadar(dimensions) {
     return Math.min(1, Math.max(0, Number(row.bar_fraction ?? row.magnitude ?? 0)));
   });
 
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-  ctx.lineWidth = 0.5;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.14)";
+  ctx.lineWidth = 0.65;
   for (let ring = 1; ring <= 4; ring += 1) {
     const r = (R * ring) / 4;
     ctx.beginPath();
@@ -179,8 +182,8 @@ function renderDimensionRadar(dimensions) {
     const label = byKey[RADAR_DIM_ORDER[i]]?.label || RADAR_DIM_ORDER[i];
     const lx = cx + (R + 14) * Math.cos(ang);
     const ly = cy + (R + 14) * Math.sin(ang);
-    ctx.fillStyle = "rgba(180,180,180,0.8)";
-    ctx.font = '10px -apple-system, sans-serif';
+    ctx.fillStyle = "rgba(200, 206, 214, 0.88)";
+    ctx.font = '600 10px -apple-system, BlinkMacSystemFont, "Inter", sans-serif';
     ctx.textAlign = lx >= cx ? "left" : "right";
     ctx.fillText(String(label).split(" ")[0], lx, ly);
   });
@@ -195,20 +198,37 @@ function renderDimensionRadar(dimensions) {
     else ctx.lineTo(x, y);
   });
   ctx.closePath();
-  ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
+  ctx.fillStyle = "rgba(90, 200, 184, 0.14)";
   ctx.fill();
-  ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = "rgba(120, 210, 198, 0.55)";
+  ctx.lineWidth = 1.75;
   ctx.stroke();
 
-  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
-  ctx.font = '10px -apple-system, sans-serif';
+  ctx.fillStyle = "rgba(160, 168, 178, 0.75)";
+  ctx.font = '500 10px -apple-system, BlinkMacSystemFont, "Inter", sans-serif';
   ctx.textAlign = "center";
-  ctx.fillText("magnitude → edge", cx, h - 14);
+  ctx.fillText("Stronger shift → outer edge", cx, h - 14);
 }
 
 function prefersDualBrain3d() {
   return dualBrain3dEl?.checked === true;
+}
+
+/** Short labels for 3D hover: truncated input text, or "Version A" / "Version B" if empty. */
+function brainHoverLabels() {
+  const one = (el, letter, fallback) => {
+    const t = String(el?.value || "")
+      .trim()
+      .replace(/\s+/g, " ");
+    if (!t) return fallback;
+    const max = 36;
+    const s = t.length > max ? `${t.slice(0, max - 1)}…` : t;
+    return `${letter}: ${s}`;
+  };
+  return {
+    labelA: one(textA, "A", "Version A"),
+    labelB: one(textB, "B", "Version B"),
+  };
 }
 
 function syncBrainDualLayout() {
@@ -366,19 +386,21 @@ async function refreshBrain3d(payload) {
     }
     if (bwrLegendHint) {
       bwrLegendHint.textContent = dual
-        ? "Each surface uses blue–white–red relative to that version’s median (same palette family as the static maps)."
-        : "Blue–white–red shows signed contrast (B − A), matching the static difference figure below.";
+        ? "Each brain is colored versus its own middle value (cooler ↔ hotter). Same palette family as the static maps—compare shape between A and B."
+        : "Single surface: signed B − A (cooler = more A, hotter = more B). Matches the static difference figure below.";
     }
+
+    const hoverLabels = brainHoverLabels();
 
     if (dual && a && b && wrapA && wrapB) {
       const atlas = await mod.fetchVertexAtlas();
-      mod.mountDualBrainViewer(wrapA, wrapB, a, b, mesh, atlas, tooltip);
+      mod.mountDualBrainViewer(wrapA, wrapB, a, b, mesh, atlas, tooltip, hoverLabels);
       return;
     }
 
     const atlas = await mod.fetchVertexAtlas();
     if (wrapB) wrapB.innerHTML = "";
-    if (wrapA) mod.mountBrainViewer(wrapA, delta, mesh, atlas, tooltip);
+    if (wrapA) mod.mountBrainViewer(wrapA, delta, mesh, atlas, tooltip, {});
   } catch (err) {
     console.warn("brain3d fallback to PNG:", err);
   }
@@ -462,7 +484,14 @@ function choreographReveal(payload, submittedA, submittedB) {
 
   resultEl.classList.remove("hidden");
   resultEl.querySelectorAll(".stage").forEach((el) => el.classList.remove("show"));
-  [[".stage-1", 0], [".stage-2", 180], [".stage-3", 420], [".stage-4", 640], [".stage-5", 880]].forEach(([selector, delay]) => {
+  [
+    [".stage-0", 0],
+    [".stage-1", 90],
+    [".stage-2", 220],
+    [".stage-3", 460],
+    [".stage-4", 680],
+    [".stage-5", 900],
+  ].forEach(([selector, delay]) => {
     setTimeout(() => {
       const node = resultEl.querySelector(selector);
       if (node) node.classList.add("show");
@@ -979,7 +1008,8 @@ document.querySelectorAll("[data-brain-hemi]").forEach((btn) => {
 });
 
 if (dualBrain3dEl) {
-  dualBrain3dEl.checked = localStorage.getItem(DUAL_3D_STORAGE_KEY) === "1";
+  // Default: side-by-side A/B on. User turns off → stored as "0".
+  dualBrain3dEl.checked = localStorage.getItem(DUAL_3D_STORAGE_KEY) !== "0";
   syncBrainDualLayout();
   dualBrain3dEl.addEventListener("change", () => {
     localStorage.setItem(DUAL_3D_STORAGE_KEY, dualBrain3dEl.checked ? "1" : "0");
@@ -987,11 +1017,17 @@ if (dualBrain3dEl) {
     if (lastBrainPayload) void refreshBrain3d(lastBrainPayload);
     else if (bwrLegendHint) {
       bwrLegendHint.textContent = dualBrain3dEl.checked
-        ? "Each surface uses blue–white–red relative to that version’s median (same palette family as the static maps)."
-        : "Blue–white–red shows signed contrast (B − A), matching the static difference figure below.";
+        ? "Each brain is colored versus its own middle value (cooler ↔ hotter). Same palette family as the static maps—compare shape between A and B."
+        : "Single surface: signed B − A (cooler = more A, hotter = more B). Matches the static difference figure below.";
     }
   });
 }
+
+document.getElementById("brainResetView")?.addEventListener("click", () => {
+  import("./brain3d.js")
+    .then((mod) => mod.resetBrainCamera?.())
+    .catch(() => {});
+});
 
 initHeroStage();
 fetchPreflight();
