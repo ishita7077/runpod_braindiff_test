@@ -1,25 +1,8 @@
 /**
  * WebGL fsaverage5 brain viewer (Three.js). Falls back to PNG if load fails.
  */
-
-let THREE, OrbitControls;
-const CDN = [
-  "https://cdn.jsdelivr.net/npm/three@0.160.0",
-  "https://unpkg.com/three@0.160.0",
-];
-
-async function _loadThree() {
-  if (THREE) return;
-  for (const base of CDN) {
-    try {
-      THREE = await import(`${base}/build/three.module.js`);
-      const oc = await import(`${base}/examples/jsm/controls/OrbitControls.js`);
-      OrbitControls = oc.OrbitControls;
-      return;
-    } catch { /* try next CDN */ }
-  }
-  throw new Error("Three.js CDN unreachable");
-}
+import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
 let _meshPayload = null;
 
@@ -89,11 +72,9 @@ export function setBrainHemisphere(mode) {
  * @param {Float32Array|number[]} vertexDelta length 20484
  * @param {object} meshPayload from /api/brain-mesh
  */
-export async function mountBrainViewer(container, vertexDelta, meshPayload) {
+export function mountBrainViewer(container, vertexDelta, meshPayload) {
   disposeBrainViewer();
   if (!container || !vertexDelta || !meshPayload?.lh_coord) return;
-
-  await _loadThree();
 
   const arr = vertexDelta instanceof Float32Array ? vertexDelta : Float32Array.from(vertexDelta);
   if (arr.length !== 20484) return;
