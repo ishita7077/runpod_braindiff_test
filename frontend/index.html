@@ -212,9 +212,13 @@
           <div class="section-header heatmap-header">
             <div>
               <h3>Cortical contrast</h3>
-              <p class="muted">Hover any region for details. Drag to rotate. Both views stay synced.</p>
+              <p class="muted">Default: one 3D contrast view (lighter on the GPU). Optional side-by-side A/B uses two WebGL contexts. Hover for region details.</p>
             </div>
             <div class="heatmap-actions">
+              <label class="dual-brain-toggle muted" title="Two WebGL canvases; heavier GPU load">
+                <input type="checkbox" id="dualBrain3d" />
+                Side-by-side A/B
+              </label>
               <div class="brain-hemi-toolbar" role="group" aria-label="Hemisphere visibility">
                 <button type="button" class="brain-hemi-btn active" data-brain-hemi="both">Both</button>
                 <button type="button" class="brain-hemi-btn" data-brain-hemi="left">Left</button>
@@ -226,12 +230,12 @@
           <div class="heatmap-legend-rail">
             <span class="legend-label-bright">Brighter = stronger activation</span>
           </div>
-          <div class="brain-dual-wrap">
+          <div id="brainDualWrap" class="brain-dual-wrap is-single">
             <div class="brain-viewer-col">
-              <p class="brain-viewer-label">Version A</p>
-              <div id="brain3dWrapA" class="brain-3d-host" aria-label="3D cortical map Version A"></div>
+              <p class="brain-viewer-label" id="brainViewerLabelA">Cortical contrast (B − A)</p>
+              <div id="brain3dWrapA" class="brain-3d-host" aria-label="3D cortical contrast map"></div>
             </div>
-            <div class="brain-viewer-col">
+            <div class="brain-viewer-col brain-viewer-col-b">
               <p class="brain-viewer-label">Version B</p>
               <div id="brain3dWrapB" class="brain-3d-host" aria-label="3D cortical map Version B"></div>
             </div>

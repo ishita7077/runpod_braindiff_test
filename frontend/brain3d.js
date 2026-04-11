@@ -1,6 +1,6 @@
 /**
- * Dual fsaverage5 brain viewer (Three.js) with hover tooltips.
- * Shows Version A and Version B side by side with synced rotation.
+ * fsaverage5 brain viewer (Three.js). Default: one WebGL context (contrast map).
+ * Optional: dual viewers for Version A / B side by side (2× WebGL).
  */
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
@@ -22,6 +22,22 @@ export async function fetchVertexAtlas() {
   if (!res.ok) throw new Error(`vertex-atlas ${res.status}`);
   _atlasPayload = await res.json();
   return _atlasPayload;
+}
+
+/** Decode API `vertex_*_b64` (little-endian float32) into Float32Array length 20484. */
+export function decodeVertexF32B64(b64) {
+  if (!b64 || typeof b64 !== "string") return null;
+  try {
+    const binary = atob(b64);
+    const len = binary.length;
+    if (len < 4 || len % 4 !== 0) return null;
+    const bytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+    const arr = new Float32Array(bytes.buffer, 0, len / 4);
+    return arr.length === 20484 ? arr : null;
+  } catch {
+    return null;
+  }
 }
 
 function _percentileAbs(arr, p) {
@@ -48,6 +64,16 @@ function _sequential(t) {
   }
   const u = (x - 0.5) / 0.5;
   return [0.5 + 0.45 * u, 0.26 + 0.6 * u, 0.2 + 0.35 * u];
+}
+
+function _coolwarm(t) {
+  const x = Math.max(-1, Math.min(1, t));
+  if (x < 0) {
+    const u = -x;
+    return [0.2 + 0.2 * u, 0.35 + 0.25 * u, 0.75 + 0.2 * u];
+  }
+  const u = x;
+  return [0.85 + 0.12 * u, 0.28 + 0.2 * u, 0.22 + 0.12 * u];
 }
 
 function _flatCoord(coord) {
@@ -86,7 +112,8 @@ export function setBrainHemisphere(mode) {
   if (_setHemisphere) _setHemisphere(mode);
 }
 
-function _createScene(container, vertexData, meshPayload, vmax, label, h) {
+function _createScene(container, vertexData, meshPayload, vmax, label, h, opts = {}) {
+  const slave = Boolean(opts.slave);
   const w = Math.max(280, container.clientWidth || 400);
 
   const scene = new THREE.Scene();
@@ -103,13 +130,16 @@ function _createScene(container, vertexData, meshPayload, vmax, label, h) {
   container.appendChild(renderer.domElement);
 
   const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
+  controls.enableDamping = !slave;
   controls.dampingFactor = 0.06;
   controls.enablePan = false;
   controls.minDistance = 110;
   controls.maxDistance = 320;
-  controls.autoRotate = true;
+  controls.autoRotate = !slave;
   controls.autoRotateSpeed = 0.5;
+  if (slave) {
+    controls.enabled = false;
+  }
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.7));
   const key = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -213,8 +243,10 @@ function _setupHover(sceneObj, container, vertexDataArr, atlas, tooltipEl, label
       `<div class="tt-row"><span>Dimension</span><span>${dimNames}</span></div>` +
       `<div class="tt-row"><span>${label}</span><span>${val.toFixed(4)}</span></div>`;
     tooltipEl.classList.remove("hidden");
-    tooltipEl.style.left = `${e.clientX - container.closest(".brain-dual-wrap")?.getBoundingClientRect().left + 14}px`;
-    tooltipEl.style.top = `${e.clientY - container.closest(".brain-dual-wrap")?.getBoundingClientRect().top - 10}px`;
+    const wrap = container.closest(".brain-dual-wrap");
+    const wr = wrap ? wrap.getBoundingClientRect() : { left: 0, top: 0 };
+    tooltipEl.style.left = `${e.clientX - wr.left + 14}px`;
+    tooltipEl.style.top = `${e.clientY - wr.top - 10}px`;
   }
 
   function onLeave() { tooltipEl.classList.add("hidden"); }
@@ -224,6 +256,135 @@ function _setupHover(sceneObj, container, vertexDataArr, atlas, tooltipEl, label
   return () => {
     container.removeEventListener("mousemove", onMove);
     container.removeEventListener("mouseleave", onLeave);
+  };
+}
+
+/**
+ * Single viewer: signed contrast (B − A) on one mesh, one WebGL context.
+ */
+export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, tooltipEl) {
+  disposeBrainViewer();
+  if (!container || !vertexDelta || !meshPayload?.lh_coord) return;
+
+  const arr = vertexDelta instanceof Float32Array ? vertexDelta : Float32Array.from(vertexDelta);
+  if (arr.length !== 20484) return;
+
+  const vmax = _percentileAbs(arr, 98);
+  const lhD = arr.subarray(0, 10242);
+  const rhD = arr.subarray(10242);
+
+  const w = Math.max(320, container.clientWidth || 640);
+  const h = 420;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x000000);
+
+  const camera = new THREE.PerspectiveCamera(36, w / h, 1, 600);
+  camera.position.set(0, 20, 200);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(w, h);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.5;
+  container.appendChild(renderer.domElement);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.06;
+  controls.enablePan = false;
+  controls.minDistance = 110;
+  controls.maxDistance = 320;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.5;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+  const key = new THREE.DirectionalLight(0xffffff, 1.2);
+  key.position.set(60, 100, 80);
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0xaabbdd, 0.5);
+  fill.position.set(-80, 30, 40);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(0x8899aa, 0.35);
+  rim.position.set(0, -40, -100);
+  scene.add(rim);
+
+  function colorAttr(delta) {
+    const n = delta.length;
+    const buf = new Float32Array(n * 3);
+    for (let i = 0; i < n; i += 1) {
+      const [r, g, b] = _coolwarm(delta[i] / vmax);
+      buf[i * 3] = r;
+      buf[i * 3 + 1] = g;
+      buf[i * 3 + 2] = b;
+    }
+    return new THREE.BufferAttribute(buf, 3);
+  }
+
+  const mat = new THREE.MeshPhysicalMaterial({
+    vertexColors: true,
+    metalness: 0.05,
+    roughness: 0.38,
+    clearcoat: 0.3,
+    clearcoatRoughness: 0.3,
+  });
+
+  const gL = _geometryFromPayload(meshPayload.lh_coord, meshPayload.lh_faces);
+  gL.setAttribute("color", colorAttr(lhD));
+  const mL = new THREE.Mesh(gL, mat);
+  mL.position.x = -18;
+  mL.userData = { hemi: "left", offset: 0 };
+
+  const gR = _geometryFromPayload(meshPayload.rh_coord, meshPayload.rh_faces);
+  gR.setAttribute("color", colorAttr(rhD));
+  const mR = new THREE.Mesh(gR, mat);
+  mR.position.x = 18;
+  mR.userData = { hemi: "right", offset: 10242 };
+
+  const group = new THREE.Group();
+  group.add(mL);
+  group.add(mR);
+  scene.add(group);
+
+  const sceneObj = { scene, camera, renderer, controls, mL, mR, gL, gR, mat, meshes: [mL, mR] };
+
+  const cleanHover = atlas && tooltipEl ? _setupHover(sceneObj, container, arr, atlas, tooltipEl, "Contrast (B−A)") : null;
+
+  _setHemisphere = (mode) => {
+    mL.visible = mode === "both" || mode === "left";
+    mR.visible = mode === "both" || mode === "right";
+  };
+  _setHemisphere("both");
+
+  let rafId = 0;
+  function tick() {
+    rafId = requestAnimationFrame(tick);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  tick();
+
+  const ro = new ResizeObserver(() => {
+    const rw = Math.max(320, container.clientWidth);
+    camera.aspect = rw / h;
+    camera.updateProjectionMatrix();
+    renderer.setSize(rw, h);
+  });
+  ro.observe(container);
+
+  _dispose = () => {
+    _setHemisphere = null;
+    cancelAnimationFrame(rafId);
+    ro.disconnect();
+    cleanHover?.();
+    controls.dispose();
+    gL.dispose();
+    gR.dispose();
+    mat.dispose();
+    renderer.dispose();
+    if (renderer.domElement.parentNode) {
+      renderer.domElement.parentNode.removeChild(renderer.domElement);
+    }
   };
 }
 
@@ -243,8 +404,8 @@ export function mountDualBrainViewer(containerA, containerB, vertexA, vertexB, m
   const vmax = Math.max(maxAbsA, maxAbsB, 1e-6);
 
   const h = 420;
-  const sceneA = _createScene(containerA, arrA, meshPayload, vmax, "A", h);
-  const sceneB = _createScene(containerB, arrB, meshPayload, vmax, "B", h);
+  const sceneA = _createScene(containerA, arrA, meshPayload, vmax, "A", h, { slave: false });
+  const sceneB = _createScene(containerB, arrB, meshPayload, vmax, "B", h, { slave: true });
 
   const cleanHoverA = atlas && tooltipEl ? _setupHover(sceneA, containerA, arrA, atlas, tooltipEl, "Version A") : null;
   const cleanHoverB = atlas && tooltipEl ? _setupHover(sceneB, containerB, arrB, atlas, tooltipEl, "Version B") : null;
@@ -260,11 +421,10 @@ export function mountDualBrainViewer(containerA, containerB, vertexA, vertexB, m
   let rafId = 0;
   function tick() {
     rafId = requestAnimationFrame(tick);
+    sceneA.controls.update();
     sceneB.controls.target.copy(sceneA.controls.target);
     sceneB.camera.position.copy(sceneA.camera.position);
     sceneB.camera.quaternion.copy(sceneA.camera.quaternion);
-    sceneA.controls.update();
-    sceneB.controls.update();
     sceneA.renderer.render(sceneA.scene, sceneA.camera);
     sceneB.renderer.render(sceneB.scene, sceneB.camera);
   }

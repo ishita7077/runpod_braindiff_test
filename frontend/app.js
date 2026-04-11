@@ -42,8 +42,14 @@ const exampleBtns = [...document.querySelectorAll(".example")];
 const apiReadyPill = document.getElementById("apiReadyPill");
 const dimensionRadar = document.getElementById("dimensionRadar");
 const atlasPeakLabel = document.getElementById("atlasPeakLabel");
+const brainDualWrap = document.getElementById("brainDualWrap");
+const dualBrain3dEl = document.getElementById("dualBrain3d");
+const brainViewerLabelA = document.getElementById("brainViewerLabelA");
+
+const DUAL_3D_STORAGE_KEY = "braindiff_dual_3d";
 
 let isSubmitting = false;
+let lastBrainPayload = null;
 let preflightState = null;
 let latestShareData = null;
 
@@ -196,17 +202,61 @@ function renderDimensionRadar(dimensions) {
   ctx.fillText("magnitude → edge", cx, h - 14);
 }
 
+function prefersDualBrain3d() {
+  return dualBrain3dEl?.checked === true;
+}
+
+function syncBrainDualLayout() {
+  if (brainDualWrap) brainDualWrap.classList.toggle("is-single", !prefersDualBrain3d());
+}
+
+function summarizeVerticesForDebug(p) {
+  if (!p || typeof p !== "object") return p;
+  const o = { ...p };
+  for (const k of ["vertex_delta_b64", "vertex_a_b64", "vertex_b_b64"]) {
+    if (typeof o[k] === "string") o[k] = `[omitted ${o[k].length} base64 chars]`;
+  }
+  return o;
+}
+
+function decodeVertexPlane(mod, payload, b64Key, listKey) {
+  const fromB64 = mod.decodeVertexF32B64?.(payload[b64Key]);
+  if (fromB64?.length === 20484) return fromB64;
+  const list = payload[listKey];
+  if (Array.isArray(list) && list.length === 20484) return Float32Array.from(list);
+  return null;
+}
+
 async function refreshBrain3d(payload) {
+  lastBrainPayload = payload;
+  syncBrainDualLayout();
   try {
     const mod = await import("./brain3d.js");
     mod.disposeBrainViewer();
-    if (!payload?.vertex_a || payload.vertex_a.length !== 20484) return;
-    if (!payload?.vertex_b || payload.vertex_b.length !== 20484) return;
-    const [mesh, atlas] = await Promise.all([mod.fetchBrainMesh(), mod.fetchVertexAtlas()]);
+    const delta = decodeVertexPlane(mod, payload, "vertex_delta_b64", "vertex_delta");
+    if (!delta || delta.length !== 20484) return;
+
+    const mesh = await mod.fetchBrainMesh();
+    const dual = prefersDualBrain3d();
+    const a = decodeVertexPlane(mod, payload, "vertex_a_b64", "vertex_a");
+    const b = decodeVertexPlane(mod, payload, "vertex_b_b64", "vertex_b");
     const wrapA = document.getElementById("brain3dWrapA");
     const wrapB = document.getElementById("brain3dWrapB");
     const tooltip = document.getElementById("brainTooltip");
-    if (wrapA && wrapB) mod.mountDualBrainViewer(wrapA, wrapB, payload.vertex_a, payload.vertex_b, mesh, atlas, tooltip);
+
+    if (brainViewerLabelA) {
+      brainViewerLabelA.textContent = dual ? "Version A" : "Cortical contrast (B − A)";
+    }
+
+    if (dual && a && b && wrapA && wrapB) {
+      const atlas = await mod.fetchVertexAtlas();
+      mod.mountDualBrainViewer(wrapA, wrapB, a, b, mesh, atlas, tooltip);
+      return;
+    }
+
+    const atlas = await mod.fetchVertexAtlas();
+    if (wrapB) wrapB.innerHTML = "";
+    if (wrapA) mod.mountBrainViewer(wrapA, delta, mesh, atlas, tooltip);
   } catch (err) {
     console.warn("brain3d fallback to PNG:", err);
   }
@@ -286,7 +336,7 @@ function choreographReveal(payload, submittedA, submittedB) {
   if (payload.meta?.heatmap?.image_base64) {
     heatmapImg.src = `data:image/png;base64,${payload.meta.heatmap.image_base64}`;
   }
-  resultJson.textContent = JSON.stringify(payload, null, 2);
+  resultJson.textContent = JSON.stringify(summarizeVerticesForDebug(payload), null, 2);
 
   resultEl.classList.remove("hidden");
   resultEl.querySelectorAll(".stage").forEach((el) => el.classList.remove("show"));
@@ -802,6 +852,16 @@ document.querySelectorAll("[data-brain-hemi]").forEach((btn) => {
     });
   });
 });
+
+if (dualBrain3dEl) {
+  dualBrain3dEl.checked = localStorage.getItem(DUAL_3D_STORAGE_KEY) === "1";
+  syncBrainDualLayout();
+  dualBrain3dEl.addEventListener("change", () => {
+    localStorage.setItem(DUAL_3D_STORAGE_KEY, dualBrain3dEl.checked ? "1" : "0");
+    syncBrainDualLayout();
+    if (lastBrainPayload) void refreshBrain3d(lastBrainPayload);
+  });
+}
 
 initHeroStage();
 fetchPreflight();

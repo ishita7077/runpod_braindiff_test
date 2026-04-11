@@ -20,8 +20,9 @@ export TRIBEV2_WHISPERX_DEVICE="${TRIBEV2_WHISPERX_DEVICE:-cpu}"
 export TRIBEV2_WHISPERX_MODEL="${TRIBEV2_WHISPERX_MODEL:-base.en}"
 # Llama defaults to CPU (reliable). If you set BRAIN_DIFF_TEXT_BACKEND=mps_split, this cap applies.
 export BRAIN_DIFF_MPS_TEXT_MAX_MEMORY="${BRAIN_DIFF_MPS_TEXT_MAX_MEMORY:-10000MiB}"
-# Allow 2 parallel diff jobs given available memory headroom.
-export BRAIN_DIFF_MAX_CONCURRENT_JOBS="${BRAIN_DIFF_MAX_CONCURRENT_JOBS:-2}"
+# Default one job at a time on local CPU/MPS so runs stay predictable (two GPU-heavy jobs can thrash and feel "stuck").
+# Raise on CUDA if you have headroom: export BRAIN_DIFF_MAX_CONCURRENT_JOBS=2
+export BRAIN_DIFF_MAX_CONCURRENT_JOBS="${BRAIN_DIFF_MAX_CONCURRENT_JOBS:-1}"
 
 if [ "${UVICORN_RELOAD:-0}" = "1" ]; then
   uvicorn backend.api:app --host 0.0.0.0 --port 8000 --reload

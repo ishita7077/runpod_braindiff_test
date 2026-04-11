@@ -556,6 +556,24 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
+.brain-dual-wrap.is-single {
+  grid-template-columns: 1fr;
+}
+.brain-dual-wrap.is-single .brain-viewer-col-b {
+  display: none;
+}
+.dual-brain-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  cursor: pointer;
+  user-select: none;
+  margin-right: 4px;
+}
+.dual-brain-toggle input {
+  cursor: pointer;
+}
 .brain-viewer-col {
   display: flex;
   flex-direction: column;

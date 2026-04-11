@@ -28,6 +28,7 @@ from backend.scorer import score_predictions
 from backend.startup_manifest import build_startup_manifest, write_startup_manifest
 from backend.status_store import JobStore
 from backend.telemetry_store import TelemetryStore
+from backend.vertex_codec import f32_b64
 
 logger = logging.getLogger("braindiff.api")
 
@@ -236,9 +237,9 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                 "diff": diff,
                 "dimensions": dimension_rows,
                 "insights": insights,
-                "vertex_delta": vertex_delta.astype(float).tolist(),
-                "vertex_a": vertex_a.astype(float).tolist(),
-                "vertex_b": vertex_b.astype(float).tolist(),
+                "vertex_delta_b64": f32_b64(vertex_delta),
+                "vertex_a_b64": f32_b64(vertex_a),
+                "vertex_b_b64": f32_b64(vertex_b),
                 "warnings": warnings,
                 "meta": {
                     "model_revision": tribe_service.model_revision,
@@ -301,9 +302,9 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             "diff": diff,
             "dimensions": dimension_rows,
             "insights": insights,
-            "vertex_delta": vertex_delta.astype(float).tolist(),
-            "vertex_a": vertex_a.astype(float).tolist(),
-            "vertex_b": vertex_b.astype(float).tolist(),
+            "vertex_delta_b64": f32_b64(vertex_delta),
+            "vertex_a_b64": f32_b64(vertex_a),
+            "vertex_b_b64": f32_b64(vertex_b),
             "warnings": warnings,
             "meta": {
                 "model_revision": tribe_service.model_revision,

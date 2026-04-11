@@ -1,7 +1,13 @@
+import base64
+
 import numpy as np
 from fastapi.testclient import TestClient
 
 from backend import api
+
+
+def _decode_f32_b64(s: str) -> np.ndarray:
+    return np.frombuffer(base64.b64decode(s), dtype=np.float32)
 
 
 class _DummyTribeService:
@@ -49,7 +55,9 @@ def test_api_sync_shape(monkeypatch):
     assert "dimensions" in payload
     assert "insights" in payload
     assert payload["insights"]["headline"]
-    assert len(payload["vertex_delta"]) == 20484
+    assert _decode_f32_b64(payload["vertex_delta_b64"]).shape == (20484,)
+    assert _decode_f32_b64(payload["vertex_a_b64"]).shape == (20484,)
+    assert _decode_f32_b64(payload["vertex_b_b64"]).shape == (20484,)
     assert payload["meta"]["atlas"] == "HCP_MMP1.0"
     assert "atlas_peak" in payload["meta"]
 
