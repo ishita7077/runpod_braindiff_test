@@ -1,8 +1,25 @@
 /**
- * WebGL fsaverage5 brain viewer (Three.js). Falls back if mesh load fails.
+ * WebGL fsaverage5 brain viewer (Three.js). Falls back to PNG if load fails.
  */
-import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
-import { OrbitControls } from "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+
+let THREE, OrbitControls;
+const CDN = [
+  "https://cdn.jsdelivr.net/npm/three@0.160.0",
+  "https://unpkg.com/three@0.160.0",
+];
+
+async function _loadThree() {
+  if (THREE) return;
+  for (const base of CDN) {
+    try {
+      THREE = await import(`${base}/build/three.module.js`);
+      const oc = await import(`${base}/examples/jsm/controls/OrbitControls.js`);
+      OrbitControls = oc.OrbitControls;
+      return;
+    } catch { /* try next CDN */ }
+  }
+  throw new Error("Three.js CDN unreachable");
+}
 
 let _meshPayload = null;
 
@@ -23,15 +40,12 @@ function _percentileAbs(arr, p) {
 
 function _coolwarm(t) {
   const x = Math.max(-1, Math.min(1, t));
-  const c = new THREE.Color();
   if (x < 0) {
     const u = -x;
-    c.setRGB(0.15 + 0.1 * u, 0.2 + 0.25 * u, 0.85 + 0.1 * u);
-  } else {
-    const u = x;
-    c.setRGB(0.9 + 0.08 * u, 0.22 + 0.28 * u, 0.18 + 0.2 * u);
+    return [0.25 + 0.15 * u, 0.4 + 0.15 * u, 0.75 + 0.2 * u];
   }
-  return c;
+  const u = x;
+  return [0.8 + 0.15 * u, 0.25 + 0.15 * u, 0.18 + 0.1 * u];
 }
 
 function _flatCoord(coord) {
@@ -56,7 +70,6 @@ function _geometryFromPayload(coord, faces) {
 }
 
 let _dispose = null;
-/** @type {((mode: "both" | "left" | "right") => void) | null} */
 let _setHemisphere = null;
 
 export function disposeBrainViewer() {
@@ -67,7 +80,6 @@ export function disposeBrainViewer() {
   _setHemisphere = null;
 }
 
-/** Toggle visible hemispheres (no-op if viewer not mounted). */
 export function setBrainHemisphere(mode) {
   if (_setHemisphere) _setHemisphere(mode);
 }
@@ -77,9 +89,11 @@ export function setBrainHemisphere(mode) {
  * @param {Float32Array|number[]} vertexDelta length 20484
  * @param {object} meshPayload from /api/brain-mesh
  */
-export function mountBrainViewer(container, vertexDelta, meshPayload) {
+export async function mountBrainViewer(container, vertexDelta, meshPayload) {
   disposeBrainViewer();
   if (!container || !vertexDelta || !meshPayload?.lh_coord) return;
+
+  await _loadThree();
 
   const arr = vertexDelta instanceof Float32Array ? vertexDelta : Float32Array.from(vertexDelta);
   if (arr.length !== 20484) return;
@@ -89,50 +103,59 @@ export function mountBrainViewer(container, vertexDelta, meshPayload) {
   const rhD = arr.subarray(10242);
 
   const w = Math.max(320, container.clientWidth || 800);
-  const h = 400;
+  const h = 480;
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x05060a);
+  scene.background = new THREE.Color(0x000000);
 
-  const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 500);
-  camera.position.set(0, 0, 220);
+  const camera = new THREE.PerspectiveCamera(38, w / h, 1, 600);
+  camera.position.set(0, 20, 210);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(w, h);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.1;
   container.appendChild(renderer.domElement);
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
+  controls.dampingFactor = 0.06;
+  controls.enablePan = false;
+  controls.minDistance = 120;
+  controls.maxDistance = 350;
+  controls.autoRotate = true;
+  controls.autoRotateSpeed = 0.6;
 
-  const hemi = new THREE.HemisphereLight(0x8899ff, 0x080810, 0.9);
-  scene.add(hemi);
-  const dir = new THREE.DirectionalLight(0xffffff, 0.55);
-  dir.position.set(80, 120, 60);
-  scene.add(dir);
-  const rim = new THREE.PointLight(0x66ccff, 0.35, 400);
-  rim.position.set(-120, 40, 80);
+  scene.add(new THREE.AmbientLight(0x404060, 0.5));
+  const key = new THREE.DirectionalLight(0xffffff, 0.9);
+  key.position.set(60, 100, 80);
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0x8899cc, 0.4);
+  fill.position.set(-80, 30, 40);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(0x556688, 0.3);
+  rim.position.set(0, -40, -100);
   scene.add(rim);
 
   function colorAttr(delta) {
     const n = delta.length;
     const buf = new Float32Array(n * 3);
     for (let i = 0; i < n; i += 1) {
-      const c = _coolwarm(delta[i] / vmax);
-      buf[i * 3] = c.r;
-      buf[i * 3 + 1] = c.g;
-      buf[i * 3 + 2] = c.b;
+      const [r, g, b] = _coolwarm(delta[i] / vmax);
+      buf[i * 3] = r;
+      buf[i * 3 + 1] = g;
+      buf[i * 3 + 2] = b;
     }
     return new THREE.BufferAttribute(buf, 3);
   }
 
-  const mat = new THREE.MeshStandardMaterial({
+  const mat = new THREE.MeshPhysicalMaterial({
     vertexColors: true,
-    metalness: 0.25,
-    roughness: 0.42,
-    emissive: new THREE.Color(0x111826),
-    emissiveIntensity: 0.45,
+    metalness: 0.08,
+    roughness: 0.55,
+    clearcoat: 0.15,
+    clearcoatRoughness: 0.4,
   });
 
   const gL = _geometryFromPayload(meshPayload.lh_coord, meshPayload.lh_faces);
@@ -151,9 +174,8 @@ export function mountBrainViewer(container, vertexDelta, meshPayload) {
   scene.add(group);
 
   _setHemisphere = (mode) => {
-    const both = mode === "both";
-    mL.visible = both || mode === "left";
-    mR.visible = both || mode === "right";
+    mL.visible = mode === "both" || mode === "left";
+    mR.visible = mode === "both" || mode === "right";
   };
   _setHemisphere("both");
 

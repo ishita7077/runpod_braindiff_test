@@ -14,8 +14,6 @@ const headlineEl = document.getElementById("headline");
 const winnerEl = document.getElementById("winner");
 const subheadEl = document.getElementById("subhead");
 const heroMetricsEl = document.getElementById("heroMetrics");
-const snapshotAEl = document.getElementById("snapshotA");
-const snapshotBEl = document.getElementById("snapshotB");
 const barsEl = document.getElementById("bars");
 const whatChangedEl = document.getElementById("whatChanged");
 const whatStayedSimilarEl = document.getElementById("whatStayedSimilar");
@@ -137,7 +135,7 @@ function renderDimensionRadar(dimensions) {
   const cy = h / 2;
   const R = Math.min(w, h) * 0.36;
   ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "rgba(6,8,14,0.65)";
+  ctx.fillStyle = "rgba(5,5,5,0.8)";
   ctx.fillRect(0, 0, w, h);
   const byKey = Object.fromEntries((dimensions || []).map((d) => [d.key, d]));
   const n = RADAR_DIM_ORDER.length;
@@ -148,8 +146,8 @@ function renderDimensionRadar(dimensions) {
     return Math.min(1, Math.max(0, Number(row.bar_fraction ?? row.magnitude ?? 0)));
   });
 
-  ctx.strokeStyle = "rgba(148,163,184,0.25)";
-  ctx.lineWidth = 1;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+  ctx.lineWidth = 0.5;
   for (let ring = 1; ring <= 4; ring += 1) {
     const r = (R * ring) / 4;
     ctx.beginPath();
@@ -170,8 +168,8 @@ function renderDimensionRadar(dimensions) {
     const label = byKey[RADAR_DIM_ORDER[i]]?.label || RADAR_DIM_ORDER[i];
     const lx = cx + (R + 14) * Math.cos(ang);
     const ly = cy + (R + 14) * Math.sin(ang);
-    ctx.fillStyle = "rgba(203,213,225,0.9)";
-    ctx.font = '10px "IBM Plex Mono", monospace';
+    ctx.fillStyle = "rgba(180,180,180,0.8)";
+    ctx.font = '10px -apple-system, sans-serif';
     ctx.textAlign = lx >= cx ? "left" : "right";
     ctx.fillText(String(label).split(" ")[0], lx, ly);
   });
@@ -186,16 +184,16 @@ function renderDimensionRadar(dimensions) {
     else ctx.lineTo(x, y);
   });
   ctx.closePath();
-  ctx.fillStyle = "rgba(45,212,191,0.22)";
+  ctx.fillStyle = "rgba(255, 255, 255, 0.08)";
   ctx.fill();
-  ctx.strokeStyle = "rgba(45,212,191,0.85)";
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+  ctx.lineWidth = 1.5;
   ctx.stroke();
 
-  ctx.fillStyle = "rgba(248,250,252,0.85)";
-  ctx.font = '11px "IBM Plex Mono", monospace';
+  ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
+  ctx.font = '10px -apple-system, sans-serif';
   ctx.textAlign = "center";
-  ctx.fillText("magnitude → edge", cx, h - 18);
+  ctx.fillText("magnitude → edge", cx, h - 14);
 }
 
 async function refreshBrain3d(payload) {
@@ -205,9 +203,9 @@ async function refreshBrain3d(payload) {
     if (!payload?.vertex_delta || payload.vertex_delta.length !== 20484) return;
     const mesh = await mod.fetchBrainMesh();
     const wrap = document.getElementById("brain3dWrap");
-    if (wrap) mod.mountBrainViewer(wrap, payload.vertex_delta, mesh);
-  } catch {
-    /* PNG fallback only */
+    if (wrap) await mod.mountBrainViewer(wrap, payload.vertex_delta, mesh);
+  } catch (err) {
+    console.warn("brain3d fallback to PNG:", err);
   }
 }
 
@@ -260,8 +258,6 @@ function choreographReveal(payload, submittedA, submittedB) {
   const ws = payload.meta?.winner_summary || { a_wins: 0, b_wins: 0, tied: 0 };
   winnerEl.textContent = `B wins on ${ws.b_wins} dimensions · A wins on ${ws.a_wins} · ${ws.tied} tied`;
   subheadEl.textContent = insights.subhead || "";
-  snapshotAEl.textContent = truncate(submittedA, 210);
-  snapshotBEl.textContent = truncate(submittedB, 210);
   renderMetricCards(insights.hero_metrics || []);
   renderBars(payload.dimensions || []);
   renderInsightList(whatChangedEl, insights.what_changed, "No major change emerged strongly enough to headline this run.");
@@ -594,43 +590,29 @@ async function buildShareImageBlob() {
   canvas.height = 760;
   const ctx = canvas.getContext("2d");
 
-  const bg = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  bg.addColorStop(0, "#050812");
-  bg.addColorStop(1, "#08111d");
-  ctx.fillStyle = bg;
+  ctx.fillStyle = "#000000";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  const auraA = ctx.createRadialGradient(180, 110, 10, 180, 110, 330);
-  auraA.addColorStop(0, "rgba(45,212,191,0.20)");
-  auraA.addColorStop(1, "rgba(45,212,191,0)");
-  ctx.fillStyle = auraA;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  const auraB = ctx.createRadialGradient(1080, 120, 10, 1080, 120, 280);
-  auraB.addColorStop(0, "rgba(125,211,252,0.14)");
-  auraB.addColorStop(1, "rgba(125,211,252,0)");
-  ctx.fillStyle = auraB;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  ctx.fillStyle = "#94a3b8";
-  ctx.font = '16px "IBM Plex Mono", monospace';
+  ctx.fillStyle = "#666666";
+  ctx.font = '14px -apple-system, sans-serif';
   ctx.fillText("BRAIN DIFF", 54, 52);
-  ctx.fillStyle = "#f8fafc";
-  ctx.font = 'bold 52px "Iowan Old Style", serif';
-  drawWrappedText(ctx, result.insights?.headline || result.meta?.headline || "Brain Diff", 54, 118, 650, 54, 3);
-  ctx.fillStyle = "#dbe7f6";
-  ctx.font = '22px "Iowan Old Style", serif';
-  drawWrappedText(ctx, result.insights?.subhead || "", 54, 254, 650, 30, 3);
+  ctx.fillStyle = "#ffffff";
+  ctx.font = 'bold 48px -apple-system, sans-serif';
+  drawWrappedText(ctx, result.insights?.headline || result.meta?.headline || "Brain Diff", 54, 112, 650, 52, 3);
+  ctx.fillStyle = "#999999";
+  ctx.font = '20px -apple-system, sans-serif';
+  drawWrappedText(ctx, result.insights?.subhead || "", 54, 248, 650, 28, 3);
 
   const topDims = (result.dimensions || []).slice(0, 2);
   if (topDims.length) {
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = '14px "IBM Plex Mono", monospace';
+    ctx.fillStyle = "#666666";
+    ctx.font = '13px -apple-system, sans-serif';
     ctx.fillText(`${topDims.map((r) => `${r.label} (${r.winner})`).join(" · ")}`, 54, 310);
   }
 
   function panel(x, y, w, h) {
-    ctx.fillStyle = "rgba(11,17,31,0.84)";
-    ctx.strokeStyle = "rgba(148,163,184,0.14)";
+    ctx.fillStyle = "rgba(15,15,15,0.9)";
+    ctx.strokeStyle = "rgba(255,255,255,0.08)";
     ctx.lineWidth = 1;
     const r = 22;
     ctx.beginPath();
@@ -648,43 +630,43 @@ async function buildShareImageBlob() {
   panel(54, 490, 620, 124);
   panel(706, 350, 560, 264);
 
-  ctx.fillStyle = "#7dd3fc";
-  ctx.font = '13px "IBM Plex Mono", monospace';
+  ctx.fillStyle = "#666666";
+  ctx.font = '12px -apple-system, sans-serif';
   ctx.fillText("VERSION A", 74, 378);
   ctx.fillText("VERSION B", 74, 518);
-  ctx.fillStyle = "#eef2ff";
-  ctx.font = '24px "Iowan Old Style", serif';
-  drawWrappedText(ctx, truncate(submittedA, 160), 74, 414, 582, 30, 2);
-  drawWrappedText(ctx, truncate(submittedB, 160), 74, 554, 582, 30, 2);
+  ctx.fillStyle = "#dddddd";
+  ctx.font = '22px -apple-system, sans-serif';
+  drawWrappedText(ctx, truncate(submittedA, 160), 74, 408, 582, 28, 2);
+  drawWrappedText(ctx, truncate(submittedB, 160), 74, 548, 582, 28, 2);
 
   const bars = (result.dimensions || []).slice(0, 3);
   const maxAbs = Math.max(0.0001, ...bars.map((row) => Math.abs(Number(row.delta || 0))));
-  ctx.fillStyle = "#cbd5e1";
-  ctx.font = '13px "IBM Plex Mono", monospace';
+  ctx.fillStyle = "#666666";
+  ctx.font = '12px -apple-system, sans-serif';
   ctx.fillText("TOP CONTRASTS", 726, 378);
   bars.forEach((row, idx) => {
     const y = 410 + idx * 72;
-    ctx.fillStyle = "#f8fafc";
-    ctx.font = '18px "Iowan Old Style", serif';
+    ctx.fillStyle = "#ffffff";
+    ctx.font = '16px -apple-system, sans-serif';
     ctx.fillText(row.label, 726, y);
-    ctx.fillStyle = "rgba(23,33,50,1)";
-    ctx.fillRect(726, y + 18, 480, 14);
-    ctx.fillStyle = Math.sign(Number(row.delta || 0)) >= 0 ? "#2dd4bf" : "#fb7185";
+    ctx.fillStyle = "rgba(255,255,255,0.06)";
+    ctx.fillRect(726, y + 16, 480, 12);
+    ctx.fillStyle = Math.sign(Number(row.delta || 0)) >= 0 ? "#5ac8b8" : "#e8665a";
     const width = Math.max(12, Math.round((Math.abs(Number(row.delta || 0)) / maxAbs) * 240));
-    ctx.fillRect(Math.sign(Number(row.delta || 0)) >= 0 ? 966 : 966 - width, y + 18, width, 14);
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = '12px "IBM Plex Mono", monospace';
-    ctx.fillText(`${row.winner} · ${row.strength}`, 726, y + 52);
+    ctx.fillRect(Math.sign(Number(row.delta || 0)) >= 0 ? 966 : 966 - width, y + 16, width, 12);
+    ctx.fillStyle = "#777777";
+    ctx.font = '11px -apple-system, sans-serif';
+    ctx.fillText(`${row.winner} · ${row.strength}`, 726, y + 48);
   });
-  ctx.fillStyle = "rgba(255,255,255,0.12)";
-  ctx.fillRect(965, 420, 2, 160);
+  ctx.fillStyle = "rgba(255,255,255,0.08)";
+  ctx.fillRect(965, 420, 1, 160);
 
   const heatmap = await loadImage(heatmapImg.src);
   panel(706, 626, 560, 104);
   ctx.drawImage(heatmap, 718, 638, 536, 80);
 
-  ctx.fillStyle = "#9ca3af";
-  ctx.font = '12px "IBM Plex Mono", monospace';
+  ctx.fillStyle = "#555555";
+  ctx.font = '11px -apple-system, sans-serif';
   ctx.fillText(`model:${String(result.meta?.model_revision || "unknown").slice(0, 30)}`, 54, 710);
   ctx.fillText(`atlas:${String(result.meta?.atlas || "unknown")}`, 430, 710);
   ctx.fillText("braindiff.xyz", 1135, 710);
@@ -722,15 +704,9 @@ function initHeroStage() {
     const { width, height } = heroCanvas.getBoundingClientRect();
     ctx.clearRect(0, 0, width, height);
 
-    const g = ctx.createLinearGradient(0, 0, width, height);
-    g.addColorStop(0, "rgba(8,14,25,0.18)");
-    g.addColorStop(1, "rgba(5,9,18,0.0)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, width, height);
-
     particles.forEach((p, idx) => {
-      p.x += p.vx + Math.sin((t / 1200) + p.a) * 0.03;
-      p.y += p.vy + Math.cos((t / 1400) + p.a) * 0.03;
+      p.x += p.vx + Math.sin((t / 1400) + p.a) * 0.02;
+      p.y += p.vy + Math.cos((t / 1600) + p.a) * 0.02;
       if (p.x < -20) p.x = width + 20;
       if (p.x > width + 20) p.x = -20;
       if (p.y < -20) p.y = height + 20;
@@ -741,9 +717,10 @@ function initHeroStage() {
         const dx = p.x - q.x;
         const dy = p.y - q.y;
         const dist = Math.hypot(dx, dy);
-        if (dist < 84) {
-          ctx.strokeStyle = `rgba(${p.hue === 0 ? "125,211,252" : p.hue === 1 ? "45,212,191" : "251,113,133"}, ${0.14 * (1 - dist / 84)})`;
-          ctx.lineWidth = 1;
+        if (dist < 80) {
+          const alpha = 0.08 * (1 - dist / 80);
+          ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`;
+          ctx.lineWidth = 0.5;
           ctx.beginPath();
           ctx.moveTo(p.x, p.y);
           ctx.lineTo(q.x, q.y);
@@ -751,14 +728,11 @@ function initHeroStage() {
         }
       }
 
-      const color = p.hue === 0 ? "125,211,252" : p.hue === 1 ? "45,212,191" : "251,113,133";
-      ctx.fillStyle = `rgba(${color},0.9)`;
-      ctx.shadowColor = `rgba(${color},0.45)`;
-      ctx.shadowBlur = 12;
+      const alpha = 0.3 + 0.3 * Math.sin(t / 2000 + p.a);
+      ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
       ctx.fill();
-      ctx.shadowBlur = 0;
     });
 
     raf = requestAnimationFrame(draw);

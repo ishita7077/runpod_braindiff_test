@@ -4,13 +4,14 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Brain Diff</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <div class="page-ambient ambient-a"></div>
-    <div class="page-ambient ambient-b"></div>
 
-    <header class="topbar glassy">
+    <header class="topbar">
       <div class="brand-lockup">
         <span class="brand-mark">◉</span>
         <span>Brain Diff</span>
@@ -20,33 +21,31 @@
         <a href="#landing">Compare</a>
         <a href="#result">Result</a>
         <button id="diagToggle" class="top-nav-btn" type="button">Diagnostics</button>
-        <a href="./methodology.html">Methodology →</a>
+        <a href="./methodology.html">Methodology</a>
       </nav>
     </header>
 
     <main class="container">
-      <section id="landing" class="hero-shell panel glassy">
+      <section id="landing" class="hero-shell panel">
         <div class="hero-grid">
           <div class="hero-copy">
-            <p class="eyebrow">Average-brain contrast, not generic copy scoring</p>
-            <h1>See where two versions land differently in the cortical response.</h1>
+            <p class="eyebrow">Cortical contrast, not copy scoring</p>
+            <h1>See where two versions land differently in the brain.</h1>
             <p class="subtitle">
-              Compare two headlines, tweets, pitches, or paragraphs and surface where their predicted brain response diverges — with a verdict, contrast map, and next-step guidance.
+              Compare two pieces of text and surface where their predicted brain response diverges — with a verdict, contrast map, and guidance.
             </p>
             <div class="hero-pills">
-              <span class="hero-pill">TRIBEv2 cortical compare</span>
-              <span class="hero-pill">Population-average brain</span>
+              <span class="hero-pill">TRIBEv2</span>
+              <span class="hero-pill">Population average</span>
               <span class="hero-pill">Compare, not predict</span>
             </div>
           </div>
 
           <div class="hero-stage">
             <canvas id="heroCanvas" aria-hidden="true"></canvas>
-            <div class="stage-glow stage-glow-a"></div>
-            <div class="stage-glow stage-glow-b"></div>
             <div class="stage-shell">
               <div class="stage-copy">
-                <span class="stage-label">Neural contrast preview</span>
+                <span class="stage-label">Neural contrast</span>
                 <h2>Version deltas, rendered like an instrument.</h2>
                 <p>Fast enough for editing decisions. Rich enough to feel like a research tool.</p>
               </div>
@@ -96,11 +95,11 @@
         </section>
       </section>
 
-      <section id="loading" class="panel glassy hidden loading-panel">
+      <section id="loading" class="panel hidden loading-panel">
         <div class="loading-head">
           <div>
             <p class="eyebrow">Working</p>
-            <h2>Rendering a cortical contrast through TRIBEv2…</h2>
+            <h2>Rendering a cortical contrast…</h2>
           </div>
           <div class="loading-orb" aria-hidden="true">
             <span></span><span></span><span></span>
@@ -110,15 +109,15 @@
           <li data-step="converting_text_to_speech">Converting text to speech</li>
           <li data-step="predicting_version_a">Predicting neural response for Version A</li>
           <li data-step="predicting_version_b">Predicting neural response for Version B</li>
-          <li data-step="computing_brain_contrast">Computing cortical contrast and render</li>
+          <li data-step="computing_brain_contrast">Computing cortical contrast</li>
         </ul>
         <p id="loadingHint" class="loading-hint"></p>
         <div id="loadingTelemetry" class="loading-telemetry hidden"></div>
         <button id="retryBtn" class="hidden retry-btn" type="button">Retry</button>
       </section>
 
-      <section id="result" class="result result-theme-dark hidden">
-        <section class="panel result-hero glassy stage stage-1">
+      <section id="result" class="result hidden">
+        <section class="panel result-hero stage stage-1">
           <div class="hero-text">
             <p class="eyebrow">Result</p>
             <h2 id="headline"></h2>
@@ -134,45 +133,23 @@
           </div>
         </section>
 
-        <section class="result-grid stage stage-2">
-          <div class="panel snapshots-card glassy">
-            <div class="section-header">
-              <div>
-                <h3>Compared inputs</h3>
-                <p class="muted">A fast snapshot of what the model actually saw.</p>
-              </div>
-              <div class="section-chip">Input pair</div>
+        <section class="panel bars-card stage stage-2">
+          <div class="section-header">
+            <div>
+              <h3>Cortical dimensions</h3>
+              <p class="muted">Directional contrasts across five brain regions.</p>
             </div>
-            <div class="snapshots">
-              <div class="snapshot-box snapshot-a">
-                <div class="snapshot-label">Version A</div>
-                <p id="snapshotA"></p>
-              </div>
-              <div class="snapshot-box snapshot-b">
-                <div class="snapshot-label">Version B</div>
-                <p id="snapshotB"></p>
-              </div>
-            </div>
+            <div class="section-chip">Primary signal</div>
           </div>
-
-          <div class="panel bars-card glassy">
-            <div class="section-header">
-              <div>
-                <h3>Where the strongest differences are</h3>
-                <p class="muted">Read these as directional contrasts, not absolute truth meters.</p>
-              </div>
-              <div class="section-chip">Primary signal</div>
-            </div>
-            <div id="bars" class="bars"></div>
-            <div class="radar-wrap">
-              <p class="radar-label">Five-dimension snapshot</p>
-              <canvas id="dimensionRadar" width="340" height="340" class="dimension-radar-canvas" aria-label="Radar chart of cortical dimensions"></canvas>
-            </div>
+          <div id="bars" class="bars"></div>
+          <div class="radar-wrap">
+            <p class="radar-label">Five-dimension snapshot</p>
+            <canvas id="dimensionRadar" width="340" height="340" class="dimension-radar-canvas" aria-label="Radar chart of cortical dimensions"></canvas>
           </div>
         </section>
 
         <section class="result-grid stage stage-3">
-          <div class="panel insights-card glassy">
+          <div class="panel insights-card">
             <div class="section-header">
               <div>
                 <h3>What changed</h3>
@@ -183,7 +160,7 @@
             <div id="whatChanged" class="insight-list"></div>
           </div>
 
-          <div class="panel similarities-card glassy">
+          <div class="panel similarities-card">
             <div class="section-header">
               <div>
                 <h3>What stayed similar</h3>
@@ -196,7 +173,7 @@
         </section>
 
         <section class="result-grid stage stage-4">
-          <div class="panel actions-card glassy">
+          <div class="panel actions-card">
             <div class="section-header">
               <div>
                 <h3>How to use this</h3>
@@ -207,30 +184,29 @@
             <div id="actionables" class="insight-list"></div>
           </div>
 
-          <div class="panel science-card glassy">
+          <div class="panel science-card">
             <div class="section-header">
               <div>
                 <h3>Why this is interesting</h3>
-                <p class="muted">The cool part of what the model lets us see.</p>
+                <p class="muted">The scientific angle.</p>
               </div>
-              <div class="section-chip">Scientific angle</div>
+              <div class="section-chip">Science</div>
             </div>
             <p id="coolFactor" class="science-copy"></p>
             <details class="science-details">
-              <summary>Why this isn’t a popularity score</summary>
+              <summary>Why this isn't a popularity score</summary>
               <p id="scientificNote" class="science-note"></p>
             </details>
           </div>
         </section>
 
-        <section class="panel heatmap-panel glassy stage stage-5 brain-viz-panel">
+        <section class="panel heatmap-panel stage stage-5">
           <div class="section-header heatmap-header">
             <div>
               <h3>Whole-brain contrast</h3>
-              <p class="muted">Interactive 3D (drag to rotate) · Static multi-view below · Red = B higher · Blue = A higher</p>
+              <p class="muted">Interactive 3D (drag to rotate) · Static views below</p>
             </div>
             <div class="heatmap-actions">
-              <div class="section-chip">Full cortex</div>
               <div class="brain-hemi-toolbar" role="group" aria-label="Hemisphere visibility">
                 <button type="button" class="brain-hemi-btn active" data-brain-hemi="both">Both</button>
                 <button type="button" class="brain-hemi-btn" data-brain-hemi="left">Left</button>
@@ -243,7 +219,7 @@
             <span class="legend-dot legend-b"></span><span>Version B stronger</span>
             <span class="legend-dot legend-a"></span><span>Version A stronger</span>
           </div>
-          <div id="heatmapWrap" class="heatmap frame-glow brain-heatmap-stack">
+          <div id="heatmapWrap" class="brain-heatmap-stack">
             <div id="brain3dWrap" class="brain-3d-host" aria-label="3D cortical contrast"></div>
             <p id="atlasPeakLabel" class="atlas-peak-hint muted hidden" aria-live="polite"></p>
             <img id="heatmapImg" alt="Brain heatmap multi-view" />
@@ -251,14 +227,13 @@
         </section>
         <pre id="resultJson" class="hidden"></pre>
       </section>
-    
-</main>
+    </main>
 
 <aside id="diagDrawer" class="diag-drawer hidden" aria-hidden="true">
   <div class="diag-header">
     <div>
       <h3>Run diagnostics</h3>
-      <p>Latency, backend, and recent run history. Safe to ignore unless you are debugging or tuning.</p>
+      <p class="muted">Latency, backend, and recent run history.</p>
     </div>
     <button id="diagClose" class="ghost-btn" type="button">Close</button>
   </div>
@@ -286,7 +261,7 @@
 </aside>
 <div id="diagBackdrop" class="diag-backdrop hidden"></div>
 
-    <footer class="footer glassy">
+    <footer class="footer">
       Predictions for the population-average brain (TRIBEv2, Meta FAIR). Text processed as speech. Individual responses vary.
     </footer>
     <script src="./app.js"></script>

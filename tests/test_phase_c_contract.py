@@ -13,4 +13,4 @@ def test_phase_c_surface_contract_present():
     assert 'heatmap-legend-rail' in html
     assert 'initHeroStage' in js
     assert '.hero-stage' in css
-    assert '.page-ambient' in css
+    assert '.brain-3d-host' in css
