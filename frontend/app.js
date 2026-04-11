@@ -48,6 +48,10 @@ const brainViewerLabelA = document.getElementById("brainViewerLabelA");
 const bwrLegendHint = document.getElementById("bwrLegendHint");
 
 const DUAL_3D_STORAGE_KEY = "braindiff_dual_3d";
+const LOADING_FACTS_URL = "/data/tribe_loading_facts.json";
+
+let loadingBrainDispose = null;
+let loadingFactsTimer = null;
 
 let isSubmitting = false;
 let lastBrainPayload = null;
@@ -218,6 +222,118 @@ function summarizeVerticesForDebug(p) {
     if (typeof o[k] === "string") o[k] = `[omitted ${o[k].length} base64 chars]`;
   }
   return o;
+}
+
+function stopLoadingExperience() {
+  if (loadingFactsTimer != null) {
+    clearInterval(loadingFactsTimer);
+    loadingFactsTimer = null;
+  }
+  if (typeof loadingBrainDispose === "function") {
+    loadingBrainDispose();
+    loadingBrainDispose = null;
+  }
+}
+
+function renderLoadingFactAt(facts, index, cardEl, sourceEl, dotsEl) {
+  const f = facts[index];
+  if (!cardEl || !f) return;
+  cardEl.innerHTML =
+    `<span class="loading-fact-tag">${escapeHtml(f.tag)}</span>` +
+    `<h4 class="loading-fact-title">${escapeHtml(f.title)}</h4>` +
+    `<p class="loading-fact-body">${escapeHtml(f.body)}</p>`;
+  if (sourceEl) {
+    if (f.source_url) {
+      sourceEl.href = f.source_url;
+      sourceEl.textContent = f.source_label || "Source";
+      sourceEl.classList.remove("hidden");
+    } else {
+      sourceEl.classList.add("hidden");
+    }
+  }
+  if (dotsEl) {
+    dotsEl.querySelectorAll("button").forEach((b, j) => {
+      const on = j === index;
+      b.classList.toggle("loading-fact-dot-active", on);
+      b.setAttribute("aria-selected", on ? "true" : "false");
+    });
+  }
+}
+
+function startLoadingExperience() {
+  stopLoadingExperience();
+
+  const card = document.getElementById("loadingFactCard");
+  const dots = document.getElementById("loadingFactDots");
+  const source = document.getElementById("loadingFactSource");
+  const canvas = document.getElementById("loadingBrainCanvas");
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  if (!reducedMotion && canvas && loadingEl && !loadingEl.classList.contains("hidden")) {
+    import("./loadingBrain3d.js")
+      .then((mod) => {
+        if (loadingEl && !loadingEl.classList.contains("hidden")) {
+          loadingBrainDispose = mod.mountLoadingBrainCanvas(canvas);
+        }
+      })
+      .catch(() => {});
+  }
+
+  fetch(LOADING_FACTS_URL)
+    .then((r) => (r.ok ? r.json() : null))
+    .then((data) => {
+      const facts = data?.facts;
+      if (!Array.isArray(facts) || !facts.length) {
+        if (card) {
+          card.innerHTML =
+            `<span class="loading-fact-tag">TRIBE v2</span>` +
+            `<h4 class="loading-fact-title">Population-average cortex</h4>` +
+            `<p class="loading-fact-body">Text is converted to speech-like timing, then TRIBE v2 estimates cortical activity you can compare between two drafts.</p>`;
+        }
+        if (source) source.classList.add("hidden");
+        return;
+      }
+
+      const order = facts.map((_, i) => i);
+      for (let i = order.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [order[i], order[j]] = [order[j], order[i]];
+      }
+      const orderedFacts = order.map((i) => facts[i]);
+      let idx = 0;
+
+      if (dots) {
+        dots.innerHTML = orderedFacts
+          .map(
+            (_, j) =>
+              `<button type="button" class="loading-fact-dot" role="tab" aria-selected="${j === 0}" aria-label="Note ${j + 1} of ${orderedFacts.length}"></button>`
+          )
+          .join("");
+        dots.querySelectorAll("button").forEach((btn, j) => {
+          btn.addEventListener("click", () => {
+            idx = j;
+            renderLoadingFactAt(orderedFacts, idx, card, source, dots);
+          });
+        });
+      }
+
+      renderLoadingFactAt(orderedFacts, idx, card, source, dots);
+
+      loadingFactsTimer = window.setInterval(() => {
+        idx = (idx + 1) % orderedFacts.length;
+        renderLoadingFactAt(orderedFacts, idx, card, source, dots);
+      }, reducedMotion ? 22000 : 8800);
+    })
+    .catch(() => {
+      if (card) {
+        card.innerHTML =
+          `<span class="loading-fact-tag">Tip</span>` +
+          `<h4 class="loading-fact-title">First run can be slow</h4>` +
+          `<p class="loading-fact-body">Transcription and neural encoding are heavy on CPU. Later runs reuse warm caches.</p>`;
+      }
+      if (source) source.classList.add("hidden");
+    });
 }
 
 function decodeVertexPlane(mod, payload, b64Key, listKey) {
@@ -587,6 +703,7 @@ async function runDiff() {
   resultEl.classList.add("hidden");
   loadingEl.classList.remove("hidden");
   resetLoadingSteps();
+  startLoadingExperience();
   const submittedA = textA.value;
   const submittedB = textB.value;
 
@@ -599,6 +716,7 @@ async function runDiff() {
     if (!startRes.ok) throw new Error(`Start request failed (${startRes.status})`);
     const start = await startRes.json();
     const result = await pollStatus(start.job_id);
+    stopLoadingExperience();
     loadingEl.classList.add("hidden");
     landingEl.classList.remove("hidden");
     choreographReveal(result, submittedA, submittedB);
@@ -609,6 +727,7 @@ async function runDiff() {
     loadingHintEl.textContent = `Something went wrong: ${err.message}`;
     retryBtn.classList.remove("hidden");
   } finally {
+    stopLoadingExperience();
     isSubmitting = false;
     updateFormState();
   }

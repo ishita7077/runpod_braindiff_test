@@ -12,6 +12,8 @@ def test_phase_c_surface_contract_present():
     assert 'hero-stage' in html
     assert 'cortex-3d-block' in html
     assert 'bwr-legend-row' in html
+    assert 'loading-shell' in html
+    assert 'loadingFactCard' in html
     assert 'initHeroStage' in js
     assert '.hero-stage' in css
     assert '.brain-3d-host' in css

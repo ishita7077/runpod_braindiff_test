@@ -104,24 +104,37 @@
       </section>
 
       <section id="loading" class="panel hidden loading-panel">
-        <div class="loading-head">
-          <div>
-            <p class="eyebrow">Working</p>
-            <h2>Rendering a cortical contrast…</h2>
+        <div class="loading-shell">
+          <div class="loading-main-col">
+            <div class="loading-head">
+              <div>
+                <p class="eyebrow">Working</p>
+                <h2>Rendering a cortical contrast…</h2>
+              </div>
+              <div class="loading-orb" aria-hidden="true">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <ul id="loadingSteps" class="loading-steps">
+              <li data-step="converting_text_to_speech">Converting text to speech</li>
+              <li data-step="predicting_version_a">Predicting neural response for Version A</li>
+              <li data-step="predicting_version_b">Predicting neural response for Version B</li>
+              <li data-step="computing_brain_contrast">Computing cortical contrast</li>
+            </ul>
+            <p id="loadingHint" class="loading-hint"></p>
+            <div id="loadingTelemetry" class="loading-telemetry hidden"></div>
+            <button id="retryBtn" class="hidden retry-btn" type="button">Retry</button>
           </div>
-          <div class="loading-orb" aria-hidden="true">
-            <span></span><span></span><span></span>
-          </div>
+          <aside class="loading-side-col" aria-label="While you wait">
+            <div class="loading-brain-frame">
+              <canvas id="loadingBrainCanvas" width="320" height="300" aria-hidden="true"></canvas>
+            </div>
+            <p class="loading-side-label">While the model runs</p>
+            <div id="loadingFactCard" class="loading-fact-card"></div>
+            <div id="loadingFactDots" class="loading-fact-dots" role="tablist" aria-label="Research notes"></div>
+            <a id="loadingFactSource" class="loading-fact-source hidden" target="_blank" rel="noopener noreferrer">Source</a>
+          </aside>
         </div>
-        <ul id="loadingSteps" class="loading-steps">
-          <li data-step="converting_text_to_speech">Converting text to speech</li>
-          <li data-step="predicting_version_a">Predicting neural response for Version A</li>
-          <li data-step="predicting_version_b">Predicting neural response for Version B</li>
-          <li data-step="computing_brain_contrast">Computing cortical contrast</li>
-        </ul>
-        <p id="loadingHint" class="loading-hint"></p>
-        <div id="loadingTelemetry" class="loading-telemetry hidden"></div>
-        <button id="retryBtn" class="hidden retry-btn" type="button">Retry</button>
       </section>
 
       <section id="result" class="result hidden">
