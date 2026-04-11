@@ -200,10 +200,13 @@ async function refreshBrain3d(payload) {
   try {
     const mod = await import("./brain3d.js");
     mod.disposeBrainViewer();
-    if (!payload?.vertex_delta || payload.vertex_delta.length !== 20484) return;
-    const mesh = await mod.fetchBrainMesh();
-    const wrap = document.getElementById("brain3dWrap");
-    if (wrap) await mod.mountBrainViewer(wrap, payload.vertex_delta, mesh);
+    if (!payload?.vertex_a || payload.vertex_a.length !== 20484) return;
+    if (!payload?.vertex_b || payload.vertex_b.length !== 20484) return;
+    const [mesh, atlas] = await Promise.all([mod.fetchBrainMesh(), mod.fetchVertexAtlas()]);
+    const wrapA = document.getElementById("brain3dWrapA");
+    const wrapB = document.getElementById("brain3dWrapB");
+    const tooltip = document.getElementById("brainTooltip");
+    if (wrapA && wrapB) mod.mountDualBrainViewer(wrapA, wrapB, payload.vertex_a, payload.vertex_b, mesh, atlas, tooltip);
   } catch (err) {
     console.warn("brain3d fallback to PNG:", err);
   }
@@ -274,7 +277,7 @@ function choreographReveal(payload, submittedA, submittedB) {
     const peak = payload.meta?.atlas_peak;
     if (peak?.label) {
       atlasPeakLabel.classList.remove("hidden");
-      atlasPeakLabel.textContent = `Largest |Δ| surface point (HCP): ${peak.label} (${peak.hemisphere} hemisphere)`;
+      atlasPeakLabel.textContent = `Strongest difference: ${peak.label} (${peak.hemisphere} hemisphere)`;
     } else {
       atlasPeakLabel.classList.add("hidden");
       atlasPeakLabel.textContent = "";

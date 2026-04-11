@@ -224,6 +224,8 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             dimension_rows = enrich_dimension_payload(diff)
             summary = winner_summary(dimension_rows)
             vertex_delta = np.zeros(20484, dtype=np.float32)
+            vertex_a = np.zeros(20484, dtype=np.float32)
+            vertex_b = np.zeros(20484, dtype=np.float32)
             t_heat = time.perf_counter()
             heatmap = generate_heatmap_artifact(vertex_delta)
             stage_times["heatmap_ms"] = int((time.perf_counter() - t_heat) * 1000)
@@ -235,6 +237,8 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                 "dimensions": dimension_rows,
                 "insights": insights,
                 "vertex_delta": vertex_delta.astype(float).tolist(),
+                "vertex_a": vertex_a.astype(float).tolist(),
+                "vertex_b": vertex_b.astype(float).tolist(),
                 "warnings": warnings,
                 "meta": {
                     "model_revision": tribe_service.model_revision,
@@ -286,7 +290,7 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         summary = winner_summary(dimension_rows)
         stage_times["score_diff_ms"] = int((time.perf_counter() - t2) * 1000)
         t_heat = time.perf_counter()
-        vertex_delta = compute_vertex_delta(preds_a, preds_b)
+        vertex_delta, vertex_a, vertex_b = compute_vertex_delta(preds_a, preds_b)
         heatmap = generate_heatmap_artifact(vertex_delta)
         stage_times["heatmap_ms"] = int((time.perf_counter() - t_heat) * 1000)
 
@@ -298,6 +302,8 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             "dimensions": dimension_rows,
             "insights": insights,
             "vertex_delta": vertex_delta.astype(float).tolist(),
+            "vertex_a": vertex_a.astype(float).tolist(),
+            "vertex_b": vertex_b.astype(float).tolist(),
             "warnings": warnings,
             "meta": {
                 "model_revision": tribe_service.model_revision,
@@ -476,6 +482,12 @@ async def brain_mesh() -> JSONResponse:
     return JSONResponse(build_brain_mesh_payload())
 
 
+@app.get("/api/vertex-atlas")
+async def vertex_atlas() -> JSONResponse:
+    """Per-vertex HCP region labels + dimension reverse map (for hover tooltips)."""
+    from backend.atlas_peaks import build_vertex_atlas_payload
+
+    return JSONResponse(build_vertex_atlas_payload())
 
 
 @app.get("/api/telemetry/recent")

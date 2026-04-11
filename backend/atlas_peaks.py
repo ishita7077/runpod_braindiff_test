@@ -1,4 +1,4 @@
-"""Optional HCP label at the vertex of largest |Δ| (fsaverage5), for UI hints."""
+"""HCP atlas utilities for fsaverage5: peak detection, per-vertex labels, dimension mapping."""
 
 from __future__ import annotations
 
@@ -11,6 +11,7 @@ import numpy as np
 logger = logging.getLogger("braindiff.atlas_peaks")
 
 _CACHE: tuple[Any, ...] | None = None
+_ATLAS_PAYLOAD: dict[str, Any] | None = None
 
 
 def _label_arrays(atlas_dir: str) -> tuple[np.ndarray, np.ndarray, list[str], list[str]]:
@@ -62,3 +63,33 @@ def describe_peak_abs_delta(vertex_delta: np.ndarray, atlas_dir: str | None = No
         "label": name,
         "abs_delta": float(absv[i]),
     }
+
+
+def build_vertex_atlas_payload(atlas_dir: str | None = None) -> dict[str, Any]:
+    """Per-vertex HCP region labels + dimension reverse map for the frontend hover tooltip."""
+    global _ATLAS_PAYLOAD
+    if _ATLAS_PAYLOAD is not None:
+        return _ATLAS_PAYLOAD
+
+    atlas_dir = atlas_dir or os.getenv("BRAIN_DIFF_ATLAS_DIR", "atlases")
+    labels_lh, labels_rh, names_lh, names_rh = _label_arrays(atlas_dir)
+
+    vertex_labels: list[str] = []
+    for i in range(10242):
+        lab = int(labels_lh[i])
+        vertex_labels.append(str(names_lh[lab]) if 0 <= lab < len(names_lh) else "???")
+    for i in range(10242):
+        lab = int(labels_rh[i])
+        vertex_labels.append(str(names_rh[lab]) if 0 <= lab < len(names_rh) else "???")
+
+    from backend.brain_regions import REQUIRED_AREAS
+    dim_map: dict[str, list[str]] = {}
+    for dim_name, hemis in REQUIRED_AREAS.items():
+        for areas in hemis.values():
+            for area in areas:
+                dim_map.setdefault(area, [])
+                if dim_name not in dim_map[area]:
+                    dim_map[area].append(dim_name)
+
+    _ATLAS_PAYLOAD = {"labels": vertex_labels, "dimensions": dim_map}
+    return _ATLAS_PAYLOAD

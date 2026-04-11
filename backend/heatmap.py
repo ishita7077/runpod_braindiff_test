@@ -27,12 +27,15 @@ def _get_fsaverage():
     return _FSAVERAGE
 
 
-def compute_vertex_delta(preds_a: np.ndarray, preds_b: np.ndarray) -> np.ndarray:
+def compute_vertex_delta(
+    preds_a: np.ndarray, preds_b: np.ndarray
+) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Return (delta, norm_a, norm_b) where delta = norm_b - norm_a."""
     if preds_a.shape[1] != 20484 or preds_b.shape[1] != 20484:
         raise ValueError(f"Vertex mismatch: A={preds_a.shape}, B={preds_b.shape}")
     norm_a = preds_a.mean(axis=0) / reference_scale(preds_a)
     norm_b = preds_b.mean(axis=0) / reference_scale(preds_b)
-    return norm_b - norm_a
+    return norm_b - norm_a, norm_a, norm_b
 
 
 def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
@@ -49,22 +52,23 @@ def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
     vmax = max(vmax, 1e-6)
 
     _bg = "#000000"
-    fig = plt.figure(figsize=(12, 7), dpi=150, facecolor=_bg)
+    fig = plt.figure(figsize=(13, 7), dpi=180, facecolor=_bg)
     axes = [fig.add_subplot(2, 2, i + 1, projection="3d") for i in range(4)]
+    view_labels = ["Left lateral", "Right lateral", "Left medial", "Right medial"]
     views = [
         ("left", "lateral", fsavg.pial_left, fsavg.sulc_left, lh),
         ("right", "lateral", fsavg.pial_right, fsavg.sulc_right, rh),
         ("left", "medial", fsavg.pial_left, fsavg.sulc_left, lh),
         ("right", "medial", fsavg.pial_right, fsavg.sulc_right, rh),
     ]
-    for ax, (hemi, view, mesh, bg, data) in zip(axes, views):
+    for ax, (hemi, view, mesh, bg, data), vlabel in zip(axes, views, view_labels):
         plotting.plot_surf_stat_map(
             surf_mesh=mesh,
             stat_map=data,
             hemi=hemi,
             view=view,
             bg_map=bg,
-            cmap="RdBu_r",
+            cmap="bwr",
             symmetric_cbar=True,
             threshold=0.0,
             colorbar=False,
@@ -75,7 +79,7 @@ def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
             ax.set_facecolor(_bg)
         except Exception:
             pass
-        ax.set_title(f"{hemi.title()} {view}", color="#999999", fontsize=9, pad=2)
+        ax.set_title(vlabel, color="#aaaaaa", fontsize=9, pad=4)
         for spine in ax.spines.values():
             spine.set_visible(False)
         ax.xaxis.pane.fill = False
@@ -83,15 +87,14 @@ def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
         ax.zaxis.pane.fill = False
         ax.set_axis_off()
 
-    fig.suptitle(
-        "Cortical contrast · Red = B higher · Blue = A higher",
-        color="#888888",
-        fontsize=10,
-        y=0.98,
+    fig.text(
+        0.5, 0.01,
+        "Red = Version B stronger    ·    Blue = Version A stronger",
+        ha="center", color="#888888", fontsize=9,
     )
-    fig.subplots_adjust(wspace=0.02, hspace=0.08)
+    fig.subplots_adjust(wspace=0.02, hspace=0.06, bottom=0.06, top=0.95)
     buf = io.BytesIO()
-    fig.savefig(buf, format="png", bbox_inches="tight", facecolor=_bg, edgecolor="none", pad_inches=0.1)
+    fig.savefig(buf, format="png", bbox_inches="tight", facecolor=_bg, edgecolor="none", pad_inches=0.08)
     plt.close(fig)
 
     encoded = base64.b64encode(buf.getvalue()).decode("ascii")

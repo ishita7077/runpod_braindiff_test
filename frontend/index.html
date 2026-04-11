@@ -211,8 +211,8 @@
         <section class="panel heatmap-panel stage stage-5">
           <div class="section-header heatmap-header">
             <div>
-              <h3>Whole-brain contrast</h3>
-              <p class="muted">Interactive 3D (drag to rotate) · Static views below</p>
+              <h3>Cortical contrast</h3>
+              <p class="muted">Hover any region for details. Drag to rotate. Both views stay synced.</p>
             </div>
             <div class="heatmap-actions">
               <div class="brain-hemi-toolbar" role="group" aria-label="Hemisphere visibility">
@@ -224,14 +224,22 @@
             </div>
           </div>
           <div class="heatmap-legend-rail">
-            <span class="legend-dot legend-b"></span><span>Version B stronger</span>
-            <span class="legend-dot legend-a"></span><span>Version A stronger</span>
+            <span class="legend-label-bright">Brighter = stronger activation</span>
           </div>
-          <div id="heatmapWrap" class="brain-heatmap-stack">
-            <div id="brain3dWrap" class="brain-3d-host" aria-label="3D cortical contrast"></div>
-            <p id="atlasPeakLabel" class="atlas-peak-hint muted hidden" aria-live="polite"></p>
-            <img id="heatmapImg" alt="Brain heatmap multi-view" />
+          <div class="brain-dual-wrap">
+            <div class="brain-viewer-col">
+              <p class="brain-viewer-label">Version A</p>
+              <div id="brain3dWrapA" class="brain-3d-host" aria-label="3D cortical map Version A"></div>
+            </div>
+            <div class="brain-viewer-col">
+              <p class="brain-viewer-label">Version B</p>
+              <div id="brain3dWrapB" class="brain-3d-host" aria-label="3D cortical map Version B"></div>
+            </div>
+            <div id="brainTooltip" class="brain-tooltip hidden"></div>
           </div>
+          <p id="atlasPeakLabel" class="atlas-peak-hint muted hidden" aria-live="polite"></p>
+          <p class="static-heatmap-label muted">Static multi-view (difference map)</p>
+          <img id="heatmapImg" alt="Brain heatmap multi-view" />
         </section>
         <pre id="resultJson" class="hidden"></pre>
       </section>
