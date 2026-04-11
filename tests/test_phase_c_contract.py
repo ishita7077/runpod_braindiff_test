@@ -10,7 +10,8 @@ def test_phase_c_surface_contract_present():
 
     assert 'heroCanvas' in html
     assert 'hero-stage' in html
-    assert 'heatmap-legend-rail' in html
+    assert 'cortex-3d-block' in html
+    assert 'bwr-legend-row' in html
     assert 'initHeroStage' in js
     assert '.hero-stage' in css
     assert '.brain-3d-host' in css

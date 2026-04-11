@@ -210,9 +210,9 @@
 
         <section class="panel heatmap-panel stage stage-5">
           <div class="section-header heatmap-header">
-            <div>
+            <div class="heatmap-title-block">
               <h3>Cortical contrast</h3>
-              <p class="muted">Default: one 3D contrast view (lighter on the GPU). Optional side-by-side A/B uses two WebGL contexts. Hover for region details.</p>
+              <p class="muted heatmap-lead">Interactive 3D surface, then publication-style static maps. Hover a parcel to highlight the full HCP region.</p>
             </div>
             <div class="heatmap-actions">
               <label class="dual-brain-toggle muted" title="Two WebGL canvases; heavier GPU load">
@@ -227,23 +227,35 @@
               <button id="shareBtn">Share</button>
             </div>
           </div>
-          <div class="heatmap-legend-rail">
-            <span class="legend-label-bright">Brighter = stronger activation</span>
-          </div>
-          <div id="brainDualWrap" class="brain-dual-wrap is-single">
-            <div class="brain-viewer-col">
-              <p class="brain-viewer-label" id="brainViewerLabelA">Cortical contrast (B − A)</p>
-              <div id="brain3dWrapA" class="brain-3d-host" aria-label="3D cortical contrast map"></div>
+
+          <div class="cortex-3d-block">
+            <div class="bwr-legend-row" aria-hidden="true">
+              <div class="bwr-gradient"></div>
+              <div class="bwr-legend-ends">
+                <span>Cooler</span>
+                <span>Neutral</span>
+                <span>Hotter</span>
+              </div>
             </div>
-            <div class="brain-viewer-col brain-viewer-col-b">
-              <p class="brain-viewer-label">Version B</p>
-              <div id="brain3dWrapB" class="brain-3d-host" aria-label="3D cortical map Version B"></div>
+            <p id="bwrLegendHint" class="bwr-legend-hint muted">Run a comparison to load the cortical surface and legend notes.</p>
+            <div id="brainDualWrap" class="brain-dual-wrap is-single">
+              <div class="brain-viewer-col">
+                <p class="brain-viewer-label" id="brainViewerLabelA">Cortical contrast (B − A)</p>
+                <div id="brain3dWrapA" class="brain-3d-host" aria-label="3D cortical contrast map"></div>
+              </div>
+              <div class="brain-viewer-col brain-viewer-col-b">
+                <p class="brain-viewer-label">Version B</p>
+                <div id="brain3dWrapB" class="brain-3d-host" aria-label="3D cortical map Version B"></div>
+              </div>
+              <div id="brainTooltip" class="brain-tooltip hidden" role="tooltip"></div>
             </div>
-            <div id="brainTooltip" class="brain-tooltip hidden"></div>
+            <p id="atlasPeakLabel" class="atlas-peak-hint muted hidden" aria-live="polite"></p>
           </div>
-          <p id="atlasPeakLabel" class="atlas-peak-hint muted hidden" aria-live="polite"></p>
-          <p class="static-heatmap-label muted">Static multi-view (difference map)</p>
-          <img id="heatmapImg" alt="Brain heatmap multi-view" />
+
+          <div class="static-heatmap-card">
+            <p class="static-heatmap-label muted">Static difference map · multi-view</p>
+            <img id="heatmapImg" alt="Brain heatmap multi-view" />
+          </div>
         </section>
         <pre id="resultJson" class="hidden"></pre>
       </section>

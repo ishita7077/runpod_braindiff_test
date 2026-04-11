@@ -512,8 +512,10 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .science-details[open] summary { margin-bottom: 8px; }
 
 .heatmap-panel { padding-bottom: 24px; }
-.heatmap-header { align-items: center; }
-.heatmap-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.heatmap-header { align-items: flex-start; }
+.heatmap-title-block { min-width: 0; flex: 1; }
+.heatmap-lead { max-width: 54ch; line-height: 1.55; margin-top: 4px; }
+.heatmap-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 .brain-hemi-toolbar {
   display: inline-flex;
   gap: 3px;
@@ -538,17 +540,46 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   color: var(--text);
   background: rgba(255, 255, 255, 0.06);
 }
-.heatmap-legend-rail {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--muted);
-  font-size: 12px;
-  margin-bottom: 16px;
+.cortex-3d-block {
+  margin-bottom: 4px;
 }
-.legend-label-bright {
+.bwr-legend-row {
+  display: grid;
+  gap: 8px;
+  margin-bottom: 6px;
+  max-width: min(520px, 100%);
+}
+.bwr-gradient {
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #1212a8 0%, #e8e8e8 50%, #c01010 100%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.bwr-legend-ends {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
   color: var(--muted);
+}
+.bwr-legend-hint {
   font-size: 12px;
+  line-height: 1.5;
+  margin: 0 0 14px;
+  max-width: 58ch;
+}
+.static-heatmap-card {
+  margin-top: 10px;
+  padding: 16px 16px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+}
+.static-heatmap-card .static-heatmap-label {
+  margin-top: 0;
+  margin-bottom: 10px;
 }
 .brain-dual-wrap {
   position: relative;
@@ -604,32 +635,72 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   position: absolute;
   z-index: 20;
   pointer-events: none;
-  background: rgba(10, 10, 10, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 10px;
-  padding: 10px 14px;
-  font-size: 12px;
-  line-height: 1.5;
+  min-width: 210px;
+  max-width: 300px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(6, 6, 6, 0.97);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   color: var(--text);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  min-width: 180px;
-  max-width: 260px;
 }
-.brain-tooltip .tt-hemi {
-  color: var(--muted);
+.brain-tooltip .tt-card {
+  padding: 12px 14px 14px;
+}
+.brain-tooltip .tt-region-name {
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  line-height: 1.35;
+  color: #ffffff;
+}
+.brain-tooltip .tt-region-meta {
+  margin-top: 8px;
+}
+.brain-tooltip .tt-hemi-pill {
+  display: inline-block;
   font-size: 10px;
-  margin-left: 4px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
-.brain-tooltip .tt-row {
+.brain-tooltip .tt-dims {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+.brain-tooltip .tt-stat-grid {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  display: grid;
+  gap: 8px;
+}
+.brain-tooltip .tt-stat {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
-  margin-top: 4px;
-  font-size: 11px;
+  align-items: baseline;
+  gap: 14px;
 }
-.brain-tooltip .tt-row span:first-child {
+.brain-tooltip .tt-stat-k {
+  flex-shrink: 0;
+  font-size: 11px;
   color: var(--muted);
+}
+.brain-tooltip .tt-stat-v {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+  color: var(--text);
+  text-align: right;
 }
 .atlas-peak-hint {
   font-size: 12px;

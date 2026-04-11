@@ -45,6 +45,7 @@ const atlasPeakLabel = document.getElementById("atlasPeakLabel");
 const brainDualWrap = document.getElementById("brainDualWrap");
 const dualBrain3dEl = document.getElementById("dualBrain3d");
 const brainViewerLabelA = document.getElementById("brainViewerLabelA");
+const bwrLegendHint = document.getElementById("bwrLegendHint");
 
 const DUAL_3D_STORAGE_KEY = "braindiff_dual_3d";
 
@@ -246,6 +247,11 @@ async function refreshBrain3d(payload) {
 
     if (brainViewerLabelA) {
       brainViewerLabelA.textContent = dual ? "Version A" : "Cortical contrast (B − A)";
+    }
+    if (bwrLegendHint) {
+      bwrLegendHint.textContent = dual
+        ? "Each surface uses blue–white–red relative to that version’s median (same palette family as the static maps)."
+        : "Blue–white–red shows signed contrast (B − A), matching the static difference figure below.";
     }
 
     if (dual && a && b && wrapA && wrapB) {
@@ -860,6 +866,11 @@ if (dualBrain3dEl) {
     localStorage.setItem(DUAL_3D_STORAGE_KEY, dualBrain3dEl.checked ? "1" : "0");
     syncBrainDualLayout();
     if (lastBrainPayload) void refreshBrain3d(lastBrainPayload);
+    else if (bwrLegendHint) {
+      bwrLegendHint.textContent = dualBrain3dEl.checked
+        ? "Each surface uses blue–white–red relative to that version’s median (same palette family as the static maps)."
+        : "Blue–white–red shows signed contrast (B − A), matching the static difference figure below.";
+    }
   });
 }
 
