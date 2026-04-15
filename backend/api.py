@@ -23,7 +23,7 @@ from backend.narrative import build_headline
 from backend.preflight import build_preflight_report
 from backend.result_semantics import enrich_dimension_payload, winner_summary
 from backend.insight_engine import build_insight_payload
-from backend.schemas import DiffRequest, JobStartResponse
+from backend.schemas import DiffRequest, JobStartResponse, ReportRequest
 from backend.scorer import score_predictions
 from backend.startup_manifest import build_startup_manifest, write_startup_manifest
 from backend.status_store import JobStore
@@ -53,6 +53,31 @@ telemetry_store = TelemetryStore(TELEMETRY_DB_PATH)
 # Single-job concurrency guard for local (mps/cpu) execution.
 # CUDA users can raise the limit via BRAIN_DIFF_MAX_CONCURRENT_JOBS.
 _diff_semaphore: asyncio.Semaphore | None = None
+
+
+def _compute_report_summary(results: list[dict[str, Any]], processing_time_ms: int) -> dict[str, Any]:
+    dim_buckets: dict[str, list[tuple[str, float]]] = {}
+    for row in results:
+        label = row.get("label", "")
+        for dim, payload in row.get("diff", {}).items():
+            dim_buckets.setdefault(dim, []).append((label, float(payload.get("delta", 0.0))))
+    dimension_summary: dict[str, Any] = {}
+    for dim, values in dim_buckets.items():
+        if not values:
+            continue
+        avg_delta = sum(v for _, v in values) / len(values)
+        max_pair = max(values, key=lambda x: x[1])[0]
+        min_pair = min(values, key=lambda x: x[1])[0]
+        dimension_summary[dim] = {
+            "avg_delta": round(avg_delta, 6),
+            "max_delta_pair": max_pair,
+            "min_delta_pair": min_pair,
+        }
+    return {
+        "total_pairs": len(results),
+        "processing_time_ms": processing_time_ms,
+        "dimension_summary": dimension_summary,
+    }
 
 
 def _get_diff_semaphore() -> asyncio.Semaphore:
@@ -232,7 +257,13 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             stage_times["heatmap_ms"] = int((time.perf_counter() - t_heat) * 1000)
             processing_time_ms = int((time.perf_counter() - started_at) * 1000)
             tone = os.environ.get("BRAIN_DIFF_NARRATIVE_TONE", "sober").strip().lower() or "sober"
-            insights = build_insight_payload(dimension_rows, warnings, narrative_tone=tone)
+            insights = build_insight_payload(
+                dimension_rows,
+                warnings,
+                narrative_tone=tone,
+                text_a=payload.text_a,
+                text_b=payload.text_b,
+            )
             result = {
                 "diff": diff,
                 "dimensions": dimension_rows,
@@ -262,6 +293,7 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                     "heatmap": heatmap,
                     "identical_text_short_circuit": True,
                     "atlas_peak": describe_peak_abs_delta(vertex_delta),
+                    "dimensions_count": len(diff),
                 },
             }
             job_store.set_result(job_id, result)
@@ -297,7 +329,13 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
 
         processing_time_ms = int((time.perf_counter() - started_at) * 1000)
         tone = os.environ.get("BRAIN_DIFF_NARRATIVE_TONE", "sober").strip().lower() or "sober"
-        insights = build_insight_payload(dimension_rows, warnings, narrative_tone=tone)
+        insights = build_insight_payload(
+            dimension_rows,
+            warnings,
+            narrative_tone=tone,
+            text_a=payload.text_a,
+            text_b=payload.text_b,
+        )
         result = {
             "diff": diff,
             "dimensions": dimension_rows,
@@ -326,6 +364,7 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                 "median_b": median_b,
                 "heatmap": heatmap,
                 "atlas_peak": describe_peak_abs_delta(vertex_delta),
+                    "dimensions_count": len(diff),
             },
         }
         job_store.set_result(job_id, result)
@@ -427,6 +466,44 @@ async def diff_sync(payload: DiffRequest) -> JSONResponse:
     return JSONResponse(job["result"])
 
 
+@app.post("/api/report")
+async def report_batch(payload: ReportRequest) -> JSONResponse:
+    if len(payload.pairs) > 20:
+        raise HTTPException(status_code=400, detail="Maximum 20 pairs per report request")
+    started_at = time.perf_counter()
+    results: list[dict[str, Any]] = []
+    sem = _get_diff_semaphore()
+    for pair in payload.pairs:
+        if not pair.text_a.strip() or not pair.text_b.strip():
+            raise HTTPException(status_code=400, detail=f"Pair '{pair.label}' has empty text")
+        request_id = str(uuid.uuid4())
+        job_id = str(uuid.uuid4())
+        job_store.create(job_id, request_id)
+        async with sem:
+            await asyncio.to_thread(
+                _run_diff_job,
+                job_id,
+                request_id,
+                DiffRequest(text_a=pair.text_a, text_b=pair.text_b),
+            )
+        job = job_store.get(job_id)
+        if not job:
+            raise HTTPException(status_code=500, detail=f"Report job missing: {job_id}")
+        if job["status"] == "error":
+            raise HTTPException(status_code=500, detail=job["error"])
+        row = {
+            "label": pair.label,
+            "diff": job["result"]["diff"],
+            "meta": job["result"]["meta"],
+            "warnings": job["result"].get("warnings", []),
+        }
+        results.append(row)
+    total_ms = int((time.perf_counter() - started_at) * 1000)
+    summary = _compute_report_summary(results, total_ms)
+    logger.info("report_batch:ok total_pairs=%s total_ms=%s", len(results), total_ms)
+    return JSONResponse({"results": results, "summary": summary})
+
+
 @app.get("/api/preflight")
 async def preflight() -> JSONResponse:
     runtime_dict: dict[str, Any] = {}
@@ -448,6 +525,11 @@ async def preflight() -> JSONResponse:
         max_concurrent_jobs=max_concurrent_jobs,
     )
     return JSONResponse(report)
+
+
+@app.get("/api/health")
+async def health() -> JSONResponse:
+    return await api_ready()
 
 
 @app.get("/api/ready")

@@ -24,11 +24,11 @@ def _mock_psutil(total_bytes: int):
 
 
 class TestResolveTextBackendStrategy:
-    def test_mps_auto_defaults_to_cpu_llama(self, monkeypatch):
+    def test_mps_auto_picks_mps_split_on_16_gib(self, monkeypatch):
         monkeypatch.delenv("BRAIN_DIFF_TEXT_BACKEND", raising=False)
         with patch("backend.model_service.psutil", _mock_psutil(_16GIB)):
             strategy = _resolve_text_backend_strategy(_MPS_PROFILE)
-        assert strategy == "cpu"
+        assert strategy == "mps_split"
 
     def test_mps_low_ram_picks_cpu(self, monkeypatch):
         monkeypatch.delenv("BRAIN_DIFF_TEXT_BACKEND", raising=False)
@@ -61,11 +61,11 @@ class TestResolveTextBackendStrategy:
         strategy = _resolve_text_backend_strategy(_MPS_PROFILE)
         assert strategy == "mps_full_fp32"
 
-    def test_explicit_env_auto_on_mps_defaults_cpu_llama(self, monkeypatch):
+    def test_explicit_env_auto_on_mps_defaults_split(self, monkeypatch):
         monkeypatch.setenv("BRAIN_DIFF_TEXT_BACKEND", "auto")
         with patch("backend.model_service.psutil", _mock_psutil(_16GIB)):
             strategy = _resolve_text_backend_strategy(_MPS_PROFILE)
-        assert strategy == "cpu"
+        assert strategy == "mps_split"
 
     def test_psutil_unavailable_falls_back_to_cpu(self, monkeypatch):
         monkeypatch.delenv("BRAIN_DIFF_TEXT_BACKEND", raising=False)

@@ -9,7 +9,7 @@ def test_insight_payload_builds_useful_sections():
             "direction": "A_higher",
             "magnitude": 0.18,
             "low_confidence": False,
-            "confidence": "high",
+            "confidence": "clear_signal",
         },
         {
             "key": "gut_reaction",
@@ -17,7 +17,7 @@ def test_insight_payload_builds_useful_sections():
             "direction": "B_higher",
             "magnitude": 0.09,
             "low_confidence": False,
-            "confidence": "high",
+            "confidence": "clear_signal",
         },
         {
             "key": "language_depth",
@@ -25,7 +25,7 @@ def test_insight_payload_builds_useful_sections():
             "direction": "neutral",
             "magnitude": 0.002,
             "low_confidence": True,
-            "confidence": "low",
+            "confidence": "too_close_to_call",
         },
     ]
     payload = build_insight_payload(rows, warnings=["Very short text may produce unreliable results"])

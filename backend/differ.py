@@ -30,18 +30,18 @@ def compute_diff(scores_a: dict[str, dict[str, Any]], scores_b: dict[str, dict[s
             ci_low, ci_high, sign_consistency = delta, delta, (1.0 if delta != 0 else 0.0)
         if magnitude < 0.005:
             direction = 'neutral'
-            confidence = 'low'
+            confidence = 'too_close_to_call'
+        elif magnitude < 0.02:
+            direction = 'B_higher' if delta > 0 else 'A_higher'
+            confidence = 'directional_signal'
         else:
             direction = 'B_higher' if delta > 0 else 'A_higher'
-            if ci_low <= 0 <= ci_high or sign_consistency < 0.75:
-                confidence = 'low'
-            elif sign_consistency < 0.9:
-                confidence = 'medium'
-            else:
-                confidence = 'high'
+            confidence = 'clear_signal'
         diff[dim_name] = {
             'score_a': round(a, 6), 'score_b': round(b, 6), 'delta': round(delta, 6),
             'direction': direction, 'magnitude': round(magnitude, 6), 'confidence': confidence,
+            'timeseries_a': list(scores_a[dim_name].get('timeseries', [])),
+            'timeseries_b': list(scores_b[dim_name].get('timeseries', [])),
             'ci_low': round(ci_low, 6), 'ci_high': round(ci_high, 6), 'sign_consistency': round(sign_consistency, 4),
         }
     return diff

@@ -34,6 +34,7 @@ def _dummy_masks():
         "brain_effort": {"mask": empty},
         "language_depth": {"mask": empty},
         "gut_reaction": {"mask": empty},
+        "memory_encoding": {"mask": empty},
     }
 
 
@@ -52,14 +53,20 @@ def test_api_sync_shape(monkeypatch):
     assert response.status_code == 200
     payload = response.json()
     assert "diff" in payload
+    assert len(payload["diff"]) == 6
     assert "dimensions" in payload
+    assert len(payload["dimensions"]) == 6
     assert "insights" in payload
     assert payload["insights"]["headline"]
     assert _decode_f32_b64(payload["vertex_delta_b64"]).shape == (20484,)
     assert _decode_f32_b64(payload["vertex_a_b64"]).shape == (20484,)
     assert _decode_f32_b64(payload["vertex_b_b64"]).shape == (20484,)
     assert payload["meta"]["atlas"] == "HCP_MMP1.0"
+    assert payload["meta"]["dimensions_count"] == 6
     assert "atlas_peak" in payload["meta"]
+    for dim_payload in payload["diff"].values():
+        assert "timeseries_a" in dim_payload
+        assert "timeseries_b" in dim_payload
 
 
 def test_api_ready_reports_skip_startup(monkeypatch):
@@ -245,7 +252,7 @@ def test_api_accepts_unicode_emoji_and_url_inputs(monkeypatch):
     )
     assert response.status_code == 200
     payload = response.json()
-    assert len(payload["dimensions"]) == 5
+    assert len(payload["dimensions"]) == 6
 
 
 def test_text_length_bounds(monkeypatch):
@@ -262,4 +269,60 @@ def test_text_length_bounds(monkeypatch):
     assert valid.status_code == 200
     invalid = client.post("/api/diff", json={"text_a": "a" * 5001, "text_b": "b" * 5000})
     assert invalid.status_code == 422
+
+
+def test_report_endpoint_returns_summary(monkeypatch):
+    monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
+    monkeypatch.setattr(api, "tribe_service", _DummyTribeService())
+    monkeypatch.setattr(api, "masks", _dummy_masks())
+    monkeypatch.setattr(
+        api,
+        "generate_heatmap_artifact",
+        lambda vertex_delta: {"format": "png_base64", "image_base64": "x"},
+    )
+    client = TestClient(api.app)
+    response = client.post(
+        "/api/report",
+        json={
+            "pairs": [
+                {"label": "one", "text_a": "Version A", "text_b": "Version B"},
+                {"label": "two", "text_a": "A draft", "text_b": "B draft"},
+                {"label": "three", "text_a": "A", "text_b": "B"},
+            ]
+        },
+    )
+    assert response.status_code == 200
+    payload = response.json()
+    assert len(payload["results"]) == 3
+    assert payload["summary"]["total_pairs"] == 3
+    assert "personal_resonance" in payload["summary"]["dimension_summary"]
+
+
+def test_report_endpoint_rejects_too_many_pairs(monkeypatch):
+    monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
+    monkeypatch.setattr(api, "tribe_service", _DummyTribeService())
+    monkeypatch.setattr(api, "masks", _dummy_masks())
+    monkeypatch.setattr(
+        api,
+        "generate_heatmap_artifact",
+        lambda vertex_delta: {"format": "png_base64", "image_base64": "x"},
+    )
+    client = TestClient(api.app)
+    pairs = [{"label": str(i), "text_a": "A", "text_b": "B"} for i in range(21)]
+    response = client.post("/api/report", json={"pairs": pairs})
+    assert response.status_code in (400, 422)
+
+
+def test_report_endpoint_rejects_empty_text(monkeypatch):
+    monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
+    monkeypatch.setattr(api, "tribe_service", _DummyTribeService())
+    monkeypatch.setattr(api, "masks", _dummy_masks())
+    monkeypatch.setattr(
+        api,
+        "generate_heatmap_artifact",
+        lambda vertex_delta: {"format": "png_base64", "image_base64": "x"},
+    )
+    client = TestClient(api.app)
+    response = client.post("/api/report", json={"pairs": [{"label": "bad", "text_a": "", "text_b": "B"}]})
+    assert response.status_code in (400, 422)
 

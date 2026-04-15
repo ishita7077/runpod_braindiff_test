@@ -52,6 +52,8 @@ const DIM_LABELS = {
   brain_effort: "Brain Effort",
   language_depth: "Language Depth",
   gut_reaction: "Gut Reaction",
+  memory_encoding: "Memory Encoding",
+  attention_salience: "Attention",
 };
 
 /** Short plain-language gloss for HCP MMP1 area codes (keys = annot core, e.g. "8BL" from L_8BL_ROI). */

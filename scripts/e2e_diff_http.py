@@ -133,7 +133,7 @@ def main() -> int:
                 {
                     "runtime_device": runtime.get("device"),
                     "runtime_backend": runtime.get("backend"),
-                    "text_backend_strategy": tel.get("text_backend_strategy"),
+                    "text_backend_strategy": tel.get("text_backend_strategy") or pre.get("text_backend_strategy"),
                     "total_ms": tel.get("total_ms"),
                     "stage_times": stage_times,
                 },

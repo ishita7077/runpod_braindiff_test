@@ -1,3 +1,5 @@
+import { buildHumanDelta } from "./delta_human.js";
+
 const textA = document.getElementById("textA");
 const textB = document.getElementById("textB");
 const countA = document.getElementById("countA");
@@ -22,6 +24,10 @@ const coolFactorEl = document.getElementById("coolFactor");
 const scientificNoteEl = document.getElementById("scientificNote");
 const heatmapImg = document.getElementById("heatmapImg");
 const shareBtn = document.getElementById("shareBtn");
+const writingMoveEl = document.getElementById("writingMove");
+const experimentQuestion = document.getElementById("experimentQuestion");
+const downloadCsvBtn = document.getElementById("downloadCsvBtn");
+const downloadJsonBtn = document.getElementById("downloadJsonBtn");
 
 const runMeta = document.getElementById("runMeta");
 const diagToggle = document.getElementById("diagToggle");
@@ -60,6 +66,11 @@ let latestShareData = null;
 
 const DEFAULT_SLOW_NOTICE_MS = 180_000;
 const DEFAULT_HARD_TIMEOUT_MS = 1_200_000;
+const CONFIDENCE_LABELS = {
+  clear_signal: "Clear signal",
+  directional_signal: "Directional signal",
+  too_close_to_call: "Too close to call",
+};
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -133,7 +144,9 @@ const RADAR_DIM_ORDER = [
   "social_thinking",
   "brain_effort",
   "language_depth",
-  "gut_reaction"
+  "gut_reaction",
+  "memory_encoding",
+  "attention_salience",
 ];
 
 function renderDimensionRadar(dimensions) {
@@ -409,6 +422,8 @@ async function refreshBrain3d(payload) {
 function renderBars(dimensions) {
   barsEl.innerHTML = "";
   (dimensions || []).forEach((row) => {
+    const confidenceLabel = CONFIDENCE_LABELS[row.confidence] || row.confidence || "Unknown";
+    const humanDelta = buildHumanDelta(row);
     const rowEl = document.createElement("div");
     rowEl.className = `bar-row ${row.low_confidence ? "low" : ""}`;
     rowEl.title = row.tooltip || "";
@@ -421,12 +436,71 @@ function renderBars(dimensions) {
         <div class="bar-fill ${row.direction === "A_higher" ? "left" : "right"}" style="width:${Math.max(2, Math.round(row.bar_fraction * 100))}%"></div>
       </div>
       <div class="bar-meta">
-        <span class="delta">${escapeHtml(row.delta_display)}</span>
-        <span class="strength">${escapeHtml(row.winner)} · ${escapeHtml(row.strength)} · ${escapeHtml(row.confidence)}</span>
+        <span class="delta">${escapeHtml(humanDelta)}</span>
+        <span class="strength">${escapeHtml(row.winner)} · ${escapeHtml(row.strength)} · ${escapeHtml(confidenceLabel)}</span>
       </div>
     `;
+    const timelineWrap = document.createElement("details");
+    timelineWrap.className = "timeline-details";
+    timelineWrap.innerHTML = `<summary>Per-second activation timeline</summary>`;
+    timelineWrap.appendChild(renderTimeline(row.timeseries_a || [], row.timeseries_b || [], row.label));
+    rowEl.appendChild(timelineWrap);
     barsEl.appendChild(rowEl);
   });
+}
+
+function renderTimeline(timeseriesA, timeseriesB, dimensionName) {
+  const width = 420;
+  const height = 90;
+  const pad = 10;
+  const len = Math.max(timeseriesA.length, timeseriesB.length, 1);
+  const values = [...timeseriesA, ...timeseriesB];
+  const min = values.length ? Math.min(...values) : -1;
+  const max = values.length ? Math.max(...values) : 1;
+  const span = Math.max(1e-6, max - min);
+  const x = (i) => pad + (i / Math.max(1, len - 1)) * (width - pad * 2);
+  const y = (v) => height - pad - ((v - min) / span) * (height - pad * 2);
+  const points = (arr) =>
+    (arr.length ? arr : [0])
+      .map((v, i) => `${x(i)},${y(v)}`)
+      .join(" ");
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("class", "timeline-svg");
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", `${dimensionName} per-second activation timeline`);
+  svg.innerHTML = `
+    <line x1="${pad}" y1="${height - pad}" x2="${width - pad}" y2="${height - pad}" class="timeline-axis"></line>
+    <polyline points="${points(timeseriesA)}" class="timeline-line-a"></polyline>
+    <polyline points="${points(timeseriesB)}" class="timeline-line-b"></polyline>
+  `;
+  return svg;
+}
+
+function downloadCSV(result) {
+  if (!result?.diff) return;
+  const rows = ["dimension,score_a,score_b,delta,direction,confidence"];
+  for (const [dim, data] of Object.entries(result.diff)) {
+    rows.push(`${dim},${data.score_a},${data.score_b},${data.delta},${data.direction},${data.confidence}`);
+  }
+  const blob = new Blob([rows.join("\n")], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `braindiff_${Date.now()}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function downloadJSON(result) {
+  if (!result) return;
+  const blob = new Blob([JSON.stringify(result, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `braindiff_${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function renderInsightList(targetEl, items, emptyText) {
@@ -460,6 +534,9 @@ function choreographReveal(payload, submittedA, submittedB) {
   renderInsightList(whatChangedEl, insights.what_changed, "No major change emerged strongly enough to headline this run.");
   renderInsightList(whatStayedSimilarEl, insights.what_stayed_similar, "No dimensions were stable enough to call out here.");
   renderInsightList(actionablesEl, insights.actionables, "No actionable rewrite guidance available for this run.");
+  if (writingMoveEl) {
+    writingMoveEl.textContent = insights.actionables?.[0]?.body || "No primary writing move available for this run.";
+  }
   coolFactorEl.textContent = insights.cool_factor || "";
   scientificNoteEl.textContent = insights.scientific_note || "";
   renderDimensionRadar(payload.dimensions || []);
@@ -877,7 +954,6 @@ async function buildShareImageBlob() {
   ctx.fillText(`model:${String(result.meta?.model_revision || "unknown").slice(0, 30)}`, 54, 710);
   ctx.fillText(`atlas:${String(result.meta?.atlas || "unknown")}`, 430, 710);
   ctx.fillText("braindiff.xyz", 1135, 710);
-
   return await new Promise((resolve, reject) => {
     canvas.toBlob((blob) => blob ? resolve(blob) : reject(new Error("Unable to encode share image")), "image/png");
   });
@@ -977,6 +1053,8 @@ shareBtn.addEventListener("click", () => {
       setTimeout(() => { shareBtn.textContent = "Share"; }, 1800);
     });
 });
+downloadCsvBtn?.addEventListener("click", () => downloadCSV(latestShareData?.result));
+downloadJsonBtn?.addEventListener("click", () => downloadJSON(latestShareData?.result));
 diagToggle?.addEventListener("click", openDiagnostics);
 diagClose?.addEventListener("click", closeDiagnostics);
 diagBackdrop?.addEventListener("click", closeDiagnostics);
@@ -987,6 +1065,11 @@ exampleBtns.forEach((btn) => {
   btn.addEventListener("click", () => {
     textA.value = btn.dataset.a || "";
     textB.value = btn.dataset.b || "";
+    const q = btn.dataset.question;
+    if (q && experimentQuestion) {
+      experimentQuestion.textContent = q;
+      experimentQuestion.classList.remove("hidden");
+    }
     updateFormState();
   });
 });

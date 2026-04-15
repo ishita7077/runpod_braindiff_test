@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Brain Diff App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand-lockup">
+        <a href="./index.html" class="brand-home">
+          <svg class="brand-logo" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="topbarBrandMarkGradApp" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6ee7d8" />
+                <stop offset="100%" stop-color="#5ab0d8" />
+              </linearGradient>
+            </defs>
+            <rect x="1" y="1" width="38" height="38" rx="11" fill="rgba(12,18,22,0.95)" stroke="url(#topbarBrandMarkGradApp)" stroke-width="1.25" />
+            <ellipse cx="14.5" cy="20" rx="6.5" ry="9.5" fill="url(#topbarBrandMarkGradApp)" opacity="0.88" />
+            <ellipse cx="25.5" cy="20" rx="6.5" ry="9.5" fill="url(#topbarBrandMarkGradApp)" opacity="0.88" />
+            <path d="M20 9.5c-1.2 2.8-1.2 18.2 0 21" stroke="rgba(0,0,0,0.35)" stroke-width="1.2" fill="none" />
+          </svg>
+          <span class="brand-wordmark"><span class="brand-word">Brain</span><span class="brand-word-accent">Diff</span></span>
+        </a>
+        <span id="apiReadyPill" class="api-ready-pill">Checking…</span>
+      </div>
+      <nav class="top-nav">
+        <a href="#landing">Compare</a>
+        <a href="#result">Result</a>
+        <button id="diagToggle" class="top-nav-btn" type="button">Diagnostics</button>
+        <a href="./methodology.html">Methodology</a>
+      </nav>
+    </header>
+
+    <main class="container">
+      <section id="landing" class="hero-shell panel app-shell">
+        <section class="inputs-grid app-inputs-grid">
+          <section class="inputs panel panel-soft">
+            <label>
+              <span class="field-label">Version A</span>
+              <textarea id="textA" maxlength="5000" placeholder="Paste your first version here"></textarea>
+              <span class="count" id="countA">0 / 5000</span>
+            </label>
+            <label>
+              <span class="field-label">Version B</span>
+              <textarea id="textB" maxlength="5000" placeholder="Paste your second version here"></textarea>
+              <span class="count" id="countB">0 / 5000</span>
+            </label>
+          </section>
+
+          <aside class="control-rail panel panel-soft">
+            <div>
+              <p class="rail-label">How to use it</p>
+              <h3>Compare two variants that aim at the same job.</h3>
+              <p class="muted">Best when the two inputs are trying to solve the same communication problem.</p>
+            </div>
+
+            <div class="cta-stack">
+              <p id="experimentQuestion" class="experiment-question hidden"></p>
+              <button id="runBtn" disabled>Compare Brain Diff</button>
+              <p class="cta-note">TRIBEv2 predicts population-average cortical response. Text is processed through speech timing.</p>
+              <span id="runMeta" class="run-meta">Diagnostics stay hidden until you need them.</span>
+            </div>
+
+            <div class="examples">
+              <span>Experiments to try:</span>
+              <button class="example" data-a="We enable workflow optimization across enterprise verticals." data-b="We help small teams ship faster without losing control." data-question="Does plain English actually hit differently in the brain?">Jargon vs Plain English</button>
+              <button class="example" data-a="Q3 revenue grew 3.2% YoY across all segments." data-b="You nearly died today. Your family waited outside the hospital." data-question="How much more does personal language activate self-relevance?">Corporate vs Personal</button>
+              <button class="example" data-a="This trick will change your life forever. Click now." data-b="This method works for some teams. Here are the trade-offs." data-question="Is clickbait actually more neurally engaging?">Clickbait vs Honest</button>
+            </div>
+          </aside>
+        </section>
+      </section>
+
+      <section id="loading" class="panel hidden loading-panel">
+        <div class="loading-shell">
+          <div class="loading-main-col">
+            <div class="loading-main-top">
+              <div class="loading-head">
+                <div>
+                  <p class="eyebrow">Working</p>
+                  <h2>Rendering a cortical contrast…</h2>
+                </div>
+                <div class="loading-orb" aria-hidden="true">
+                  <span></span><span></span><span></span>
+                </div>
+              </div>
+              <ul id="loadingSteps" class="loading-steps">
+                <li data-step="converting_text_to_speech">Converting text to speech</li>
+                <li data-step="predicting_version_a">Predicting neural response for Version A</li>
+                <li data-step="predicting_version_b">Predicting neural response for Version B</li>
+                <li data-step="computing_brain_contrast">Computing cortical contrast</li>
+              </ul>
+              <p id="loadingHint" class="loading-hint"></p>
+            </div>
+            <div class="loading-main-bottom">
+              <div id="loadingTelemetry" class="loading-telemetry hidden"></div>
+              <button id="retryBtn" class="hidden retry-btn" type="button">Retry</button>
+            </div>
+          </div>
+          <aside class="loading-side-col" aria-label="While you wait">
+            <p class="loading-side-label">While the model runs</p>
+            <div class="loading-visual-row">
+              <div class="loading-brain-frame">
+                <canvas id="loadingBrainCanvas" width="280" height="260" aria-hidden="true"></canvas>
+              </div>
+              <div class="loading-facts-col">
+                <div id="loadingFactCard" class="loading-fact-card"></div>
+                <div id="loadingFactDots" class="loading-fact-dots" role="tablist" aria-label="Research notes"></div>
+                <a id="loadingFactSource" class="loading-fact-source hidden" target="_blank" rel="noopener noreferrer">Source</a>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="result" class="result hidden">
+        <div class="product-note-callout panel stage stage-0" role="note">
+          <p class="product-note-title">How to read this report</p>
+          <p class="product-note-body">
+            Brain Diff uses a <strong>population-level</strong> model (TRIBEv2) to estimate cortical response to your two texts—not a personal brain scan and not medical advice.
+            <strong>Version A</strong> and <strong>Version B</strong> are your drafts; charts and maps highlight where the model predicts stronger activity for one wording versus the other.
+          </p>
+        </div>
+
+        <section class="panel result-hero stage stage-1">
+          <div class="hero-text">
+            <p class="eyebrow">Result</p>
+            <h2 id="headline"></h2>
+            <p id="winner" class="winner"></p>
+            <p id="subhead" class="subhead"></p>
+          </div>
+          <div class="hero-side">
+            <div id="heroMetrics" class="hero-metrics"></div>
+            <div class="hero-kicker">
+              <span class="hero-pill">Whole-brain contrast</span>
+              <span class="hero-pill">7 cortical dimensions</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel writing-move-card stage stage-1b">
+          <div class="writing-move-inner">
+            <span class="writing-move-icon">💡</span>
+            <div>
+              <h4 class="writing-move-title">The writing move</h4>
+              <p id="writingMove" class="writing-move-body"></p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel bars-card stage stage-2">
+          <div class="section-header">
+            <div>
+              <h3>Cortical dimensions</h3>
+              <p class="muted">Directional contrasts across mapped brain regions.</p>
+            </div>
+            <div class="section-chip">Primary signal</div>
+          </div>
+          <div id="bars" class="bars"></div>
+          <div class="radar-wrap">
+            <p class="radar-label">Seven-dimension snapshot</p>
+            <canvas id="dimensionRadar" width="340" height="340" class="dimension-radar-canvas" aria-label="Radar chart of cortical dimensions"></canvas>
+          </div>
+        </section>
+
+        <section class="result-grid stage stage-3">
+          <div class="panel insights-card">
+            <div class="section-header">
+              <div>
+                <h3>What changed</h3>
+                <p class="muted">The deltas most worth paying attention to.</p>
+              </div>
+              <div class="section-chip">Difference</div>
+            </div>
+            <div id="whatChanged" class="insight-list"></div>
+          </div>
+
+          <div class="panel similarities-card">
+            <div class="section-header">
+              <div>
+                <h3>What stayed similar</h3>
+                <p class="muted">What is probably not driving the decision.</p>
+              </div>
+              <div class="section-chip">Stability</div>
+            </div>
+            <div id="whatStayedSimilar" class="insight-list"></div>
+          </div>
+        </section>
+
+        <section class="result-grid stage stage-4">
+          <div class="panel actions-card">
+            <div class="section-header">
+              <div>
+                <h3>How to use this</h3>
+                <p class="muted">Turn the contrast into an editing move.</p>
+              </div>
+              <div class="section-chip">Actionable</div>
+            </div>
+            <div id="actionables" class="insight-list"></div>
+          </div>
+
+          <div class="panel science-card">
+            <div class="section-header">
+              <div>
+                <h3>Why this is interesting</h3>
+                <p class="muted">The scientific angle.</p>
+              </div>
+              <div class="section-chip">Science</div>
+            </div>
+            <p id="coolFactor" class="science-copy"></p>
+            <details class="science-details">
+              <summary>Why this isn't a popularity score</summary>
+              <p id="scientificNote" class="science-note"></p>
+            </details>
+          </div>
+        </section>
+
+        <section class="panel heatmap-panel stage stage-5">
+          <div class="section-header heatmap-header">
+            <div class="heatmap-title-block">
+              <h3>Cortical contrast</h3>
+              <p class="muted heatmap-lead">Spin the 3D cortex (two brains by default), hover any spot to see the named region and A/B values. Below: the same contrast as a static four-view figure.</p>
+            </div>
+            <div class="heatmap-actions">
+              <label class="dual-brain-toggle muted" title="Default: two brains. Uncheck for one contrast surface only.">
+                <input type="checkbox" id="dualBrain3d" checked />
+                Side-by-side A / B (default)
+              </label>
+              <button type="button" id="brainResetView" class="brain-reset-btn" title="Recenter and frame the full surface">Reset view</button>
+              <div class="brain-hemi-toolbar" role="group" aria-label="Hemisphere visibility">
+                <button type="button" class="brain-hemi-btn active" data-brain-hemi="both">Both</button>
+                <button type="button" class="brain-hemi-btn" data-brain-hemi="left">Left</button>
+                <button type="button" class="brain-hemi-btn" data-brain-hemi="right">Right</button>
+              </div>
+              <button id="downloadCsvBtn">Download CSV</button>
+              <button id="downloadJsonBtn">Download JSON</button>
+              <button id="shareBtn">Share</button>
+            </div>
+          </div>
+
+          <div class="cortex-3d-block">
+            <div class="bwr-legend-row" aria-hidden="true">
+              <div class="bwr-gradient"></div>
+              <div class="bwr-legend-ends">
+                <span>Cooler</span>
+                <span>Neutral</span>
+                <span>Hotter</span>
+              </div>
+            </div>
+            <p id="bwrLegendHint" class="bwr-legend-hint muted">Run a comparison to load the cortical surface and legend notes.</p>
+            <div id="brainDualWrap" class="brain-dual-wrap">
+              <div class="brain-viewer-col">
+                <p class="brain-viewer-label" id="brainViewerLabelA">Cortical contrast (B − A)</p>
+                <div id="brain3dWrapA" class="brain-3d-host" aria-label="3D cortical contrast map"></div>
+              </div>
+              <div class="brain-viewer-col brain-viewer-col-b">
+                <p class="brain-viewer-label">Version B</p>
+                <div id="brain3dWrapB" class="brain-3d-host" aria-label="3D cortical map Version B"></div>
+              </div>
+              <div id="brainTooltip" class="brain-tooltip hidden" role="tooltip"></div>
+            </div>
+            <p id="atlasPeakLabel" class="atlas-peak-hint muted hidden" aria-live="polite"></p>
+          </div>
+
+          <div class="static-heatmap-card">
+            <p class="static-heatmap-label muted">Static figure · four views · same signed contrast (B − A)</p>
+            <img id="heatmapImg" alt="Brain heatmap multi-view" />
+          </div>
+        </section>
+
+        <pre id="resultJson" class="hidden"></pre>
+      </section>
+    </main>
+
+    <aside id="diagDrawer" class="diag-drawer hidden" aria-hidden="true">
+      <div class="diag-header">
+        <div>
+          <h3>Run diagnostics</h3>
+          <p class="muted">Latency, backend, and recent run history.</p>
+        </div>
+        <button id="diagClose" class="ghost-btn" type="button">Close</button>
+      </div>
+      <section class="diag-section" id="preflightSection">
+        <div class="diag-section-head">
+          <h4>System readiness</h4>
+          <span id="preflightStatus" class="status-pill pending">Checking...</span>
+        </div>
+        <div id="preflightList" class="kv-list"></div>
+      </section>
+      <section class="diag-section">
+        <div class="diag-section-head">
+          <h4>Current run</h4>
+          <span id="currentRunStatus" class="status-pill muted">No run yet</span>
+        </div>
+        <div id="currentRunPanel" class="kv-list compact"></div>
+      </section>
+      <section class="diag-section">
+        <div class="diag-section-head">
+          <h4>Recent runs</h4>
+          <button id="diagRefresh" class="ghost-btn small" type="button">Refresh</button>
+        </div>
+        <div id="recentRuns" class="recent-runs empty">No runs recorded yet.</div>
+      </section>
+    </aside>
+    <div id="diagBackdrop" class="diag-backdrop hidden"></div>
+
+    <footer class="footer">
+      Predictions for the population-average brain (TRIBEv2, Meta FAIR). Text processed as speech.
+    </footer>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

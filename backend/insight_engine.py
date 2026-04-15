@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Any
 
 DIMENSION_FRAMING = {
@@ -33,6 +34,18 @@ DIMENSION_FRAMING = {
         "a_tip": "Lower the emotional temperature and remove vivid sensory triggers.",
         "b_tip": "Add vivid detail, immediacy, tension, or felt stakes.",
     },
+    "memory_encoding": {
+        "noun": "memory encoding likelihood",
+        "plain": "is more likely to be remembered",
+        "a_tip": "Add concrete personal stakes or vivid details to increase encoding drive.",
+        "b_tip": "Reduce vividness and emotional salience if recall is not the goal.",
+    },
+    "attention_salience": {
+        "noun": "attentional engagement",
+        "plain": "captures and holds attention",
+        "a_tip": "Increase novelty, urgency, and explicit salience cues to pull attention faster.",
+        "b_tip": "Reduce urgency cues and lower novelty if sustained attention is not needed.",
+    },
 }
 
 INTENSITY_LABELS = [
@@ -42,6 +55,57 @@ INTENSITY_LABELS = [
     (0.12, "Strong"),
     (0.22, "Very strong"),
 ]
+
+DISCOVERY_TEMPLATES = {
+    "personal_resonance": {
+        "B_higher": "{b_quality} activates the brain's self-relevance center {pct} more than {a_quality}",
+        "A_higher": "{a_quality} triggers more self-referential processing than {b_quality}",
+    },
+    "social_thinking": {
+        "B_higher": "{b_quality} makes the brain think about other people {pct} more than {a_quality}",
+        "A_higher": "{a_quality} engages more social reasoning than {b_quality}",
+    },
+    "brain_effort": {
+        "B_higher": "{b_quality} makes the brain work {pct} harder",
+        "A_higher": "{a_quality} demands more cognitive effort than {b_quality}",
+    },
+    "language_depth": {
+        "B_higher": "{b_quality} engages the meaning-extraction system {pct} more deeply",
+        "A_higher": "{a_quality} triggers deeper semantic processing than {b_quality}",
+    },
+    "gut_reaction": {
+        "B_higher": "{b_quality} hits the brain's visceral center {pct} harder than {a_quality}",
+        "A_higher": "{a_quality} produces a stronger gut-level neural response",
+    },
+    "memory_encoding": {
+        "B_higher": "{b_quality} is more likely to be remembered — the brain's encoding system activates {pct} more",
+        "A_higher": "{a_quality} triggers stronger memory encoding signals than {b_quality}",
+    },
+    "attention_salience": {
+        "B_higher": "{b_quality} captures more neural attention — the brain's spotlight is brighter",
+        "A_higher": "{a_quality} engages the attention network more strongly than {b_quality}",
+    },
+}
+
+BRAIN_EFFORT_NARRATIVE = {
+    "high_effort": (
+        "Version {winner} demands significantly more cognitive effort. "
+        "This could mean one of three things: "
+        "(1) the content is genuinely complex - intrinsic load from a dense topic; "
+        "(2) the writing itself is hard to parse - extraneous load from jargon or poor structure; "
+        "or (3) the reader is actively learning - germane load from building new understanding. "
+        "The brain signal alone can't distinguish which type. Context and your audience decide. "
+        "(Sweller, 1988; Owen et al., 2005)"
+    ),
+    "low_effort": (
+        "Version {winner} requires less cognitive effort. "
+        "Simpler language, shorter sentences, or more familiar concepts reduce the load on working memory. "
+        "This is usually good for broad audiences but may feel too simple for expert readers."
+    ),
+    "neutral": (
+        "Both versions demand similar cognitive effort - the brain works about equally hard to process each one."
+    ),
+}
 
 
 def _strength_label(magnitude: float) -> str:
@@ -66,11 +130,61 @@ def _top_sides(rows: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, dict[
     return top_a, top_b
 
 
+def _detect_content_quality(text: str) -> str:
+    words = re.findall(r"[a-zA-Z0-9']+", text.lower())
+    word_count = len(words)
+    has_you = "you" in words or "your" in words or "you're" in words
+    has_jargon = any(w in text.lower() for w in ["optimize", "leverage", "synerg", "vertical", "workflow", "enterprise"])
+    has_numbers = any(c.isdigit() for c in text)
+    has_question = "?" in text
+    avg_word_len = sum(len(w) for w in words) / max(1, word_count)
+
+    if has_you and not has_jargon:
+        return "Personal, direct language"
+    if has_jargon:
+        return "Corporate jargon"
+    if has_question:
+        return "Question-framed language"
+    if has_numbers:
+        return "Data-driven language"
+    if avg_word_len > 6:
+        return "Complex, formal language"
+    if avg_word_len < 4.5 and word_count < 20:
+        return "Short, punchy language"
+    return "This version"
+
+
+def _discovery_headline(
+    strongest: dict[str, Any],
+    *,
+    text_a: str | None = None,
+    text_b: str | None = None,
+) -> str:
+    key = strongest["key"]
+    direction = strongest["direction"]
+    template = DISCOVERY_TEMPLATES.get(key, {}).get(direction)
+    if not template:
+        return f"{_winner_label(direction)} shifts the brain response most on {strongest['label'].lower()}"
+
+    a_quality = _detect_content_quality(text_a or "")
+    b_quality = _detect_content_quality(text_b or "")
+    if a_quality == "This version":
+        a_quality = "Version A"
+    if b_quality == "This version":
+        b_quality = "Version B"
+
+    pct_value = max(5, int(round(float(strongest.get("magnitude", 0.0)) * 100)))
+    pct = f"{pct_value}%"
+    return template.format(a_quality=a_quality, b_quality=b_quality, pct=pct)
+
+
 def build_insight_payload(
     rows: list[dict[str, Any]],
     warnings: list[str] | None = None,
     *,
     narrative_tone: str = "sober",
+    text_a: str | None = None,
+    text_b: str | None = None,
 ) -> dict[str, Any]:
     warnings = warnings or []
     punchy = narrative_tone.strip().lower() == "punchy"
@@ -99,15 +213,15 @@ def build_insight_payload(
     if strongest["direction"] == "neutral" or strongest.get("low_confidence"):
         headline = "The versions are close, with only weak directional differences"
         subhead = "This looks more like a nuance tradeoff than a clear winner."
-    elif punchy:
-        headline = f"{winning_version} wins the headline battle on {strongest['label']}"
-        subhead = (
-            f"{strength} split on how the message {frame['plain']} — "
-            f"that's the sharpest contrast in this run."
-        )
     else:
-        headline = f"{winning_version} shifts the brain response most on {strongest['label'].lower()}"
-        subhead = f"The clearest tradeoff is a {strength.lower()} contrast in how the message {frame['plain']}."
+        headline = _discovery_headline(strongest, text_a=text_a, text_b=text_b)
+        if punchy:
+            subhead = (
+                f"{strength} split on how the message {frame['plain']} — "
+                f"that's the sharpest contrast in this run."
+            )
+        else:
+            subhead = f"The clearest tradeoff is a {strength.lower()} contrast in how the message {frame['plain']}."
 
     hero_metrics: list[dict[str, str]] = []
     if strongest:
@@ -138,10 +252,26 @@ def build_insight_payload(
     what_changed = []
     for row in stable_rows[:3]:
         framing = DIMENSION_FRAMING[row["key"]]
+        body = (
+            f"{_winner_label(row['direction'])} shows a {_strength_label(float(row['magnitude'])).lower()} contrast here, "
+            f"which usually means the content {framing['plain']}"
+        )
+        if row["key"] == "brain_effort":
+            if row["direction"] == "neutral" or row.get("low_confidence"):
+                body = BRAIN_EFFORT_NARRATIVE["neutral"]
+            elif row["direction"] == "B_higher":
+                body = BRAIN_EFFORT_NARRATIVE["high_effort"].format(winner="B")
+            else:
+                body = BRAIN_EFFORT_NARRATIVE["high_effort"].format(winner="A")
+        elif row["key"] == "memory_encoding":
+            body += (
+                " Higher vlPFC activity is associated with stronger encoding drive, "
+                "but this is the cortical driver only, not hippocampal completion."
+            )
         what_changed.append(
             {
                 "title": f"{_winner_label(row['direction'])} on {row['label']}",
-                "body": f"{_winner_label(row['direction'])} shows a {_strength_label(float(row['magnitude'])).lower()} contrast here, which usually means the content {framing['plain']}",
+                "body": body,
             }
         )
 

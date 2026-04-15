@@ -14,7 +14,8 @@ Default strategy is resolved by ``model_service._resolve_text_backend_strategy``
   Active when BRAIN_DIFF_MPS_LLAMA_FP32_FULL=1.
 
 Env:
-- ``BRAIN_DIFF_MPS_TEXT_MAX_MEMORY`` — MPS cap for mps_split (default ``3500MiB`` on >=16 GiB RAM).
+- ``BRAIN_DIFF_MPS_TEXT_MAX_MEMORY`` — MPS cap for mps_split
+  (default ``3500MiB`` on >=16 GiB RAM, ``2500MiB`` below 16 GiB).
 - ``BRAIN_DIFF_LLAMA_ON_CPU=1``      — force Llama to CPU (float32). Wins over fp32-full-device.
 - ``BRAIN_DIFF_MPS_LLAMA_FP32_FULL=1`` — force fp32 full MPS (large RAM only, LLAMA_ON_CPU must be 0).
 - ``BRAIN_DIFF_DISABLE_MPS_FP32_PATCH=1`` — skip this module entirely.

@@ -6,6 +6,8 @@ UI_LABELS = {
     "brain_effort": "Brain Effort",
     "language_depth": "Language Depth",
     "gut_reaction": "Gut Reaction",
+    "memory_encoding": "Memory Encoding",
+    "attention_salience": "Attention",
 }
 
 TOOLTIPS = {
@@ -14,6 +16,8 @@ TOOLTIPS = {
     "brain_effort": "How hard the brain works to process this (dlPFC)",
     "language_depth": "How deeply the brain extracts meaning (Broca's + Wernicke's)",
     "gut_reaction": "How viscerally the brain responds (anterior insula)",
+    "memory_encoding": "How likely the brain is to commit this to long-term storage (left vlPFC)",
+    "attention_salience": "How strongly the brain's attention system is engaged (dorsal attention network)",
 }
 
 USER_MEANING = {
@@ -22,6 +26,8 @@ USER_MEANING = {
     "brain_effort": "demands more thinking effort",
     "language_depth": "engages deeper meaning-making",
     "gut_reaction": "lands more viscerally",
+    "memory_encoding": "is more likely to be encoded into memory",
+    "attention_salience": "captures more attentional resources",
 }
 
 
@@ -55,10 +61,12 @@ def enrich_dimension_payload(diff: dict[str, dict[str, Any]]) -> list[dict[str, 
                 "score_a": payload["score_a"],
                 "score_b": payload["score_b"],
                 "delta": payload["delta"],
+                "timeseries_a": payload.get("timeseries_a", []),
+                "timeseries_b": payload.get("timeseries_b", []),
                 "direction": direction,
                 "magnitude": magnitude,
                 "confidence": confidence,
-                "low_confidence": confidence == "low",
+                "low_confidence": confidence == "too_close_to_call",
                 "delta_display": f"{payload['delta']:+.3f}",
                 "bar_fraction": round(magnitude / max_mag, 6),
                 "winner": winner,

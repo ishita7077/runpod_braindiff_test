@@ -27,5 +27,5 @@ def test_diff_marks_low_confidence_as_neutral():
     diff = compute_diff(scores_a, scores_b)
     assert diff["gut_reaction"]["magnitude"] < 0.005
     assert diff["gut_reaction"]["direction"] == "neutral"
-    assert diff["gut_reaction"]["confidence"] == "low"
+    assert diff["gut_reaction"]["confidence"] == "too_close_to_call"
 

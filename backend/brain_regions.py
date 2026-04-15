@@ -5,14 +5,68 @@ import numpy as np
 
 logger = logging.getLogger("braindiff.brain_regions")
 
-REQUIRED_AREAS = {
-    "personal_resonance": {"left": ["10r", "10v", "9m", "10d", "32", "25"], "right": ["10r", "10v", "9m", "10d", "32", "25"]},
-    "social_thinking": {"right": ["PGi", "PGs", "TPOJ1", "TPOJ2", "TPOJ3"]},
-    "brain_effort": {"left": ["46", "p9-46v", "a9-46v", "8C", "8Av"]},
-    "language_depth": {"left": ["44", "45", "PSL", "STV", "STSdp", "STSvp"]},
-    "gut_reaction": {"left": ["AVI", "AAIC", "MI"], "right": ["AVI", "AAIC", "MI"]},
+DIMENSIONS_HCP = {
+    "personal_resonance": {
+        "description": "Personal resonance",
+        "brain_region": "Medial prefrontal cortex (mPFC)",
+        "areas": {"left": ["10r", "10v", "9m", "10d", "32", "25"], "right": ["10r", "10v", "9m", "10d", "32", "25"]},
+    },
+    "social_thinking": {
+        "description": "Social thinking",
+        "brain_region": "Temporoparietal junction (TPJ)",
+        "areas": {"right": ["PGi", "PGs", "TPOJ1", "TPOJ2", "TPOJ3"]},
+    },
+    "brain_effort": {
+        "description": "Brain effort",
+        "brain_region": "Dorsolateral prefrontal cortex (dlPFC)",
+        "areas": {"left": ["46", "p9-46v", "a9-46v", "8C", "8Av"]},
+    },
+    "language_depth": {
+        "description": "Language depth",
+        "brain_region": "Left language network",
+        "areas": {"left": ["44", "45", "PSL", "STV", "STSdp", "STSvp"]},
+    },
+    "gut_reaction": {
+        "description": "Gut reaction",
+        "brain_region": "Anterior insula",
+        "areas": {"left": ["AVI", "AAIC", "MI"], "right": ["AVI", "AAIC", "MI"]},
+    },
+    "memory_encoding": {
+        "description": "Memory encoding likelihood — how likely the brain is to commit this to long-term storage",
+        "brain_region": "Left ventrolateral prefrontal cortex (vlPFC)",
+        "areas": {"left": ["44", "45", "47s", "IFSa", "IFSp", "p47r"]},
+        "source": "Paller & Wagner 2002; Buckner et al. 1999; Wagner et al. 1998; Neuro-Insight SST validation",
+    },
+    "attention_salience": {
+        "description": "Attentional engagement — how strongly the brain's attention-allocation system is engaged",
+        "brain_region": "Dorsal attention network (intraparietal sulcus + frontal eye fields)",
+        "areas": {
+            "left": ["LIPv", "LIPd", "AIP", "VIP", "MIP", "FEF", "PEF"],
+            "right": ["LIPv", "LIPd", "AIP", "VIP", "MIP", "FEF", "PEF"],
+        },
+        "source": "Corbetta & Shulman 2002; Kastner & Ungerleider 2000",
+    },
 }
 
+REQUIRED_AREAS = {key: cfg["areas"] for key, cfg in DIMENSIONS_HCP.items()}
+
+DESTRIEUX_FALLBACK = {
+    "memory_encoding": {
+        "parcels": [
+            ("left", "G_front_inf-Opercular"),
+            ("left", "G_front_inf-Triangul"),
+            ("left", "G_front_inf-Orbital"),
+        ],
+    },
+    "attention_salience": {
+        "parcels": [
+            ("left", "S_intrapariet_and_P_trans"),
+            ("right", "S_intrapariet_and_P_trans"),
+            ("left", "G_front_middle"),
+            ("right", "G_front_middle"),
+        ],
+    },
+}
 
 def _decode_names(names):
     return [n.decode() if isinstance(n, bytes) else str(n) for n in names]
@@ -27,6 +81,28 @@ def _candidates(area: str, hemi: str) -> list[str]:
         for alias in ["d32", "p32", "s32", "a32pr", "p32pr"]:
             base.extend([alias, f"{prefix}_{alias}_ROI", f"{prefix}_{alias}", f"{hemi_short}.{alias}", f"{hemi_ctx}_{alias}"])
     return base
+
+
+def _find_area_index(area: str, hemi: str, label_names: list[str], *, dim_name: str) -> int:
+    attempts = _candidates(area, hemi)
+    for candidate in attempts:
+        if candidate in label_names:
+            logger.info(
+                "brain_regions:matched area dim=%s hemi=%s area=%s candidate=%s",
+                dim_name,
+                hemi,
+                area,
+                candidate,
+            )
+            return label_names.index(candidate)
+    logger.error(
+        "brain_regions:missing area dim=%s hemi=%s area=%s attempts=%s",
+        dim_name,
+        hemi,
+        area,
+        attempts,
+    )
+    raise ValueError(f"Missing atlas area: {dim_name}/{hemi}/{area}")
 
 
 def load_hcp_annotations(atlas_dir: str = "atlases"):
@@ -66,7 +142,17 @@ def build_vertex_masks(atlas_dir: str = "atlases"):
     if total_len != 20484:
         raise ValueError(f"Expected 20484 total vertices, got {total_len}")
     masks = {}
-    for dim_name, hemis in REQUIRED_AREAS.items():
+
+    logger.info(
+        "NOTE: memory_encoding shares areas 44, 45 with language_depth. Correlation expected and scientifically valid."
+    )
+
+    for area in ["47s", "IFSa", "IFSp", "p47r"]:
+        # Validate these exist before mask assembly, with full candidate logging.
+        _find_area_index(area, "left", names_lh, dim_name="memory_encoding")
+
+    for dim_name, cfg in DIMENSIONS_HCP.items():
+        hemis = cfg["areas"]
         full_mask = np.zeros(total_len, dtype=bool)
         matched_areas = 0
         for hemi, areas in hemis.items():
@@ -74,16 +160,9 @@ def build_vertex_masks(atlas_dir: str = "atlases"):
             labels = labels_lh if hemi == "left" else labels_rh
             offset = 0 if hemi == "left" else hemi_len
             for area in areas:
-                found = False
-                for candidate in _candidates(area, hemi):
-                    if candidate in label_names:
-                        idx = label_names.index(candidate)
-                        full_mask[offset:offset+hemi_len] |= (labels == idx)
-                        matched_areas += 1
-                        found = True
-                        break
-                if not found:
-                    raise ValueError(f"Missing atlas area: {dim_name}/{hemi}/{area}")
+                idx = _find_area_index(area, hemi, label_names, dim_name=dim_name)
+                full_mask[offset:offset + hemi_len] |= labels == idx
+                matched_areas += 1
         vertex_count = int(full_mask.sum())
         if vertex_count == 0:
             raise ValueError(f"ROI mask has zero vertices: {dim_name}")

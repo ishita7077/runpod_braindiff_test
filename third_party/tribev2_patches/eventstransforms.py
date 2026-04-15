@@ -122,18 +122,15 @@ class ExtractWordsFromAudio(EventsTransform):
 
         with tempfile.TemporaryDirectory() as output_dir:
             logger.info(
-                "Running whisperx via uvx (device=%s compute_type=%s model=%s batch=%s)...",
+                "Running whisperx via local python module (device=%s compute_type=%s model=%s batch=%s)...",
                 device,
                 compute_type,
                 model_name,
                 batch_size,
             )
-            # Pin the tool venv to the same interpreter as the API (e.g. 3.11 .venv). Bare `uvx`
-            # may pick another Python (3.13) and a mismatched torch/ffmpeg stack (torchcodec rpath noise).
             cmd = [
-                "uvx",
-                "--python",
                 sys.executable,
+                "-m",
                 "whisperx",
                 str(wav_filename),
                 "--model",
@@ -158,6 +155,17 @@ class ExtractWordsFromAudio(EventsTransform):
                 ]
             )
             env = {k: v for k, v in os.environ.items() if k != "MPLBACKEND"}
+            # WhisperX shell-outs to `ffmpeg`; ensure an explicit binary is on PATH
+            # even when uvx isolates tool environments.
+            try:
+                import imageio_ffmpeg  # type: ignore
+
+                ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+                ffmpeg_dir = str(Path(ffmpeg_exe).parent)
+                env["IMAGEIO_FFMPEG_EXE"] = ffmpeg_exe
+                env["PATH"] = f"{ffmpeg_dir}:{env.get('PATH', '')}"
+            except Exception:
+                pass
             result = subprocess.run(cmd, capture_output=True, text=True, env=env)
             if result.returncode != 0:
                 raise RuntimeError(f"whisperx failed:\n{result.stderr}")

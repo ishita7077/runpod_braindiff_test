@@ -18,6 +18,7 @@ def test_known_direction_pairs_smoke() -> None:
         "brain_effort": {"normalized_signed_mean": 0.03},
         "language_depth": {"normalized_signed_mean": 0.02},
         "gut_reaction": {"normalized_signed_mean": -0.01},
+        "memory_encoding": {"normalized_signed_mean": 0.01},
     }
     scores_b = {
         "personal_resonance": {"normalized_signed_mean": 0.05},
@@ -25,8 +26,10 @@ def test_known_direction_pairs_smoke() -> None:
         "brain_effort": {"normalized_signed_mean": 0.01},
         "language_depth": {"normalized_signed_mean": 0.01},
         "gut_reaction": {"normalized_signed_mean": 0.04},
+        "memory_encoding": {"normalized_signed_mean": 0.06},
     }
     diff = compute_diff(scores_a, scores_b)
     assert diff["personal_resonance"]["direction"] == "B_higher"
     assert diff["gut_reaction"]["direction"] == "B_higher"
+    assert diff["memory_encoding"]["direction"] == "B_higher"
 

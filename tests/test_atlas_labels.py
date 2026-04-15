@@ -13,6 +13,7 @@ REQUIRED_AREAS = {
     "brain_effort": {"left": ["46", "p9-46v", "a9-46v", "8C", "8Av"]},
     "language_depth": {"left": ["44", "45", "PSL", "STV", "STSdp", "STSvp"]},
     "gut_reaction": {"left": ["AVI", "AAIC", "MI"], "right": ["AVI", "AAIC", "MI"]},
+    "memory_encoding": {"left": ["44", "45", "47s", "IFSa", "IFSp", "p47r"]},
 }
 
 def _decode(names: list[Union[bytes, str]]) -> list[str]:

@@ -26,12 +26,9 @@ def _resolve_text_backend_strategy(profile: RuntimeProfile) -> str:
 
     Priority order:
     1. Explicit BRAIN_DIFF_TEXT_BACKEND env (auto | cpu | mps_split | mps_full_fp32)
-    2. Auto: Llama stays on CPU unless you opt into mps_split / mps_full_fp32.
-
-    On Apple Silicon, auto-used-to pick mps_split for 16+ GiB RAM, but accelerate +
-    device_map on MPS routinely crashes in Llama embed_tokens with
-    ``RuntimeError: Placeholder storage has not been allocated on MPS device!``.
-    TRIBEv2 brain/audio encoders still use MPS; only the text tower moves off GPU.
+    2. Auto:
+       - non-MPS profile -> cpu
+       - MPS profile -> mps_split on >=16 GiB RAM, else cpu
 
     Returns one of: "cpu" | "mps_split" | "mps_full_fp32"
     """
@@ -46,8 +43,14 @@ def _resolve_text_backend_strategy(profile: RuntimeProfile) -> str:
 
     if profile.device != "mps":
         return "cpu"
-
-    # Safe default for MPS hosts (see docstring).
+    total_ram = 0
+    try:
+        if psutil is not None:
+            total_ram = int(psutil.virtual_memory().total)
+    except Exception:
+        total_ram = 0
+    if total_ram >= 16 * _GIB:
+        return "mps_split"
     return "cpu"
 
 
@@ -181,8 +184,23 @@ class TribeService:
         ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
         ffmpeg_dir = os.path.dirname(ffmpeg_exe)
         os.environ["IMAGEIO_FFMPEG_EXE"] = ffmpeg_exe
-        if ffmpeg_dir not in os.environ.get("PATH", ""):
-            os.environ["PATH"] = f"{ffmpeg_dir}:{os.environ.get('PATH', '')}"
+        # WhisperX shells out to literal `ffmpeg`. imageio_ffmpeg often ships a
+        # versioned binary name (e.g. ffmpeg-macos-aarch64-v7.1), so ensure an
+        # alias named `ffmpeg` exists on PATH.
+        shim_dir = os.path.join(tempfile.gettempdir(), "braindiff-ffmpeg-shim")
+        os.makedirs(shim_dir, exist_ok=True)
+        shim_path = os.path.join(shim_dir, "ffmpeg")
+        if not os.path.exists(shim_path):
+            try:
+                os.symlink(ffmpeg_exe, shim_path)
+            except FileExistsError:
+                pass
+            except OSError:
+                # If symlink is blocked, fall back to direct executable path.
+                shim_path = ffmpeg_exe
+
+        path_entries = [shim_dir, ffmpeg_dir, os.environ.get("PATH", "")]
+        os.environ["PATH"] = ":".join([p for p in path_entries if p])
 
     def text_to_predictions(self, text: str) -> tuple[np.ndarray, Any, dict[str, int]]:
         if self.model is None:

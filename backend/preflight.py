@@ -93,8 +93,7 @@ def build_preflight_report(
         blockers.append("masks_not_ready")
     if not ffmpeg_ok:
         blockers.append("ffmpeg_missing")
-    if not uvx_ok:
-        blockers.append("uvx_missing")
+    # WhisperX now runs via local venv python module; uvx is optional.
     if not hf_ok:
         blockers.append("hf_auth_or_access_missing")
     if accelerate_required and not accelerate_ok:
