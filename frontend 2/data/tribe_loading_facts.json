@@ -1,0 +1,66 @@
+{
+  "meta": {
+    "content_version": 1,
+    "last_reviewed": "2026-04-11",
+    "review_cadence_days": 14,
+    "maintainer_note": "Review facts and links against ai.meta.com/blog and github.com/facebookresearch/tribev2 at least every 14 days."
+  },
+  "facts": [
+    {
+      "tag": "TRIBE v2",
+      "title": "A tri-modal digital twin for brain response",
+      "body": "Meta FAIR’s TRIBE v2 predicts high-resolution fMRI-style activity from sight, sound, or language — so researchers can stress-test hypotheses before every study needs a scanner slot.",
+      "source_url": "https://ai.meta.com/blog/tribe-v2-brain-predictive-foundation-model/",
+      "source_label": "Meta AI blog"
+    },
+    {
+      "tag": "Scale",
+      "title": "Trained on 700+ volunteers, many hours of natural media",
+      "body": "The model learns from a large cohort watching and listening to diverse real-world images, podcasts, video, and text — not just tidy lab sentences.",
+      "source_url": "https://ai.meta.com/blog/tribe-v2-brain-predictive-foundation-model/",
+      "source_label": "Meta AI blog"
+    },
+    {
+      "tag": "Resolution",
+      "title": "Far finer brain coverage than earlier public baselines",
+      "body": "Meta reports roughly a 70× leap in effective prediction resolution versus comparable prior models — enough surface detail to compare cortical patterns meaningfully.",
+      "source_url": "https://ai.meta.com/blog/tribe-v2-brain-predictive-foundation-model/",
+      "source_label": "Meta AI blog"
+    },
+    {
+      "tag": "Validation",
+      "title": "Built on Algonauts-class encoding science",
+      "body": "The stack extends ideas from Meta’s Algonauts 2025 competition work — encoding models that map stimuli to brain responses — then scales data and capacity.",
+      "source_url": "https://arxiv.org/html/2508.10784v1",
+      "source_label": "Algonauts 2025 (arXiv)"
+    },
+    {
+      "tag": "Open research",
+      "title": "Weights, code, and paper under CC BY-NC",
+      "body": "Researchers get Hugging Face weights, GitHub training/inference code, and the full paper to reproduce and extend — commercial use needs a separate license.",
+      "source_url": "https://github.com/facebookresearch/tribev2",
+      "source_label": "facebookresearch/tribev2"
+    },
+    {
+      "tag": "Try it",
+      "title": "Official interactive demo",
+      "body": "Meta ships a browser demo to explore TRIBE v2 on your own clips — useful context for what “population average” brain maps can and can’t claim.",
+      "source_url": "http://aidemos.atmeta.com/tribev2",
+      "source_label": "TRIBE v2 demo"
+    },
+    {
+      "tag": "Paper",
+      "title": "Foundation model across vision, audition, language",
+      "body": "The publication frames TRIBE as one model for in-silico neuroscience: shared representations for how humans process complex, real-world stimuli.",
+      "source_url": "https://ai.meta.com/research/publications/a-foundation-model-of-vision-audition-and-language-for-in-silico-neuroscience/",
+      "source_label": "Meta AI publication"
+    },
+    {
+      "tag": "This app",
+      "title": "Brain Diff ≠ a clinical scan",
+      "body": "You’re seeing population-average cortical contrast from TRIBE v2 after text is run through a speech-like pathway — insightful for messaging, not a diagnosis.",
+      "source_url": "https://huggingface.co/facebook/tribev2",
+      "source_label": "Model card (Hugging Face)"
+    }
+  ]
+}

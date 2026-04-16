@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BrainDiff</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter+Tight:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./landing-v2.css" />
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+    </script>
+  </head>
+  <body class="bd-landing">
+    <header class="topbar site-shell bd-topbar">
+      <div class="brand-lockup">
+        <a href="./index.html" class="brand-home">
+          <svg class="brand-logo" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="topbarBrandMarkGradLandingV2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#d8dce2" />
+                <stop offset="72%" stop-color="#bfc8d4" />
+                <stop offset="100%" stop-color="#c9ae73" />
+              </linearGradient>
+            </defs>
+            <rect x="1" y="1" width="38" height="38" rx="11" fill="rgba(8,11,15,0.92)" stroke="rgba(255,255,255,0.12)" stroke-width="1.25" />
+            <ellipse cx="14.25" cy="20" rx="6.2" ry="9.2" fill="url(#topbarBrandMarkGradLandingV2)" opacity="0.88" />
+            <ellipse cx="25.75" cy="20" rx="6.2" ry="9.2" fill="url(#topbarBrandMarkGradLandingV2)" opacity="0.58" />
+            <path d="M20 9.8c-1.15 2.7-1.15 17.7 0 20.4" stroke="rgba(0,0,0,0.32)" stroke-width="1.15" fill="none" />
+          </svg>
+          <span class="brand-wordmark"><span class="brand-word">Brain</span><span class="brand-word-accent brand-word-accent--warm">Diff</span></span>
+        </a>
+      </div>
+      <nav class="top-nav bd-top-nav" aria-label="Primary">
+        <a href="#explore">Explore</a>
+        <a href="./methodology.html">Method</a>
+        <a href="#field-notes">Case Studies</a>
+        <a href="./app.html" class="nav-cta bd-nav-cta">Open BrainDiff <span aria-hidden="true">→</span></a>
+      </nav>
+    </header>
+
+    <main class="bd-main">
+      <section class="bd-hero site-shell" id="top">
+        <div class="bd-hero-grid">
+          <div class="bd-hero-copy reveal-on-scroll">
+            <div class="bd-kicker">Modeled neuroscience</div>
+            <h1>Compare how two stimuli land in the modeled brain.</h1>
+            <p class="bd-hero-subtitle">
+              Text, audio, or video. BrainDiff makes the delta visible on a population-average cortical surface.
+            </p>
+            <div class="bd-cta-row">
+              <a href="./app.html" class="bd-button bd-button--primary">Open BrainDiff</a>
+              <a href="./methodology.html" class="bd-button bd-button--ghost">Methodology</a>
+            </div>
+            <div class="bd-meta-row">
+              <div class="bd-meta-lockup">
+                <svg class="bd-meta-logo" viewBox="0 0 90 18" aria-hidden="true">
+                  <path fill="#3b82f6" d="M15.97 3.55c-1.99 0-3.2 1.28-4.38 3.34C10.52 4.83 9.3 3.55 7.31 3.55 4.03 3.55 1.4 6.26 1.4 9.6c0 3.34 2.63 6.05 5.9 6.05 1.98 0 3.2-1.28 4.28-3.17 1.1 1.9 2.3 3.17 4.38 3.17 3.27 0 5.9-2.7 5.9-6.05 0-3.34-2.63-6.05-5.9-6.05Zm-8.66 9.2c-1.71 0-3.1-1.42-3.1-3.16 0-1.74 1.39-3.16 3.1-3.16 1.7 0 2.47 1.22 3.6 3.16-1.13 1.94-1.9 3.16-3.6 3.16Zm8.66 0c-1.7 0-2.47-1.22-3.6-3.16 1.13-1.94 1.9-3.16 3.6-3.16 1.71 0 3.1 1.42 3.1 3.16 0 1.74-1.39 3.16-3.1 3.16Z"/>
+                  <text x="27" y="13.3" font-family="Inter Tight, sans-serif" font-size="10.5" fill="#d9deea">Meta FAIR</text>
+                </svg>
+                <span>TRIBE v2</span>
+              </div>
+              <div class="bd-meta-stats">20,484 cortical vertices · 7 mapped systems</div>
+            </div>
+          </div>
+
+          <div class="bd-hero-stage reveal-on-scroll">
+            <div class="bd-hero-aura" aria-hidden="true"></div>
+            <div class="bd-hero-brain-shell">
+              <canvas id="landingHeroBrainCanvas" width="760" height="560" aria-label="Modeled cortical surface"></canvas>
+            </div>
+            <div class="bd-hero-stage-note">
+              Built on open research. For comparison, not identity.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="bd-section site-shell reveal-on-scroll" id="explore">
+        <div class="bd-panel bd-compare-panel">
+          <div class="bd-panel-intro">
+            <div>
+              <div class="bd-kicker">Live comparison</div>
+              <h2>Same video. Different impact.</h2>
+            </div>
+            <p>
+              Two openings from the same creator. One stays calm and explanatory. The other pushes speed, stakes, and emotion.
+            </p>
+          </div>
+
+          <div class="bd-compare-grid">
+            <aside class="bd-video-stack" aria-label="Example inputs">
+              <article class="bd-video-card">
+                <div class="bd-video-thumb" style="background-image:url('./assets/video_a.jpg')">
+                  <button class="bd-play-button" type="button" aria-label="Play Version A preview"></button>
+                </div>
+                <div class="bd-video-meta">
+                  <span class="bd-video-badge">A</span>
+                  <div>
+                    <h3>Calm &amp; informative</h3>
+                    <p>15 sec · slower setup · clearer context</p>
+                  </div>
+                </div>
+              </article>
+
+              <article class="bd-video-card">
+                <div class="bd-video-thumb" style="background-image:url('./assets/video_b.jpg')">
+                  <button class="bd-play-button" type="button" aria-label="Play Version B preview"></button>
+                </div>
+                <div class="bd-video-meta">
+                  <span class="bd-video-badge">B</span>
+                  <div>
+                    <h3>Fast &amp; emotional</h3>
+                    <p>15 sec · stronger stakes · harder hook</p>
+                  </div>
+                </div>
+              </article>
+            </aside>
+
+            <div class="bd-output-stage" aria-label="Illustrative cortical output">
+              <div class="bd-output-frame">
+                <canvas id="liveDiffCanvas" width="640" height="420" aria-label="Signed cortical difference between Version A and Version B"></canvas>
+              </div>
+              <div class="bd-scale-row" aria-hidden="true">
+                <span>More A</span>
+                <div class="bd-scale-bar"><span></span></div>
+                <span>More B</span>
+              </div>
+            </div>
+
+            <aside class="bd-readout-panel">
+              <div class="bd-readout-head">
+                <span>Key shifts</span>
+                <p>Average signed change across mapped vertices in this illustrative run.</p>
+              </div>
+
+              <div class="bd-readout-list">
+                <div class="bd-readout-row">
+                  <div>
+                    <strong>Personal relevance</strong>
+                    <small>Higher for B</small>
+                  </div>
+                  <div class="bd-readout-value">+0.31</div>
+                  <svg viewBox="0 0 120 28" aria-hidden="true"><path d="M0 21c16 0 14-12 27-12s14 9 27 9 16-8 25-8 10 11 19 11 11-5 22-5" /></svg>
+                </div>
+                <div class="bd-readout-row">
+                  <div>
+                    <strong>Social reasoning</strong>
+                    <small>Higher for B</small>
+                  </div>
+                  <div class="bd-readout-value">+0.17</div>
+                  <svg viewBox="0 0 120 28" aria-hidden="true"><path d="M0 20c14 0 13-6 26-6 14 0 13 8 28 8 14 0 13-9 25-9s13 6 20 6 13-3 21-3" /></svg>
+                </div>
+                <div class="bd-readout-row bd-readout-row--warm">
+                  <div>
+                    <strong>Processing effort</strong>
+                    <small>Lower for B</small>
+                  </div>
+                  <div class="bd-readout-value">−0.09</div>
+                  <svg viewBox="0 0 120 28" aria-hidden="true"><path d="M0 18c19 0 11-10 25-10 14 0 12 10 27 10 13 0 16-6 29-6 11 0 13 8 20 8s11-3 19-3" /></svg>
+                </div>
+              </div>
+
+              <div class="bd-readout-summary">
+                <span class="bd-summary-kicker">Interpretation</span>
+                <p>Version B pulls harder on relevance and momentum while asking slightly less of the viewer.</p>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="bd-section site-shell reveal-on-scroll" id="field-notes">
+        <div class="bd-field-grid">
+          <article class="bd-note-card">
+            <span class="bd-note-kicker">Hooks</span>
+            <h3>Short-form openings</h3>
+            <p>Test whether urgency, framing, or scene-setting changes the surface before you commit to the edit.</p>
+          </article>
+          <article class="bd-note-card">
+            <span class="bd-note-kicker">Framing</span>
+            <h3>Public-interest messages</h3>
+            <p>Compare two ways of saying the same thing when self-report is not the whole story.</p>
+          </article>
+          <article class="bd-note-card">
+            <span class="bd-note-kicker">Explanations</span>
+            <h3>Education and product language</h3>
+            <p>See where clarity, effort, and relevance separate when two versions are both “technically right.”</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="bd-section site-shell reveal-on-scroll" id="systems">
+        <div class="bd-panel bd-lens-panel">
+          <div class="bd-lens-copy">
+            <div class="bd-kicker">Mapped systems</div>
+            <h2>Inspect the surface one system at a time.</h2>
+            <p>
+              Move through the systems BrainDiff maps and see where each lens sits on the cortex. This view uses atlas-defined masks on the same surface shown in the product.
+            </p>
+            <div id="lensDimensionDots" class="bd-dimension-list" role="tablist" aria-label="Choose a mapped system"></div>
+          </div>
+
+          <div class="bd-lens-stage">
+            <div class="bd-lens-brain-shell">
+              <canvas id="bdLensCanvas" width="640" height="420" aria-label="Interactive mapped systems preview"></canvas>
+            </div>
+            <aside class="bd-lens-note">
+              <span class="bd-summary-kicker">Current lens</span>
+              <h3 id="lensAnnotationTitle">Personal relevance</h3>
+              <p id="lensAnnotationRegion">Medial prefrontal cortex · Does this feel like it is about me?</p>
+              <p id="lensAnnotationBody">Tracks self-relevance processing. Stronger response here can matter when two versions are informationally similar but personally unequal.</p>
+              <cite id="lensAnnotationCite">Falk et al., 2012</cite>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="bd-section site-shell bd-closing reveal-on-scroll">
+        <div class="bd-closing-grid">
+          <div class="bd-closing-line">
+            <p>A new lens<br />for human understanding.</p>
+          </div>
+          <div class="bd-closing-copy">
+            <p>
+              Built on TRIBE v2. Responsible by design. Population-average modeling for comparison — not diagnosis, identity, or private inner state.
+            </p>
+            <div class="bd-closing-links">
+              <a href="./methodology.html">Methodology</a>
+              <a href="./app.html">Open BrainDiff</a>
+            </div>
+          </div>
+          <div class="bd-trust-grid">
+            <div class="bd-trust-card">
+              <span>Population-average</span>
+            </div>
+            <div class="bd-trust-card">
+              <span>Not diagnostic</span>
+            </div>
+            <div class="bd-trust-card">
+              <span>Research-grade modeling</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer site-shell bd-footer">
+      BrainDiff · cortical comparison for text, audio, and video
+    </footer>
+
+    <script type="module" src="./landing.js"></script>
+  </body>
+</html>

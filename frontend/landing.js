@@ -342,12 +342,12 @@ async function initLandingBrainsAndExplainer() {
       if (brain3d?.mountLoadingBrainCanvas) {
         demoDisposers.push(
           brain3d.mountLoadingBrainCanvas(heroCanvas, {
-            motionSpeed: 0.22,
+            motionSpeed: 0.34,
             fitMargin: 1.16,
             baseYaw: -0.42,
             basePitch: -0.08,
-            driftYaw: 0.045,
-            driftPitch: 0.02,
+            driftYaw: 0.09,
+            driftPitch: 0.03,
             color: 0x67d1c5,
             emissive: 0x0b2320,
             emissiveIntensity: 0.18,

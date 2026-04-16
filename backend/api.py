@@ -605,5 +605,5 @@ async def telemetry_run(job_id: str) -> JSONResponse:
         raise HTTPException(status_code=404, detail=f"Unknown job_id: {job_id}")
     return JSONResponse(run)
 
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
+app.mount("/", StaticFiles(directory="frontend 2", html=True), name="frontend")
 

@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Methodology — Brain Diff</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="topbar site-shell">
+      <div class="brand-lockup">
+        <a href="./index.html" class="brand-home">
+          <svg class="brand-logo" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="topbarBrandMarkGradMeth" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6ee7d8" />
+                <stop offset="100%" stop-color="#5ab0d8" />
+              </linearGradient>
+            </defs>
+            <rect x="1" y="1" width="38" height="38" rx="11" fill="rgba(12,18,22,0.95)" stroke="url(#topbarBrandMarkGradMeth)" stroke-width="1.25" />
+            <ellipse cx="14.5" cy="20" rx="6.5" ry="9.5" fill="url(#topbarBrandMarkGradMeth)" opacity="0.88" />
+            <ellipse cx="25.5" cy="20" rx="6.5" ry="9.5" fill="url(#topbarBrandMarkGradMeth)" opacity="0.88" />
+            <path d="M20 9.5c-1.2 2.8-1.2 18.2 0 21" stroke="rgba(0,0,0,0.35)" stroke-width="1.2" fill="none" />
+          </svg>
+          <span class="brand-wordmark"><span class="brand-word">Brain</span><span class="brand-word-accent">Diff</span></span>
+        </a>
+      </div>
+      <nav class="top-nav" aria-label="Primary">
+        <a href="./index.html#methodology">Landing overview</a>
+        <a href="./app.html" class="nav-cta">Launch Brain Diff →</a>
+      </nav>
+    </header>
+
+    <main class="methodology-page site-shell">
+      <header class="meth-hero">
+        <p class="eyebrow">Methodology</p>
+        <h1>What Brain Diff predicts — and what it does not</h1>
+        <p class="subtitle meth-lead">
+          A comparison tool on TRIBEv2’s population-average cortical encoding. Two texts in → vertex-level predictions out → contrasts, maps, and plain-language notes.
+        </p>
+      </header>
+
+      <section class="meth-section surface-plain">
+        <h2>What it predicts</h2>
+        <p>
+          For each draft, the model estimates blood-flow–like cortical activation at 20,484 surface vertices (fsaverage5), then we contrast Version B minus Version A by region and dimension.
+        </p>
+      </section>
+
+      <section class="meth-section surface-plain">
+        <h2>Pipeline (short)</h2>
+        <ol class="meth-ol">
+          <li>Text is aligned to a speech-like pathway (model training constraint).</li>
+          <li>TRIBEv2 produces vertex-wise responses for A and for B.</li>
+          <li>Regions use HCP MMP1 labels; seven headline dimensions aggregate subsets of vertices.</li>
+          <li>Outputs: signed contrasts, 3D maps, radar snapshot, narrative insights — not a medical or individual-brain readout.</li>
+        </ol>
+      </section>
+
+      <section class="meth-section surface-plain">
+        <h2>Limits</h2>
+        <ul class="meth-ul">
+          <li>Population-average model — not your brain.</li>
+          <li>Not virality, revenue, or diagnostic certainty.</li>
+          <li>Cultural and cohort gaps apply, as with any encoding model.</li>
+        </ul>
+      </section>
+
+      <section class="meth-section surface-plain">
+        <h2>References &amp; deeper reading</h2>
+        <p class="muted">
+          See product notebook for curated papers and interpretation notes.
+        </p>
+      </section>
+    </main>
+
+    <footer class="footer">
+      Predictions for the population-average brain (TRIBEv2, Meta FAIR). Text processed as speech.
+    </footer>
+  </body>
+</html>
