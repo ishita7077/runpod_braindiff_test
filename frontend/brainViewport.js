@@ -30,27 +30,29 @@ export function normalizeBrainGroup(group) {
 /**
  * Match brain3d._applyBrainCameraFit framing, without OrbitControls (loading / highlight).
  */
-export function applyPerspectiveBrainFit(camera, group, width, height, margin = 1.14) {
+export function applyPerspectiveBrainFit(camera, group, width, height, margin = 1.12) {
   const h = Math.max(height, 1);
   const w = Math.max(width, 1);
   camera.aspect = w / h;
+
   const box = new THREE.Box3().setFromObject(group);
   if (box.isEmpty()) {
     camera.updateProjectionMatrix();
     return;
   }
-  const center = new THREE.Vector3();
-  const size = new THREE.Vector3();
-  box.getCenter(center);
-  box.getSize(size);
-  const maxDim = Math.max(size.x, size.y, size.z, 1e-6);
-  const vFovRad = (camera.fov * Math.PI) / 180;
-  const tanHalf = Math.tan(vFovRad / 2);
-  const distV = (maxDim * margin) / (2 * tanHalf);
-  const halfW = maxDim * 0.5;
-  const distH = (halfW * margin) / (Math.max(camera.aspect, 0.2) * tanHalf);
+
+  const sphere = box.getBoundingSphere(new THREE.Sphere());
+  const center = sphere.center.clone();
+  const radius = Math.max(sphere.radius, 1e-6);
+
+  const vFov = THREE.MathUtils.degToRad(camera.fov);
+  const hFov = 2 * Math.atan(Math.tan(vFov / 2) * camera.aspect);
+
+  const distV = (radius * margin) / Math.sin(vFov / 2);
+  const distH = (radius * margin) / Math.sin(hFov / 2);
   const dist = Math.max(distV, distH);
-  camera.position.set(center.x, center.y + maxDim * 0.08, center.z + dist);
+
+  camera.position.set(center.x, center.y, center.z + dist);
   camera.near = Math.max(0.05, dist / 120);
   camera.far = Math.max(800, dist * 28);
   camera.lookAt(center);

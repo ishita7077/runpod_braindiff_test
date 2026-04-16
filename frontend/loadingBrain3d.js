@@ -181,13 +181,23 @@ function draw2dFallbackBrain(canvas, title, subtitle) {
 
 export function mountLoadingBrainCanvas(canvas, options = {}) {
   if (!canvas) return () => {};
+
   const viewport = resolveViewport(canvas);
-  const rotationSpeed = Number(options.rotationSpeed ?? 0.38);
+
+  const motionSpeed = Number(options.motionSpeed ?? 0.22);
+  const fitMargin = Number(options.fitMargin ?? 1.16);
+
+  const baseYaw = Number(options.baseYaw ?? -0.42);
+  const basePitch = Number(options.basePitch ?? -0.08);
+
+  const driftYaw = Number(options.driftYaw ?? 0.045);
+  const driftPitch = Number(options.driftPitch ?? 0.02);
 
   let scene;
   let camera;
   let renderer;
   let root;
+
   try {
     ({ scene, camera, renderer, root } = _baseScene(canvas));
   } catch (err) {
@@ -197,15 +207,19 @@ export function mountLoadingBrainCanvas(canvas, options = {}) {
   }
 
   const brainMat = new THREE.MeshStandardMaterial({
-    color: options.color ?? 0x5ca99f,
-    emissive: options.emissive ?? 0x174c47,
-    emissiveIntensity: options.emissiveIntensity ?? 0.95,
-    metalness: 0.18,
-    roughness: 0.42,
+    color: options.color ?? 0x67d1c5,
+    emissive: options.emissive ?? 0x0b2320,
+    emissiveIntensity: options.emissiveIntensity ?? 0.18,
+    metalness: options.metalness ?? 0.05,
+    roughness: options.roughness ?? 0.68,
   });
 
+  // Important: poseGroup is the thing we fit AND animate.
+  // That keeps framing stable.
+  const poseGroup = new THREE.Group();
   const brainContent = new THREE.Group();
-  root.add(brainContent);
+  poseGroup.add(brainContent);
+  root.add(poseGroup);
 
   let meshReady = false;
   let cancelled = false;
@@ -223,8 +237,12 @@ export function mountLoadingBrainCanvas(canvas, options = {}) {
 
   const refitCamera = () => {
     if (!meshReady || cancelled) return;
+
+    // Fit to the actual base hero pose, not a neutral pose.
+    poseGroup.rotation.set(basePitch, baseYaw, 0);
+
     const { width, height } = syncRendererToViewport(renderer, camera, canvas, viewport);
-    applyPerspectiveBrainFit(camera, brainContent, width, height);
+    applyPerspectiveBrainFit(camera, poseGroup, width, height, fitMargin);
   };
 
   const ro = new ResizeObserver(() => {
@@ -241,8 +259,10 @@ export function mountLoadingBrainCanvas(canvas, options = {}) {
         draw2dFallbackBrain(canvas, "Brain mesh unavailable", "API returned incomplete geometry — see server logs");
         return;
       }
+
       _buildHemispheres(brainContent, mesh, brainMat, brainMat);
       normalizeBrainGroup(brainContent);
+
       meshReady = true;
       refitCamera();
       log("mountLoadingBrainCanvas:mesh mounted", { canvasId: canvas.id || "(no-id)" });
@@ -263,16 +283,22 @@ export function mountLoadingBrainCanvas(canvas, options = {}) {
   }, 2500);
 
   const t0 = performance.now();
+
   function tick(now) {
     if (cancelled) return;
     raf = requestAnimationFrame(tick);
-    const t = (now - t0) * 0.001;
-    root.rotation.y = t * rotationSpeed;
-    root.rotation.x = Math.sin(t * 0.22) * 0.07;
+
     if (meshReady) {
+      const t = (now - t0) * 0.001;
+
+      // Small premium drift, not full spin.
+      poseGroup.rotation.y = baseYaw + Math.sin(t * motionSpeed) * driftYaw;
+      poseGroup.rotation.x = basePitch + Math.sin(t * (motionSpeed * 0.82) + 0.9) * driftPitch;
+
       renderer.render(scene, camera);
     }
   }
+
   raf = requestAnimationFrame(tick);
 
   return () => {

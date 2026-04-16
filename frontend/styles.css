@@ -1371,21 +1371,25 @@ pre {
 }
 .hero-brain-canvas-wrapper {
   flex-shrink: 0;
-  width: 420px;
-  height: 420px;
-  border-radius: 18px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.02);
-  padding: 10px;
+  width: clamp(420px, 36vw, 500px);
+  aspect-ratio: 1 / 1;
+  height: auto;
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(90, 200, 184, 0.06), transparent 58%),
+    linear-gradient(180deg, rgba(10, 12, 16, 0.92), rgba(6, 7, 10, 0.98));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.03),
+    0 24px 60px rgba(0, 0, 0, 0.42);
+  overflow: hidden;
+  padding: 0;
   position: relative;
   z-index: 1;
-  display: flex;
-  align-items: stretch;
-  box-sizing: border-box;
+  display: block;
 }
+
 .hero-brain-canvas-wrapper canvas {
-  flex: 1;
-  min-height: 0;
   width: 100%;
   height: 100%;
   display: block;
@@ -2108,9 +2112,9 @@ pre {
     align-items: flex-start;
   }
   .hero-brain-canvas-wrapper {
-    width: 100%;
-    max-width: 400px;
-    height: 300px;
+    width: min(100%, 420px);
+    aspect-ratio: 1 / 1;
+    height: auto;
   }
 }
 

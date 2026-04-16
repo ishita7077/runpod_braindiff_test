@@ -342,8 +342,17 @@ async function initLandingBrainsAndExplainer() {
       if (brain3d?.mountLoadingBrainCanvas) {
         demoDisposers.push(
           brain3d.mountLoadingBrainCanvas(heroCanvas, {
-            height: 420,
-            rotationSpeed: 0.28,
+            motionSpeed: 0.22,
+            fitMargin: 1.16,
+            baseYaw: -0.42,
+            basePitch: -0.08,
+            driftYaw: 0.045,
+            driftPitch: 0.02,
+            color: 0x67d1c5,
+            emissive: 0x0b2320,
+            emissiveIntensity: 0.18,
+            metalness: 0.05,
+            roughness: 0.68,
           }),
         );
         dlog("heroCanvas:mount requested");
