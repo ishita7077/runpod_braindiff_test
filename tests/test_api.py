@@ -85,6 +85,19 @@ def test_api_ready_reports_skip_startup(monkeypatch):
     assert "runtime" in body
 
 
+def test_dimension_masks_endpoint(monkeypatch):
+    monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
+    monkeypatch.setattr(api, "masks", _dummy_masks())
+    client = TestClient(api.app)
+    response = client.get("/api/dimension-masks")
+    assert response.status_code == 200
+    body = response.json()
+    assert "personal_resonance" in body
+    decoded = np.frombuffer(base64.b64decode(body["personal_resonance"]), dtype=np.uint8)
+    assert decoded.shape == (20484,)
+    assert decoded.dtype == np.uint8
+
+
 def test_brain_mesh_endpoint_uses_payload_builder(monkeypatch):
     monkeypatch.setenv("BRAIN_DIFF_SKIP_STARTUP", "1")
     monkeypatch.setattr(api, "masks", _dummy_masks())

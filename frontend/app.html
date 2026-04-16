@@ -18,7 +18,7 @@
     </script>
   </head>
   <body>
-    <header class="topbar">
+    <header class="topbar site-shell">
       <div class="brand-lockup">
         <a href="./index.html" class="brand-home">
           <svg class="brand-logo" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
@@ -37,15 +37,15 @@
         </a>
         <span id="apiReadyPill" class="api-ready-pill">Checking…</span>
       </div>
-      <nav class="top-nav">
-        <a href="#landing">Compare</a>
-        <a href="#result">Result</a>
-        <button id="diagToggle" class="top-nav-btn" type="button">Diagnostics</button>
+      <nav class="top-nav" aria-label="Primary">
+        <a href="#landing">Inputs</a>
+        <a href="#result">Results</a>
         <a href="./methodology.html">Methodology</a>
+        <button id="diagToggle" class="top-nav-btn nav-utility" type="button">Diagnostics</button>
       </nav>
     </header>
 
-    <main class="container">
+    <main class="container site-shell">
       <section id="landing" class="hero-shell panel app-shell">
         <section class="inputs-grid app-inputs-grid">
           <section class="inputs panel panel-soft">
@@ -152,88 +152,11 @@
           </div>
         </section>
 
-        <section class="panel writing-move-card stage stage-1b">
-          <div class="writing-move-inner">
-            <span class="writing-move-icon">💡</span>
-            <div>
-              <h4 class="writing-move-title">The writing move</h4>
-              <p id="writingMove" class="writing-move-body"></p>
-            </div>
-          </div>
-        </section>
-
-        <section class="panel bars-card stage stage-2">
-          <div class="section-header">
-            <div>
-              <h3>Cortical dimensions</h3>
-              <p class="muted">Directional contrasts across mapped brain regions.</p>
-            </div>
-            <div class="section-chip">Primary signal</div>
-          </div>
-          <div id="bars" class="bars"></div>
-          <div class="radar-wrap">
-            <p class="radar-label">Seven-dimension snapshot</p>
-            <canvas id="dimensionRadar" width="340" height="340" class="dimension-radar-canvas" aria-label="Radar chart of cortical dimensions"></canvas>
-          </div>
-        </section>
-
-        <section class="result-grid stage stage-3">
-          <div class="panel insights-card">
-            <div class="section-header">
-              <div>
-                <h3>What changed</h3>
-                <p class="muted">The deltas most worth paying attention to.</p>
-              </div>
-              <div class="section-chip">Difference</div>
-            </div>
-            <div id="whatChanged" class="insight-list"></div>
-          </div>
-
-          <div class="panel similarities-card">
-            <div class="section-header">
-              <div>
-                <h3>What stayed similar</h3>
-                <p class="muted">What is probably not driving the decision.</p>
-              </div>
-              <div class="section-chip">Stability</div>
-            </div>
-            <div id="whatStayedSimilar" class="insight-list"></div>
-          </div>
-        </section>
-
-        <section class="result-grid stage stage-4">
-          <div class="panel actions-card">
-            <div class="section-header">
-              <div>
-                <h3>How to use this</h3>
-                <p class="muted">Turn the contrast into an editing move.</p>
-              </div>
-              <div class="section-chip">Actionable</div>
-            </div>
-            <div id="actionables" class="insight-list"></div>
-          </div>
-
-          <div class="panel science-card">
-            <div class="section-header">
-              <div>
-                <h3>Why this is interesting</h3>
-                <p class="muted">The scientific angle.</p>
-              </div>
-              <div class="section-chip">Science</div>
-            </div>
-            <p id="coolFactor" class="science-copy"></p>
-            <details class="science-details">
-              <summary>Why this isn't a popularity score</summary>
-              <p id="scientificNote" class="science-note"></p>
-            </details>
-          </div>
-        </section>
-
-        <section class="panel heatmap-panel stage stage-5">
+        <section class="panel heatmap-panel stage stage-2">
           <div class="section-header heatmap-header">
             <div class="heatmap-title-block">
-              <h3>Cortical contrast</h3>
-              <p class="muted heatmap-lead">Spin the 3D cortex (two brains by default), hover any spot to see the named region and A/B values. Below: the same contrast as a static four-view figure.</p>
+              <h3>Cortical contrast (primary)</h3>
+              <p class="muted heatmap-lead">3D surface first — hover for region labels. Static four-view figure below matches the same signed contrast (B − A).</p>
             </div>
             <div class="heatmap-actions">
               <label class="dual-brain-toggle muted" title="Default: two brains. Uncheck for one contrast surface only.">
@@ -279,6 +202,88 @@
           <div class="static-heatmap-card">
             <p class="static-heatmap-label muted">Static figure · four views · same signed contrast (B − A)</p>
             <img id="heatmapImg" alt="Brain heatmap multi-view" />
+          </div>
+        </section>
+
+        <section class="panel writing-move-card stage stage-1b">
+          <div class="writing-move-inner">
+            <span class="writing-move-icon">💡</span>
+            <div>
+              <h4 class="writing-move-title">The writing move</h4>
+              <p id="writingMove" class="writing-move-body"></p>
+            </div>
+          </div>
+        </section>
+
+        <details class="panel bars-details stage stage-3">
+          <summary class="bars-details-summary">
+            <span class="bars-details-title">Dimension bars &amp; radar</span>
+            <span class="muted small">Supporting breakdown — expand</span>
+          </summary>
+          <div class="bars-details-body">
+            <div class="section-header">
+              <div>
+                <h3>Cortical dimensions</h3>
+                <p class="muted">Directional contrasts across mapped brain regions.</p>
+              </div>
+            </div>
+            <div id="bars" class="bars"></div>
+            <div class="radar-wrap">
+              <p class="radar-label">Seven-dimension snapshot</p>
+              <canvas id="dimensionRadar" width="340" height="340" class="dimension-radar-canvas" aria-label="Radar chart of cortical dimensions"></canvas>
+            </div>
+          </div>
+        </details>
+
+        <section class="result-grid stage stage-4">
+          <div class="panel insights-card">
+            <div class="section-header">
+              <div>
+                <h3>What changed</h3>
+                <p class="muted">The deltas most worth paying attention to.</p>
+              </div>
+              <div class="section-chip">Difference</div>
+            </div>
+            <div id="whatChanged" class="insight-list"></div>
+          </div>
+
+          <div class="panel similarities-card">
+            <div class="section-header">
+              <div>
+                <h3>What stayed similar</h3>
+                <p class="muted">What is probably not driving the decision.</p>
+              </div>
+              <div class="section-chip">Stability</div>
+            </div>
+            <div id="whatStayedSimilar" class="insight-list"></div>
+          </div>
+        </section>
+
+        <section class="result-grid stage stage-5">
+          <div class="panel actions-card">
+            <div class="section-header">
+              <div>
+                <h3>How to use this</h3>
+                <p class="muted">Turn the contrast into an editing move.</p>
+              </div>
+              <div class="section-chip">Actionable</div>
+            </div>
+            <div id="actionables" class="insight-list"></div>
+          </div>
+
+          <div class="panel science-card">
+            <div class="section-header">
+              <div>
+                <h3>Why this is interesting</h3>
+                <p class="muted">The scientific angle.</p>
+              </div>
+              <div class="section-chip">Science</div>
+            </div>
+            <p id="coolFactor" class="science-copy"></p>
+            <details class="science-details">
+              <summary>Why this isn't a popularity score</summary>
+              <p id="scientificNote" class="science-note"></p>
+            </details>
           </div>
         </section>
 

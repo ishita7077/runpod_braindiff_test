@@ -1,9 +1,3 @@
-import { buildHumanDelta } from "./delta_human.js";
-import {
-  mountLoadingBrainCanvas,
-  mountHighlightBrainCanvas,
-} from "./loadingBrain3d.js";
-
 const LANDING_LOG_PREFIX = "[landing-debug]";
 function dlog(...args) {
   window.__brainDiffDebugLogs = window.__brainDiffDebugLogs || [];
@@ -30,79 +24,6 @@ window.addEventListener("error", (evt) => {
 window.addEventListener("unhandledrejection", (evt) => {
   derror("window.unhandledrejection", evt.reason?.stack || String(evt.reason || evt));
 });
-
-const DEMO_DIMENSIONS = [
-  {
-    key: "personal_resonance",
-    label: "Personal Resonance",
-    meaning: "feels more personally relevant",
-    magnitude: 0.38,
-    direction: "B_higher",
-    score_a: 0.17,
-    score_b: 0.55,
-    human: "3x stronger for Version B",
-  },
-  {
-    key: "brain_effort",
-    label: "Brain Effort",
-    meaning: "demands more thinking effort",
-    magnitude: 0.22,
-    direction: "A_higher",
-    score_a: 0.47,
-    score_b: 0.25,
-    human: "Version A demands noticeably more",
-  },
-  {
-    key: "gut_reaction",
-    label: "Gut Reaction",
-    meaning: "lands more viscerally",
-    magnitude: 0.15,
-    direction: "B_higher",
-    score_a: 0.18,
-    score_b: 0.33,
-    human: "Moderately stronger for Version B",
-  },
-  {
-    key: "memory_encoding",
-    label: "Memory Encoding",
-    meaning: "is more likely to be remembered",
-    magnitude: 0.11,
-    direction: "B_higher",
-    score_a: 0.2,
-    score_b: 0.31,
-    human: "Moderately stronger for Version B",
-  },
-  {
-    key: "attention_salience",
-    label: "Attention",
-    meaning: "captures attentional resources",
-    magnitude: 0.09,
-    direction: "B_higher",
-    score_a: 0.19,
-    score_b: 0.28,
-    human: "Slightly stronger for Version B",
-  },
-  {
-    key: "language_depth",
-    label: "Language Depth",
-    meaning: "engages deeper meaning-making",
-    magnitude: 0.09,
-    direction: "A_higher",
-    score_a: 0.34,
-    score_b: 0.25,
-    human: "Slightly stronger for Version A",
-  },
-  {
-    key: "social_thinking",
-    label: "Social Thinking",
-    meaning: "pulls more social reasoning",
-    magnitude: 0.04,
-    direction: "neutral",
-    score_a: 0.21,
-    score_b: 0.25,
-    human: "No meaningful difference",
-  },
-];
 
 const ANNOTATED_DIMENSIONS = [
   {
@@ -170,77 +91,116 @@ const ANNOTATED_DIMENSIONS = [
   },
 ];
 
-const DIMENSION_CAMERAS = {
-  personal_resonance: {
-    position: { x: 50, y: 10, z: 0 },
-    target: { x: 0, y: 0, z: 0 },
-  },
-  social_thinking: {
-    position: { x: -200, y: 20, z: 40 },
-    target: { x: 0, y: 0, z: 0 },
-  },
-  brain_effort: {
-    position: { x: 200, y: 40, z: 40 },
-    target: { x: 0, y: 0, z: 0 },
-  },
-  language_depth: {
-    position: { x: 200, y: 0, z: 20 },
-    target: { x: 0, y: -10, z: 0 },
-  },
-  gut_reaction: {
-    position: { x: 180, y: -10, z: 80 },
-    target: { x: 0, y: -5, z: 0 },
-  },
-  memory_encoding: {
-    position: { x: 180, y: -30, z: 60 },
-    target: { x: 0, y: -10, z: 0 },
-  },
-  attention_salience: {
-    position: { x: 0, y: 200, z: -40 },
-    target: { x: 0, y: 0, z: 0 },
-  },
+/** Orbit offsets from fit-to-bounds baseline (radians / scale), not absolute camera coords (3D-005). */
+const DIMENSION_VIEWS = {
+  personal_resonance: { yaw: 0, pitch: 0, distScale: 1 },
+  social_thinking: { yaw: -0.38, pitch: 0.06, distScale: 1.05 },
+  brain_effort: { yaw: 0.38, pitch: 0.1, distScale: 1.05 },
+  language_depth: { yaw: 0.32, pitch: 0, distScale: 1.04 },
+  gut_reaction: { yaw: 0.28, pitch: -0.1, distScale: 1.08 },
+  memory_encoding: { yaw: 0.26, pitch: -0.14, distScale: 1.06 },
+  attention_salience: { yaw: 0, pitch: 0.42, distScale: 1.1 },
 };
 
 const demoDisposers = [];
+let brain3dModulePromise = null;
 
-function renderDemoBars() {
-  const container = document.getElementById("landingDemoBars");
-  if (!container) {
-    derror("renderDemoBars:missing container #landingDemoBars");
+function drawFallbackSimpleBrain(canvas, label = "Brain preview fallback") {
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const w = canvas.width || 420;
+  const h = canvas.height || 300;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#060708";
+  ctx.fillRect(0, 0, w, h);
+  const cx = w * 0.5;
+  const cy = h * 0.5;
+  const rx = w * 0.22;
+  const ry = h * 0.34;
+  const g = ctx.createLinearGradient(cx - rx * 1.3, cy, cx + rx * 1.3, cy);
+  g.addColorStop(0, "rgba(80,120,220,0.82)");
+  g.addColorStop(0.5, "rgba(194,198,205,0.66)");
+  g.addColorStop(1, "rgba(92,210,184,0.85)");
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.ellipse(cx - w * 0.1, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx + w * 0.1, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(225,232,240,0.82)";
+  ctx.font = "12px -apple-system, Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(label, cx, h - 16);
+}
+
+async function loadBrain3dModule() {
+  if (!brain3dModulePromise) {
+    brain3dModulePromise = import("./loadingBrain3d.js").catch((err) => {
+      derror("loadingBrain3d module import failed", err?.stack || err);
+      return null;
+    });
+  }
+  return brain3dModulePromise;
+}
+
+/** Synthetic vertex patterns for marketing demo (same pipeline as app — not live API output). */
+function buildDemoVertices(profile) {
+  const out = new Float32Array(20484);
+  for (let i = 0; i < 20484; i += 1) {
+    const t = i / 20484;
+    let v = 0.12 * Math.sin(t * 48 + (profile === "b" ? 1.2 : 0));
+    if (i < 10242) v += profile === "b" ? 0.42 : 0.1;
+    else v += profile === "b" ? 0.08 : 0.28;
+    v += 0.04 * Math.sin(i * 0.08);
+    out[i] = v;
+  }
+  return out;
+}
+
+async function mountDemoActivationBrains() {
+  const canvasA = document.getElementById("demoBrainCanvasA");
+  const canvasB = document.getElementById("demoBrainCanvasB");
+  const canvasDiff = document.getElementById("demoDiffCanvas");
+  if (!canvasA || !canvasB || !canvasDiff) {
+    derror("mountDemoActivationBrains:missing canvas");
     return;
   }
-  dlog("renderDemoBars:start", { rows: DEMO_DIMENSIONS.length });
-  container.innerHTML = "";
-  const maxAbs = Math.max(0.001, ...DEMO_DIMENSIONS.map((row) => row.magnitude));
-
-  DEMO_DIMENSIONS.forEach((row, idx) => {
-    const width = Math.max(8, Math.round((Math.abs(row.magnitude) / maxAbs) * 100));
-    const rowEl = document.createElement("div");
-    rowEl.className = "bar-row demo-bar-row";
-    rowEl.innerHTML = `
-      <div class="bar-copy">
-        <span class="bar-label">${row.label}</span>
-        <span class="bar-meaning">${row.meaning}</span>
-      </div>
-      <div class="bar-track">
-        <div class="bar-fill ${row.direction === "A_higher" ? "left" : "right"}" style="width:0%" data-target-width="${width}%"></div>
-      </div>
-      <div class="bar-meta">
-        <span class="delta">${row.human || buildHumanDelta(row)}</span>
-      </div>
-    `;
-    container.appendChild(rowEl);
-    rowEl.style.setProperty("--bar-delay", `${idx * 80}ms`);
-  });
-
-  requestAnimationFrame(() => {
-    container.querySelectorAll(".bar-fill[data-target-width]").forEach((fill) => {
-      fill.style.width = fill.getAttribute("data-target-width");
-    });
-  });
+  const mod = await loadBrain3dModule();
+  if (!mod?.mountActivationBrainCanvas) {
+    derror("mountDemoActivationBrains:no mountActivationBrainCanvas");
+    return;
+  }
+  const va = buildDemoVertices("a");
+  const vb = buildDemoVertices("b");
+  const vDiff = new Float32Array(20484);
+  for (let i = 0; i < 20484; i += 1) vDiff[i] = vb[i] - va[i];
+  try {
+    const dA = await mod.mountActivationBrainCanvas(canvasA, { values: va, mode: "activation" });
+    const dB = await mod.mountActivationBrainCanvas(canvasB, { values: vb, mode: "activation" });
+    const dD = await mod.mountActivationBrainCanvas(canvasDiff, { values: vDiff, mode: "diff" });
+    demoDisposers.push(dA, dB, dD);
+    dlog("mountDemoActivationBrains:ok");
+  } catch (err) {
+    derror("mountDemoActivationBrains:failed", err?.stack || err);
+  }
 }
 
 async function fetchDimensionMasks() {
+  const dm = await fetch("/api/dimension-masks");
+  if (dm.ok) {
+    const data = await dm.json();
+    const masks = {};
+    for (const [key, b64] of Object.entries(data)) {
+      const bin = atob(b64);
+      const u = new Uint8Array(20484);
+      for (let i = 0; i < 20484; i += 1) u[i] = bin.charCodeAt(i) ? 1 : 0;
+      masks[key] = u;
+    }
+    dlog("fetchDimensionMasks:api_dimension_masks", { keys: Object.keys(masks) });
+    return masks;
+  }
   const res = await fetch("/api/vertex-atlas");
   if (!res.ok) throw new Error(`vertex-atlas ${res.status}`);
   const atlas = await res.json();
@@ -253,140 +213,8 @@ async function fetchDimensionMasks() {
       if (masks[dimKey]) masks[dimKey][i] = 1;
     });
   }
-  // Temporary fallback for dimensions that do not resolve from atlas labels on the frontend.
-  // TODO: replace with backend-served precomputed boolean masks per dimension.
-  const fallbackRanges = {
-    attention_salience: [
-      [1200, 1700],
-      [3400, 3950],
-      [11242, 11742],
-      [13450, 14000],
-    ],
-    memory_encoding: [
-      [220, 520],
-      [980, 1280],
-    ],
-  };
-  Object.entries(fallbackRanges).forEach(([key, ranges]) => {
-    const m = masks[key];
-    if (!m) return;
-    const count = Array.from(m).filter(Boolean).length;
-    if (count > 0) return;
-    ranges.forEach(([start, end]) => {
-      const s = Math.max(0, start);
-      const e = Math.min(20484, end);
-      for (let i = s; i < e; i += 1) m[i] = 1;
-    });
-    dlog("fetchDimensionMasks:fallback_applied", {
-      key,
-      count: Array.from(m).filter(Boolean).length,
-    });
-  });
+  dlog("fetchDimensionMasks:atlas_fallback_no_heuristic", { keys: Object.keys(masks) });
   return masks;
-}
-
-function drawDemoBrainPlaceholder(canvas, emphasis = "a") {
-  if (!canvas) {
-    derror("drawDemoBrainPlaceholder:missing canvas", { emphasis });
-    return;
-  }
-  const ctx = canvas.getContext("2d");
-  const w = canvas.width;
-  const h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "#060708";
-  ctx.fillRect(0, 0, w, h);
-
-  const cx = w * 0.5;
-  const cy = h * 0.5;
-  const rx = w * 0.26;
-  const ry = h * 0.34;
-  const drawHemisphere = (xShift, hotBias) => {
-    const grad = ctx.createRadialGradient(cx + xShift * 0.35, cy - 10, 8, cx + xShift, cy, rx * 1.2);
-    grad.addColorStop(0, hotBias ? "rgba(245,120,96,0.85)" : "rgba(90,200,184,0.78)");
-    grad.addColorStop(1, "rgba(48,62,84,0.72)");
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.ellipse(cx + xShift, cy, rx, ry, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = "rgba(255,255,255,0.22)";
-    ctx.lineWidth = 1;
-    for (let i = -5; i <= 5; i += 1) {
-      ctx.beginPath();
-      ctx.ellipse(cx + xShift + i * 4, cy + Math.sin(i) * 5, rx * 0.75, ry * 0.82, i * 0.04, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-  };
-  drawHemisphere(-w * 0.12, emphasis === "b");
-  drawHemisphere(w * 0.12, emphasis === "a");
-}
-
-function drawDemoDiffPlaceholder(canvas) {
-  if (!canvas) {
-    derror("drawDemoDiffPlaceholder:missing canvas");
-    return;
-  }
-  const ctx = canvas.getContext("2d");
-  const w = canvas.width;
-  const h = canvas.height;
-  ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = "#060708";
-  ctx.fillRect(0, 0, w, h);
-  const cx = w * 0.5;
-  const cy = h * 0.5;
-  const rx = w * 0.2;
-  const ry = h * 0.33;
-  const drawHalf = (xShift) => {
-    ctx.save();
-    ctx.beginPath();
-    ctx.ellipse(cx + xShift, cy, rx, ry, 0, 0, Math.PI * 2);
-    ctx.clip();
-    const g = ctx.createLinearGradient(cx + xShift - rx, cy, cx + xShift + rx, cy);
-    g.addColorStop(0, "rgba(60,100,220,0.95)");
-    g.addColorStop(0.5, "rgba(220,220,220,0.84)");
-    g.addColorStop(1, "rgba(236,108,88,0.95)");
-    ctx.fillStyle = g;
-    ctx.fillRect(cx + xShift - rx, cy - ry, rx * 2, ry * 2);
-    ctx.restore();
-    ctx.save();
-    ctx.strokeStyle = "rgba(255,255,255,0.24)";
-    ctx.lineWidth = 1;
-    for (let i = -4; i <= 4; i += 1) {
-      ctx.beginPath();
-      ctx.ellipse(cx + xShift + i * 3, cy + Math.cos(i) * 5, rx * 0.78, ry * 0.8, i * 0.05, 0, Math.PI * 2);
-      ctx.stroke();
-    }
-    ctx.restore();
-  };
-  drawHalf(-w * 0.1);
-  drawHalf(w * 0.1);
-}
-
-function mountDemoBrainVisuals() {
-  const canvasA = document.getElementById("demoBrainCanvasA");
-  const canvasB = document.getElementById("demoBrainCanvasB");
-  const canvasDiff = document.getElementById("demoDiffCanvas");
-  if (!canvasA || !canvasB || !canvasDiff) {
-    derror("mountDemoBrainVisuals:missing canvas", {
-      hasA: Boolean(canvasA),
-      hasB: Boolean(canvasB),
-      hasDiff: Boolean(canvasDiff),
-    });
-    return;
-  }
-  dlog("mountDemoBrainVisuals:start", {
-    a: { w: canvasA.width, h: canvasA.height },
-    b: { w: canvasB.width, h: canvasB.height },
-    diff: { w: canvasDiff.width, h: canvasDiff.height },
-  });
-  const repaint = () => {
-    drawDemoBrainPlaceholder(canvasA, "a");
-    drawDemoBrainPlaceholder(canvasB, "b");
-    drawDemoDiffPlaceholder(canvasDiff);
-  };
-  repaint();
-  window.addEventListener("resize", repaint, { passive: true });
-  demoDisposers.push(() => window.removeEventListener("resize", repaint));
 }
 
 function wireSmoothAnchors() {
@@ -501,6 +329,7 @@ function initHeroParticles() {
 
 async function initLandingBrainsAndExplainer() {
   dlog("initLandingBrainsAndExplainer:start");
+  const brain3d = await loadBrain3dModule();
   const heroCanvas = document.getElementById("landingHeroBrainCanvas");
   if (heroCanvas) {
     const r = heroCanvas.getBoundingClientRect();
@@ -510,15 +339,21 @@ async function initLandingBrainsAndExplainer() {
       cssDisplay: getComputedStyle(heroCanvas).display,
     });
     try {
-      demoDisposers.push(
-        mountLoadingBrainCanvas(heroCanvas, {
-          height: 420,
-          rotationSpeed: 0.28,
-        }),
-      );
-      dlog("heroCanvas:mount requested");
+      if (brain3d?.mountLoadingBrainCanvas) {
+        demoDisposers.push(
+          brain3d.mountLoadingBrainCanvas(heroCanvas, {
+            height: 420,
+            rotationSpeed: 0.28,
+          }),
+        );
+        dlog("heroCanvas:mount requested");
+      } else {
+        derror("heroCanvas:3d module unavailable; drawing 2d fallback");
+        drawFallbackSimpleBrain(heroCanvas, "3D unavailable - fallback preview");
+      }
     } catch (err) {
       derror("heroCanvas:mount failed", err?.stack || err);
+      drawFallbackSimpleBrain(heroCanvas, "Render failed - fallback preview");
     }
   } else {
     derror("initLandingBrainsAndExplainer:missing #landingHeroBrainCanvas");
@@ -554,20 +389,24 @@ async function initLandingBrainsAndExplainer() {
     prCount: masks.personal_resonance ? Array.from(masks.personal_resonance).filter(Boolean).length : -1,
     asCount: masks.attention_salience ? Array.from(masks.attention_salience).filter(Boolean).length : -1,
   });
-  mountDemoBrainVisuals();
+  await mountDemoActivationBrains();
 
   let controller = null;
   try {
-    controller = await mountHighlightBrainCanvas(explainerCanvas, {
-      initialMask: masks.personal_resonance,
-      height: 300,
-      initialCamera: DIMENSION_CAMERAS.personal_resonance.position,
-      initialTarget: DIMENSION_CAMERAS.personal_resonance.target,
-    });
-    demoDisposers.push(() => controller.dispose());
-    dlog("explainerCanvas:mountHighlight ok");
+    if (brain3d?.mountHighlightBrainCanvas) {
+      controller = await brain3d.mountHighlightBrainCanvas(explainerCanvas, {
+        initialMask: masks.personal_resonance,
+        initialView: DIMENSION_VIEWS.personal_resonance,
+      });
+      demoDisposers.push(() => controller.dispose());
+      dlog("explainerCanvas:mountHighlight ok");
+    } else {
+      derror("explainerCanvas:3d module unavailable; drawing 2d fallback");
+      drawFallbackSimpleBrain(explainerCanvas, "Explainer fallback brain");
+    }
   } catch (err) {
     derror("explainerCanvas:mountHighlight failed", err?.stack || err);
+    drawFallbackSimpleBrain(explainerCanvas, "Explainer render failed");
   }
 
   let idx = 0;
@@ -582,9 +421,9 @@ async function initLandingBrainsAndExplainer() {
     bodyEl.textContent = d.description;
     citeEl.textContent = d.citation;
     dots.forEach((dot, i) => dot.classList.toggle("active", i === idx));
-    const cam = DIMENSION_CAMERAS[d.key] || DIMENSION_CAMERAS.personal_resonance;
+    const view = DIMENSION_VIEWS[d.key] || DIMENSION_VIEWS.personal_resonance;
     if (controller && typeof controller.setDimension === "function") {
-      controller.setDimension(masks[d.key], cam.position, cam.target);
+      controller.setDimension(masks[d.key], view);
       dlog("explainerCanvas:setDimension", d.key);
     }
   };
@@ -593,15 +432,11 @@ async function initLandingBrainsAndExplainer() {
     dot.addEventListener("click", () => render(Number(dot.dataset.idx || 0)));
   });
   render(0);
-  const interval = setInterval(() => render(idx + 1), 4400);
-  demoDisposers.push(() => clearInterval(interval));
 }
 
-renderDemoBars();
 wireSmoothAnchors();
 initRevealOnScroll();
 animateEvidenceChips();
-initHeroParticles();
 initLandingBrainsAndExplainer().catch((err) => {
   derror("Landing brain init failed:", err?.stack || err);
 });

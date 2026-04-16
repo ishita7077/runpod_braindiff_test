@@ -18,6 +18,41 @@
   --radius-xl: 20px;
   --radius-lg: 16px;
   --radius-md: 12px;
+  --shell-max: 1200px;
+  --shell-pad-x: 28px;
+  --read-inner-max: 720px;
+}
+
+.site-shell {
+  max-width: var(--shell-max);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--shell-pad-x);
+  padding-right: var(--shell-pad-x);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.site-shell-inner {
+  max-width: var(--read-inner-max);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.surface-plain {
+  background: transparent;
+  border: none;
+}
+
+.surface-elevated {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.nav-utility {
+  font-size: 12px !important;
+  opacity: 0.88;
 }
 
 * { box-sizing: border-box; }
@@ -50,7 +85,7 @@ a:hover { text-decoration: underline; }
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 28px;
+  padding: 16px var(--shell-pad-x);
   border-bottom: 1px solid var(--border);
   background: rgba(0, 0, 0, 0.85);
   backdrop-filter: blur(16px);
@@ -141,9 +176,14 @@ a:hover { text-decoration: underline; }
 .container {
   position: relative;
   z-index: 1;
-  max-width: 1280px;
+  max-width: var(--shell-max);
   margin: 0 auto;
-  padding: 0 24px 40px;
+  padding: 0 0 40px;
+}
+
+.container.site-shell {
+  padding-left: var(--shell-pad-x);
+  padding-right: var(--shell-pad-x);
 }
 
 .panel {
@@ -474,11 +514,15 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   background: linear-gradient(165deg, rgba(255, 255, 255, 0.06) 0%, rgba(0, 0, 0, 0.45) 100%);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 14px 44px rgba(0, 0, 0, 0.4);
   min-height: 0;
+  display: flex;
+  align-items: stretch;
 }
 .loading-brain-frame canvas {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
   vertical-align: middle;
 }
 .loading-side-label {
@@ -847,6 +891,39 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 }
 
 .heatmap-panel { padding-bottom: 24px; }
+.bars-details {
+  margin-top: 0;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.bars-details-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
+}
+.bars-details-summary::-webkit-details-marker {
+  display: none;
+}
+.bars-details-title {
+  letter-spacing: 0.02em;
+}
+.bars-details-body {
+  padding: 0 18px 20px;
+  border-top: 1px solid var(--border);
+}
+.bars-details-body .section-header {
+  margin-bottom: 12px;
+}
+.bars-details-body .radar-wrap {
+  margin-top: 8px;
+}
 .heatmap-header { align-items: flex-start; }
 .heatmap-title-block { min-width: 0; flex: 1; }
 .heatmap-lead { max-width: 54ch; line-height: 1.55; margin-top: 4px; }
@@ -981,7 +1058,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
 .brain-3d-host canvas {
   display: block;
   width: 100% !important;
-  height: auto !important;
+  height: 100% !important;
+  min-height: 0;
 }
 .brain-tooltip {
   position: absolute;
@@ -1230,16 +1308,14 @@ pre {
 
 /* Landing Hero */
 .landing-main {
-  max-width: 1200px;
   margin: 0 auto;
 }
 .landing-hero {
   display: flex;
-  align-items: center;
-  gap: 40px;
-  padding: 80px 32px 60px;
-  max-width: 1100px;
-  margin: 0 auto;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 32px;
+  padding: 72px 24px 48px;
   position: relative;
   overflow: hidden;
   border-radius: 20px;
@@ -1247,12 +1323,30 @@ pre {
   background: radial-gradient(ellipse 90% 70% at 30% -25%, rgba(90, 200, 184, 0.08), transparent 60%),
     rgba(8, 9, 12, 0.82);
 }
+.hero-hero-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 40px;
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+.hero-support {
+  position: relative;
+  z-index: 1;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+.hero-particles-canvas {
+  display: none;
+}
 #landingHeroCanvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  display: block;
+  display: none;
   pointer-events: none;
 }
 .hero-content {
@@ -1260,6 +1354,20 @@ pre {
   min-width: 0;
   position: relative;
   z-index: 1;
+}
+.landing-hero .cta-primary {
+  margin-top: 28px;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+}
+.research-notebook-chip--compact {
+  max-width: 420px;
+  padding: 10px 12px;
+  margin-top: 12px;
+}
+.research-notebook-chip--compact .research-chip-meta {
+  display: none;
 }
 .hero-brain-canvas-wrapper {
   flex-shrink: 0;
@@ -1271,6 +1379,16 @@ pre {
   padding: 10px;
   position: relative;
   z-index: 1;
+  display: flex;
+  align-items: stretch;
+  box-sizing: border-box;
+}
+.hero-brain-canvas-wrapper canvas {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 .landing-hero h1 {
   font-size: clamp(2.6rem, 5vw, 4.4rem);
@@ -1440,9 +1558,9 @@ pre {
 
 /* Landing Demo */
 .landing-demo {
-  max-width: 960px;
+  max-width: var(--shell-max);
   margin: 0 auto;
-  padding: 40px 32px 60px;
+  padding: 40px 0 60px;
 }
 .demo-texts {
   display: grid;
@@ -1557,10 +1675,18 @@ pre {
   background: #060708;
   overflow: hidden;
 }
+.demo-brain-host,
+.demo-diff-host {
+  display: flex;
+  align-items: stretch;
+  min-height: 200px;
+}
 .demo-brain-host canvas,
 .demo-diff-host canvas {
   width: 100%;
-  height: auto;
+  height: 100%;
+  min-height: 0;
+  flex: 1;
   display: block;
 }
 .demo-diff-view {
@@ -1579,9 +1705,20 @@ pre {
 
 /* Explainer Grid */
 .landing-explainer {
-  max-width: 1100px;
+  max-width: var(--shell-max);
   margin: 0 auto;
-  padding: 40px 32px 60px;
+  padding: 40px 0 60px;
+}
+.explainer-legend {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  max-width: 720px;
+  margin-top: 12px;
+}
+.explainer-legend strong {
+  color: var(--text);
+  font-weight: 600;
 }
 .landing-brain-view {
   margin-top: 20px;
@@ -1596,6 +1733,8 @@ pre {
   display: block;
   width: 100%;
   height: 300px;
+  min-height: 260px;
+  box-sizing: border-box;
 }
 .annotated-brain-view {
   max-width: 980px;
@@ -1607,8 +1746,6 @@ pre {
 .explainer-annotation {
   padding: 18px;
   border-radius: 14px;
-  border: 1px solid var(--border);
-  background: rgba(255, 255, 255, 0.02);
 }
 .explainer-kicker {
   font-size: 10px;
@@ -1699,9 +1836,32 @@ pre {
 
 /* Science Section */
 .landing-science {
-  max-width: 720px;
+  max-width: var(--shell-max);
   margin: 0 auto;
-  padding: 40px 32px 60px;
+  padding: 40px 0 60px;
+}
+.science-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+  margin-top: 24px;
+}
+.science-card {
+  padding: 20px 20px 22px;
+  border-radius: var(--radius-md);
+}
+.science-card-title {
+  font-size: 1rem;
+  margin-bottom: 10px;
+  color: #fff;
+}
+.science-card-body {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+.science-card-body a {
+  color: var(--teal);
 }
 .science-body {
   color: var(--text-soft);
@@ -1752,9 +1912,19 @@ pre {
 
 /* Methodology Steps */
 .landing-methodology {
-  max-width: 720px;
+  max-width: var(--shell-max);
   margin: 0 auto;
-  padding: 40px 32px 60px;
+  padding: 40px 0 60px;
+}
+.method-preview-list {
+  margin: 20px 0 0;
+  padding-left: 20px;
+  color: var(--text-soft);
+  line-height: 1.75;
+  font-size: 15px;
+}
+.method-preview-list li {
+  margin-bottom: 12px;
 }
 .method-step {
   display: flex;
@@ -1840,9 +2010,43 @@ pre {
 }
 
 .methodology-page {
-  max-width: 740px;
+  max-width: var(--shell-max);
   margin: 0 auto;
-  padding: 40px 28px 80px;
+  padding: 40px 0 80px;
+}
+.meth-hero {
+  max-width: var(--read-inner-max);
+  margin-bottom: 8px;
+}
+.meth-lead {
+  font-size: 1.05rem;
+  color: var(--text-soft);
+  line-height: 1.65;
+  margin-top: 14px;
+}
+.meth-section {
+  margin-top: 36px;
+  max-width: var(--read-inner-max);
+  padding: 22px 0 8px;
+}
+.methodology-page .meth-section h2 {
+  font-size: 1.25rem;
+  margin: 0 0 12px;
+  padding: 0;
+  border: none;
+  color: #fff;
+}
+.meth-section p,
+.meth-ol,
+.meth-ul {
+  color: var(--text-soft);
+  line-height: 1.72;
+  font-size: 15px;
+  margin-top: 10px;
+}
+.meth-ol,
+.meth-ul {
+  padding-left: 20px;
 }
 .methodology-page h1 {
   font-size: clamp(2rem, 4vw, 3rem);
@@ -1850,7 +2054,7 @@ pre {
   color: #ffffff;
   margin-bottom: 16px;
 }
-.methodology-page h2 {
+.methodology-page > h2 {
   font-size: 1.4rem;
   color: #ffffff;
   margin-top: 48px;
@@ -1858,7 +2062,7 @@ pre {
   padding-top: 24px;
   border-top: 1px solid var(--border);
 }
-.methodology-page h2:first-of-type {
+.methodology-page > h2:first-of-type {
   border-top: none;
   padding-top: 0;
 }

@@ -18,9 +18,9 @@
     </script>
   </head>
   <body>
-    <header class="topbar">
+    <header class="topbar site-shell">
       <div class="brand-lockup">
-        <span class="brand-home">
+        <a href="./index.html" class="brand-home">
           <svg class="brand-logo" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
             <defs>
               <linearGradient id="topbarBrandMarkGradLanding" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -34,252 +34,188 @@
             <path d="M20 9.5c-1.2 2.8-1.2 18.2 0 21" stroke="rgba(0,0,0,0.35)" stroke-width="1.2" fill="none" />
           </svg>
           <span class="brand-wordmark"><span class="brand-word">Brain</span><span class="brand-word-accent">Diff</span></span>
-        </span>
+        </a>
       </div>
-      <nav class="top-nav">
-        <a href="#demo">Demo</a>
-        <a href="#methodology">Methodology</a>
-        <a href="./methodology.html">Research</a>
-        <a href="./app.html" class="nav-cta">Launch App →</a>
+      <nav class="top-nav" aria-label="Primary">
+        <a href="#methodology">How it works</a>
+        <a href="./methodology.html">Methodology</a>
+        <a href="./app.html" class="nav-cta">Launch Brain Diff →</a>
       </nav>
     </header>
 
-    <main class="landing-main">
+    <main class="landing-main site-shell">
       <section class="landing-hero">
-        <canvas id="landingHeroCanvas" aria-hidden="true"></canvas>
-        <div class="hero-content">
-          <p class="eyebrow">Built on Meta FAIR's TRIBEv2 brain encoding model</p>
-          <h1>See what happens in the brain when two pieces of content compete.</h1>
-          <p class="hero-subtitle">
-            Brain Diff predicts how the average human cortex responds to two versions of any text —
-            and shows you where the neural response diverges. Not a writing tool. A seeing tool.
-          </p>
-          <div class="evidence-chips">
-            <div class="evidence-chip">
-              <span class="chip-stat">700+</span>
-              <span class="chip-label">fMRI volunteers in training data</span>
-            </div>
-            <div class="evidence-chip">
-              <span class="chip-stat">20,484</span>
-              <span class="chip-label">cortical surface points predicted</span>
-            </div>
-            <div class="evidence-chip">
-              <span class="chip-stat">7</span>
-              <span class="chip-label">neuroscience-backed dimensions</span>
+        <canvas id="landingHeroCanvas" class="hero-particles-canvas" aria-hidden="true"></canvas>
+        <div class="hero-hero-grid">
+          <div class="hero-content">
+            <p class="eyebrow">TRIBEv2 cortical contrast</p>
+            <h1>See where two texts diverge in the modeled brain.</h1>
+            <p class="hero-subtitle">
+              Brain Diff compares two drafts through Meta FAIR’s population-average encoding model and surfaces where cortical patterns differ — before you ship.
+            </p>
+            <a href="./app.html" class="cta-primary">Launch Brain Diff →</a>
+            <div class="evidence-chips">
+              <div class="evidence-chip">
+                <span class="chip-stat">700+</span>
+                <span class="chip-label">participants in training data</span>
+              </div>
+              <div class="evidence-chip">
+                <span class="chip-stat">20,484</span>
+                <span class="chip-label">surface vertices per prediction</span>
+              </div>
+              <div class="evidence-chip">
+                <span class="chip-stat">7</span>
+                <span class="chip-label">mapped interpretive dimensions</span>
+              </div>
             </div>
           </div>
+          <div class="hero-brain-canvas-wrapper">
+            <canvas id="landingHeroBrainCanvas" width="420" height="420" aria-label="Rotating fsaverage5 brain preview"></canvas>
+          </div>
+        </div>
+        <div class="hero-support surface-plain">
           <div class="trust-strip">
-            <p class="trust-line">Built on <strong>Meta FAIR's</strong> TRIBEv2 - trained on 1,115 hours of fMRI data from 700+ participants</p>
-            <p class="trust-line">Grounded in the <strong>MIT/Harvard</strong> tradition of brain encoding models</p>
-            <p class="trust-line">Dimensions validated by <strong>PNAS</strong> mega-analysis of 16 datasets, 572 participants, 739 messages</p>
+            <p class="trust-line">TRIBEv2 (Meta FAIR) · 1,115 hours fMRI · population-average model</p>
+            <p class="trust-line">Research lineage: MIT/Harvard encoding tradition · external validation literature (e.g. PNAS-scale syntheses)</p>
           </div>
           <div class="trust-badges">
             <span class="trust-badge">Meta FAIR</span>
-            <span class="trust-badge">University of Michigan</span>
-            <span class="trust-badge">PNAS</span>
-            <span class="trust-badge">Nature</span>
-            <span class="trust-badge">Peer-reviewed</span>
+            <span class="trust-badge">Peer-reviewed sources</span>
           </div>
           <a
             href="https://notebooklm.google.com/notebook/270da646-04d1-4443-83fc-6ed992c5510d"
             target="_blank"
             rel="noopener noreferrer"
-            class="research-notebook-chip"
+            class="research-notebook-chip research-notebook-chip--compact"
             aria-label="Open Brain Diff research notebook in NotebookLM"
           >
-            <span class="research-chip-kicker">Deep dive</span>
-            <span class="research-chip-title">Brain Diff Research Notebook</span>
-            <span class="research-chip-meta">Sources, interpretation notes, and model context →</span>
+            <span class="research-chip-kicker">Notebook</span>
+            <span class="research-chip-title">Sources &amp; interpretation notes →</span>
           </a>
-          <a href="./app.html" class="cta-primary">Launch Brain Diff →</a>
-        </div>
-        <div class="hero-brain-canvas-wrapper">
-          <canvas id="landingHeroBrainCanvas" width="420" height="420" aria-label="Rotating fsaverage5 brain preview"></canvas>
         </div>
       </section>
 
       <section id="demo" class="landing-demo">
         <div class="demo-header">
-          <p class="eyebrow">Live example</p>
-          <h2>See the difference the brain sees</h2>
-          <p class="muted">This is a real result from the model. Scroll down to understand what each part means.</p>
+          <p class="eyebrow">Walkthrough</p>
+          <h2>Same pipeline as the app — synthetic example values</h2>
+          <p class="muted">
+            Below uses the real cortical mesh and WebGL viewer with <strong>illustrative</strong> activation patterns (not a live API run). In the app, colors come from your two texts.
+          </p>
         </div>
         <p class="demo-intro">
-          Every AI writing tool, every editor, every focus group will tell you Version A sounds more professional. It's polished. It signals competence. And they'd be wrong about what actually works.
-          <br /><br />
-          Neuroscience research has shown, repeatedly, that the messages people say they prefer and the messages that actually change their behavior are different — sometimes opposite.
-          The brain responds to things the conscious mind doesn't report. Here's what Brain Diff sees when it compares these two sentences.
+          Jargon often tests well in surveys; plainer language can pull harder on self-relevance in encoding models. Here is a side‑by‑side on the same surface geometry the app uses.
         </p>
 
         <div class="demo-texts">
-          <div class="demo-text-card">
+          <div class="demo-text-card surface-plain">
             <span class="demo-label">Version A</span>
             <p class="demo-text">"We enable workflow optimization across enterprise verticals."</p>
           </div>
-          <div class="demo-text-card">
+          <div class="demo-text-card surface-plain">
             <span class="demo-label">Version B</span>
             <p class="demo-text">"We help small teams ship faster without losing control."</p>
           </div>
         </div>
 
         <div class="demo-result">
-          <h3 class="demo-headline">Concrete language activates the brain's self-relevance center 3x more than abstract jargon</h3>
-          <p class="demo-subhead">Version B — the one that sounds less impressive on paper — shifts the brain's response toward personal meaning. Version A makes the brain work harder but connect less. Every focus group would pick A. The brain picks B.</p>
+          <h3 class="demo-headline">Plain language leans warmer on self-relevance in this illustrative run</h3>
+          <p class="demo-subhead">
+            The model suggests Version B shifts activation toward regions associated with personal relevance more than Version A — one plausible pattern for concrete copy (your mileage varies by audience and text).
+          </p>
 
-          <div class="demo-action-card">
+          <div class="demo-action-card surface-elevated">
             <span class="action-icon">💡</span>
             <div>
-              <strong>The writing move</strong>
-              <p>Lead with "you" and concrete outcomes. That's what shifts the brain from processing mode to personal-relevance mode.</p>
+              <strong>Editing move to try</strong>
+              <p>Concrete actors, outcomes, and “you”-aligned phrasing often increase self-relevance signals in population-average maps.</p>
             </div>
           </div>
 
-          <div id="landingDemoBars" class="demo-bars"></div>
           <div class="demo-brain-compare">
             <div class="demo-brain-col">
-              <p class="demo-brain-label">Version A</p>
+              <p class="demo-brain-label">Version A (illustrative)</p>
               <div class="demo-brain-host">
-                <canvas id="demoBrainCanvasA" width="360" height="240" aria-label="Version A illustrative cortical activation"></canvas>
+                <canvas id="demoBrainCanvasA" width="360" height="240" aria-label="Version A cortical activation (illustrative)"></canvas>
               </div>
             </div>
             <div class="demo-brain-col">
-              <p class="demo-brain-label">Version B</p>
+              <p class="demo-brain-label">Version B (illustrative)</p>
               <div class="demo-brain-host">
-                <canvas id="demoBrainCanvasB" width="360" height="240" aria-label="Version B illustrative cortical activation"></canvas>
+                <canvas id="demoBrainCanvasB" width="360" height="240" aria-label="Version B cortical activation (illustrative)"></canvas>
               </div>
             </div>
           </div>
-          <p class="demo-brain-caption">Each brain shows where activation is strongest for that version. Compare the patterns.</p>
+          <p class="demo-brain-caption">Same renderer as the product · colors scaled per hemisphere for this static example.</p>
           <div class="demo-diff-view">
+            <p class="demo-brain-label">Difference (B − A)</p>
             <div class="demo-diff-host">
-              <canvas id="demoDiffCanvas" width="760" height="280" aria-label="Illustrative difference heatmap between Version B and Version A"></canvas>
+              <canvas id="demoDiffCanvas" width="760" height="280" aria-label="Signed contrast B minus A (illustrative)"></canvas>
             </div>
           </div>
-          <p class="demo-brain-caption">The difference: warmer = Version B higher · cooler = Version A higher</p>
-          <p class="demo-illustrative-note">Illustrative — actual results use real TRIBEv2 predictions.</p>
+          <p class="demo-brain-caption">Warmer = modeled higher for B · cooler = modeled higher for A</p>
         </div>
 
-        <a href="./app.html" class="cta-secondary">Try your own comparison →</a>
+        <a href="./app.html" class="cta-secondary">Run your own texts in the app →</a>
       </section>
 
       <section class="landing-explainer">
         <div class="explainer-header">
           <p class="eyebrow">Understanding the output</p>
-          <h2>What the brain view is teaching you</h2>
-          <p class="muted">Brain Diff measures seven cortical dimensions — each backed by published neuroscience research.</p>
+          <h2>Seven mapped dimensions on one surface</h2>
+          <p class="muted">Regions light up by atlas-defined masks. Switch dimensions with the dots — no auto-rotation.</p>
         </div>
+        <p class="explainer-legend" id="explainerLegend">
+          <strong>How to read it:</strong> highlighted vertices match the named cortical system for that dimension. Colors are illustrative emphasis, not clinical scores.
+        </p>
         <div class="landing-brain-view annotated-brain-view">
-          <canvas id="landingBrainCanvas" width="420" height="300" aria-label="Annotated rotating brain preview"></canvas>
-          <div class="explainer-annotation">
-            <p class="explainer-kicker">Current region</p>
+          <canvas id="landingBrainCanvas" width="420" height="300" aria-label="Annotated brain preview"></canvas>
+          <div class="explainer-annotation surface-elevated">
+            <p class="explainer-kicker">Dimension</p>
             <h4 id="explainerAnnotationTitle">Personal Resonance</h4>
             <p id="explainerAnnotationRegion" class="explainer-region">Medial prefrontal cortex</p>
             <p id="explainerAnnotationBody" class="explainer-body">How much the message feels self-relevant to the audience.</p>
             <cite id="explainerAnnotationCite">Falk et al., 2012</cite>
           </div>
         </div>
-        <div id="explainerDimensionDots" class="explainer-dots" aria-label="Dimension rotation controls"></div>
-        <div class="explainer-note muted">
-          Cycles through 7 cortical dimensions backed by published research.
-        </div>
+        <div id="explainerDimensionDots" class="explainer-dots" role="tablist" aria-label="Choose dimension"></div>
+        <p class="explainer-note muted">Select a dot to change the highlighted system. Reduced motion: no timed carousel.</p>
       </section>
 
       <section class="landing-science">
-        <div class="science-content">
+        <div class="science-content site-shell-inner">
           <p class="eyebrow">Why brain data</p>
-          <h2>People are bad at predicting what works on people.</h2>
-          <p class="science-body">
-            Emily Falk at the University of Michigan scanned 31 smokers watching anti-smoking ads.
-            She asked them which campaign they thought would be most effective. They picked Campaign B.
-            Industry experts agreed. Campaign C was "annoying" and would "obviously fail."
-          </p>
-          <p class="science-body">
-            Then she compared brain data to real-world outcomes — actual calls to the quit-smoking hotline
-            after each campaign aired. Campaign C — the one everyone hated — drove the most calls.
-            The brain predicted right. The people predicted wrong.
-          </p>
-          <p class="science-body">
-            The signal was in the medial prefrontal cortex — the same region Brain Diff measures as "Personal Resonance."
-            Higher activation there predicted population-level behavior change. Self-report didn't.
-          </p>
-          <p class="science-body science-callout">
-            Brain Diff doesn't replace focus groups or A/B tests. It shows you a dimension of your content
-            that no amount of asking people "do you like this?" will reveal.
-          </p>
-          <div class="science-sources">
-            <span>Sources:</span>
-            <a href="https://doi.org/10.1177/0956797611434964">Falk et al., 2012 (Psych Science)</a>
-            <a href="https://doi.org/10.1093/scan/nsv108">Falk et al., 2016 (SCAN)</a>
-            <a href="https://doi.org/10.1093/pnasnexus/pgaf287">Scholz et al., 2025 (PNAS Nexus)</a>
+          <h2>Self-report and behavior often diverge</h2>
+          <div class="science-cards">
+            <div class="science-card surface-plain">
+              <h3 class="science-card-title">Falk smoking ads</h3>
+              <p class="science-card-body">In a classic design, self-reported “best” ads under-predicted population behavior vs brain signals in mPFC-linked regions.</p>
+            </div>
+            <div class="science-card surface-plain">
+              <h3 class="science-card-title">What Brain Diff adds</h3>
+              <p class="science-card-body">A fast, population-average cortical contrast between two drafts — not a substitute for behavioral tests.</p>
+            </div>
+            <div class="science-card surface-plain">
+              <h3 class="science-card-title">Go deeper</h3>
+              <p class="science-card-body">
+                <a href="https://doi.org/10.1177/0956797611434964">Falk et al., 2012</a> ·
+                <a href="https://notebooklm.google.com/notebook/270da646-04d1-4443-83fc-6ed992c5510d" target="_blank" rel="noopener">NotebookLM bundle</a>
+              </p>
+            </div>
           </div>
-          <a
-            href="https://notebooklm.google.com/notebook/270da646-04d1-4443-83fc-6ed992c5510d"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="science-notebook-cta"
-            aria-label="Open research notebook with full citation and interpretation context"
-          >
-            Open the full research notebook in NotebookLM
-          </a>
         </div>
       </section>
 
       <section id="methodology" class="landing-methodology">
         <div class="methodology-content">
           <p class="eyebrow">Methodology</p>
-          <h2>How it works, in plain English</h2>
-
-          <div class="method-step">
-            <span class="step-number">1</span>
-            <div>
-              <h4>You paste two texts</h4>
-              <p>Any two versions of anything — tweets, headlines, emails, pitches. The tool compares them.</p>
-            </div>
-          </div>
-
-          <div class="method-step">
-            <span class="step-number">2</span>
-            <div>
-              <h4>Text becomes speech</h4>
-              <p>TRIBEv2 converts your text to speech internally, because the model was trained on how brains respond to audio. The brain regions for listening and reading overlap ~80%.</p>
-            </div>
-          </div>
-
-          <div class="method-step">
-            <span class="step-number">3</span>
-            <div>
-              <h4>The model predicts brain activation</h4>
-              <p>For each text, TRIBEv2 predicts blood flow at 20,484 points on the cortical surface — the same signal an fMRI scanner would measure. This is the "average brain" of 700+ research participants.</p>
-            </div>
-          </div>
-
-          <div class="method-step">
-            <span class="step-number">4</span>
-            <div>
-              <h4>We subtract A from B</h4>
-              <p>For each of our mapped brain regions, we compare how strongly Version A and Version B activate it. The difference is the "brain diff." Positive = B is higher. Negative = A is higher.</p>
-            </div>
-          </div>
-
-          <div class="method-step">
-            <span class="step-number">5</span>
-            <div>
-              <h4>You see the contrast</h4>
-              <p>Dimension scores, a brain heatmap showing where activation shifted, and a plain-English explanation of what changed and why it might matter — with citations.</p>
-            </div>
-          </div>
-
-          <div class="method-limits">
-            <h4>What this is not</h4>
-            <ul>
-              <li>Not a prediction of engagement, likes, or virality</li>
-              <li>Not a reading of YOUR brain — it's the population average</li>
-              <li>Not a measure of fear, reward, or specific emotions (those need deep-brain structures we can't see)</li>
-              <li>Not a replacement for A/B testing — it's a pre-test signal</li>
-            </ul>
-          </div>
-
-          <a href="./methodology.html" class="method-deep-link">Read the full research methodology →</a>
+          <h2>How it works (short)</h2>
+          <ul class="method-preview-list">
+            <li><strong>Inputs</strong> — paste A/B; we run both through TRIBEv2 on a speech-aligned path.</li>
+            <li><strong>Contrast</strong> — signed vertex- and region-level B−A differences on fsaverage5.</li>
+            <li><strong>Output</strong> — heatmaps, dimensions, plain-language takeaways with citations.</li>
+          </ul>
+          <a href="./methodology.html" class="method-deep-link">Full methodology &amp; limits →</a>
         </div>
       </section>
 

@@ -72,6 +72,36 @@ const CONFIDENCE_LABELS = {
   too_close_to_call: "Too close to call",
 };
 
+function drawLoadingBrainFallback(canvas, label = "3D brain unavailable") {
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  const w = canvas.width || 280;
+  const h = canvas.height || 260;
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = "#060708";
+  ctx.fillRect(0, 0, w, h);
+  const cx = w * 0.5;
+  const cy = h * 0.5;
+  const rx = w * 0.22;
+  const ry = h * 0.32;
+  const grad = ctx.createLinearGradient(cx - rx * 1.3, cy, cx + rx * 1.3, cy);
+  grad.addColorStop(0, "rgba(72,108,214,0.84)");
+  grad.addColorStop(0.5, "rgba(205,208,214,0.68)");
+  grad.addColorStop(1, "rgba(96,216,190,0.86)");
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.ellipse(cx - w * 0.1, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx + w * 0.1, cy, rx, ry, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "rgba(220,228,236,0.82)";
+  ctx.font = "11px -apple-system, Inter, sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText(label, cx, h - 14);
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -310,7 +340,10 @@ function startLoadingExperience() {
           loadingBrainDispose = mod.mountLoadingBrainCanvas(canvas);
         }
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.error("[app-debug] loadingBrain3d import failed", err);
+        drawLoadingBrainFallback(canvas, "Renderer load failed - fallback");
+      });
   }
 
   fetch(LOADING_FACTS_URL)
@@ -565,6 +598,7 @@ function choreographReveal(payload, submittedA, submittedB) {
     [".stage-0", 0],
     [".stage-1", 90],
     [".stage-2", 220],
+    [".stage-1b", 340],
     [".stage-3", 460],
     [".stage-4", 680],
     [".stage-5", 900],

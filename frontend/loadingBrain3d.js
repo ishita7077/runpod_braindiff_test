@@ -2,6 +2,21 @@
  * Shared fsaverage5 brain renderer for loading, landing hero, explainer, and demo visuals.
  */
 import * as THREE from "three";
+import {
+  applyOrbitFromFitPosition,
+  applyPerspectiveBrainFit,
+  getBrainWorldCenter,
+  normalizeBrainGroup,
+  pickWebGLPowerPreference,
+  syncRendererToViewport,
+} from "./brainViewport.js";
+
+const VIEW_BLEND_MS = 780;
+
+function easeOutQuad(t) {
+  const x = Math.min(1, Math.max(0, t));
+  return x * (2 - x);
+}
 
 let _meshPayload = null;
 const LOG_PREFIX = "[brain-render]";
@@ -88,15 +103,23 @@ export async function fetchFsaverageMesh() {
   return _meshPayload;
 }
 
+/** Hemispheres use mesh vertex positions only — no fixed lateral offset (3D-001). */
 function _buildHemispheres(root, mesh, materialL, materialR) {
   const gL = _geometry(mesh.lh_coord, mesh.lh_faces);
   const gR = _geometry(mesh.rh_coord, mesh.rh_faces);
   const mL = new THREE.Mesh(gL, materialL);
   const mR = new THREE.Mesh(gR, materialR);
-  mL.position.x = -18;
-  mR.position.x = 18;
+  mL.position.set(0, 0, 0);
+  mR.position.set(0, 0, 0);
   root.add(mL, mR);
   return { gL, gR, mL, mR };
+}
+
+function resolveViewport(canvas) {
+  return (
+    canvas.closest(".loading-brain-frame, .hero-brain-canvas-wrapper, .landing-brain-view, .brain-viewport")
+    || canvas.parentElement
+  );
 }
 
 function _baseScene(canvas, { cameraFov = 38, near = 1, far = 520, alpha = true } = {}) {
@@ -110,19 +133,12 @@ function _baseScene(canvas, { cameraFov = 38, near = 1, far = 520, alpha = true 
   const scene = new THREE.Scene();
   scene.background = null;
   const camera = new THREE.PerspectiveCamera(cameraFov, 1, near, far);
-  camera.position.set(0, 10, 240);
-  let renderer;
-  try {
-    renderer = new THREE.WebGLRenderer({
-      canvas,
-      antialias: true,
-      alpha,
-      powerPreference: "low-power",
-    });
-  } catch (err) {
-    error("_baseScene:WebGLRenderer failed", err);
-    throw err;
-  }
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    antialias: true,
+    alpha,
+    powerPreference: pickWebGLPowerPreference(),
+  });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   const root = new THREE.Group();
   scene.add(root);
@@ -146,7 +162,7 @@ function _baseScene(canvas, { cameraFov = 38, near = 1, far = 520, alpha = true 
   return { scene, camera, renderer, root };
 }
 
-function draw2dFallbackBrain(canvas, label = "fallback") {
+function draw2dFallbackBrain(canvas, title, subtitle) {
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
   const w = canvas.width || 360;
@@ -154,34 +170,18 @@ function draw2dFallbackBrain(canvas, label = "fallback") {
   ctx.clearRect(0, 0, w, h);
   ctx.fillStyle = "#060708";
   ctx.fillRect(0, 0, w, h);
-  const cx = w * 0.5;
-  const cy = h * 0.5;
-  const rx = w * 0.22;
-  const ry = h * 0.34;
-  const g = ctx.createLinearGradient(cx - rx * 1.3, cy, cx + rx * 1.3, cy);
-  g.addColorStop(0, "rgba(70,110,220,0.8)");
-  g.addColorStop(0.5, "rgba(190,190,190,0.65)");
-  g.addColorStop(1, "rgba(96,220,190,0.82)");
-  ctx.fillStyle = g;
-  ctx.beginPath();
-  ctx.ellipse(cx - w * 0.1, cy, rx, ry, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.ellipse(cx + w * 0.1, cy, rx, ry, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = "rgba(230,235,240,0.7)";
-  ctx.font = "12px -apple-system, Inter, sans-serif";
+  ctx.fillStyle = "rgba(230,235,240,0.88)";
+  ctx.font = "13px -apple-system, Inter, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText("WebGL fallback brain", cx, h - 20);
-  ctx.fillStyle = "rgba(150,160,175,0.75)";
+  ctx.fillText(title, w / 2, h / 2 - 8);
+  ctx.fillStyle = "rgba(150,160,175,0.9)";
   ctx.font = "11px -apple-system, Inter, sans-serif";
-  ctx.fillText(label, cx, h - 6);
+  ctx.fillText(subtitle, w / 2, h / 2 + 12);
 }
 
 export function mountLoadingBrainCanvas(canvas, options = {}) {
   if (!canvas) return () => {};
-  const frame = canvas.closest(".loading-brain-frame");
-  const height = options.height || Number(canvas.getAttribute("height")) || 260;
+  const viewport = resolveViewport(canvas);
   const rotationSpeed = Number(options.rotationSpeed ?? 0.38);
 
   let scene;
@@ -191,10 +191,11 @@ export function mountLoadingBrainCanvas(canvas, options = {}) {
   try {
     ({ scene, camera, renderer, root } = _baseScene(canvas));
   } catch (err) {
-    error("mountLoadingBrainCanvas:baseScene failed, using 2d fallback", err);
-    draw2dFallbackBrain(canvas, "mountLoadingBrainCanvas");
+    error("mountLoadingBrainCanvas:baseScene failed", err);
+    draw2dFallbackBrain(canvas, "WebGL unavailable", "Brain preview cannot start — check GPU / browser flags");
     return () => {};
   }
+
   const brainMat = new THREE.MeshStandardMaterial({
     color: options.color ?? 0x5ca99f,
     emissive: options.emissive ?? 0x174c47,
@@ -203,54 +204,80 @@ export function mountLoadingBrainCanvas(canvas, options = {}) {
     roughness: 0.42,
   });
 
-  function addFallbackMesh() {
-    const geo = new THREE.IcosahedronGeometry(36, 2);
-    const mesh = new THREE.Mesh(geo, brainMat);
-    root.add(mesh);
-  }
+  const brainContent = new THREE.Group();
+  root.add(brainContent);
 
-  let meshMounted = false;
+  let meshReady = false;
+  let cancelled = false;
+  let raf = 0;
+  let webglDisposed = false;
+
+  const shutdownWebgl = () => {
+    if (webglDisposed) return;
+    webglDisposed = true;
+    cancelled = true;
+    cancelAnimationFrame(raf);
+    ro.disconnect();
+    _disposeScene(scene, renderer);
+  };
+
+  const refitCamera = () => {
+    if (!meshReady || cancelled) return;
+    const { width, height } = syncRendererToViewport(renderer, camera, canvas, viewport);
+    applyPerspectiveBrainFit(camera, brainContent, width, height);
+  };
+
+  const ro = new ResizeObserver(() => {
+    refitCamera();
+  });
+  ro.observe(viewport || canvas);
+
   fetchFsaverageMesh()
     .then((mesh) => {
+      if (cancelled) return;
       if (!mesh?.lh_coord || !mesh?.rh_coord) {
-        warn("mountLoadingBrainCanvas:mesh missing coords, using fallback mesh");
-        addFallbackMesh();
+        warn("mountLoadingBrainCanvas:mesh missing coords");
+        shutdownWebgl();
+        draw2dFallbackBrain(canvas, "Brain mesh unavailable", "API returned incomplete geometry — see server logs");
         return;
       }
-      _buildHemispheres(root, mesh, brainMat, brainMat);
-      meshMounted = true;
+      _buildHemispheres(brainContent, mesh, brainMat, brainMat);
+      normalizeBrainGroup(brainContent);
+      meshReady = true;
+      refitCamera();
       log("mountLoadingBrainCanvas:mesh mounted", { canvasId: canvas.id || "(no-id)" });
     })
     .catch((err) => {
-      warn("mountLoadingBrainCanvas:mesh fetch failed, using fallback mesh", err);
-      addFallbackMesh();
+      warn("mountLoadingBrainCanvas:mesh fetch failed", err);
+      if (!cancelled) {
+        shutdownWebgl();
+        draw2dFallbackBrain(canvas, "Brain mesh failed to load", String(err?.message || err).slice(0, 120));
+      }
     });
 
-  setTimeout(() => {
-    if (!meshMounted && root.children.length === 0) {
-      warn("mountLoadingBrainCanvas:mesh timeout fallback");
-      addFallbackMesh();
-    }
+  const failTimer = setTimeout(() => {
+    if (cancelled || meshReady) return;
+    warn("mountLoadingBrainCanvas:mesh timeout");
+    shutdownWebgl();
+    draw2dFallbackBrain(canvas, "Brain mesh timed out", "Check network and /api/brain-mesh — not a placeholder 3D brain");
   }, 2500);
 
-  let raf = 0;
   const t0 = performance.now();
   function tick(now) {
+    if (cancelled) return;
     raf = requestAnimationFrame(tick);
     const t = (now - t0) * 0.001;
     root.rotation.y = t * rotationSpeed;
     root.rotation.x = Math.sin(t * 0.22) * 0.07;
-    const w = Math.max(200, frame?.clientWidth || canvas.clientWidth || 320);
-    camera.aspect = w / height;
-    camera.updateProjectionMatrix();
-    renderer.setSize(w, height, false);
-    renderer.render(scene, camera);
+    if (meshReady) {
+      renderer.render(scene, camera);
+    }
   }
   raf = requestAnimationFrame(tick);
 
   return () => {
-    cancelAnimationFrame(raf);
-    _disposeScene(scene, renderer);
+    clearTimeout(failTimer);
+    shutdownWebgl();
   };
 }
 
@@ -259,16 +286,21 @@ export async function mountActivationBrainCanvas(
   {
     values,
     mode = "activation",
-    height = 260,
-    camera = { x: 0, y: 10, z: 240 },
-    target = { x: 0, y: 0, z: 0 },
     rotationSpeed = 0.22,
   } = {},
 ) {
   if (!canvas || !values || values.length !== 20484) return () => {};
-  const { scene, camera: cam, renderer, root } = _baseScene(canvas);
-  cam.position.set(camera.x, camera.y, camera.z);
-  const targetV = new THREE.Vector3(target.x, target.y, target.z);
+  let scene;
+  let cam;
+  let renderer;
+  let root;
+  try {
+    ({ scene, camera: cam, renderer, root } = _baseScene(canvas));
+  } catch (err) {
+    error("mountActivationBrainCanvas:baseScene failed", err);
+    return () => {};
+  }
+  const viewport = resolveViewport(canvas);
   const mesh = await fetchFsaverageMesh();
   log("mountActivationBrainCanvas:start", { mode, canvasId: canvas.id || "(no-id)" });
 
@@ -307,30 +339,47 @@ export async function mountActivationBrainCanvas(
   const v = values instanceof Float32Array ? values : Float32Array.from(values);
   const lh = v.subarray(0, 10242);
   const rh = v.subarray(10242);
-  const { gL, gR } = _buildHemispheres(root, mesh, mat, mat);
+  const brainContent = new THREE.Group();
+  root.add(brainContent);
+  const { gL, gR } = _buildHemispheres(brainContent, mesh, mat, mat);
+  normalizeBrainGroup(brainContent);
   gL.setAttribute("color", new THREE.BufferAttribute(colorize(lh, mode === "diff"), 3));
   gR.setAttribute("color", new THREE.BufferAttribute(colorize(rh, mode === "diff"), 3));
 
+  const refit = () => {
+    const { width, height } = syncRendererToViewport(renderer, cam, canvas, viewport);
+    applyPerspectiveBrainFit(cam, brainContent, width, height);
+  };
+  refit();
+  const ro = new ResizeObserver(() => refit());
+  ro.observe(viewport || canvas);
+
   let raf = 0;
   const t0 = performance.now();
-  const frame = canvas.parentElement;
+  let cancelled = false;
   function tick(now) {
+    if (cancelled) return;
     raf = requestAnimationFrame(tick);
     const t = (now - t0) * 0.001;
     root.rotation.y = t * rotationSpeed;
     root.rotation.x = Math.sin(t * 0.22) * 0.06;
-    const w = Math.max(220, frame?.clientWidth || canvas.clientWidth || 320);
-    cam.aspect = w / height;
-    cam.lookAt(targetV);
-    cam.updateProjectionMatrix();
-    renderer.setSize(w, height, false);
     renderer.render(scene, cam);
   }
   raf = requestAnimationFrame(tick);
 
   return () => {
+    cancelled = true;
     cancelAnimationFrame(raf);
+    ro.disconnect();
     _disposeScene(scene, renderer);
+  };
+}
+
+function lerpView(a, b, t) {
+  return {
+    yaw: a.yaw + (b.yaw - a.yaw) * t,
+    pitch: a.pitch + (b.pitch - a.pitch) * t,
+    distScale: a.distScale + (b.distScale - a.distScale) * t,
   };
 }
 
@@ -338,9 +387,7 @@ export async function mountHighlightBrainCanvas(
   canvas,
   {
     initialMask = null,
-    height = 300,
-    initialCamera = { x: 50, y: 10, z: 0 },
-    initialTarget = { x: 0, y: 0, z: 0 },
+    initialView = { yaw: 0, pitch: 0, distScale: 1 },
   } = {},
 ) {
   if (!canvas) return { dispose: () => {}, setDimension: () => {} };
@@ -353,13 +400,15 @@ export async function mountHighlightBrainCanvas(
     ({ scene, camera: cam, renderer, root } = _baseScene(canvas));
   } catch (err) {
     error("mountHighlightBrainCanvas:baseScene failed", err);
-    draw2dFallbackBrain(canvas, "mountHighlightBrainCanvas");
+    draw2dFallbackBrain(canvas, "WebGL unavailable", "Explainer brain needs WebGL");
     return { dispose: () => {}, setDimension: () => {} };
   }
-  cam.position.set(initialCamera.x, initialCamera.y, initialCamera.z);
-  const targetV = new THREE.Vector3(initialTarget.x, initialTarget.y, initialTarget.z);
-  const mesh = await fetchFsaverageMesh();
-  log("mountHighlightBrainCanvas:mesh mounted", { canvasId: canvas.id || "(no-id)" });
+  const viewport = resolveViewport(canvas);
+  let lastVpW = 0;
+  let lastVpH = 0;
+
+  const brainContent = new THREE.Group();
+  root.add(brainContent);
 
   const mat = new THREE.MeshStandardMaterial({
     vertexColors: true,
@@ -368,7 +417,11 @@ export async function mountHighlightBrainCanvas(
     emissive: 0x050607,
     emissiveIntensity: 0.3,
   });
-  const { gL, gR } = _buildHemispheres(root, mesh, mat, mat);
+  const mesh = await fetchFsaverageMesh();
+  log("mountHighlightBrainCanvas:mesh mounted", { canvasId: canvas.id || "(no-id)" });
+  const { gL, gR } = _buildHemispheres(brainContent, mesh, mat, mat);
+  normalizeBrainGroup(brainContent);
+
   const colorsL = new Float32Array(10242 * 3);
   const colorsR = new Float32Array(10242 * 3);
   const targetL = new Float32Array(10242 * 3);
@@ -399,11 +452,10 @@ export async function mountHighlightBrainCanvas(
   gL.attributes.color.needsUpdate = true;
   gR.attributes.color.needsUpdate = true;
 
-  let cameraFrom = cam.position.clone();
-  let cameraTo = cam.position.clone();
-  let targetFrom = targetV.clone();
-  let targetTo = targetV.clone();
-  let cameraStartTs = performance.now();
+  let viewA = { ...initialView };
+  let viewB = { ...initialView };
+  let viewBlendStart = performance.now();
+
   let colorStartTs = performance.now();
   let active = true;
 
@@ -411,21 +463,43 @@ export async function mountHighlightBrainCanvas(
     for (let i = 0; i < out.length; i += 1) out[i] = from[i] + (to[i] - from[i]) * t;
   };
 
-  const animateTo = ({ mask, camera, target }) => {
+  const currentView = (now) => {
+    const u = easeOutQuad((now - viewBlendStart) / VIEW_BLEND_MS);
+    return lerpView(viewA, viewB, u);
+  };
+
+  const applyViewToCamera = (now) => {
+    const el = viewport || canvas.parentElement;
+    const r = el?.getBoundingClientRect?.() || canvas.getBoundingClientRect();
+    const rw = Math.max(1, Math.floor(r.width));
+    const rh = Math.max(1, Math.floor(r.height));
+    if (rw !== lastVpW || rh !== lastVpH) {
+      lastVpW = rw;
+      lastVpH = rh;
+      syncRendererToViewport(renderer, cam, canvas, viewport);
+    }
+    const center = getBrainWorldCenter(brainContent);
+    applyPerspectiveBrainFit(cam, brainContent, lastVpW, lastVpH);
+    const fitPos = cam.position.clone();
+    const v = currentView(now);
+    applyOrbitFromFitPosition(cam, center, fitPos, v);
+  };
+
+  const animateTo = ({ mask, view }) => {
     startL.set(colorsL);
     startR.set(colorsR);
     setTargetFromMask(mask);
     colorStartTs = performance.now();
 
-    cameraFrom = cam.position.clone();
-    cameraTo = new THREE.Vector3(camera.x, camera.y, camera.z);
-    targetFrom = targetV.clone();
-    targetTo = new THREE.Vector3(target.x, target.y, target.z);
-    cameraStartTs = performance.now();
+    const t0 = performance.now();
+    viewA = currentView(t0);
+    viewB = { yaw: view.yaw ?? 0, pitch: view.pitch ?? 0, distScale: view.distScale ?? 1 };
+    viewBlendStart = t0;
   };
 
+  applyViewToCamera(performance.now());
+
   let raf = 0;
-  const frame = canvas.parentElement;
   function tick(now) {
     if (!active) return;
     raf = requestAnimationFrame(tick);
@@ -437,30 +511,19 @@ export async function mountHighlightBrainCanvas(
     gL.attributes.color.needsUpdate = true;
     gR.attributes.color.needsUpdate = true;
 
-    const camT = Math.min(1, (now - cameraStartTs) / 780);
-    const camEase = camT * (2 - camT);
-    cam.position.lerpVectors(cameraFrom, cameraTo, camEase);
-    targetV.lerpVectors(targetFrom, targetTo, camEase);
-
     root.rotation.y += 0.0026;
     root.rotation.x = Math.sin(now / 1700) * 0.05;
-    const w = Math.max(260, frame?.clientWidth || canvas.clientWidth || 360);
-    cam.aspect = w / height;
-    cam.lookAt(targetV);
-    cam.updateProjectionMatrix();
-    renderer.setSize(w, height, false);
+
+    applyViewToCamera(now);
+
     renderer.render(scene, cam);
   }
   raf = requestAnimationFrame(tick);
 
   return {
-    setDimension(mask, cameraCfg, targetCfg = { x: 0, y: 0, z: 0 }) {
-      log("mountHighlightBrainCanvas:setDimension", {
-        camera: cameraCfg,
-        target: targetCfg,
-        hasMask: Boolean(mask),
-      });
-      animateTo({ mask, camera: cameraCfg, target: targetCfg });
+    setDimension(mask, view) {
+      log("mountHighlightBrainCanvas:setDimension", { hasMask: Boolean(mask), view });
+      animateTo({ mask, view });
     },
     dispose() {
       active = false;

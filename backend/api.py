@@ -1,4 +1,5 @@
 import asyncio
+import base64
 import hashlib
 import json
 import logging
@@ -571,6 +572,25 @@ async def vertex_atlas() -> JSONResponse:
     from backend.atlas_peaks import build_vertex_atlas_payload
 
     return JSONResponse(build_vertex_atlas_payload())
+
+
+@app.get("/api/dimension-masks")
+async def dimension_masks() -> JSONResponse:
+    """Authoritative boolean masks per cortical dimension (20484 vertices, uint8 0/1). For landing explainer."""
+    global masks
+    if not masks:
+        try:
+            masks = build_vertex_masks(atlas_dir=os.getenv("BRAIN_DIFF_ATLAS_DIR", "atlases"))
+        except Exception as exc:
+            logger.warning("dimension_masks:build_failed %s", exc)
+            raise HTTPException(status_code=503, detail="atlas_masks_unavailable") from exc
+    out: dict[str, str] = {}
+    for name, payload in masks.items():
+        m = np.asarray(payload["mask"], dtype=np.uint8)
+        if m.size != 20484:
+            raise HTTPException(status_code=500, detail=f"bad_mask_len:{name}")
+        out[name] = base64.b64encode(m.tobytes()).decode("ascii")
+    return JSONResponse(out)
 
 
 @app.get("/api/telemetry/recent")

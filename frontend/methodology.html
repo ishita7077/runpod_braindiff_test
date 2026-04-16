@@ -3,95 +3,78 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Brain Diff Methodology</title>
+    <title>Methodology — Brain Diff</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
-    <header class="topbar">
-      <div>Brain Diff Methodology</div>
-      <a href="./index.html">Back to Brain Diff →</a>
+    <header class="topbar site-shell">
+      <div class="brand-lockup">
+        <a href="./index.html" class="brand-home">
+          <svg class="brand-logo" width="40" height="40" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
+            <defs>
+              <linearGradient id="topbarBrandMarkGradMeth" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#6ee7d8" />
+                <stop offset="100%" stop-color="#5ab0d8" />
+              </linearGradient>
+            </defs>
+            <rect x="1" y="1" width="38" height="38" rx="11" fill="rgba(12,18,22,0.95)" stroke="url(#topbarBrandMarkGradMeth)" stroke-width="1.25" />
+            <ellipse cx="14.5" cy="20" rx="6.5" ry="9.5" fill="url(#topbarBrandMarkGradMeth)" opacity="0.88" />
+            <ellipse cx="25.5" cy="20" rx="6.5" ry="9.5" fill="url(#topbarBrandMarkGradMeth)" opacity="0.88" />
+            <path d="M20 9.5c-1.2 2.8-1.2 18.2 0 21" stroke="rgba(0,0,0,0.35)" stroke-width="1.2" fill="none" />
+          </svg>
+          <span class="brand-wordmark"><span class="brand-word">Brain</span><span class="brand-word-accent">Diff</span></span>
+        </a>
+      </div>
+      <nav class="top-nav" aria-label="Primary">
+        <a href="./index.html#methodology">Landing overview</a>
+        <a href="./app.html" class="nav-cta">Launch Brain Diff →</a>
+      </nav>
     </header>
 
-    <main class="methodology-page">
-      <h1>How Brain Diff Works</h1>
-      <p class="subtitle">
-        Brain Diff compares two versions of text and shows where the average brain model predicts different cortical response.
-        It is a comparison tool, not an absolute score.
-      </p>
-
-      <h2>1) What this does (in two lines)</h2>
-      <p>
-        You paste Version A and Version B. We run both through TRIBEv2 and show which cortical systems move up or down between the two versions.
-      </p>
-
-      <h2>2) Where the brain data comes from</h2>
-      <p>
-        TRIBEv2 (Meta FAIR) is trained on 1,115 hours of fMRI recordings from 700+ people.
-        Those scans measure blood-flow changes that track neural activity over time.
-      </p>
-
-      <h2>3) Why text is converted to speech first</h2>
-      <p>
-        The serving path converts text to speech timing before neural prediction, so outputs reflect an audio-aligned processing pathway.
-        This is intentional and matches how the model is exercised in this product.
-      </p>
-
-      <h2>4) What the 20,484 numbers are</h2>
-      <p>
-        For each time step, TRIBEv2 predicts activation at 20,484 cortical surface vertices.
-        Think of these as a dense map of tiny points across the cortical sheet.
-      </p>
-
-      <h2>5) Why these dimensions</h2>
-      <p>
-        We group vertices into interpretable cortical systems: Personal Resonance, Social Thinking, Brain Effort, Language Depth, Gut Reaction, Memory Encoding, and Attention/Salience.
-      </p>
-      <p>
-        <strong>Attention/Salience — Dorsal attention network (intraparietal sulcus + frontal eye fields)</strong><br />
-        HCP areas: LIPv, LIPd, AIP, VIP, MIP, FEF, PEF (both hemispheres).
-      </p>
-      <p>
-        This network controls where the brain allocates processing resources. When content commands attention through urgency, novelty, or salience, this region fires more strongly.
-        It sits at the top of the attention → effort → value → memory pipeline.
-      </p>
-      <p>
-        Corbetta &amp; Shulman, 2002; Kastner &amp; Ungerleider, 2000
-      </p>
-
-      <h2>6) Atlas + scoring method</h2>
-      <p>
-        Region definitions use HCP MMP1.0 labels. For each region we compute signed mean activation and compare B minus A.
-        Positive means B is higher; negative means A is higher.
-      </p>
-
-      <h2>7) Brain Effort uses three cognitive-load types</h2>
-      <p>
-        High effort can mean intrinsic load (hard topic), extraneous load (confusing writing), or germane load (productive learning).
-        The signal alone cannot fully disambiguate which one dominates.
-      </p>
-
-      <h2>8) Memory encoding is a cortical driver, not full memory completion</h2>
-      <div class="method-caveat">
-        <h4>Memory encoding — a partial signal</h4>
-        <p>
-          Our Memory Encoding dimension tracks left vlPFC activity associated with the Dm effect.
-          Full memory formation also depends on hippocampal circuitry, which this cortical model cannot directly observe.
+    <main class="methodology-page site-shell">
+      <header class="meth-hero">
+        <p class="eyebrow">Methodology</p>
+        <h1>What Brain Diff predicts — and what it does not</h1>
+        <p class="subtitle meth-lead">
+          A comparison tool on TRIBEv2’s population-average cortical encoding. Two texts in → vertex-level predictions out → contrasts, maps, and plain-language notes.
         </p>
+      </header>
+
+      <section class="meth-section surface-plain">
+        <h2>What it predicts</h2>
         <p>
-          So treat this as encoding likelihood/drive, not guaranteed long-term recall.
+          For each draft, the model estimates blood-flow–like cortical activation at 20,484 surface vertices (fsaverage5), then we contrast Version B minus Version A by region and dimension.
         </p>
-      </div>
+      </section>
 
-      <h2>9) What this is not</h2>
-      <p>
-        Not a personal brain readout. Not an engagement or virality guarantee. Not a medical or diagnostic system.
-      </p>
+      <section class="meth-section surface-plain">
+        <h2>Pipeline (short)</h2>
+        <ol class="meth-ol">
+          <li>Text is aligned to a speech-like pathway (model training constraint).</li>
+          <li>TRIBEv2 produces vertex-wise responses for A and for B.</li>
+          <li>Regions use HCP MMP1 labels; seven headline dimensions aggregate subsets of vertices.</li>
+          <li>Outputs: signed contrasts, 3D maps, radar snapshot, narrative insights — not a medical or individual-brain readout.</li>
+        </ol>
+      </section>
 
-      <h2>10) Whose "average brain" this reflects</h2>
-      <p>
-        The model reflects aggregate research cohorts, often WEIRD-leaning populations.
-        Cultural, demographic, and context differences can shift how real audiences respond.
-      </p>
+      <section class="meth-section surface-plain">
+        <h2>Limits</h2>
+        <ul class="meth-ul">
+          <li>Population-average model — not your brain.</li>
+          <li>Not virality, revenue, or diagnostic certainty.</li>
+          <li>Cultural and cohort gaps apply, as with any encoding model.</li>
+        </ul>
+      </section>
+
+      <section class="meth-section surface-plain">
+        <h2>References &amp; deeper reading</h2>
+        <p class="muted">
+          See product notebook for curated papers and interpretation notes.
+        </p>
+      </section>
     </main>
 
     <footer class="footer">

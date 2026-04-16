@@ -3,6 +3,7 @@
  */
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
+import { normalizeBrainGroup, pickWebGLPowerPreference } from "./brainViewport.js";
 
 let _meshPayload = null;
 let _atlasPayload = null;
@@ -240,7 +241,7 @@ function _createScene(container, fullVertexArr, meshPayload, h, opts = {}) {
   const camera = new THREE.PerspectiveCamera(36, w / h, 0.05, 2000);
   camera.position.set(0, 20, 200);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: pickWebGLPowerPreference() });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(w, h);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -300,18 +301,16 @@ function _createScene(container, fullVertexArr, meshPayload, h, opts = {}) {
   const gL = _geometryFromPayload(meshPayload.lh_coord, meshPayload.lh_faces);
   gL.setAttribute("color", colorHemi(lhD, 0));
   const mL = new THREE.Mesh(gL, mat);
-  mL.position.x = -18;
   mL.userData = { hemi: "left", offset: 0 };
 
   const gR = _geometryFromPayload(meshPayload.rh_coord, meshPayload.rh_faces);
   gR.setAttribute("color", colorHemi(rhD, 10242));
   const mR = new THREE.Mesh(gR, mat);
-  mR.position.x = 18;
   mR.userData = { hemi: "right", offset: 10242 };
 
   const group = new THREE.Group();
-  group.add(mL);
-  group.add(mR);
+  group.add(mL, mR);
+  normalizeBrainGroup(group);
   scene.add(group);
 
   const sceneObj = {
@@ -561,7 +560,7 @@ export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, too
   const camera = new THREE.PerspectiveCamera(36, w / h, 0.05, 2000);
   camera.position.set(0, 20, 200);
 
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: pickWebGLPowerPreference() });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setSize(w, h);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -611,18 +610,16 @@ export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, too
   const gL = _geometryFromPayload(meshPayload.lh_coord, meshPayload.lh_faces);
   gL.setAttribute("color", colorAttr(lhD));
   const mL = new THREE.Mesh(gL, mat);
-  mL.position.x = -18;
   mL.userData = { hemi: "left", offset: 0 };
 
   const gR = _geometryFromPayload(meshPayload.rh_coord, meshPayload.rh_faces);
   gR.setAttribute("color", colorAttr(rhD));
   const mR = new THREE.Mesh(gR, mat);
-  mR.position.x = 18;
   mR.userData = { hemi: "right", offset: 10242 };
 
   const group = new THREE.Group();
-  group.add(mL);
-  group.add(mR);
+  group.add(mL, mR);
+  normalizeBrainGroup(group);
   scene.add(group);
 
   function refitBrain() {
@@ -672,6 +669,7 @@ export function mountBrainViewer(container, vertexDelta, meshPayload, atlas, too
     camera.aspect = rw / h;
     camera.updateProjectionMatrix();
     renderer.setSize(rw, h);
+    refitBrain();
   });
   ro.observe(container);
 
@@ -756,6 +754,7 @@ export function mountDualBrainViewer(containerA, containerB, vertexA, vertexB, m
     sceneA.camera.aspect = rw / h;
     sceneA.camera.updateProjectionMatrix();
     sceneA.renderer.setSize(rw, h);
+    refitDual();
   });
   roA.observe(containerA);
 
@@ -764,6 +763,7 @@ export function mountDualBrainViewer(containerA, containerB, vertexA, vertexB, m
     sceneB.camera.aspect = rw / h;
     sceneB.camera.updateProjectionMatrix();
     sceneB.renderer.setSize(rw, h);
+    refitDual();
   });
   roB.observe(containerB);
 
