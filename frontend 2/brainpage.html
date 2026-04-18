@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BrainDiff · Brainpage</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+    </script>
+    <style>
+      .brainpage {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        padding: 24px var(--shell-pad-x) 40px;
+        box-sizing: border-box;
+      }
+      .brainpage-top {
+        max-width: var(--shell-max);
+        margin: 0 auto 16px;
+        width: 100%;
+      }
+      .brainpage-top h1 {
+        font-size: 1.25rem;
+        margin: 0 0 8px;
+      }
+      .brainpage-top p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .brainpage-top a {
+        color: var(--text-soft);
+      }
+      .brainpage-stage {
+        flex: 1;
+        max-width: var(--shell-max);
+        margin: 0 auto;
+        width: 100%;
+        min-height: min(72vh, 640px);
+      }
+      .brainpage-stage .brain-dual-wrap {
+        width: 100%;
+        min-height: min(72vh, 640px);
+      }
+      .brainpage-stage .brain-viewer-col {
+        min-width: 0;
+      }
+      .brainpage-stage .brain-3d-host {
+        min-height: min(72vh, 640px);
+        height: 100%;
+      }
+      .brainpage-stage .brain-tooltip {
+        max-width: min(520px, calc(100vw - 24px));
+      }
+    </style>
+  </head>
+  <body>
+    <div class="brainpage">
+      <div class="brainpage-top">
+        <h1>Brainpage · cortical contrast (B − A)</h1>
+        <p id="brainpageStatus">Starting…</p>
+        <p>
+          <a href="./app.html">← Full app</a>
+          · Synthetic vertex map; brain geometry and region labels from <code>/api/brain-mesh</code> and <code>/api/vertex-atlas</code>.
+        </p>
+      </div>
+      <div class="brainpage-stage">
+        <div class="brain-dual-wrap is-single">
+          <div class="brain-viewer-col">
+            <div id="brainHost" class="brain-3d-host" aria-label="Signed cortical contrast B minus A"></div>
+          </div>
+          <div id="brainTooltip" class="brain-tooltip hidden" role="tooltip"></div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="./brainpage.js"></script>
+  </body>
+</html>

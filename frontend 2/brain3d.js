@@ -498,7 +498,7 @@ function _setupHover(sceneObj, container, regionMap, atlas, tooltipEl, hoverOpts
       statsBlock =
         `<div class="tt-stat-grid">` +
         `<p class="tt-stat-lead">Contrast at this point</p>` +
-        `<div class="tt-stat"><span class="tt-stat-k">B minus A (signed)</span><span class="tt-stat-v">${val >= 0 ? "+" : ""}${val.toFixed(3)}</span></div>` +
+        `<div class="tt-stat tt-stat-em"><span class="tt-stat-k">B minus A (signed)</span><span class="tt-stat-v">${val >= 0 ? "+" : ""}${val.toFixed(3)}</span></div>` +
         `</div>` +
         `<p class="tt-stat-foot">Positive means Version B is modeled higher here; negative means Version A. Matches the static heatmap colors.</p>`;
     } else {
