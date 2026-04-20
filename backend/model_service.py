@@ -113,6 +113,7 @@ class TribeService:
         except Exception as err:
             raise RuntimeError("Failed to import TRIBEv2. Install facebookresearch/tribev2 first.") from err
 
+        self._patch_tribev2_force_english()
         apply_huggingface_text_mps_dtype_patch()
 
         requested = detect_runtime_profile()
@@ -164,6 +165,26 @@ class TribeService:
                     exc_info=True,
                 )
         raise RuntimeError(f"Failed to load model {self.model_revision}: {last_err}") from last_err
+
+    @staticmethod
+    def _patch_tribev2_force_english() -> None:
+        """Force TRIBEv2's text→speech step to always use English.
+
+        Upstream TRIBEv2 calls ``langdetect.detect(text)`` and passes the result to
+        ``gTTS(..., lang=...)``. On short or ambiguous inputs langdetect returns
+        codes that gTTS does not support (e.g. ``'so'``, ``'cy'``), which aborts
+        the whole diff job. BrainDiff is English-only by product decision, so we
+        simply replace ``langdetect.detect`` with a constant. TRIBEv2 re-imports
+        it inside ``get_events`` on every call, so the patch is picked up without
+        touching upstream code. Non-English inputs are blocked at the UI layer.
+        """
+        try:
+            import langdetect  # type: ignore
+        except Exception as err:
+            logger.warning("TribeService:patch_force_english:skipped (langdetect import failed: %s)", err)
+            return
+        langdetect.detect = lambda _text: "en"  # type: ignore[assignment]
+        logger.info("TribeService:patch_force_english:applied (langdetect.detect → 'en')")
 
     @staticmethod
     def _ensure_uvx_on_path() -> None:

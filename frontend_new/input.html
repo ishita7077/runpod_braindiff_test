@@ -429,13 +429,15 @@ function toggleTheme(){
     { code: 'IDENTICAL',     sev: 'soft',
       check: function(A, B){ return sameText(A, B); },
       copy:  'Both versions are identical — you will get an all-zero contrast.' },
-    { code: 'NON_LATIN',     sev: 'soft',
+    { code: 'NON_ENGLISH',   sev: 'hard',
       check: function(A, B){
         // Only flag when there's enough text to judge.
-        if (A.trim().length < 20 || B.trim().length < 20) return false;
-        return latinRatio(A) < 0.3 || latinRatio(B) < 0.3;
+        if (A.trim().length < 20 && B.trim().length < 20) return false;
+        const rA = A.trim().length >= 20 ? latinRatio(A) : 1;
+        const rB = B.trim().length >= 20 ? latinRatio(B) : 1;
+        return rA < 0.6 || rB < 0.6;
       },
-      copy:  'The model\u2019s speech step is locked to English. Non-English inputs transcribe poorly.' },
+      copy:  'BrainDiff currently supports English text only. Please paste English for both versions.' },
     { code: 'LINK_HEAVY',    sev: 'soft',
       check: function(A, B){
         const rA = A.trim().length ? urlChars(A) / A.trim().length : 0;
@@ -469,7 +471,22 @@ function toggleTheme(){
   }
 
   function renderWarnings(hits){
+    const hard = hits.filter(function(h){ return h.sev === 'hard'; });
     const soft = hits.filter(function(h){ return h.sev === 'soft'; });
+
+    // Hard rules that come from content (not just "empty") deserve a visible reason,
+    // otherwise the user just sees a disabled button with no explanation.
+    const blocking = hard.filter(function(h){ return h.code !== 'EMPTY'; });
+    if (blocking.length){
+      const body = blocking.map(function(h){
+        return h.copy + ' <span style="color:var(--ink-mute);font-family:\'JetBrains Mono\',monospace;font-size:11.5px">· ' + h.code + '</span>';
+      }).join('<br>');
+      err.innerHTML = body;
+      err.classList.add('on');
+    } else {
+      err.classList.remove('on'); err.innerHTML = '';
+    }
+
     if (!soft.length){ warn.classList.remove('on'); warn.innerHTML = ''; return; }
     const body = [
       '<strong>Heads-up before you run this:</strong>',
