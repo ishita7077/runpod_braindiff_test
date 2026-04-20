@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BrainDiff — new comparison</title>
+<meta name="description" content="Paste two versions of a text. BrainDiff compares how a population-average cortex responds to each." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>(function(){try{var t=localStorage.getItem('braindiff-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<style>
+/* ============================================================
+   BrainDiff · tokens (shared with index / run / results)
+   ============================================================ */
+:root{
+  color-scheme:dark;
+  --bg:#0b0c0f; --bg-2:#101116; --bg-3:#15171c;
+  --surface:#15171c;
+  --panel:rgba(20,22,28,0.72); --panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db; --ink-dim:#b6b1a6; --ink-mute:#7f7a70;
+  --accent:#e04a2e; --accent-2:#f27455; --accent-3:rgba(224,74,46,0.12);
+  --good:#6a97c9; --good-2:#8db2d4; --good-3:rgba(106,151,201,0.12);
+  --brain-stage:#07080b;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+  --shell-pad-x:clamp(20px,4vw,56px); --shell-max:1200px;
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f7f4ec; --bg-2:#efeadf; --bg-3:#e7e2d4;
+  --surface:#ffffff; --panel:#ffffff; --panel-2:#f1ecde;
+  --line:#e2ddcf; --line-2:#cbc5b4;
+  --ink:#17171a; --ink-dim:#3d3d42; --ink-mute:#77736b;
+  --accent:#c1272d; --accent-2:#d94a4e; --accent-3:#f8e9e6;
+  --good:#2a5583; --good-2:#4a78ab; --good-3:#e6edf6;
+  --brain-stage:#0a0c10;
+  --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
+  --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+    radial-gradient(800px 500px at 50% 50%, color-mix(in srgb, var(--accent) 3%, transparent), transparent 60%),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Inter Tight', system-ui, -apple-system, sans-serif;
+  font-feature-settings:"cv11","ss01";
+  -webkit-font-smoothing:antialiased;
+  line-height:1.6;
+  min-height:100vh;
+}
+:root[data-theme="light"] body{
+  background:
+    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
+    var(--bg);
+}
+a{color:inherit;text-decoration:none}
+.shell{max-width:var(--shell-max);margin:0 auto;padding:0 var(--shell-pad-x)}
+
+/* THEME TOGGLE */
+.theme-switcher{position:fixed;top:14px;right:20px;z-index:60}
+.theme-toggle{
+  width:34px;height:34px;border-radius:8px;
+  background:var(--surface);border:1px solid var(--line-2);color:var(--ink-dim);
+  cursor:pointer;font-size:14px;display:grid;place-items:center;
+  box-shadow:var(--shadow-sm);font-family:inherit;transition:color .15s ease, border-color .15s ease;
+}
+.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.theme-toggle .tt-moon{display:inline}
+.theme-toggle .tt-sun{display:none}
+:root[data-theme="light"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="light"] .theme-toggle .tt-moon{display:none}
+
+/* TOP BAR (identical to landing) */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px var(--shell-pad-x);
+  max-width:var(--shell-max);margin:0 auto;
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 84%, transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.01em;font-size:15px;color:var(--ink)}
+.brand-mark{
+  width:24px;height:24px;border-radius:6px;
+  background:var(--accent);
+  display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+}
+.brand-word b{font-weight:600}
+.topbar-right{display:flex;gap:18px;align-items:center;font-size:13px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
+.topbar-right a{color:var(--ink-dim);transition:color .15s ease}
+.topbar-right a:hover{color:var(--ink)}
+
+/* PAGE */
+main{padding:clamp(40px,7vh,80px) 0 80px}
+.page-head{margin-bottom:40px}
+.kicker{
+  display:inline-block;font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--ink-mute);margin-bottom:18px;
+  padding:5px 10px;border:1px solid var(--line);border-radius:6px;
+  background:color-mix(in srgb, var(--surface) 60%, transparent);
+}
+h1.page-title{
+  font-family:'Fraunces', 'Source Serif 4', Georgia, serif;
+  font-weight:400;
+  font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;
+  font-size:clamp(32px,4.2vw,52px);
+  line-height:1.06;
+  letter-spacing:-0.02em;
+  margin:0 0 16px;
+  color:var(--ink);
+}
+h1.page-title em{font-style:italic;color:var(--accent);font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0}
+.page-sub{
+  color:var(--ink-dim);font-size:16px;line-height:1.6;
+  max-width:60ch;margin:0 0 8px;
+}
+
+/* INSTRUCTIONS — small, one compact row of tips */
+.tips{
+  display:grid;grid-template-columns:repeat(3, minmax(0,1fr));gap:12px;
+  margin:28px 0 36px;
+}
+.tip{
+  display:flex;gap:10px;align-items:flex-start;
+  padding:12px 14px;border:1px solid var(--line);border-radius:10px;
+  background:var(--panel);backdrop-filter:blur(8px);
+  box-shadow:var(--shadow-sm);
+}
+.tip-num{
+  flex:0 0 auto;
+  width:22px;height:22px;border-radius:6px;
+  background:var(--accent-3);color:var(--accent);
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+  display:grid;place-items:center;
+}
+.tip-text{font-size:12.5px;color:var(--ink-dim);line-height:1.45}
+.tip-text strong{color:var(--ink);font-weight:600}
+
+/* INPUT GRID */
+.input-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:20px;
+  margin-bottom:28px;
+}
+.input-card{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:18px 18px 12px;display:flex;flex-direction:column;gap:10px;
+  backdrop-filter:blur(8px);box-shadow:var(--shadow-sm);
+  transition:border-color .15s ease, box-shadow .15s ease;
+}
+.input-card:focus-within{border-color:color-mix(in srgb, var(--accent) 50%, var(--line-2));box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent), var(--shadow-sm)}
+.input-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.input-tag{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:24px;height:24px;border-radius:6px;
+  font-weight:600;font-size:11.5px;font-family:'JetBrains Mono',monospace;
+}
+.input-tag.a{background:var(--good-3);color:var(--good);border:1px solid color-mix(in srgb, var(--good) 30%, transparent)}
+.input-tag.b{background:var(--accent-3);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
+.input-label{font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-0.005em}
+.input-hint{font-size:11px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:0.03em}
+.input-hint.warn{color:var(--accent)}
+
+/* Soft-warning banner shown above the submit button. Non-blocking. */
+.warn-banner{
+  display:none;margin:14px 0 0;padding:10px 14px;border-radius:12px;
+  background:color-mix(in srgb, var(--accent) 10%, transparent);
+  border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  color:var(--ink);font-size:13px;line-height:1.5;
+}
+.warn-banner.on{display:block}
+.warn-banner strong{color:var(--accent);font-weight:600}
+.warn-banner ul{margin:6px 0 0;padding-left:18px}
+.warn-banner li{margin:2px 0}
+.warn-banner .warn-ack{
+  margin-top:8px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-dim);
+}
+textarea{
+  width:100%;min-height:260px;resize:vertical;
+  background:transparent;border:none;outline:none;
+  color:var(--ink);font-family:inherit;font-size:14.5px;line-height:1.55;
+  padding:4px 0;
+}
+textarea::placeholder{color:var(--ink-mute);opacity:0.7}
+
+/* ACTION ROW */
+.action-row{
+  display:flex;align-items:center;justify-content:space-between;gap:16px;
+  padding:18px 0;border-top:1px solid var(--line);
+  flex-wrap:wrap;
+}
+.action-meta{font-size:12px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
+.action-meta .dot{width:5px;height:5px;border-radius:50%;background:var(--good);display:inline-block;margin-right:6px;vertical-align:middle}
+.action-btns{display:flex;gap:12px;align-items:center}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 20px;border-radius:8px;
+  font-weight:500;font-size:14px;letter-spacing:-0.005em;
+  transition:all .15s ease;cursor:pointer;border:none;
+  font-family:inherit;
+}
+.btn-primary{ background:var(--accent);color:#fff; box-shadow:var(--shadow-md); }
+.btn-primary:hover{ background:color-mix(in srgb, var(--accent) 88%, black);transform:translateY(-1px) }
+.btn-primary:disabled{ background:color-mix(in srgb, var(--accent) 40%, var(--bg-3));cursor:not-allowed;opacity:0.6;transform:none }
+.btn-ghost{
+  background:var(--surface);color:var(--ink-dim);border:1px solid var(--line-2);
+  box-shadow:var(--shadow-sm);
+}
+.btn-ghost:hover{color:var(--ink);border-color:var(--accent)}
+
+.error-banner{
+  display:none;margin:14px 0 0;padding:12px 14px;
+  border:1px solid color-mix(in srgb, var(--accent) 45%, var(--line-2));
+  border-radius:10px;
+  background:color-mix(in srgb, var(--accent) 8%, var(--surface));
+  color:var(--ink);font-size:13px;
+}
+.error-banner.on{display:block}
+.error-banner code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent)}
+
+/* INK BLOT (same visual language as other pages) */
+.ink-blot{
+  position:fixed; top:0; left:0;
+  width:20px; height:20px; border-radius:50%;
+  background: var(--accent);
+  pointer-events:none; z-index:9999;
+  transform: translate(-50%, -50%) scale(0);
+  transform-origin: center; transition: transform .85s cubic-bezier(0.7, 0, 0.25, 1), opacity .6s ease;
+  will-change: transform, opacity;
+}
+.ink-blot.on{ transform: translate(-50%, -50%) scale(160); }
+@media (prefers-reduced-motion: reduce){ .ink-blot{ transition:none !important; } }
+
+/* FOOTER */
+.footer{border-top:1px solid var(--line);padding:28px 0;color:var(--ink-mute);font-size:11.5px;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
+.footer .shell{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.footer a{color:var(--ink-mute)}
+.footer a:hover{color:var(--accent)}
+
+/* RESPONSIVE */
+@media (max-width: 860px){
+  .input-grid{grid-template-columns:1fr;gap:16px}
+  .tips{grid-template-columns:1fr;gap:8px}
+  textarea{min-height:200px}
+}
+</style>
+</head>
+<body>
+<div class="theme-switcher">
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle light/dark"><span class="tt-sun">☀</span><span class="tt-moon">☾</span></button>
+</div>
+
+<div class="ink-blot" id="inkBlot" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a href="./index.html" class="brand">
+    <span class="brand-mark">B</span>
+    <span class="brand-word">Brain<b>Diff</b></span>
+  </a>
+  <div class="topbar-right">
+    <a href="./index.html">← back</a>
+  </div>
+</header>
+
+<main class="shell">
+  <div class="page-head">
+    <div class="kicker">New comparison</div>
+    <h1 class="page-title">Paste two versions. See where they <em>diverge.</em></h1>
+    <p class="page-sub">BrainDiff will encode each text through TRIBE v2 and surface the cortical contrast across seven mapped systems.</p>
+  </div>
+
+  <div class="tips">
+    <div class="tip">
+      <span class="tip-num">1</span>
+      <span class="tip-text"><strong>Same topic, two takes.</strong> Works best when both texts are trying to solve the same communication problem.</span>
+    </div>
+    <div class="tip">
+      <span class="tip-num">2</span>
+      <span class="tip-text"><strong>A few sentences up to 5,000 characters.</strong> Very short inputs produce less reliable contrasts.</span>
+    </div>
+    <div class="tip">
+      <span class="tip-num">3</span>
+      <span class="tip-text"><strong>Give it time.</strong> Most runs finish in 6 to 12 minutes on the population-average model.</span>
+    </div>
+  </div>
+
+  <form id="compareForm" autocomplete="off">
+    <div class="input-grid">
+      <div class="input-card">
+        <div class="input-head">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="input-tag a">A</span>
+            <span class="input-label">Version A</span>
+          </div>
+          <span class="input-hint" id="countA">0 / 5000</span>
+        </div>
+        <textarea id="textA" name="text_a" maxlength="5000" spellcheck="true"
+          placeholder="Paste the first version here — the calmer, more observational take."></textarea>
+      </div>
+      <div class="input-card">
+        <div class="input-head">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="input-tag b">B</span>
+            <span class="input-label">Version B</span>
+          </div>
+          <span class="input-hint" id="countB">0 / 5000</span>
+        </div>
+        <textarea id="textB" name="text_b" maxlength="5000" spellcheck="true"
+          placeholder="Paste the second version — the sharper, more personal take."></textarea>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <div class="action-meta">
+        <span><span class="dot"></span>TRIBE v2 · Meta FAIR</span>
+        &nbsp;·&nbsp;
+        <span>fsaverage5 · 20,484 verts</span>
+        &nbsp;·&nbsp;
+        <span>7 mapped systems</span>
+      </div>
+      <div class="action-btns">
+        <a href="./index.html" class="btn btn-ghost">Cancel</a>
+        <button id="submitBtn" type="submit" class="btn btn-primary" disabled>
+          Compare <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+    <div class="warn-banner" id="warnBanner" role="status" aria-live="polite"></div>
+    <div class="error-banner" id="errorBanner" role="alert" aria-live="polite"></div>
+  </form>
+</main>
+
+<footer class="footer">
+  <div class="shell">
+    <span>BrainDiff · cortical comparison for written content</span>
+    <span>v2 · April 2026 · <a href="#">method</a> · <a href="#">github</a></span>
+  </div>
+</footer>
+
+<script>
+function toggleTheme(){
+  var r=document.documentElement;
+  var next=r.getAttribute('data-theme')==='light'?'dark':'light';
+  if(next==='light') r.setAttribute('data-theme','light');
+  else r.removeAttribute('data-theme');
+  try{localStorage.setItem('braindiff-theme',next);}catch(e){}
+}
+
+(function(){
+  const MAX = 5000;
+  const MIN = 1;
+  const a = document.getElementById('textA');
+  const b = document.getElementById('textB');
+  const ca = document.getElementById('countA');
+  const cb = document.getElementById('countB');
+  const btn = document.getElementById('submitBtn');
+  const form = document.getElementById('compareForm');
+  const err = document.getElementById('errorBanner');
+  const warn = document.getElementById('warnBanner');
+  const REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function updateCount(ta, out){
+    const n = ta.value.length;
+    out.textContent = n + ' / ' + MAX;
+    out.classList.toggle('warn', n >= MAX - 50);
+  }
+
+  // Canonical soft-warning rules — mirror of KNOWN_FAILURE_MODES.md §1.
+  //   severity: 'hard' blocks submit. 'soft' shows a warning but submit is allowed.
+  //   check(A, B) → true if the rule fires.
+  function words(s){ return s.trim().split(/\s+/).filter(Boolean); }
+  function letters(s){ return (s.match(/[A-Za-z]/g) || []).length; }
+  function nonSpace(s){ return (s.match(/\S/g) || []).length; }
+  function urlChars(s){
+    // Chars contained in any URL-ish token. Approximate but stable.
+    const m = s.match(/https?:\/\/\S+/gi) || [];
+    let total = 0;
+    for (const u of m) total += u.length;
+    return total;
+  }
+  function sameText(a, b){
+    const norm = function(s){ return s.replace(/\s+/g, ' ').trim(); };
+    return norm(a) === norm(b) && norm(a).length > 0;
+  }
+  function latinRatio(s){
+    const ns = nonSpace(s);
+    if (ns === 0) return 1; // empty → don't flag
+    return letters(s) / ns;
+  }
+
+  const RULES = [
+    { code: 'EMPTY',         sev: 'hard',
+      check: function(A, B){ return A.trim().length === 0 || B.trim().length === 0; },
+      copy:  'Both versions need some text.' },
+    { code: 'OVER_LIMIT',    sev: 'hard',
+      check: function(A, B){ return A.length > MAX || B.length > MAX; },
+      copy:  'Max 5,000 characters per version.' },
+    { code: 'TOO_SHORT',     sev: 'soft',
+      check: function(A, B){
+        const wA = words(A).length, wB = words(B).length;
+        return A.trim().length < 15 || B.trim().length < 15 || wA < 3 || wB < 3;
+      },
+      copy:  'Very short text produces noisy contrasts. Add a couple more sentences.' },
+    { code: 'LIGHT',         sev: 'soft',
+      check: function(A, B){
+        const wA = words(A).length, wB = words(B).length;
+        // Only fire if we didn't already fire TOO_SHORT.
+        if (A.trim().length < 15 || B.trim().length < 15 || wA < 3 || wB < 3) return false;
+        return wA <= 8 || wB <= 8;
+      },
+      copy:  'Short inputs work but amplify randomness — aim for 15+ words per side.' },
+    { code: 'LENGTH_SKEW',   sev: 'soft',
+      check: function(A, B){
+        const la = A.trim().length, lb = B.trim().length;
+        if (la < 10 || lb < 10) return false;
+        const hi = Math.max(la, lb), lo = Math.min(la, lb);
+        return hi / lo >= 10;
+      },
+      copy:  'One version is much longer than the other — the contrast will be length-biased.' },
+    { code: 'IDENTICAL',     sev: 'soft',
+      check: function(A, B){ return sameText(A, B); },
+      copy:  'Both versions are identical — you will get an all-zero contrast.' },
+    { code: 'NON_LATIN',     sev: 'soft',
+      check: function(A, B){
+        // Only flag when there's enough text to judge.
+        if (A.trim().length < 20 || B.trim().length < 20) return false;
+        return latinRatio(A) < 0.3 || latinRatio(B) < 0.3;
+      },
+      copy:  'The model\u2019s speech step is locked to English. Non-English inputs transcribe poorly.' },
+    { code: 'LINK_HEAVY',    sev: 'soft',
+      check: function(A, B){
+        const rA = A.trim().length ? urlChars(A) / A.trim().length : 0;
+        const rB = B.trim().length ? urlChars(B) / B.trim().length : 0;
+        return rA > 0.25 || rB > 0.25;
+      },
+      copy:  'URLs get read aloud letter-by-letter — the contrast may not mean much.' },
+    { code: 'NO_LETTERS',    sev: 'soft',
+      check: function(A, B){
+        if (A.trim().length < 5 && B.trim().length < 5) return false;
+        return (A.trim().length >= 5 && letters(A) === 0) ||
+               (B.trim().length >= 5 && letters(B) === 0);
+      },
+      copy:  'No words to speak — the TTS step will produce silence.' },
+    { code: 'NO_SENTENCES',  sev: 'soft',
+      check: function(A, B){
+        const wA = words(A).length, wB = words(B).length;
+        const termA = /[.!?]/.test(A), termB = /[.!?]/.test(B);
+        return (wA > 40 && !termA) || (wB > 40 && !termB);
+      },
+      copy:  'Long text with no sentence breaks may throw off word alignment.' },
+  ];
+
+  function evaluate(){
+    const A = a.value, B = b.value;
+    const hits = [];
+    for (const r of RULES){
+      try { if (r.check(A, B)) hits.push(r); } catch(_){}
+    }
+    return hits;
+  }
+
+  function renderWarnings(hits){
+    const soft = hits.filter(function(h){ return h.sev === 'soft'; });
+    if (!soft.length){ warn.classList.remove('on'); warn.innerHTML = ''; return; }
+    const body = [
+      '<strong>Heads-up before you run this:</strong>',
+      '<ul>' + soft.map(function(h){ return '<li>' + h.copy + ' <span style="color:var(--ink-mute);font-family:\'JetBrains Mono\',monospace;font-size:11.5px">· ' + h.code + '</span></li>'; }).join('') + '</ul>',
+      '<div class="warn-ack">You can still run the comparison — results will just be noisier.</div>'
+    ].join('');
+    warn.innerHTML = body;
+    warn.classList.add('on');
+  }
+
+  function canSubmit(){
+    const la = a.value.trim().length;
+    const lb = b.value.trim().length;
+    if (la < MIN || la > MAX || lb < MIN || lb > MAX) return false;
+    // Any hard rule blocks submission.
+    const hits = evaluate();
+    return !hits.some(function(h){ return h.sev === 'hard'; });
+  }
+
+  function refresh(){
+    updateCount(a, ca);
+    updateCount(b, cb);
+    renderWarnings(evaluate());
+    btn.disabled = !canSubmit();
+  }
+  a.addEventListener('input', refresh);
+  b.addEventListener('input', refresh);
+  a.addEventListener('blur', refresh);
+  b.addEventListener('blur', refresh);
+  refresh();
+
+  function showError(msg, code){
+    err.innerHTML = '';
+    const t = document.createTextNode(msg);
+    err.appendChild(t);
+    if (code){
+      err.appendChild(document.createTextNode(' · '));
+      const c = document.createElement('code');
+      c.textContent = code;
+      err.appendChild(c);
+    }
+    err.classList.add('on');
+  }
+  function hideError(){ err.classList.remove('on'); err.textContent = ''; }
+
+  async function start(){
+    hideError();
+    if (!canSubmit()) return;
+    btn.disabled = true;
+    const originalLabel = btn.innerHTML;
+    btn.innerHTML = 'Starting…';
+    const payload = { text_a: a.value, text_b: b.value };
+    let job;
+    try{
+      const res = await fetch('/api/diff/start', {
+        method:'POST',
+        headers:{'content-type':'application/json'},
+        body: JSON.stringify(payload),
+      });
+      if (!res.ok){
+        let detail = '';
+        try { detail = JSON.stringify((await res.json()).detail || ''); } catch(_){}
+        showError('Could not start the comparison. ' + detail, 'HTTP ' + res.status);
+        btn.innerHTML = originalLabel;
+        btn.disabled = false;
+        return;
+      }
+      job = await res.json();
+    } catch (e){
+      showError('Network error reaching the BrainDiff API.', String(e && e.message || e));
+      btn.innerHTML = originalLabel;
+      btn.disabled = false;
+      return;
+    }
+    // Stash the two texts so the results page can render the A/B recall card
+    try {
+      sessionStorage.setItem('braindiff:texts:' + job.job_id, JSON.stringify({
+        a: a.value, b: b.value,
+      }));
+    } catch(_){}
+
+    const go = '/run.html?job=' + encodeURIComponent(job.job_id);
+    if (REDUCE){ window.location.href = go; return; }
+    const r = btn.getBoundingClientRect();
+    const cx = r.left + r.width/2;
+    const cy = r.top + r.height/2;
+    const blot = document.getElementById('inkBlot');
+    blot.style.left = cx + 'px';
+    blot.style.top  = cy + 'px';
+    requestAnimationFrame(function(){
+      blot.classList.add('on');
+      setTimeout(function(){ window.location.href = go; }, 760);
+    });
+  }
+
+  form.addEventListener('submit', function(e){
+    e.preventDefault();
+    start();
+  });
+})();
+</script>
+</body>
+</html>

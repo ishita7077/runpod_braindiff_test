@@ -1,0 +1,963 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BrainDiff — cortical comparison for written content</title>
+<meta name="description" content="A research experiment. Cortical contrast viewer built on Meta FAIR's TRIBE v2 — see how two pieces of writing land in the same population-average brain." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>(function(){try{var t=localStorage.getItem('braindiff-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<style>
+/* ============================================================
+   BrainDiff · tokens
+   Dark is default. Light is opt-in via data-theme="light".
+   Vermillion (B-stronger) + slate blue (A-stronger) — Nature-journal diverging.
+   ============================================================ */
+:root{
+  color-scheme:dark;
+  --bg:#0b0c0f;
+  --bg-2:#101116;
+  --bg-3:#15171c;
+  --surface:#15171c;
+  --panel:rgba(20,22,28,0.72);
+  --panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07);
+  --line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db;
+  --ink-dim:#b6b1a6;
+  --ink-mute:#7f7a70;
+  --accent:#e04a2e;
+  --accent-2:#f27455;
+  --accent-3:rgba(224,74,46,0.12);
+  --good:#6a97c9;
+  --good-2:#8db2d4;
+  --good-3:rgba(106,151,201,0.12);
+  --brain-stage:#07080b;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+  --shell-pad-x:clamp(20px,4vw,56px);
+  --shell-max:1200px;
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f7f4ec;
+  --bg-2:#efeadf;
+  --bg-3:#e7e2d4;
+  --surface:#ffffff;
+  --panel:#ffffff;
+  --panel-2:#f1ecde;
+  --line:#e2ddcf;
+  --line-2:#cbc5b4;
+  --ink:#17171a;
+  --ink-dim:#3d3d42;
+  --ink-mute:#77736b;
+  --accent:#c1272d;
+  --accent-2:#d94a4e;
+  --accent-3:#f8e9e6;
+  --good:#2a5583;
+  --good-2:#4a78ab;
+  --good-3:#e6edf6;
+  --brain-stage:#0a0c10;
+  --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
+  --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+    radial-gradient(800px 500px at 50% 50%, color-mix(in srgb, var(--accent) 3%, transparent), transparent 60%),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Inter Tight', system-ui, -apple-system, sans-serif;
+  font-feature-settings:"cv11","ss01";
+  -webkit-font-smoothing:antialiased;
+  line-height:1.6;
+}
+:root[data-theme="light"] body{
+  background:
+    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
+    var(--bg);
+}
+a{color:inherit;text-decoration:none}
+.shell{max-width:var(--shell-max);margin:0 auto;padding:0 var(--shell-pad-x)}
+
+/* THEME TOGGLE */
+.theme-switcher{position:fixed;top:14px;right:20px;z-index:60}
+.theme-toggle{
+  width:34px;height:34px;border-radius:8px;
+  background:var(--surface);border:1px solid var(--line-2);color:var(--ink-dim);
+  cursor:pointer;font-size:14px;display:grid;place-items:center;
+  box-shadow:var(--shadow-sm);font-family:inherit;transition:color .15s ease, border-color .15s ease;
+}
+.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.theme-toggle .tt-moon{display:inline}
+.theme-toggle .tt-sun{display:none}
+:root[data-theme="light"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="light"] .theme-toggle .tt-moon{display:none}
+
+/* TOP BAR */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px var(--shell-pad-x);
+  max-width:var(--shell-max);margin:0 auto;
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 84%, transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.01em;font-size:15px;color:var(--ink)}
+.brand-mark{
+  width:24px;height:24px;border-radius:6px;
+  background:var(--accent);
+  display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+}
+.brand-word b{font-weight:600}
+.nav{display:flex;gap:28px;align-items:center;font-size:13.5px;color:var(--ink-dim)}
+.nav a{transition:color .15s ease}
+.nav a:hover{color:var(--ink)}
+.nav-cta{
+  padding:8px 16px;border:1px solid var(--line-2);border-radius:8px;
+  color:var(--ink);background:var(--surface);
+  font-weight:500;font-size:13px;transition:all .15s ease;box-shadow:var(--shadow-sm);
+}
+.nav-cta:hover{border-color:var(--accent);color:var(--accent)}
+
+/* HERO */
+.hero{padding:clamp(64px,11vh,128px) 0 88px}
+.hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(32px,5vw,80px);align-items:center}
+.kicker{
+  display:inline-block;font-family:'JetBrains Mono',monospace;
+  font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--ink-mute);margin-bottom:24px;
+  padding:5px 10px;border:1px solid var(--line);border-radius:6px;
+  background:color-mix(in srgb, var(--surface) 60%, transparent);
+}
+h1.hero-title{
+  font-family:'Fraunces', 'Source Serif 4', Georgia, serif;
+  font-weight:400;
+  font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;
+  font-size:clamp(40px,5.2vw,64px);
+  line-height:1.04;
+  letter-spacing:-0.022em;
+  margin:0 0 22px;
+  color:var(--ink);
+}
+h1.hero-title em{font-style:italic;color:var(--accent);font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0}
+.hero-sub{
+  font-size:clamp(15.5px,1.25vw,18px);
+  color:var(--ink-dim);
+  max-width:48ch;line-height:1.6;margin:0 0 30px;
+}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px}
+.btn{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:12px 20px;border-radius:8px;
+  font-weight:500;font-size:14px;letter-spacing:-0.005em;
+  transition:all .15s ease;cursor:pointer;border:none;
+  font-family:inherit;
+}
+.btn-primary{
+  background:var(--accent);color:#fff;
+  box-shadow:var(--shadow-md);
+}
+.btn-primary:hover{background:color-mix(in srgb, var(--accent) 88%, black);transform:translateY(-1px)}
+.btn-ghost{
+  background:var(--surface);color:var(--ink-dim);border:1px solid var(--line-2);
+  box-shadow:var(--shadow-sm);
+}
+.btn-ghost:hover{color:var(--ink);border-color:var(--accent)}
+.meta-row{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--ink-mute);flex-wrap:wrap;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
+.meta-row .dot{width:5px;height:5px;border-radius:50%;background:var(--good);display:inline-block;margin-right:6px;vertical-align:middle}
+.hero-stage{
+  position:relative;height:clamp(420px,55vh,560px);
+  border-radius:16px;overflow:hidden;
+  background:
+    radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--good) 18%, transparent), transparent 60%),
+    linear-gradient(180deg, #0d1018, var(--brain-stage));
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-md);
+}
+canvas.brain-canvas{width:100%;height:100%;display:block}
+.hero-stage-note{
+  position:absolute;bottom:14px;left:16px;right:16px;
+  font-size:10.5px;color:#8a857b;font-family:'JetBrains Mono',monospace;
+  letter-spacing:0.06em;display:flex;justify-content:space-between;align-items:center;
+}
+.hero-stage-note .live{color:#8db2d4}
+.hero-stage-note .live::before{content:"●";margin-right:5px;animation:pulse 1.6s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+/* SECTIONS */
+.section{padding:88px 0;border-top:1px solid var(--line)}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+h2.section-title{
+  font-family:'Fraunces', 'Source Serif 4', Georgia, serif;font-weight:400;
+  font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;
+  font-size:clamp(30px,3.1vw,40px);line-height:1.08;letter-spacing:-0.02em;
+  margin:0 0 14px;max-width:22ch;color:var(--ink);
+}
+h2.section-title em{font-style:italic;color:var(--accent);font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0}
+.section-lead{color:var(--ink-dim);max-width:58ch;margin:0 0 44px;font-size:16px;line-height:1.65}
+
+/* LIVE COMPARE */
+.compare-grid{display:grid;grid-template-columns:260px 1fr 300px;gap:22px;align-items:stretch}
+.compare-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:12px;box-shadow:var(--shadow-sm);backdrop-filter:blur(8px)}
+.compare-card h3{margin:0;font-size:14px;font-weight:600;letter-spacing:-0.005em;color:var(--ink)}
+.compare-card .sub{font-size:12px;color:var(--ink-mute);margin:0;font-family:'JetBrains Mono',monospace;letter-spacing:0.03em}
+.compare-tag{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;font-weight:600;font-size:11px;font-family:'JetBrains Mono',monospace}
+.compare-tag.a{background:var(--good-3);color:var(--good);border:1px solid color-mix(in srgb, var(--good) 30%, transparent)}
+.compare-tag.b{background:var(--accent-3);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
+.compare-thumb{height:110px;border-radius:8px;background:linear-gradient(135deg,#14181f,#0c0f14);position:relative;overflow:hidden;display:grid;place-items:center;border:1px solid var(--line)}
+.compare-thumb::before{content:"▶";font-size:18px;color:rgba(255,255,255,0.35)}
+.compare-quote{font-family:'Fraunces', serif;font-variation-settings:"opsz" 48, "SOFT" 0, "WONK" 0;font-style:italic;font-size:14.5px;line-height:1.5;color:var(--ink-dim);margin-top:4px}
+.compare-stage{position:relative;border-radius:14px;border:1px solid var(--line);background:var(--brain-stage);overflow:hidden;min-height:440px;box-shadow:var(--shadow-md)}
+.compare-stage canvas{width:100%;height:100%;display:block}
+.compare-scale{position:absolute;bottom:14px;left:16px;right:16px;display:flex;align-items:center;gap:10px;font-size:10.5px;color:#a8a29e;font-family:'JetBrains Mono',monospace;letter-spacing:0.06em}
+.compare-scale .bar{flex:1;height:4px;border-radius:2px;background:linear-gradient(90deg,#527ebd 0%,#2a2d35 45%,#2a2d35 55%,#e04a2e 100%)}
+.readout{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;display:flex;flex-direction:column;gap:14px;box-shadow:var(--shadow-sm);backdrop-filter:blur(8px)}
+.readout h4{margin:0;font-size:13px;font-weight:600;color:var(--ink);font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;text-transform:uppercase}
+.readout-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.readout-row:last-of-type{border-bottom:none}
+.readout-name{flex:1;font-size:13px;color:var(--ink)}
+.readout-sub{font-size:11px;color:var(--ink-mute);margin-top:3px;font-family:'JetBrains Mono',monospace;letter-spacing:0.02em}
+.readout-value{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500}
+.readout-value.pos{color:var(--accent)}
+.readout-value.neg{color:var(--good)}
+.readout-summary{font-size:13px;color:var(--ink-dim);line-height:1.6;padding-top:8px;border-top:1px solid var(--line)}
+.readout-summary em{font-style:italic;font-family:'Fraunces', serif;font-variation-settings:"opsz" 48, "SOFT" 0, "WONK" 0;font-size:14.5px;color:var(--ink)}
+
+/* CASE STUDIES */
+.cases-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.case{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:24px;display:flex;flex-direction:column;gap:14px;
+  transition:border-color .15s ease, transform .2s ease, box-shadow .2s ease;
+  cursor:pointer;box-shadow:var(--shadow-sm);backdrop-filter:blur(8px);
+}
+.case:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-md)}
+.case-kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-mute)}
+.case-title{font-family:'Fraunces', serif;font-variation-settings:"opsz" 96, "SOFT" 0, "WONK" 0;font-size:21px;line-height:1.2;margin:0;color:var(--ink);letter-spacing:-0.01em;font-weight:400}
+.case-pair{display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--ink-dim);line-height:1.55}
+.case-pair .pair-line{display:flex;gap:8px;align-items:flex-start}
+.case-pair .pair-line .tag{flex-shrink:0;width:18px;height:18px;border-radius:4px;display:grid;place-items:center;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;margin-top:1px}
+.case-pair .tag.a{background:var(--good-3);color:var(--good);border:1px solid color-mix(in srgb, var(--good) 30%, transparent)}
+.case-pair .tag.b{background:var(--accent-3);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
+.case-result{font-size:11.5px;color:var(--ink-mute);padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
+.case-result .arrow{color:var(--accent)}
+
+/* LENS */
+.lens-panel{display:grid;grid-template-columns:1fr 1.1fr;gap:40px;align-items:stretch}
+.lens-copy{display:flex;flex-direction:column;gap:14px}
+.lens-list{display:flex;flex-wrap:wrap;gap:7px;margin-top:20px}
+.lens-pill{
+  padding:8px 14px;font-size:13px;border-radius:999px;
+  border:1px solid var(--line-2);background:var(--surface);
+  color:var(--ink-dim);cursor:pointer;transition:all .15s ease;
+  font-family:inherit;
+}
+.lens-pill:hover{border-color:var(--accent);color:var(--ink)}
+.lens-pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.lens-stage{position:relative;border-radius:14px;background:var(--brain-stage);border:1px solid var(--line);overflow:hidden;min-height:420px;box-shadow:var(--shadow-md)}
+.lens-stage canvas{width:100%;height:100%;display:block}
+.lens-note{
+  position:absolute;bottom:16px;left:16px;right:16px;
+  background:rgba(7,8,11,0.82);backdrop-filter:blur(10px);
+  padding:14px 16px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);
+  color:#e8e4db;
+}
+.lens-note .nm{font-size:14px;font-weight:600;color:#e8e4db;margin-bottom:4px}
+.lens-note .rg{font-size:11.5px;color:#a8a29e;margin-bottom:8px;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
+.lens-note .bd{font-size:13px;line-height:1.55;color:#c8c3b8;margin-bottom:8px}
+.lens-note .ct{font-size:11px;color:#8a857b;font-style:italic}
+
+/* METHOD / AUTHOR NOTE */
+.method-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:60px;align-items:start}
+.method-head h2{margin:0 0 16px}
+.method-head .section-lead{margin-bottom:0}
+.method-list{display:flex;flex-direction:column;gap:22px}
+.method-item{padding:20px 22px;border:1px solid var(--line);border-radius:12px;background:var(--panel);backdrop-filter:blur(8px);box-shadow:var(--shadow-sm)}
+.method-num{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--accent);letter-spacing:0.16em;margin-bottom:8px}
+.method-title{font-size:15.5px;font-weight:600;color:var(--ink);margin:0 0 6px;letter-spacing:-0.005em}
+.method-body{font-size:13.5px;color:var(--ink-dim);line-height:1.6;margin:0}
+.method-cite{font-size:11.5px;color:var(--ink-mute);margin-top:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
+
+/* CLOSING */
+.closing{padding:100px 0;border-top:1px solid var(--line)}
+.closing-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:60px;align-items:end}
+.closing-line{font-family:'Fraunces', serif;font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;font-weight:400;font-size:clamp(36px,4.5vw,52px);line-height:1.06;letter-spacing:-0.022em;color:var(--ink);margin:0}
+.closing-line em{font-style:italic;color:var(--accent)}
+.closing-copy{color:var(--ink-dim);font-size:15px;line-height:1.65}
+.closing-copy p{margin:0 0 18px}
+.closing-links{display:flex;gap:22px;flex-wrap:wrap}
+.closing-links a{color:var(--accent);border-bottom:1px solid color-mix(in srgb, var(--accent) 35%, transparent);padding-bottom:2px;font-size:13.5px}
+.closing-links a:hover{border-bottom-color:var(--accent)}
+
+/* FOOTER */
+.footer{border-top:1px solid var(--line);padding:28px 0;color:var(--ink-mute);font-size:11.5px;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
+.footer .shell{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
+.footer a{color:var(--ink-mute)}
+.footer a:hover{color:var(--accent)}
+
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease, transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
+@media (prefers-reduced-motion: reduce){
+  .reveal{opacity:1;transform:none;transition:none}
+}
+
+/* ============================================================
+   LANDING FIRST-PAINT REVEAL (preview-only)
+   - H1 animates word-by-word in from below
+   - Hero stage fades + scales in, with a warm accent glow flash
+   - Kicker, subtitle, CTAs, meta stagger in after H1
+   All gated behind body.landing-reveal. prefers-reduced-motion disables.
+   ============================================================ */
+h1.hero-title .w{
+  display:inline-block; will-change:transform, opacity;
+}
+body.landing-reveal h1.hero-title .w{
+  opacity:0; transform:translateY(14px);
+  animation: bdWordIn 560ms cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
+}
+@keyframes bdWordIn { to { opacity:1; transform:translateY(0); } }
+
+body.landing-reveal .kicker,
+body.landing-reveal .hero-sub,
+body.landing-reveal .cta-row,
+body.landing-reveal .meta-row,
+body.landing-reveal .hero-stage{
+  opacity:0; transform:translateY(10px);
+  animation: bdLandingReveal 620ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+}
+body.landing-reveal .kicker       { animation-delay: 0.10s; }
+body.landing-reveal .hero-stage   { animation-delay: 0.35s; transform:translateY(0) scale(0.975); }
+body.landing-reveal .hero-sub     { animation-delay: 1.25s; }
+body.landing-reveal .cta-row      { animation-delay: 1.45s; }
+body.landing-reveal .meta-row     { animation-delay: 1.65s; }
+@keyframes bdLandingReveal { to { opacity:1; transform:translateY(0) scale(1); } }
+
+/* Subtle warm glow flash behind the hero brain during first paint */
+body.landing-reveal .hero-stage::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background: radial-gradient(ellipse at 62% 38%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%);
+  opacity:0; z-index:2;
+  animation: bdHeroBloom 2.4s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+  animation-delay: 0.40s;
+}
+@keyframes bdHeroBloom {
+  0%   { opacity:0; }
+  45%  { opacity:1; }
+  100% { opacity:0; }
+}
+
+/* CTA ink-blot page transition — expands vermillion wash from the clicked CTA,
+   then holds. Used before navigating to input.html. */
+.ink-blot{
+  position:fixed; top:0; left:0;
+  width:20px; height:20px; border-radius:50%;
+  background: var(--accent);
+  pointer-events:none; z-index:9999;
+  transform: translate(-50%, -50%) scale(0);
+  transform-origin: center; transition: transform .85s cubic-bezier(0.7, 0, 0.25, 1), opacity .6s ease;
+  will-change: transform, opacity;
+}
+.ink-blot.on{ transform: translate(-50%, -50%) scale(160); }
+.ink-blot.fading{ opacity:0; }
+
+/* Demo chrome (preview-only) */
+.demo-chrome{
+  position:fixed; top:58px; right:14px; z-index:70;
+  display:flex; align-items:center; gap:8px;
+  font-family:'JetBrains Mono',monospace; font-size:10.5px;
+  color:var(--ink-mute); letter-spacing:0.08em; text-transform:uppercase;
+  background:var(--surface); border:1px solid var(--line-2);
+  padding:6px 10px; border-radius:8px; box-shadow:var(--shadow-sm);
+}
+.demo-chrome .dot{ width:6px; height:6px; border-radius:50%; background:var(--accent); animation: bdPulseDot 1.6s ease-in-out infinite; }
+.demo-chrome button{
+  background:transparent; border:1px solid var(--line-2); color:var(--ink-dim);
+  font-family:inherit; font-size:10.5px; letter-spacing:0.08em;
+  padding:3px 8px; border-radius:5px; cursor:pointer; text-transform:uppercase;
+}
+.demo-chrome button:hover{ color:var(--accent); border-color:var(--accent); }
+@keyframes bdPulseDot { 50% { opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce){
+  body.landing-reveal h1.hero-title .w,
+  body.landing-reveal .kicker,
+  body.landing-reveal .hero-sub,
+  body.landing-reveal .cta-row,
+  body.landing-reveal .meta-row,
+  body.landing-reveal .hero-stage,
+  body.landing-reveal .hero-stage::before{
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .ink-blot{ transition:none !important; }
+}
+
+/* RESPONSIVE */
+@media (max-width: 960px){
+  .hero-grid{grid-template-columns:1fr;gap:40px}
+  .hero-stage{height:380px}
+  .compare-grid{grid-template-columns:1fr;gap:14px}
+  .cases-grid{grid-template-columns:1fr;gap:12px}
+  .lens-panel{grid-template-columns:1fr;gap:28px}
+  .lens-stage{min-height:320px}
+  .method-grid{grid-template-columns:1fr;gap:32px}
+  .closing-grid{grid-template-columns:1fr;gap:28px}
+  .nav{display:none}
+  .nav-cta{display:inline-flex}
+  .section{padding:56px 0}
+}
+</style>
+</head>
+<body>
+<div class="theme-switcher">
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle light/dark"><span class="tt-sun">☀</span><span class="tt-moon">☾</span></button>
+</div>
+
+<div class="ink-blot" id="inkBlot" aria-hidden="true"></div>
+
+<header class="topbar">
+  <a href="./" class="brand">
+    <span class="brand-mark">B</span>
+    <span class="brand-word">Brain<b>Diff</b></span>
+  </a>
+  <nav class="nav">
+    <a href="#see">See it</a>
+    <a href="#cases">Examples</a>
+    <a href="#systems">Mapped systems</a>
+    <a href="#method">Method</a>
+    <a href="./input.html" class="nav-cta" id="navCta">Open BrainDiff →</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero shell">
+    <div class="hero-grid">
+      <div class="hero-copy reveal">
+        <div class="kicker">A research experiment</div>
+        <h1 class="hero-title">See how two versions<br/>land in <em>the same brain.</em></h1>
+        <p class="hero-sub">BrainDiff compares two pieces of writing by simulating how a population-average cortex responds to each — built on Meta FAIR's TRIBE v2 brain-response model.</p>
+        <div class="cta-row">
+          <a href="./input.html" class="btn btn-primary" id="heroCta">Open a comparison <span>→</span></a>
+          <a href="#method" class="btn btn-ghost">How it works</a>
+        </div>
+        <div class="meta-row">
+          <span><span class="dot"></span>TRIBE v2 · Meta FAIR</span>
+          <span>·</span>
+          <span>20,484 cortical vertices</span>
+          <span>·</span>
+          <span>7 mapped systems</span>
+        </div>
+      </div>
+      <div class="hero-stage reveal">
+        <canvas id="heroBrain" class="brain-canvas"></canvas>
+        <div class="hero-stage-note">
+          <span>fsaverage5 · population-average cortical surface</span>
+          <span class="live">live</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section shell" id="see">
+    <div class="reveal">
+      <div class="section-eyebrow">See it in action</div>
+      <h2 class="section-title">Same idea. Two versions. One brain, two patterns.</h2>
+      <p class="section-lead">A calm informational hook versus a sharper, more personal one. Both say approximately the same thing. The cortex doesn't read them the same way.</p>
+    </div>
+    <div class="compare-grid reveal">
+      <div style="display:flex;flex-direction:column;gap:14px">
+        <div class="compare-card">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="compare-tag a">A</span>
+            <h3>Calm &amp; informative</h3>
+          </div>
+          <p class="compare-quote">"Today I'm going to show you how to save a little money on groceries."</p>
+          <p class="sub">15 sec · slower setup · clearer context</p>
+        </div>
+        <div class="compare-card">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span class="compare-tag b">B</span>
+            <h3>Sharp &amp; personal</h3>
+          </div>
+          <p class="compare-quote">"I tried this for 30 days and my grocery bill dropped by half. Here's exactly how."</p>
+          <p class="sub">15 sec · harder hook · personal stakes</p>
+        </div>
+      </div>
+      <div class="compare-stage">
+        <canvas id="compareBrain" class="brain-canvas"></canvas>
+        <div class="compare-scale">
+          <span>A stronger</span>
+          <div class="bar"></div>
+          <span>B stronger</span>
+        </div>
+      </div>
+      <div class="readout">
+        <h4>Key shifts · B − A</h4>
+        <div class="readout-row">
+          <div class="readout-name">Personal relevance<div class="readout-sub">higher for B</div></div>
+          <div class="readout-value pos">+0.31</div>
+        </div>
+        <div class="readout-row">
+          <div class="readout-name">Gut reaction<div class="readout-sub">higher for B</div></div>
+          <div class="readout-value pos">+0.22</div>
+        </div>
+        <div class="readout-row">
+          <div class="readout-name">Processing effort<div class="readout-sub">lower for B</div></div>
+          <div class="readout-value neg">−0.09</div>
+        </div>
+        <div class="readout-summary">
+          <em>Version B</em> pulls harder on relevance and momentum while asking slightly less of the reader.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section shell" id="cases">
+    <div class="reveal">
+      <div class="section-eyebrow">Examples</div>
+      <h2 class="section-title">Comparisons worth running.</h2>
+      <p class="section-lead">A starter set across short-form content, brand communication, and public-interest messaging. Each opens to the full contrast map.</p>
+    </div>
+    <div class="cases-grid reveal">
+      <article class="case">
+        <div class="case-kicker">Short-form hook</div>
+        <h3 class="case-title">Opening line · calm vs. stakes</h3>
+        <div class="case-pair">
+          <div class="pair-line"><span class="tag a">A</span><span>"Today I'm giving away $100,000."</span></div>
+          <div class="pair-line"><span class="tag b">B</span><span>"If you survive the next 10 minutes, you win $100,000."</span></div>
+        </div>
+        <div class="case-result">
+          <span>+0.42 gut reaction</span>
+          <span class="arrow">view diff →</span>
+        </div>
+      </article>
+      <article class="case">
+        <div class="case-kicker">Kids' media</div>
+        <h3 class="case-title">Opening scene · static vs. motion</h3>
+        <div class="case-pair">
+          <div class="pair-line"><span class="tag a">A</span><span>Generic greeting, hero introduces themselves.</span></div>
+          <div class="pair-line"><span class="tag b">B</span><span>Family in motion, conflict in five seconds.</span></div>
+        </div>
+        <div class="case-result">
+          <span>+0.28 social reasoning</span>
+          <span class="arrow">view diff →</span>
+        </div>
+      </article>
+      <article class="case">
+        <div class="case-kicker">Public health</div>
+        <h3 class="case-title">Health message · fear vs. hope</h3>
+        <div class="case-pair">
+          <div class="pair-line"><span class="tag a">A</span><span>"Smoking kills 480,000 Americans every year."</span></div>
+          <div class="pair-line"><span class="tag b">B</span><span>"Every cigarette you skip gives your lungs a chance to come back."</span></div>
+        </div>
+        <div class="case-result">
+          <span>+0.36 personal relevance</span>
+          <span class="arrow">view diff →</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="section shell" id="systems">
+    <div class="reveal">
+      <div class="section-eyebrow">Mapped systems</div>
+      <h2 class="section-title">Seven cortical systems, one surface.</h2>
+    </div>
+    <div class="lens-panel reveal">
+      <div class="lens-copy">
+        <p class="section-lead" style="margin-bottom:0">Each comparison decomposes into seven brain systems. Each answers a different question. Click a system to see where it lives on the cortex — the same surface you'll see in your results.</p>
+        <div class="lens-list" role="tablist">
+          <button class="lens-pill active" data-key="personal_resonance">Personal relevance</button>
+          <button class="lens-pill" data-key="social_thinking">Social reasoning</button>
+          <button class="lens-pill" data-key="brain_effort">Processing effort</button>
+          <button class="lens-pill" data-key="language_depth">Language depth</button>
+          <button class="lens-pill" data-key="gut_reaction">Gut reaction</button>
+          <button class="lens-pill" data-key="memory_encoding">Memory encoding</button>
+          <button class="lens-pill" data-key="attention_salience">Attention</button>
+        </div>
+      </div>
+      <div class="lens-stage">
+        <canvas id="lensBrain" class="brain-canvas"></canvas>
+        <div class="lens-note">
+          <div class="nm" id="lensNm">Personal relevance</div>
+          <div class="rg" id="lensRg">Medial prefrontal cortex · mPFC</div>
+          <div class="bd" id="lensBd">Tracks whether a message feels like it's about <em>you</em>. Stronger activation here has predicted real-world behaviour change at population scale.</div>
+          <div class="ct" id="lensCt">Falk et al., 2012 · Scholz et al., 2025</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section shell" id="method">
+    <div class="reveal">
+      <div class="section-eyebrow">Method</div>
+      <div class="method-grid">
+        <div class="method-head">
+          <h2 class="section-title" style="margin-bottom:20px">How a <em>BrainDiff</em> is computed.</h2>
+          <p class="section-lead">Every comparison runs through the same three-stage pipeline. The output is a signed cortical contrast — not a score, not a verdict. A map.</p>
+        </div>
+        <div class="method-list">
+          <div class="method-item">
+            <div class="method-num">Stage 1</div>
+            <div class="method-title">Encode each text with TRIBE v2</div>
+            <p class="method-body">Meta FAIR's open brain-response model converts each text into a predicted response pattern across the cortex, trained on fMRI data from 8 subjects viewing hours of naturalistic stimuli.</p>
+            <div class="method-cite">Tang et al., Meta FAIR · 2025</div>
+          </div>
+          <div class="method-item">
+            <div class="method-num">Stage 2</div>
+            <div class="method-title">Project onto fsaverage5 surface</div>
+            <p class="method-body">Both predicted responses are mapped onto the standard 20,484-vertex cortical mesh, then contrasted vertex-by-vertex. Positive values = B stronger, negative = A stronger.</p>
+            <div class="method-cite">HCP MMP1.0 atlas · Glasser et al., 2016</div>
+          </div>
+          <div class="method-item">
+            <div class="method-num">Stage 3</div>
+            <div class="method-title">Decompose into seven systems</div>
+            <p class="method-body">A Bayesian model average assigns each cortical region to one of seven functional systems mapped from the literature. This is where the seven-dimensional readout comes from.</p>
+            <div class="method-cite">Yeo et al., 2011 · Power et al., 2011</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="closing shell">
+    <div class="closing-grid reveal">
+      <p class="closing-line">Not a diagnosis. Not an identity. <em>A lens.</em></p>
+      <div class="closing-copy">
+        <p>BrainDiff models a population-average response to written content for comparison — it does not read minds, assess individuals, or make clinical claims. It's a tool for people who want to see two versions through something other than their own ear.</p>
+        <div class="closing-links">
+          <a href="#method">Method</a>
+          <a href="./input.html">Open BrainDiff</a>
+          <a href="#">Research notes</a>
+          <a href="#">Limits &amp; caveats</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="shell">
+    <span>BrainDiff · cortical comparison for written content</span>
+    <span>v2 · April 2026 · <a href="#">method</a> · <a href="#">github</a></span>
+  </div>
+</footer>
+
+<script>
+function toggleTheme(){
+  var r=document.documentElement;
+  var next=r.getAttribute('data-theme')==='light'?'dark':'light';
+  if(next==='light') r.setAttribute('data-theme','light');
+  else r.removeAttribute('data-theme');
+  try{localStorage.setItem('braindiff-theme',next);}catch(e){}
+}
+
+/* ---------- Landing reveal orchestration (preview only) ---------- */
+(function(){
+  var REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var REVEAL_KEY = 'braindiff-landing-reveal-seen';
+
+  function splitH1(){
+    var h1 = document.querySelector('h1.hero-title');
+    if (!h1 || h1.dataset.split === '1') return;
+    // Walk child nodes, wrap each whitespace-separated word in a span.
+    // Preserve <em>, <br/> and nested element formatting.
+    var out = [];
+    var wordDelay = 0.35; // start after kicker settles
+    function wrapText(text){
+      var parts = text.split(/(\s+)/);
+      return parts.map(function(p){
+        if (!p) return '';
+        if (/^\s+$/.test(p)) return p;
+        var d = (wordDelay).toFixed(2);
+        wordDelay += 0.07;
+        return '<span class="w" style="animation-delay:' + d + 's">' + p + '</span>';
+      }).join('');
+    }
+    function walk(node){
+      var res = '';
+      node.childNodes.forEach(function(c){
+        if (c.nodeType === 3) { res += wrapText(c.nodeValue); }
+        else if (c.nodeType === 1) {
+          if (c.tagName === 'BR') { res += '<br/>'; return; }
+          var clone = c.cloneNode(false);
+          var tag = c.tagName.toLowerCase();
+          var attrs = '';
+          for (var i = 0; i < c.attributes.length; i++){
+            attrs += ' ' + c.attributes[i].name + '="' + c.attributes[i].value + '"';
+          }
+          res += '<' + tag + attrs + '>' + walk(c) + '</' + tag + '>';
+        }
+      });
+      return res;
+    }
+    h1.innerHTML = walk(h1);
+    h1.dataset.split = '1';
+  }
+
+  function runLandingReveal(){
+    splitH1();
+    if (REDUCE) return;
+    document.body.classList.add('landing-reveal');
+    // auto-remove after all delays finish (~2.6s) so subsequent scroll reveals aren't interfered with
+    setTimeout(function(){ document.body.classList.remove('landing-reveal'); }, 2800);
+  }
+
+  window.replayLandingReveal = function(){
+    // Rerun: strip and re-add class to restart keyframes
+    document.body.classList.remove('landing-reveal');
+    // force reflow
+    void document.body.offsetWidth;
+    runLandingReveal();
+  };
+
+  var forceReveal = new URLSearchParams(location.search).get('reveal') === '1';
+  var hasSeen = (function(){ try { return sessionStorage.getItem(REVEAL_KEY) === '1'; } catch(e){ return false; } })();
+
+  document.addEventListener('DOMContentLoaded', function(){
+    if (forceReveal || !hasSeen){
+      requestAnimationFrame(function(){ requestAnimationFrame(runLandingReveal); });
+      try { sessionStorage.setItem(REVEAL_KEY, '1'); } catch(e){}
+    } else {
+      splitH1(); // still wrap words so replay works
+    }
+  });
+
+  /* ---------- CTA ink-blot page transition ---------- */
+  document.addEventListener('click', function(e){
+    var a = e.target.closest('#heroCta, #navCta');
+    if (!a) return;
+    if (REDUCE) return; // let default navigation happen
+    e.preventDefault();
+    var href = a.getAttribute('href');
+    var r = a.getBoundingClientRect();
+    var cx = r.left + r.width / 2;
+    var cy = r.top + r.height / 2;
+    var blot = document.getElementById('inkBlot');
+    blot.style.left = cx + 'px';
+    blot.style.top  = cy + 'px';
+    requestAnimationFrame(function(){
+      blot.classList.add('on');
+      setTimeout(function(){ window.location.href = href; }, 760);
+    });
+  });
+})();
+</script>
+
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<script type="module">
+import * as THREE from "three";
+
+function mountBrain(canvas, opts={}){
+  const {
+    rotation=true,
+    rotationSpeed=0.18,
+    diff=false,
+    highlight=null,
+    dpr=Math.min(window.devicePixelRatio||1, 2),
+  } = opts;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
+  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
+  renderer.setPixelRatio(dpr);
+
+  scene.add(new THREE.AmbientLight(0xe0dccf, 0.3));
+  const key = new THREE.DirectionalLight(0xffffff, 1.05);
+  key.position.set(5, 9, 7);
+  scene.add(key);
+  const fill = new THREE.DirectionalLight(0xaec3dc, 0.45);
+  fill.position.set(-4, 2, 6);
+  scene.add(fill);
+  const rim = new THREE.DirectionalLight(0x4a78ab, 0.4);
+  rim.position.set(-6, -2, -8);
+  scene.add(rim);
+
+  const geom = new THREE.SphereGeometry(1, 96, 72);
+  const pos = geom.attributes.position;
+  for(let i=0;i<pos.count;i++){
+    const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
+    const bump = 0.06*Math.sin(6*x)*Math.cos(4*y) + 0.04*Math.sin(5*z+1.1);
+    const len=Math.sqrt(x*x+y*y+z*z);
+    pos.setXYZ(i, x*(1+bump/len), y*(1+bump*0.6/len), z*(1+bump/len));
+  }
+  geom.computeVertexNormals();
+
+  // Base tone: cool pewter that reads on dark stage
+  const count = pos.count;
+  const colors = new Float32Array(count*3);
+  const baseR = 0.48, baseG = 0.50, baseB = 0.55;
+
+  // Encoding palette (NEVER change without updating scale-bar gradient)
+  const B_R = 0.88, B_G = 0.29, B_B = 0.18;  // vermillion #e04a2e
+  const A_R = 0.31, A_G = 0.49, A_B = 0.74;  // slate blue #4f7eb9
+
+  function mixV(a,b,t){return a+(b-a)*t}
+
+  function paint(mode, key){
+    for(let i=0;i<count;i++){
+      const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
+      let r=baseR,g=baseG,b=baseB;
+      if(mode==='diff'){
+        const t = 0.7*x + 0.4*y - 0.3*z;
+        if(t>0){ const u=Math.min(t/0.9,1)**1.3; r=mixV(baseR,B_R,u); g=mixV(baseG,B_G,u); b=mixV(baseB,B_B,u); }
+        else { const u=Math.min(-t/0.9,1)**1.3; r=mixV(baseR,A_R,u); g=mixV(baseG,A_G,u); b=mixV(baseB,A_B,u); }
+      } else if(mode==='highlight' && key){
+        const region = REGIONS[key];
+        if(region){
+          const d = region.dir;
+          const dot = x*d.x + y*d.y + z*d.z;
+          if(dot > region.threshold){
+            const u = Math.min((dot-region.threshold)/0.25, 1);
+            r=mixV(baseR,B_R,u); g=mixV(baseG,B_G,u); b=mixV(baseB,B_B,u);
+          }
+        }
+      }
+      colors[i*3]=r; colors[i*3+1]=g; colors[i*3+2]=b;
+    }
+    geom.setAttribute('color', new THREE.BufferAttribute(colors,3));
+    geom.attributes.color.needsUpdate = true;
+  }
+
+  const REGIONS = {
+    personal_resonance:{dir:new THREE.Vector3(0.2,0.5,0.84).normalize(), threshold:0.35},
+    social_thinking:{dir:new THREE.Vector3(-0.9,-0.1,0.3).normalize(), threshold:0.3},
+    brain_effort:{dir:new THREE.Vector3(0.85,0.4,0.1).normalize(), threshold:0.25},
+    language_depth:{dir:new THREE.Vector3(-0.9,0.0,-0.2).normalize(), threshold:0.28},
+    gut_reaction:{dir:new THREE.Vector3(0.0,-0.5,0.8).normalize(), threshold:0.3},
+    memory_encoding:{dir:new THREE.Vector3(-0.75,0.25,0.5).normalize(), threshold:0.28},
+    attention_salience:{dir:new THREE.Vector3(0.15,0.85,0.2).normalize(), threshold:0.3},
+  };
+
+  const material = new THREE.MeshPhysicalMaterial({
+    color: 0xffffff,
+    vertexColors: true,
+    metalness: 0.08,
+    roughness: 0.56,
+    clearcoat: 0.25,
+    clearcoatRoughness: 0.55,
+    reflectivity: 0.4,
+    sheen: 0.22,
+    sheenColor: new THREE.Color(0xcad3df),
+    sheenRoughness: 0.66,
+    emissive: 0x0a0e14,
+    emissiveIntensity: 0.2,
+  });
+
+  const root = new THREE.Group();
+  const leftHemi = new THREE.Mesh(geom, material);
+  leftHemi.scale.set(0.9, 1.25, 1.05);
+  leftHemi.position.set(-0.48, 0, 0);
+  const rightHemi = new THREE.Mesh(geom.clone(), material);
+  rightHemi.scale.set(0.9, 1.25, 1.05);
+  rightHemi.position.set(0.48, 0, 0);
+  root.add(leftHemi, rightHemi);
+  scene.add(root);
+
+  paint(diff ? 'diff' : (highlight ? 'highlight' : 'plain'), highlight);
+
+  camera.position.set(0, 0, 4.6);
+  camera.lookAt(0,0,0);
+
+  function resize(){
+    const r = canvas.getBoundingClientRect();
+    const w = Math.max(1, Math.floor(r.width));
+    const h = Math.max(1, Math.floor(r.height));
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  const ro = new ResizeObserver(resize);
+  ro.observe(canvas.parentElement);
+
+  const t0 = performance.now();
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let raf = 0;
+  function tick(now){
+    raf = requestAnimationFrame(tick);
+    const t = (now - t0) * 0.001;
+    if(rotation && !reduced){
+      root.rotation.y = -0.42 + Math.sin(t*rotationSpeed)*0.08 + t*0.12;
+      root.rotation.x = -0.05 + Math.sin(t*rotationSpeed*0.8+0.9)*0.04;
+    }
+    renderer.render(scene, camera);
+  }
+  raf = requestAnimationFrame(tick);
+
+  return {
+    setHighlight(k){ paint('highlight', k); },
+    dispose(){ cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); geom.dispose(); material.dispose(); }
+  };
+}
+
+const heroCanvas = document.getElementById('heroBrain');
+const compareCanvas = document.getElementById('compareBrain');
+const lensCanvas = document.getElementById('lensBrain');
+
+if(heroCanvas) mountBrain(heroCanvas, { rotation:true, rotationSpeed:0.22 });
+if(compareCanvas) mountBrain(compareCanvas, { rotation:true, rotationSpeed:0.14, diff:true });
+
+let lensCtrl = null;
+if(lensCanvas) lensCtrl = mountBrain(lensCanvas, { rotation:true, rotationSpeed:0.12, highlight:'personal_resonance' });
+
+const LENS_COPY = {
+  personal_resonance:{ nm:"Personal relevance", rg:"Medial prefrontal cortex · mPFC", bd:"Tracks whether a message feels like it's about <em>you</em>. Stronger activation here has predicted real-world behaviour change at population scale.", ct:"Falk et al., 2012 · Scholz et al., 2025" },
+  social_thinking:{ nm:"Social reasoning", rg:"Temporoparietal junction · TPJ", bd:"The cortical system for modeling other minds — perspective-taking and social inference.", ct:"Saxe &amp; Kanwisher, 2003" },
+  brain_effort:{ nm:"Processing effort", rg:"Dorsolateral prefrontal cortex · dlPFC", bd:"How hard the brain works to parse a message. Higher isn't automatically worse — it depends on the reader.", ct:"Owen et al., 2005" },
+  language_depth:{ nm:"Language depth", rg:"Broca's + Wernicke's network", bd:"Structural and semantic language processing. Deeper activation means more meaning being extracted.", ct:"Fedorenko et al., 2010" },
+  gut_reaction:{ nm:"Gut reaction", rg:"Anterior insula", bd:"The visceral, felt edge of a message. Sensitive to urgency and personal stakes.", ct:"Craig, 2009" },
+  memory_encoding:{ nm:"Memory encoding", rg:"Left ventrolateral prefrontal cortex · vlPFC", bd:"A cortical driver of what tends to <em>stick</em>. Two versions can feel similar in the moment but differ in what endures.", ct:"Paller &amp; Wagner, 2002" },
+  attention_salience:{ nm:"Attention", rg:"Dorsal attention network", bd:"What the reader selects and holds. Content that commands focus through novelty, urgency, or contrast pulls here.", ct:"Corbetta &amp; Shulman, 2002" },
+};
+document.querySelectorAll('.lens-pill').forEach(pill=>{
+  pill.addEventListener('click', ()=>{
+    document.querySelectorAll('.lens-pill').forEach(p=>p.classList.remove('active'));
+    pill.classList.add('active');
+    const k = pill.dataset.key;
+    const c = LENS_COPY[k];
+    if(c){
+      document.getElementById('lensNm').textContent = c.nm;
+      document.getElementById('lensRg').textContent = c.rg;
+      document.getElementById('lensBd').innerHTML = c.bd;
+      document.getElementById('lensCt').textContent = c.ct;
+    }
+    if(lensCtrl) lensCtrl.setHighlight(k);
+  });
+});
+
+// Reveal on scroll
+const io = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){ e.target.classList.add('visible'); io.unobserve(e.target); }
+  });
+}, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+document.querySelectorAll('.reveal').forEach(n=>io.observe(n));
+
+// Smooth anchors
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click', e=>{
+    const href = a.getAttribute('href');
+    if(!href || href==='#') return;
+    const t = document.querySelector(href);
+    if(!t) return;
+    e.preventDefault();
+    t.scrollIntoView({behavior:'smooth', block:'start'});
+  });
+});
+</script>
+</body>
+</html>

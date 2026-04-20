@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BrainDiff — Results (reveal preview)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>(function(){try{var t=localStorage.getItem('braindiff-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<style>
+/* ============================================================
+   BrainDiff · Results · tokens
+   Dark is default. Light is opt-in via data-theme="light".
+   Vermillion (B-stronger) + slate blue (A-stronger) — Nature diverging.
+   ============================================================ */
+:root{
+  color-scheme:dark;
+  --bg:#0b0c0f;
+  --bg-2:#101116;
+  --bg-3:#15171c;
+  --surface:#15171c;
+  --panel:rgba(20,22,28,0.72);
+  --panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07);
+  --line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db;
+  --ink-dim:#b6b1a6;
+  --ink-mute:#7f7a70;
+  --accent:#e04a2e;
+  --accent-2:#f27455;
+  --accent-3:rgba(224,74,46,0.12);
+  --good:#6a97c9;
+  --good-2:#8db2d4;
+  --good-3:rgba(106,151,201,0.12);
+  --brain-stage:#07080b;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f7f4ec;
+  --bg-2:#efeadf;
+  --bg-3:#e7e2d4;
+  --surface:#ffffff;
+  --panel:#ffffff;
+  --panel-2:#f1ecde;
+  --line:#e2ddcf;
+  --line-2:#cbc5b4;
+  --ink:#17171a;
+  --ink-dim:#3d3d42;
+  --ink-mute:#77736b;
+  --accent:#c1272d;
+  --accent-2:#d94a4e;
+  --accent-3:#f8e9e6;
+  --good:#2a5583;
+  --good-2:#4a78ab;
+  --good-3:#e6edf6;
+  --brain-stage:#0a0c10;
+  --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
+  --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Inter Tight', system-ui, -apple-system, sans-serif;
+  font-feature-settings:"cv11","ss01";
+  -webkit-font-smoothing:antialiased;
+  line-height:1.6;
+  min-height:100vh;
+}
+:root[data-theme="light"] body{
+  background:
+    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
+    var(--bg);
+}
+a{color:inherit;text-decoration:none}
+
+/* THEME TOGGLE */
+.theme-switcher{position:fixed;top:14px;right:20px;z-index:60}
+.theme-toggle{
+  width:34px;height:34px;border-radius:8px;
+  background:var(--surface);border:1px solid var(--line-2);color:var(--ink-dim);
+  cursor:pointer;font-size:14px;display:grid;place-items:center;
+  box-shadow:var(--shadow-sm);font-family:inherit;transition:color .15s ease, border-color .15s ease;
+}
+.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.theme-toggle .tt-moon{display:inline}
+.theme-toggle .tt-sun{display:none}
+:root[data-theme="light"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="light"] .theme-toggle .tt-moon{display:none}
+
+/* TOP BAR */
+.topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 36px;
+  max-width:1280px;margin:0 auto;
+  position:sticky;top:0;z-index:20;
+  background:color-mix(in srgb, var(--bg) 84%, transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.01em;font-size:15px;color:var(--ink)}
+.brand-mark{
+  width:24px;height:24px;border-radius:6px;
+  background:var(--accent);
+  display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;
+  font-family:'JetBrains Mono',monospace;
+}
+.topbar-right { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-dim); position: relative; }
+.top-btn {
+  background: var(--surface); border: 1px solid var(--line-2); color: var(--ink);
+  font-family: inherit; font-size: 12.5px; padding: 7px 14px; border-radius: 8px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm);
+  transition: border-color .15s, color .15s, background .15s;
+}
+.top-btn:hover { border-color: var(--accent); color: var(--accent); }
+.top-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+.top-btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+.top-btn .caret { font-size: 9px; opacity: 0.7; }
+
+/* Dropdowns */
+.dropdown { position: relative; }
+.dropdown-menu {
+  position: absolute; top: calc(100% + 6px); right: 0; min-width: 220px;
+  background: var(--surface); border: 1px solid var(--line-2); border-radius: 10px;
+  padding: 6px; display: none; z-index: 50;
+  box-shadow: var(--shadow-md);
+}
+.dropdown.open .dropdown-menu { display: block; }
+.dropdown-item {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 9px 12px; border-radius: 6px; font-size: 13px; color: var(--ink);
+  cursor: pointer;
+}
+.dropdown-item:hover { background: var(--accent-3); color: var(--accent); }
+.dropdown-item .item-sub { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute); }
+.dropdown-divider { height: 1px; background: var(--line); margin: 4px 2px; }
+.dropdown-head {
+  padding: 6px 12px 4px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
+  color: var(--ink-mute); letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+main { max-width: 1280px; margin: 0 auto; padding: 28px 36px 80px; }
+
+/* ---------- A/B recall card ---------- */
+.recall {
+  background: var(--panel); border: 1px solid var(--line);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 10px; padding: 12px 16px; margin-bottom: 24px;
+  display: flex; align-items: center; gap: 16px; font-size: 13px;
+  transition: padding 0.2s; box-shadow: var(--shadow-sm);
+}
+.recall.expanded { align-items: flex-start; padding: 20px 22px; }
+.recall-col { flex: 1; min-width: 0; }
+.recall-tag {
+  display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--good); background: var(--good-3); padding: 2px 7px; border-radius: 3px;
+  margin-right: 8px; letter-spacing: 0.08em; vertical-align: middle; font-weight: 500;
+  border: 1px solid color-mix(in srgb, var(--good) 30%, transparent);
+}
+.recall-col.b .recall-tag { color: var(--accent); background: var(--accent-3); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
+.recall-preview {
+  color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  display: inline-block; max-width: calc(100% - 60px); vertical-align: middle;
+}
+.recall.expanded .recall-preview {
+  white-space: normal; max-width: 100%; display: block; margin-top: 8px; line-height: 1.55;
+}
+.recall-divider { width: 1px; height: 22px; background: var(--line-2); }
+.recall.expanded .recall-divider { height: auto; align-self: stretch; }
+.recall-expand {
+  background: none; border: none; color: var(--ink-mute); cursor: pointer;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; white-space: nowrap;
+  padding: 4px 6px; border-radius: 4px;
+}
+.recall-expand:hover { color: var(--accent); }
+
+/* ---------- The money shot: brain + verdict ---------- */
+.money-shot {
+  display: grid; grid-template-columns: 1.25fr 1fr; gap: 0;
+  background: var(--panel); border: 1px solid var(--line);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 18px; padding: 0; overflow: hidden; margin-bottom: 28px;
+  box-shadow: var(--shadow-md);
+}
+.brain-stage {
+  position: relative;
+  background:
+    radial-gradient(ellipse at 50% 40%, rgba(224,74,46,0.08), transparent 60%),
+    var(--brain-stage);
+  border-right: 1px solid var(--line);
+  min-height: 540px; display: grid; place-items: center; padding: 24px;
+}
+.brain-canvas { width: 100%; height: 100%; max-height: 520px; display: block; }
+
+/* Toolbar over the brain */
+.brain-toolbar {
+  position: absolute; top: 18px; left: 18px; right: 18px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  z-index: 5;
+}
+.view-group {
+  display: inline-flex; background: rgba(10,13,18,0.72); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px; padding: 3px; gap: 2px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.view-group button {
+  background: transparent; border: none; color: #cfcabf;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  padding: 6px 12px; border-radius: 6px; cursor: pointer; position: relative;
+  transition: background .15s, color .15s;
+}
+.view-group button.active { background: color-mix(in srgb, var(--accent) 80%, transparent); color: #fff; }
+.view-group button[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
+  background: #10141b; border: 1px solid rgba(255,255,255,0.14); border-radius: 6px;
+  padding: 8px 10px; font-size: 11.5px; color: #d6d3cd; white-space: nowrap;
+  font-weight: 400; letter-spacing: 0; z-index: 10; pointer-events: none;
+}
+.brain-extras { display: inline-flex; gap: 6px; }
+.icon-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: rgba(10,13,18,0.72); border: 1px solid rgba(255,255,255,0.1);
+  color: #cfcabf; display: grid; place-items: center; cursor: pointer;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 13px;
+  transition: color .15s, border-color .15s;
+}
+.icon-btn:hover { color: #fff; border-color: var(--accent); }
+
+/* Accessibility toggle for color-independent channel */
+.a11y-toggle {
+  position: absolute; top: 60px; right: 18px; z-index: 5;
+  background: rgba(10,13,18,0.72); border: 1px solid rgba(255,255,255,0.1);
+  color: #cfcabf; font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 0.06em; padding: 6px 10px;
+  border-radius: 6px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); cursor: pointer;
+  text-transform: uppercase;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.a11y-toggle:hover { color: #fff; border-color: var(--accent); }
+.a11y-toggle.on { background: color-mix(in srgb, var(--accent) 70%, transparent); color: #fff; border-color: var(--accent); }
+
+/* Scale legend */
+.scale-legend {
+  position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px; color: #cfcabf; letter-spacing: 0.06em;
+  background: rgba(10,13,18,0.58); padding: 6px 14px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.scale-bar {
+  width: 140px; height: 6px; border-radius: 3px;
+  background: linear-gradient(90deg, #6a97c9 0%, #2a2d35 50%, #e04a2e 100%);
+}
+.scale-legend b { color: #8db2d4; font-weight: 500; }
+.scale-legend i { font-style: normal; color: #f27455; }
+
+.brain-hint {
+  position: absolute; top: 50%; right: 22px; transform: translateY(-50%);
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  color: #7f7a70; letter-spacing: 0.06em; text-transform: uppercase;
+  writing-mode: vertical-rl; text-orientation: mixed;
+}
+
+/* Verdict side */
+.verdict {
+  padding: 44px 40px; display: flex; flex-direction: column;
+  background: var(--panel);
+}
+.verdict-eyebrow {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.verdict-headline {
+  font-family: 'Fraunces', 'Source Serif 4', Georgia, serif; font-size: 38px; line-height: 1.12;
+  font-weight: 400; font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
+  letter-spacing: -0.018em; margin: 0 0 10px; color: var(--ink);
+}
+.verdict-headline em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0; }
+.verdict-caption {
+  font-size: 11.5px; color: var(--ink-mute); margin: 0 0 20px;
+  display: flex; align-items: center; gap: 6px;
+}
+.verdict-caption::before {
+  content: ''; width: 4px; height: 4px; border-radius: 50%;
+  background: var(--ink-mute); display: inline-block;
+}
+.verdict-sub {
+  font-size: 15px; line-height: 1.6; color: var(--ink-dim); margin: 0 0 22px;
+}
+.biggest-shift {
+  background: var(--panel-2); border: 1px solid var(--line);
+  border-radius: 10px; padding: 16px 18px; margin-bottom: 16px;
+  cursor: pointer; transition: border-color 0.15s, background 0.15s;
+}
+.biggest-shift:hover { border-color: var(--accent); background: var(--accent-3); }
+.biggest-shift-label {
+  font-size: 12px; color: var(--ink-mute); margin-bottom: 6px;
+  display: flex; align-items: center; gap: 8px;
+}
+.biggest-shift-label::before { content: '●'; color: var(--accent); }
+.biggest-shift-title { font-size: 17px; font-weight: 600; margin: 0 0 4px; color: var(--ink); }
+.biggest-shift-body { font-size: 13.5px; color: var(--ink-dim); line-height: 1.55; margin: 0; }
+.biggest-shift-hover {
+  margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+  color: var(--accent); letter-spacing: 0.06em;
+}
+.biggest-shift-hover .desktop { display: inline; }
+.biggest-shift-hover .mobile { display: none; }
+
+.quick-facts {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: auto;
+  padding-top: 20px; border-top: 1px solid var(--line);
+}
+.fact { font-size: 13px; position: relative; }
+.fact-k {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 5px;
+}
+.fact-k .info-dot {
+  width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--ink-mute);
+  color: var(--ink-mute); font-size: 8px; line-height: 10px; text-align: center;
+  cursor: help; font-family: 'Inter Tight', sans-serif; font-weight: 600;
+}
+.fact-v { color: var(--ink); font-weight: 500; }
+.fact-v .delta-up { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.fact-v .delta-down { color: var(--good); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+.fact-v .mag { font-family: 'JetBrains Mono', monospace; color: var(--ink-mute); font-size: 11.5px; margin-left: 4px; }
+
+/* Tooltip (shared) */
+.tip {
+  position: absolute; bottom: calc(100% + 8px); left: 0;
+  min-width: 240px; max-width: 300px;
+  background: var(--surface); border: 1px solid var(--line-2); border-radius: 8px;
+  padding: 12px 14px; font-size: 12px; line-height: 1.5; color: var(--ink-dim);
+  font-family: 'Inter Tight', sans-serif; font-weight: 400; letter-spacing: 0;
+  text-transform: none;
+  opacity: 0; visibility: hidden; transform: translateY(4px);
+  transition: all 0.15s; z-index: 10; pointer-events: none;
+  box-shadow: var(--shadow-md);
+}
+.fact:hover .tip { opacity: 1; visibility: visible; transform: translateY(0); }
+.tip h5 { margin: 0 0 8px; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
+.tip-row {
+  display: flex; justify-content: space-between; gap: 10px;
+  padding: 3px 0; font-family: 'JetBrains Mono', monospace; font-size: 11px;
+}
+.tip-row .label { color: var(--ink); }
+.tip-row .range { color: var(--ink-mute); }
+.tip-row.active .label { color: var(--accent); }
+.tip-row.active .range { color: var(--accent); }
+
+/* ---------- Iterate strip ---------- */
+.iterate-strip {
+  display: flex; gap: 10px; margin-bottom: 24px;
+  justify-content: flex-end; flex-wrap: wrap;
+}
+.iterate-strip .mini-btn {
+  background: var(--surface); border: 1px dashed var(--line-2); color: var(--ink-dim);
+  font-family: inherit; font-size: 12.5px; padding: 7px 14px; border-radius: 8px;
+  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.iterate-strip .mini-btn:hover { border-style: solid; border-color: var(--accent); color: var(--accent); }
+.mini-btn.b-lead { border-color: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--accent); }
+.mini-btn.b-lead:hover { border-style: solid; border-color: var(--accent); color: var(--accent); background: var(--accent-3); }
+
+/* ---------- Core trade-off axis ---------- */
+.tradeoff {
+  background: var(--panel); border: 1px solid var(--line);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px; padding: 32px 36px; margin-bottom: 28px;
+  box-shadow: var(--shadow-sm);
+}
+.section-head {
+  display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 24px;
+  gap: 20px;
+}
+.section-head h2 {
+  font-family: 'Fraunces', serif; font-size: 26px; font-weight: 400;
+  font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
+  letter-spacing: -0.015em; margin: 0; color: var(--ink);
+}
+.section-head h2 em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0; }
+.section-head p {
+  font-size: 13px; color: var(--ink-dim); margin: 0; max-width: 380px; text-align: right;
+  line-height: 1.55;
+}
+
+.axis-wrap {
+  position: relative; padding: 40px 20px 30px;
+}
+.axis-line {
+  position: relative; height: 3px;
+  background: linear-gradient(90deg, var(--good) 0%, var(--line-2) 50%, var(--accent) 100%);
+  border-radius: 2px;
+}
+.axis-mid {
+  position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
+  width: 2px; height: 14px; background: var(--ink-mute);
+}
+.axis-label-l, .axis-label-r {
+  position: absolute; top: -30px; font-size: 13px; font-weight: 600;
+}
+.axis-label-l { left: 0; color: var(--good); }
+.axis-label-r { right: 0; color: var(--accent); text-align: right; }
+.axis-sub { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute); display: block; font-weight: 400; letter-spacing: 0.08em; margin-top: 2px; }
+
+.axis-points {
+  position: relative; height: 110px; margin-top: 20px;
+}
+.axis-point {
+  position: absolute; top: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  transform: translateX(-50%);
+}
+.axis-point.row2 { top: 48px; }
+.axis-dot {
+  width: 12px; height: 12px; border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--bg);
+}
+.axis-dot.cool { background: var(--good); }
+.axis-dot.warm { background: var(--accent); }
+.axis-dot.neutral { background: var(--ink-mute); }
+.axis-dot.neutral.pattern {
+  background: repeating-linear-gradient(45deg, var(--ink-mute) 0 2px, transparent 2px 4px), var(--ink-mute);
+  opacity: 0.7;
+}
+.axis-name { font-size: 11.5px; color: var(--ink); white-space: nowrap; }
+.axis-val { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute); }
+
+.tradeoff-takeaway {
+  margin-top: 18px; padding: 14px 18px; background: var(--panel-2);
+  border-left: 2px solid var(--accent); border-radius: 0 8px 8px 0;
+  font-size: 14px; line-height: 1.6; color: var(--ink-dim);
+}
+.tradeoff-takeaway strong { color: var(--ink); font-weight: 600; }
+.tradeoff-takeaway em { color: var(--accent); font-style: italic; font-family: 'Fraunces', serif; font-variation-settings: "opsz" 48, "SOFT" 0, "WONK" 0; }
+
+/* ---------- Supporting card ---------- */
+.deep-card {
+  background: var(--panel); border: 1px solid var(--line);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px; padding: 32px 36px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: start;
+  box-shadow: var(--shadow-sm);
+}
+.deep-card h3 {
+  font-family: 'Fraunces', serif; font-size: 20px; font-weight: 400;
+  font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0;
+  letter-spacing: -0.01em; margin: 0 0 10px; color: var(--ink);
+}
+.deep-card h3 em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0; }
+.deep-card p { font-size: 14px; line-height: 1.65; color: var(--ink-dim); margin: 0 0 14px; }
+.dim-list { list-style: none; padding: 0; margin: 0; }
+.dim-list li {
+  display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
+  padding: 11px 0; border-top: 1px solid var(--line);
+}
+.dim-list li:first-child { border-top: none; }
+.dim-name { font-size: 13.5px; color: var(--ink); }
+.dim-bar {
+  width: 160px; height: 6px; border-radius: 3px; background: var(--line-2);
+  position: relative; overflow: hidden;
+}
+.dim-bar-fill { position: absolute; top: 0; bottom: 0; left: 50%; border-radius: 3px; }
+.dim-bar-fill.b { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+.dim-bar-fill.a { background: linear-gradient(90deg, var(--good), var(--good-2)); }
+.dim-val {
+  font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
+  min-width: 48px; text-align: right;
+}
+.dim-val.b { color: var(--accent); }
+.dim-val.a { color: var(--good); }
+.dim-val.neutral { color: var(--ink-mute); }
+
+/* Low-contrast empty-state variant (hidden by default, shown when confidence = too_close_to_call) */
+.empty-state {
+  display: none;
+  text-align: center; padding: 40px 20px;
+  font-family: 'Fraunces', serif; font-size: 24px; line-height: 1.35;
+  font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0;
+  color: var(--ink-dim);
+}
+.empty-state em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0; }
+.empty-state-sub {
+  font-family: 'Inter Tight', sans-serif; font-size: 13.5px;
+  color: var(--ink-mute); margin-top: 10px;
+}
+body.low-contrast .money-shot .verdict-headline,
+body.low-contrast .money-shot .verdict-sub,
+body.low-contrast .biggest-shift { display: none; }
+body.low-contrast .money-shot .empty-state { display: block; }
+
+/* Mobile */
+@media (max-width: 960px) {
+  main { padding: 20px; }
+  .money-shot { grid-template-columns: 1fr; }
+  .brain-stage { border-right: none; border-bottom: 1px solid var(--line); min-height: 380px; }
+  .verdict { padding: 28px; }
+  .verdict-headline { font-size: 30px; }
+  .deep-card { grid-template-columns: 1fr; }
+  .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .section-head p { text-align: left; }
+  .brain-hint { display: none; }
+  .recall { flex-direction: column; align-items: stretch; gap: 8px; }
+  .recall-divider { display: none; }
+  .recall-preview { max-width: 100%; }
+  .biggest-shift-hover .desktop { display: none; }
+  .biggest-shift-hover .mobile { display: inline; }
+  .iterate-strip { justify-content: flex-start; }
+  .topbar { padding: 14px 20px; flex-wrap: wrap; gap: 10px; }
+  .topbar-right { flex-wrap: wrap; }
+  .theme-switcher { right: 14px; top: 10px; }
+}
+
+/* ============================================================
+   CINEMATIC REVEAL (first paint only)
+   Gated behind `body.reveal`. JS applies the class on load unless
+   prefers-reduced-motion is set. All animations are additive.
+   ============================================================ */
+body.reveal .verdict-eyebrow,
+body.reveal .verdict-headline,
+body.reveal .verdict-caption,
+body.reveal .verdict-sub,
+body.reveal .biggest-shift,
+body.reveal .quick-facts > .fact,
+body.reveal .scale-legend,
+body.reveal .brain-toolbar,
+body.reveal .a11y-toggle,
+body.reveal .brain-hint {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: bdReveal 620ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+}
+
+/* staggered delays — feels earned, not mechanical */
+body.reveal .brain-toolbar    { animation-delay: 0.20s; transform: translateY(-8px); }
+body.reveal .a11y-toggle      { animation-delay: 0.45s; transform: translateY(-8px); }
+body.reveal .scale-legend     { animation-delay: 2.10s; transform: translateY(8px); }
+body.reveal .brain-hint       { animation-delay: 2.40s; transform: translateY(0); }
+body.reveal .verdict-eyebrow  { animation-delay: 2.20s; }
+body.reveal .verdict-headline { animation-delay: 2.55s; }
+body.reveal .verdict-caption  { animation-delay: 3.10s; }
+body.reveal .verdict-sub      { animation-delay: 3.25s; }
+body.reveal .biggest-shift    { animation-delay: 3.55s; }
+body.reveal .quick-facts > .fact:nth-child(1) { animation-delay: 3.85s; }
+body.reveal .quick-facts > .fact:nth-child(2) { animation-delay: 3.95s; }
+body.reveal .quick-facts > .fact:nth-child(3) { animation-delay: 4.05s; }
+body.reveal .quick-facts > .fact:nth-child(4) { animation-delay: 4.15s; }
+
+@keyframes bdReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Brain stage soft glow during the bloom — fades out as cortex comes in */
+body.reveal .brain-stage::before {
+  content: '';
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%);
+  opacity: 0;
+  animation: bdBloom 2.2s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+  z-index: 2;
+}
+@keyframes bdBloom {
+  0%   { opacity: 0; }
+  40%  { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* ---------- Axis dots settle (fires after the cinematic reveal) ----------
+   The 7 trade-off points scale up from 0 and drift into place, one per ~70ms,
+   following the axis left-to-right. Axis line itself sweeps in underneath.
+   ---------------------------------------------------------------------- */
+body.reveal .axis-line {
+  clip-path: inset(0 100% 0 0);
+  animation: bdAxisLine 700ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+  animation-delay: 4.55s;
+}
+@keyframes bdAxisLine { to { clip-path: inset(0 0 0 0); } }
+
+body.reveal .axis-point {
+  opacity: 0;
+  transform: translateY(6px) scale(0.6);
+  animation: bdAxisPoint 480ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+}
+@keyframes bdAxisPoint { to { opacity: 1; transform: translateY(0) scale(1); } }
+
+/* Left-to-right order — matches DOM; axis points are positioned with `left:X%` so
+   staggered delays feel like a gentle wave across the axis */
+body.reveal .axis-points > .axis-point:nth-child(1)  { animation-delay: 5.05s; } /* 88% */
+body.reveal .axis-points > .axis-point:nth-child(2)  { animation-delay: 4.95s; } /* 72% */
+body.reveal .axis-points > .axis-point:nth-child(3)  { animation-delay: 4.85s; } /* 58% */
+body.reveal .axis-points > .axis-point:nth-child(4)  { animation-delay: 4.80s; } /* 52% row2 */
+body.reveal .axis-points > .axis-point:nth-child(5)  { animation-delay: 4.78s; } /* 48% */
+body.reveal .axis-points > .axis-point:nth-child(6)  { animation-delay: 4.76s; } /* 44% row2 */
+body.reveal .axis-points > .axis-point:nth-child(7)  { animation-delay: 4.70s; } /* 22% */
+
+body.reveal .axis-scale,
+body.reveal .tradeoff-takeaway {
+  opacity: 0; transform: translateY(6px);
+  animation: bdReveal 620ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+}
+body.reveal .axis-scale          { animation-delay: 5.40s; }
+body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
+
+/* Preview-only chrome: demo badge + replay button (remove for production) */
+.demo-chrome {
+  position: fixed; top: 58px; right: 14px; z-index: 70;
+  display: flex; align-items: center; gap: 8px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase;
+  background: var(--surface); border: 1px solid var(--line-2);
+  padding: 6px 10px; border-radius: 8px; box-shadow: var(--shadow-sm);
+}
+.demo-chrome .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: bdPulse 1.6s ease-in-out infinite; }
+.demo-chrome button {
+  background: transparent; border: 1px solid var(--line-2); color: var(--ink-dim);
+  font-family: inherit; font-size: 10.5px; letter-spacing: 0.08em;
+  padding: 3px 8px; border-radius: 5px; cursor: pointer; text-transform: uppercase;
+}
+.demo-chrome button:hover { color: var(--accent); border-color: var(--accent); }
+@keyframes bdPulse { 50% { opacity: 0.35; } }
+
+@media (prefers-reduced-motion: reduce) {
+  body.reveal .verdict-eyebrow,
+  body.reveal .verdict-headline,
+  body.reveal .verdict-caption,
+  body.reveal .verdict-sub,
+  body.reveal .biggest-shift,
+  body.reveal .quick-facts > .fact,
+  body.reveal .scale-legend,
+  body.reveal .brain-toolbar,
+  body.reveal .a11y-toggle,
+  body.reveal .brain-hint,
+  body.reveal .brain-stage::before,
+  body.reveal .axis-line,
+  body.reveal .axis-point,
+  body.reveal .axis-scale,
+  body.reveal .tradeoff-takeaway {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}
+</style>
+</head>
+<body>
+<div class="theme-switcher">
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle light/dark"><span class="tt-sun">☀</span><span class="tt-moon">☾</span></button>
+</div>
+
+<header class="topbar">
+  <a class="brand" href="./"><span class="brand-mark">B</span>BrainDiff</a>
+  <div class="topbar-right">
+    <!-- Share dropdown -->
+    <div class="dropdown" id="shareDrop">
+      <button class="top-btn" onclick="toggleDrop('shareDrop')">Share <span class="caret">▾</span></button>
+      <div class="dropdown-menu">
+        <div class="dropdown-head">Link</div>
+        <div class="dropdown-item">Copy public link <span class="item-sub">anyone with link</span></div>
+        <div class="dropdown-item">Copy private link <span class="item-sub">only you</span></div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-head">Send</div>
+        <div class="dropdown-item">Email a summary</div>
+        <div class="dropdown-item">Copy to clipboard</div>
+      </div>
+    </div>
+
+    <!-- Export dropdown -->
+    <div class="dropdown" id="exportDrop">
+      <button class="top-btn" onclick="toggleDrop('exportDrop')">Export <span class="caret">▾</span></button>
+      <div class="dropdown-menu">
+        <div class="dropdown-item">PDF report <span class="item-sub">.pdf</span></div>
+        <div class="dropdown-item">Brain snapshot <span class="item-sub">.png</span></div>
+        <div class="dropdown-item">Raw scores <span class="item-sub">.json</span></div>
+        <div class="dropdown-divider"></div>
+        <div class="dropdown-item">Copy embed code <span class="item-sub">&lt;iframe&gt;</span></div>
+      </div>
+    </div>
+
+    <a href="./input.html" class="top-btn primary">New comparison</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- A/B recall card -->
+  <div class="recall" id="recallCard">
+    <div class="recall-col a">
+      <span class="recall-tag">A</span>
+      <span class="recall-preview" id="recallA">Text A</span>
+    </div>
+    <div class="recall-divider"></div>
+    <div class="recall-col b">
+      <span class="recall-tag">B</span>
+      <span class="recall-preview" id="recallB">Text B</span>
+    </div>
+    <button class="recall-expand" onclick="toggleRecall()" id="recallToggle">Show both in full ↓</button>
+  </div>
+
+  <!-- THE MONEY SHOT -->
+  <section class="money-shot">
+    <div class="brain-stage">
+      <div class="brain-toolbar">
+        <div class="view-group" role="tablist">
+          <button class="active" data-tip="Shows where B activates more (vermillion) or less (slate) than A.">B − A</button>
+          <button data-tip="See each brain on its own, side by side.">Side by side</button>
+          <button data-tip="Just text B, rendered alone.">Just B</button>
+          <button data-tip="Just text A, rendered alone.">Just A</button>
+        </div>
+        <div class="brain-extras">
+          <button class="icon-btn" title="Rotate">⟳</button>
+          <button class="icon-btn" title="Reset view">⌂</button>
+          <button class="icon-btn" title="Fullscreen">⛶</button>
+        </div>
+      </div>
+
+      <button class="a11y-toggle" id="a11yToggle" title="Add brightness + stipple so the map stays readable without relying on color alone">Pattern mode</button>
+
+      <canvas class="brain-canvas" id="resultBrain"></canvas>
+
+      <div class="brain-hint">hover regions · click to inspect</div>
+
+      <div class="scale-legend">
+        <b>A stronger</b>
+        <span class="scale-bar"></span>
+        <i>B stronger</i>
+      </div>
+    </div>
+
+    <div class="verdict">
+      <div class="verdict-eyebrow" id="verdictEyebrow">Result</div>
+      <h1 class="verdict-headline" id="verdictHeadline">Comparison complete</h1>
+      <p class="verdict-caption">Model interpretation · based on your run's cortical contrast pattern.</p>
+      <p class="verdict-sub" id="verdictSub"></p>
+
+      <!-- Empty state — appears only when confidence == too_close_to_call -->
+      <div class="empty-state">
+        These two land in <em>nearly the same place.</em>
+        <div class="empty-state-sub">Peak contrast below the 0.005 detection floor. Try swapping in a more different version of B.</div>
+      </div>
+
+      <div class="biggest-shift" id="biggestShift">
+        <div class="biggest-shift-label">Biggest shift</div>
+        <h3 class="biggest-shift-title" id="biggestTitle">—</h3>
+        <p class="biggest-shift-body" id="biggestBody">Strongest signed contrast in this run (HCP atlas region).</p>
+        <div class="biggest-shift-hover">
+          <span class="desktop">→ highlight on brain</span>
+          <span class="mobile">Tap to highlight</span>
+        </div>
+      </div>
+
+      <div class="quick-facts">
+        <div class="fact">
+          <div class="fact-k">Winner</div>
+          <div class="fact-v" id="factWinner">—</div>
+        </div>
+        <div class="fact">
+          <div class="fact-k">Peak contrast</div>
+          <div class="fact-v" id="factPeak">—</div>
+        </div>
+        <div class="fact">
+          <div class="fact-k">Similarity</div>
+          <div class="fact-v" id="factSimilarity">—</div>
+        </div>
+        <div class="fact">
+          <div class="fact-k">Confidence <span class="info-dot">i</span></div>
+          <div class="fact-v" id="factConfidence">—</div>
+          <div class="tip">
+            <h5>How confidence is scored</h5>
+            <div class="tip-row" data-tier="too_close"><span class="label">Too close to call</span><span class="range">|Δ| &lt; 0.005</span></div>
+            <div class="tip-row" data-tier="directional"><span class="label">Directional signal</span><span class="range">0.005 – 0.02</span></div>
+            <div class="tip-row" data-tier="clear"><span class="label">Clear signal</span><span class="range">≥ 0.02</span></div>
+            <div style="margin-top:8px; color:var(--ink-mute); font-size:11px;">
+              Based on the magnitude of the largest regional Δ. Your peak: <b id="peakVal" style="color:var(--accent)">—</b>.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Iterate strip -->
+  <div class="iterate-strip">
+    <button class="mini-btn">↺ Swap B</button>
+    <button class="mini-btn b-lead">↗ Iterate on B</button>
+  </div>
+
+  <!-- CORE TRADE-OFF -->
+  <section class="tradeoff">
+    <div class="section-head">
+      <h2>Core <em>trade-off</em></h2>
+      <p>All seven dimensions, placed on the axis between "A stronger" and "B stronger."</p>
+    </div>
+
+    <div class="axis-wrap">
+      <div class="axis-line">
+        <div class="axis-mid"></div>
+        <span class="axis-label-l">A stronger <span class="axis-sub">−0.30 ← 0</span></span>
+        <span class="axis-label-r">B stronger <span class="axis-sub">0 → +0.30</span></span>
+      </div>
+      <div class="axis-points" id="axisPoints"></div>
+    </div>
+
+    <div class="tradeoff-takeaway" id="tradeoffTakeaway">
+      <strong>In one sentence:</strong> <span id="tradeoffLine">—</span>
+    </div>
+  </section>
+
+  <!-- WHAT CHANGED / WHAT HELD STEADY -->
+  <section class="deep-card">
+    <div>
+      <h3>What <em>changed</em>, ranked</h3>
+      <p>
+        Top of the list drove the headline. Bottom barely moved — those regions handled
+        both versions the same way, which is also signal.
+      </p>
+      <ul class="dim-list" id="dimChanged"></ul>
+    </div>
+    <div>
+      <h3>What <em>held steady</em></h3>
+      <p>
+        These regions responded almost the same to both texts. Either the shared parts are
+        doing the work, or neither version is pushing those systems. Useful as a baseline.
+      </p>
+      <ul class="dim-list" id="dimSteady"></ul>
+    </div>
+  </section>
+
+</main>
+
+<script>
+  function toggleTheme(){
+    var r=document.documentElement;
+    var next=r.getAttribute('data-theme')==='light'?'dark':'light';
+    if(next==='light') r.setAttribute('data-theme','light');
+    else r.removeAttribute('data-theme');
+    try{localStorage.setItem('braindiff-theme',next);}catch(e){}
+  }
+
+  // Dropdown toggles
+  function toggleDrop(id) {
+    document.querySelectorAll('.dropdown').forEach(d => {
+      if (d.id !== id) d.classList.remove('open');
+    });
+    document.getElementById(id).classList.toggle('open');
+  }
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.dropdown')) {
+      document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
+    }
+  });
+
+  // A/B recall expand
+  function toggleRecall() {
+    const card = document.getElementById('recallCard');
+    const btn = document.getElementById('recallToggle');
+    card.classList.toggle('expanded');
+    btn.textContent = card.classList.contains('expanded') ? 'Collapse ↑' : 'Show both in full ↓';
+  }
+
+  // Pattern-mode (color-independent channel) toggle
+  const a11yBtn = document.getElementById('a11yToggle');
+  let patternMode = false;
+  a11yBtn.addEventListener('click', () => {
+    patternMode = !patternMode;
+    a11yBtn.classList.toggle('on', patternMode);
+    window.__patternMode = patternMode;
+    window.dispatchEvent(new Event('brain:repaint'));
+  });
+
+  // Toggle low-contrast empty state with ?low=1 (for demo)
+  if (new URLSearchParams(location.search).get('low') === '1') {
+    document.body.classList.add('low-contrast');
+  }
+
+  /* ============================================================
+     CINEMATIC REVEAL orchestration
+     - Sets window.__revealProgress from 0 → 1 over BLOOM_MS.
+     - The Three.js repaint() multiplies vertex intensity by this,
+       so the cortex blooms in from pewter to vermillion/slate.
+     - CSS handles the rest (text + UI elements, staggered).
+     - Respects prefers-reduced-motion: instant final state.
+     - Fires once per session unless ?reveal=1 forces replay.
+     ============================================================ */
+  const REVEAL_KEY = 'braindiff-reveal-seen';
+  const BLOOM_START_MS = 400;   // brain holds pewter for a beat
+  const BLOOM_MS       = 1700;  // then colors bloom in
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function runReveal() {
+    if (reduceMotion) {
+      window.__revealProgress = 1;
+      window.dispatchEvent(new Event('brain:repaint'));
+      return;
+    }
+    document.body.classList.add('reveal');
+    window.__revealProgress = 0;
+    window.dispatchEvent(new Event('brain:repaint'));
+
+    const t0 = performance.now();
+    function tick(now) {
+      const elapsed = now - t0;
+      if (elapsed < BLOOM_START_MS) {
+        window.__revealProgress = 0;
+      } else {
+        const t = Math.min(1, (elapsed - BLOOM_START_MS) / BLOOM_MS);
+        // easeOutCubic for a natural settle
+        window.__revealProgress = 1 - Math.pow(1 - t, 3);
+      }
+      window.dispatchEvent(new Event('brain:repaint'));
+      if (window.__revealProgress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+
+    // Clean up the class once the CSS animations have completed
+    setTimeout(() => { document.body.classList.remove('reveal'); }, 5200);
+  }
+
+  function replayReveal() {
+    // Reset elements to hidden state, then re-run
+    document.body.classList.remove('reveal');
+    // Force reflow so re-adding the class restarts the keyframes
+    void document.body.offsetWidth;
+    runReveal();
+  }
+  window.replayReveal = replayReveal;
+
+  // Decide whether to play on first load
+  const forceReveal = new URLSearchParams(location.search).get('reveal') === '1';
+  const hasSeen = (() => { try { return sessionStorage.getItem(REVEAL_KEY) === '1'; } catch(e) { return false; } })();
+  if (forceReveal || !hasSeen) {
+    // Defer one frame so Three.js has a chance to mount before we hook repaint
+    requestAnimationFrame(() => requestAnimationFrame(runReveal));
+    try { sessionStorage.setItem(REVEAL_KEY, '1'); } catch(e) {}
+  } else {
+    window.__revealProgress = 1;
+  }
+</script>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js"
+  }
+}
+</script>
+<script type="module">
+/* =====================================================================
+   Results page — real data wiring.
+   Fetches job status + fsaverage5 mesh, populates all copy/facts/axis/
+   deep-card from the API, and mounts the cortex with the real signed
+   vertex_delta intensity. Reuses the existing `window.__revealProgress`
+   bloom driver and `window.__patternMode` toggle from the <script> above.
+   ===================================================================== */
+import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js";
+
+const params = new URLSearchParams(location.search);
+const JOB_ID = params.get('job');
+if (!JOB_ID){
+  window.location.replace('./input.html');
+}
+
+/* ---------- tiny helpers ---------- */
+const fmtDelta = (v) => (v >= 0 ? '+' : '') + (Number(v) || 0).toFixed(2);
+const esc = (s) => String(s ?? '').replace(/[<>&]/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]);
+const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+
+function decodeFloat32B64(b64){
+  if (!b64) return new Float32Array(20484);
+  const bin = atob(b64);
+  const buf = new ArrayBuffer(bin.length);
+  const view = new Uint8Array(buf);
+  for (let i = 0; i < bin.length; i++) view[i] = bin.charCodeAt(i);
+  return new Float32Array(buf);
+}
+
+function percentileAbs(arr, p){
+  const a = new Float64Array(arr.length);
+  for (let i = 0; i < arr.length; i++) a[i] = Math.abs(arr[i]);
+  a.sort();
+  const idx = Math.min(a.length - 1, Math.floor((p / 100) * a.length));
+  return Math.max(a[idx], 1e-6);
+}
+
+function confidenceTier(peakAbs){
+  if (peakAbs < 0.005) return 'too_close';
+  if (peakAbs < 0.02) return 'directional';
+  return 'clear';
+}
+function confidenceLabel(tier){
+  return tier === 'clear' ? 'Clear signal'
+       : tier === 'directional' ? 'Directional signal'
+       : 'Too close to call';
+}
+
+function similarityString(delta){
+  if (!delta || !delta.length) return '—';
+  let low = 0;
+  for (let i = 0; i < delta.length; i++) if (Math.abs(delta[i]) < 0.05) low++;
+  return Math.round(100 * low / delta.length) + '% of the surface barely moved';
+}
+
+/* ---------- fetch job + mesh in parallel ---------- */
+async function getJob(){
+  const res = await fetch('/api/diff/status/' + encodeURIComponent(JOB_ID), { cache: 'no-store' });
+  if (res.status === 404){ throw { kind:'notfound' }; }
+  if (!res.ok){ throw { kind:'http', status: res.status }; }
+  return res.json();
+}
+async function getMesh(){
+  try {
+    const res = await fetch('/api/brain-mesh', { cache: 'force-cache' });
+    if (!res.ok) return null;
+    return res.json();
+  } catch(_){ return null; }
+}
+
+const [job, meshPayload] = await Promise.all([
+  getJob().catch(err => ({ __err: err })),
+  getMesh(),
+]);
+
+if (job.__err){
+  if (job.__err.kind === 'notfound'){
+    window.location.replace('./input.html');
+  }
+  // any other error: fall through; UI will just show "—" placeholders.
+}
+
+// If the job isn't done yet, bounce back to the run page so the user watches it finish.
+if (job && job.status && job.status !== 'done'){
+  window.location.replace('./run.html?job=' + encodeURIComponent(JOB_ID));
+}
+
+/* ---------- Populate recall card from sessionStorage (stashed on input page) ---------- */
+try {
+  const stash = JSON.parse(sessionStorage.getItem('braindiff:texts:' + JOB_ID) || 'null');
+  if (stash){
+    const a = document.getElementById('recallA');
+    const b = document.getElementById('recallB');
+    if (a) a.textContent = stash.a || 'Text A';
+    if (b) b.textContent = stash.b || 'Text B';
+  } else if (job && job.result && job.result.meta){
+    // Fallback: just show char counts
+    const a = document.getElementById('recallA');
+    const b = document.getElementById('recallB');
+    if (a) a.textContent = 'Text A · ' + job.result.meta.text_a_length + ' chars';
+    if (b) b.textContent = 'Text B · ' + job.result.meta.text_b_length + ' chars';
+  }
+} catch(_){}
+
+/* ---------- Populate verdict / facts / axis / deep-card ---------- */
+const result = (job && job.result) || null;
+const meta = (result && result.meta) || {};
+const insights = (result && result.insights) || {};
+const dimensions = (result && result.dimensions) || [];
+
+const rawDelta = decodeFloat32B64(result && result.vertex_delta_b64);
+
+const atlasPeak = meta.atlas_peak || null;
+
+// Peak magnitude: prefer atlas_peak.abs_delta, else max dimension magnitude.
+const peakAbs = (atlasPeak && typeof atlasPeak.abs_delta === 'number')
+  ? atlasPeak.abs_delta
+  : (dimensions.length ? Math.max(...dimensions.map(d => Math.abs(d.magnitude || 0))) : 0);
+
+const signedAtPeak = (atlasPeak && typeof atlasPeak.vertex_index_flat === 'number'
+                      && rawDelta.length > atlasPeak.vertex_index_flat)
+  ? rawDelta[atlasPeak.vertex_index_flat]
+  : (dimensions[0] ? dimensions[0].delta : 0);
+
+// Winner summary
+const ws = meta.winner_summary || { a_wins: 0, b_wins: 0, tied: 0 };
+const dimCount = dimensions.length || 7;
+let winnerLine = '—';
+let winnerEyebrow = 'Result';
+if (ws.b_wins > ws.a_wins){
+  winnerLine = 'B — on ' + ws.b_wins + ' of ' + dimCount + ' dimensions';
+  winnerEyebrow = 'Version B lands harder';
+} else if (ws.a_wins > ws.b_wins){
+  winnerLine = 'A — on ' + ws.a_wins + ' of ' + dimCount + ' dimensions';
+  winnerEyebrow = 'Version A lands harder';
+} else {
+  winnerLine = 'Split — ' + (ws.tied || 0) + ' neutral';
+  winnerEyebrow = 'A and B land close';
+}
+
+// Verdict block
+document.getElementById('verdictEyebrow').textContent = winnerEyebrow;
+document.getElementById('verdictHeadline').innerHTML = esc(insights.headline || meta.headline || 'Comparison complete');
+const subEl = document.getElementById('verdictSub');
+if (insights.subhead) subEl.textContent = insights.subhead; else subEl.style.display = 'none';
+
+// Biggest shift card
+document.getElementById('biggestTitle').textContent =
+  (atlasPeak && atlasPeak.label ? atlasPeak.label : (dimensions[0] ? dimensions[0].label : 'Cortex'))
+  + ' · ' + fmtDelta(signedAtPeak);
+document.getElementById('biggestBody').textContent =
+  'Strongest signed contrast in this run (HCP atlas region).';
+
+// Quick facts
+document.getElementById('factWinner').textContent = winnerLine;
+const peakFact = document.getElementById('factPeak');
+peakFact.innerHTML = '<span class="' + (signedAtPeak >= 0 ? 'delta-up' : 'delta-down') + '">'
+  + esc(fmtDelta(signedAtPeak)) + '</span> · ' + esc(atlasPeak && atlasPeak.label ? atlasPeak.label : '—');
+document.getElementById('factSimilarity').textContent = similarityString(rawDelta);
+
+const tier = confidenceTier(peakAbs);
+document.getElementById('factConfidence').innerHTML =
+  esc(confidenceLabel(tier)) + ' <span class="mag">· ±' + peakAbs.toFixed(2) + '</span>';
+document.getElementById('peakVal').textContent = peakAbs.toFixed(2);
+document.querySelectorAll('.tip-row[data-tier]').forEach(r => {
+  r.classList.toggle('active', r.dataset.tier === tier);
+});
+
+// Low-contrast empty state
+if (tier === 'too_close' || params.get('low') === '1'){
+  document.body.classList.add('low-contrast');
+}
+
+/* ---------- Axis (trade-off) — 7 dots placed by delta ---------- */
+const axisEl = document.getElementById('axisPoints');
+axisEl.innerHTML = '';
+dimensions.forEach((row, idx) => {
+  const pct = clamp((row.delta + 0.3) / 0.6, 0, 1) * 100;
+  const isNeutral = row.low_confidence || Math.abs(row.delta) < 0.05;
+  const dotCls = isNeutral ? 'neutral pattern' : (row.delta > 0 ? 'warm' : 'cool');
+  const point = document.createElement('div');
+  point.className = 'axis-point' + (idx >= 4 ? ' row2' : '');
+  point.style.left = pct.toFixed(1) + '%';
+  point.innerHTML =
+    '<span class="axis-dot ' + dotCls + '"></span>' +
+    '<span class="axis-name">' + esc(row.label) + '</span>' +
+    '<span class="axis-val">' + esc(fmtDelta(row.delta)) + '</span>';
+  axisEl.appendChild(point);
+});
+
+// Trade-off takeaway line
+const tradeoffLineEl = document.getElementById('tradeoffLine');
+if (insights.subhead){
+  tradeoffLineEl.innerHTML = insights.subhead;
+} else if (dimensions.length){
+  const sortedAbs = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
+  const top = sortedAbs[0];
+  tradeoffLineEl.textContent =
+    (top.direction === 'B_higher' ? 'Version B' : top.direction === 'A_higher' ? 'Version A' : 'Neither version') +
+    ' leads on ' + top.label.toLowerCase() + '. Other dimensions are smaller contrasts.';
+} else {
+  tradeoffLineEl.textContent = '—';
+}
+
+/* ---------- Deep card: "What changed" (top 5 by magnitude) + "Held steady" ---------- */
+function dimRowHtml(row){
+  const mag = Math.abs(row.delta);
+  const w = Math.min(45, mag * 220);
+  const isB = row.delta > 0;
+  const barLeft = isB ? 50 : (50 - w);
+  const cls = Math.abs(row.delta) < 0.005 ? 'neutral' : (isB ? 'b' : 'a');
+  const barCls = isB ? 'b' : 'a';
+  return '<li>' +
+    '<span class="dim-name">' + esc(row.label) + '</span>' +
+    '<span class="dim-bar"><span class="dim-bar-fill ' + barCls + '" style="left:' + barLeft + '%;width:' + w + '%;"></span></span>' +
+    '<span class="dim-val ' + cls + '">' + esc(fmtDelta(row.delta)) + '</span>' +
+    '</li>';
+}
+
+const sorted = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
+const changedEl = document.getElementById('dimChanged');
+changedEl.innerHTML = sorted.slice(0, 5).map(dimRowHtml).join('') || '<li style="color:var(--ink-mute);font-size:12px;">No dimension data.</li>';
+
+const heldRows = dimensions.filter(r => r.low_confidence || Math.abs(r.delta) < 0.05);
+const steadyEl = document.getElementById('dimSteady');
+steadyEl.innerHTML = heldRows.map(dimRowHtml).join('') +
+  '<li style="color:var(--ink-mute);font-size:12px;margin-top:8px;border:none;padding:4px 0;">' +
+  '<span style="grid-column:1/-1;">' + heldRows.length + ' of ' + dimCount +
+  ' dimensions fell inside the "held steady" band (|Δ| &lt; 0.05).</span></li>';
+
+/* =====================================================================
+   Brain viewer — real fsaverage5 mesh (merged LH+RH) with real intensity.
+   Falls back to a procedural deformed sphere if /api/brain-mesh failed.
+   ===================================================================== */
+
+function buildMeshGeometry(payload){
+  const lh = Array.isArray(payload.lh_coord[0]) ? payload.lh_coord.flat() : payload.lh_coord;
+  const rh = Array.isArray(payload.rh_coord[0]) ? payload.rh_coord.flat() : payload.rh_coord;
+  const lhArr = Float32Array.from(lh);
+  const rhArr = Float32Array.from(rh);
+  const lhVerts = lhArr.length / 3;
+  const positions = new Float32Array(lhArr.length + rhArr.length);
+  positions.set(lhArr, 0);
+  positions.set(rhArr, lhArr.length);
+
+  const lhF = Array.isArray(payload.lh_faces[0]) ? payload.lh_faces.flat() : payload.lh_faces;
+  const rhF = Array.isArray(payload.rh_faces[0]) ? payload.rh_faces.flat() : payload.rh_faces;
+  const idx = new Uint32Array(lhF.length + rhF.length);
+  idx.set(lhF, 0);
+  for (let i = 0; i < rhF.length; i++) idx[lhF.length + i] = rhF[i] + lhVerts;
+
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  g.setIndex(new THREE.BufferAttribute(idx, 1));
+  g.computeVertexNormals();
+
+  // Center + scale so the view camera still frames it like the procedural sphere did.
+  g.computeBoundingSphere();
+  const sphere = g.boundingSphere;
+  if (sphere){
+    const p = g.attributes.position;
+    const s = 1.7 / Math.max(sphere.radius, 1e-6);
+    const cx = sphere.center.x, cy = sphere.center.y, cz = sphere.center.z;
+    for (let i = 0; i < p.count; i++){
+      p.setXYZ(i, (p.getX(i) - cx) * s, (p.getY(i) - cy) * s, (p.getZ(i) - cz) * s);
+    }
+    p.needsUpdate = true;
+    g.computeVertexNormals();
+    g.computeBoundingSphere();
+  }
+  return { geometry: g, vertexCount: positions.length / 3 };
+}
+
+function buildFallbackGeometry(){
+  const g = new THREE.SphereGeometry(1.55, 128, 96);
+  const p = g.attributes.position;
+  for (let i = 0; i < p.count; i++){
+    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+    const r = Math.hypot(x,y,z);
+    const nx = x/r, ny = y/r, nz = z/r;
+    const gyrus = 0.07 * Math.sin(nx*9) * Math.cos(ny*9) + 0.05 * Math.sin(nz*11+ny*6);
+    p.setXYZ(i, nx*(1.55+gyrus), ny*(1.55+gyrus)*1.08, nz*(1.55+gyrus)*1.15);
+  }
+  g.computeVertexNormals();
+  return { geometry: g, vertexCount: p.count };
+}
+
+function resampleIntensity(src, targetCount){
+  if (src.length === targetCount) return src;
+  const out = new Float32Array(targetCount);
+  if (!src.length) return out;
+  for (let i = 0; i < targetCount; i++){
+    out[i] = src[Math.floor(i / targetCount * src.length)];
+  }
+  return out;
+}
+
+function mountResultBrain(){
+  const canvas = document.getElementById('resultBrain');
+  const parent = canvas.parentElement;
+  const w = parent.clientWidth, h = parent.clientHeight;
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(w, h, false);
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(30, w/h, 0.05, 100);
+  camera.position.set(0.2, 0.2, 5.6);
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.38));
+  const keyL = new THREE.DirectionalLight(0xffe7bd, 1.0); keyL.position.set(3, 2.5, 4); scene.add(keyL);
+  const rimL = new THREE.DirectionalLight(0x6a97c9, 0.55); rimL.position.set(-3, 1, -2); scene.add(rimL);
+  const fillL = new THREE.DirectionalLight(0xffffff, 0.22); fillL.position.set(0, -3, 1); scene.add(fillL);
+
+  const { geometry, vertexCount } = (meshPayload ? buildMeshGeometry(meshPayload) : buildFallbackGeometry());
+  const pos = geometry.attributes.position;
+
+  // Normalize delta so 98th-percentile |Δ| ≈ 1 for saturated ends of the palette.
+  // When all vertices are ~0 (identical-text short-circuit), keep intensity zero.
+  let intensity;
+  if (rawDelta.length){
+    let maxAbs = 0;
+    for (let i = 0; i < rawDelta.length; i++){
+      const v = Math.abs(rawDelta[i]);
+      if (v > maxAbs) maxAbs = v;
+    }
+    if (maxAbs < 1e-6){
+      intensity = new Float32Array(vertexCount);
+    } else {
+      const scale = percentileAbs(rawDelta, 98);
+      const normed = new Float32Array(rawDelta.length);
+      for (let i = 0; i < rawDelta.length; i++) normed[i] = rawDelta[i] / scale;
+      intensity = resampleIntensity(normed, vertexCount);
+    }
+  } else {
+    intensity = new Float32Array(vertexCount);
+  }
+
+  // Palette (matches CSS tokens / scale-legend gradient).
+  const B_R = 0.88, B_G = 0.29, B_B = 0.18;
+  const A_R = 0.42, A_G = 0.59, A_B = 0.79;
+  const BASE_R = 0.48, BASE_G = 0.50, BASE_B = 0.55;
+
+  const colors = new Float32Array(vertexCount * 3);
+
+  function repaint(){
+    const pattern = !!window.__patternMode;
+    const reveal = window.__revealProgress == null ? 1 : Math.max(0, Math.min(1, window.__revealProgress));
+    for (let i = 0; i < vertexCount; i++){
+      const s0 = intensity[i] * reveal;
+      const s = Math.max(-1, Math.min(1, s0));
+      const mag = Math.abs(s);
+      let r = BASE_R, g = BASE_G, b = BASE_B;
+      if (s > 0){
+        const t = Math.pow(s, 1.4);
+        r = r + t * (B_R - r); g = g + t * (B_G - g); b = b + t * (B_B - b);
+      } else if (s < 0){
+        const t = Math.pow(-s, 1.4);
+        r = r + t * (A_R - r); g = g + t * (A_G - g); b = b + t * (A_B - b);
+      }
+      if (pattern){
+        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        const stipple = (Math.sin(x*37.1 + y*29.7 + z*41.3) * 43758.5453) % 1;
+        const d = mag > 0.12 && (stipple < (mag - 0.12) * 2.2) ? 1.2 : 1.0;
+        const lum = 0.35 + mag * 0.9;
+        const bright = s >= 0 ? lum : (1.0 - mag * 0.6);
+        r = Math.min(1, r * bright * d);
+        g = Math.min(1, g * bright * d);
+        b = Math.min(1, b * bright * d);
+      }
+      colors[i*3] = r; colors[i*3+1] = g; colors[i*3+2] = b;
+    }
+    if (geometry.attributes.color) geometry.attributes.color.needsUpdate = true;
+  }
+
+  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+  repaint();
+  window.addEventListener('brain:repaint', repaint);
+
+  const mat = new THREE.MeshPhysicalMaterial({
+    vertexColors: true, roughness: 0.55, metalness: 0.08,
+    clearcoat: 0.4, clearcoatRoughness: 0.5,
+    sheen: 0.3, sheenColor: new THREE.Color(0xffd4b5),
+  });
+  const mesh = new THREE.Mesh(geometry, mat);
+  scene.add(mesh);
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let targetY = -0.35, targetX = 0.05;
+  parent.addEventListener('mousemove', (e) => {
+    const rect = parent.getBoundingClientRect();
+    const mx = (e.clientX - rect.left) / rect.width - 0.5;
+    const my = (e.clientY - rect.top) / rect.height - 0.5;
+    targetY = -0.35 + mx * 0.6;
+    targetX = 0.05 + my * 0.4;
+  });
+
+  let raf = 0;
+  function loop(){
+    mesh.rotation.y += (targetY - mesh.rotation.y) * 0.05 + (reduceMotion ? 0 : 0.002);
+    mesh.rotation.x += (targetX - mesh.rotation.x) * 0.05;
+    renderer.render(scene, camera);
+    raf = requestAnimationFrame(loop);
+  }
+  loop();
+
+  const ro = new ResizeObserver(() => {
+    const W = parent.clientWidth, H = parent.clientHeight;
+    renderer.setSize(W, H, false);
+    camera.aspect = W/H; camera.updateProjectionMatrix();
+  });
+  ro.observe(parent);
+
+  // Biggest-shift → rotate toward the real peak vertex (atlas_peak.vertex_index_flat).
+  const biggest = document.getElementById('biggestShift');
+  if (biggest){
+    biggest.addEventListener('click', () => {
+      if (atlasPeak && typeof atlasPeak.vertex_index_flat === 'number'
+          && atlasPeak.vertex_index_flat < pos.count){
+        const vi = atlasPeak.vertex_index_flat;
+        const x = pos.getX(vi), y = pos.getY(vi), z = pos.getZ(vi);
+        targetY = clamp(-Math.atan2(x, z), -1.1, 1.1);
+        targetX = clamp(Math.atan2(y, Math.hypot(x, z)), -0.75, 0.75);
+      } else {
+        targetY = -0.15; targetX = -0.1;
+      }
+    });
+  }
+}
+
+mountResultBrain();
+</script>
+</body>
+</html>
