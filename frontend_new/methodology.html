@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Methodology — BrainDiff</title>
+<meta name="description" content="How a BrainDiff is computed — the three-stage pipeline, the seven cortical systems it decomposes into, and what we do not claim." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark'){r.removeAttribute('data-theme');}else{r.setAttribute('data-theme','light');}}catch(e){r.setAttribute('data-theme','light');}})();</script>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0b0c0f;--bg-2:#101116;--bg-3:#15171c;
+  --surface:#15171c;--panel:rgba(20,22,28,0.72);--panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07);--line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db;--ink-dim:#b6b1a6;--ink-mute:#7f7a70;
+  --accent:#e04a2e;--accent-2:#f27455;--accent-3:rgba(224,74,46,0.12);
+  --good:#6a97c9;--good-2:#8db2d4;--good-3:rgba(106,151,201,0.12);
+  --brain-stage:#07080b;
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+  --shell-pad-x:clamp(20px,4vw,56px);--shell-max:1100px;
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f7f4ec;--bg-2:#efeadf;--bg-3:#e7e2d4;--surface:#ffffff;--panel:#ffffff;--panel-2:#f1ecde;
+  --line:#e2ddcf;--line-2:#cbc5b4;--ink:#17171a;--ink-dim:#3d3d42;--ink-mute:#77736b;
+  --accent:#c1272d;--accent-2:#d94a4e;--accent-3:#f8e9e6;--good:#2a5583;--good-2:#4a78ab;--good-3:#e6edf6;
+  --brain-stage:#0a0c10;
+  --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
+  --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
+}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+    var(--bg);
+  color:var(--ink);font-family:'Inter Tight',system-ui,-apple-system,sans-serif;
+  font-feature-settings:"cv11","ss01";-webkit-font-smoothing:antialiased;line-height:1.6;
+}
+:root[data-theme="light"] body{
+  background:radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),var(--bg);
+}
+a{color:inherit;text-decoration:none}
+.shell{max-width:var(--shell-max);margin:0 auto;padding:0 var(--shell-pad-x)}
+
+.theme-switcher{position:fixed;top:14px;right:20px;z-index:60}
+.theme-toggle{width:34px;height:34px;border-radius:8px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-dim);cursor:pointer;font-size:14px;display:grid;place-items:center;box-shadow:var(--shadow-sm);font-family:inherit;transition:color .15s ease, border-color .15s ease}
+.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.theme-toggle .tt-moon{display:inline}.theme-toggle .tt-sun{display:none}
+:root[data-theme="light"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="light"] .theme-toggle .tt-moon{display:none}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px var(--shell-pad-x);max-width:var(--shell-max);margin:0 auto;position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--bg) 84%, transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.01em;font-size:15px;color:var(--ink)}
+.brand-mark{width:24px;height:24px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.brand-word b{font-weight:600}
+.nav{display:flex;gap:28px;align-items:center;font-size:13.5px;color:var(--ink-dim)}
+.nav a{transition:color .15s ease}
+.nav a:hover{color:var(--ink)}
+.nav a.is-active{color:var(--ink)}
+.nav-cta{padding:8px 16px;border:1px solid var(--line-2);border-radius:8px;color:var(--ink);background:var(--surface);font-weight:500;font-size:13px;transition:all .15s ease;box-shadow:var(--shadow-sm)}
+.nav-cta:hover{border-color:var(--accent);color:var(--accent)}
+
+.page-hero{padding:clamp(48px,9vh,96px) 0 40px}
+.page-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:inline-block;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb, var(--surface) 60%, transparent)}
+h1.page-title{font-family:'Fraunces','Source Serif 4',Georgia,serif;font-weight:400;font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;font-size:clamp(36px,4.6vw,58px);line-height:1.06;letter-spacing:-0.022em;margin:0 0 18px;color:var(--ink)}
+h1.page-title em{font-style:italic;color:var(--accent)}
+.page-sub{font-size:clamp(15.5px,1.25vw,18px);color:var(--ink-dim);max-width:58ch;line-height:1.6;margin:0 0 20px}
+
+.section{padding:48px 0;border-top:1px solid var(--line)}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+h2.section-title{font-family:'Fraunces','Source Serif 4',Georgia,serif;font-weight:400;font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;font-size:clamp(26px,2.6vw,34px);line-height:1.1;letter-spacing:-0.02em;margin:0 0 14px;max-width:28ch;color:var(--ink)}
+h2.section-title em{font-style:italic;color:var(--accent)}
+.section-lead{color:var(--ink-dim);max-width:62ch;margin:0 0 22px;font-size:15.5px;line-height:1.7}
+
+/* PIPELINE stages */
+.method-list{display:flex;flex-direction:column;gap:18px;margin-top:8px}
+.method-item{padding:22px 24px;border:1px solid var(--line);border-radius:12px;background:var(--panel);backdrop-filter:blur(8px);box-shadow:var(--shadow-sm)}
+.method-num{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--accent);letter-spacing:0.16em;margin-bottom:8px;text-transform:uppercase}
+.method-title{font-size:16px;font-weight:600;color:var(--ink);margin:0 0 8px;letter-spacing:-0.005em}
+.method-body{font-size:14px;color:var(--ink-dim);line-height:1.65;margin:0}
+.method-cite{font-size:11.5px;color:var(--ink-mute);margin-top:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
+
+/* 7 systems */
+.systems-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:14px}
+.system-card{padding:18px;border:1px solid var(--line);border-radius:10px;background:var(--panel);box-shadow:var(--shadow-sm)}
+.system-card h3{margin:0 0 6px;font-size:14.5px;font-weight:600;color:var(--ink);letter-spacing:-0.005em}
+.system-card .region{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-mute);margin-bottom:8px;letter-spacing:0.03em}
+.system-card p{font-size:13.5px;color:var(--ink-dim);line-height:1.55;margin:0}
+
+/* Don't-claim callouts */
+.caveat-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.caveat{padding:18px 20px;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;background:var(--panel);box-shadow:var(--shadow-sm)}
+.caveat h4{margin:0 0 6px;font-size:14px;color:var(--ink);font-weight:600}
+.caveat p{margin:0;font-size:13.5px;color:var(--ink-dim);line-height:1.6}
+
+.cta-footer{padding:64px 0;border-top:1px solid var(--line);display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:8px;font-weight:500;font-size:14px;letter-spacing:-0.005em;transition:all .15s ease;cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:var(--shadow-md)}
+.btn-primary:hover{background:color-mix(in srgb, var(--accent) 88%, black);transform:translateY(-1px)}
+.btn-ghost{background:var(--surface);color:var(--ink-dim);border:1px solid var(--line-2);box-shadow:var(--shadow-sm)}
+.btn-ghost:hover{color:var(--ink);border-color:var(--accent)}
+
+.footer{border-top:1px solid var(--line);padding:36px 0;color:var(--ink-mute);font-size:12px;font-family:'Inter Tight',system-ui,sans-serif;letter-spacing:-0.005em}
+.footer .shell{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.footer a{color:var(--ink-dim);transition:color .15s ease;border-bottom:1px solid transparent;padding-bottom:1px}
+.footer a:hover{color:var(--accent);border-bottom-color:color-mix(in srgb, var(--accent) 50%, transparent)}
+.footer .footer-brand{font-family:'Fraunces',serif;font-variation-settings:"opsz" 48;font-size:15px;color:var(--ink);font-weight:500;letter-spacing:-0.01em}
+.footer .footer-credit{color:var(--ink-mute)}
+.footer .heart{color:var(--accent);display:inline-block;margin:0 2px;animation:heartbeat 1.6s ease-in-out infinite}
+@keyframes heartbeat{0%,60%,100%{transform:scale(1)}30%{transform:scale(1.12)}45%{transform:scale(1.05)}}
+
+@media (max-width:960px){
+  .nav{gap:18px;font-size:13px}
+  .section{padding:40px 0}
+  .page-hero{padding:clamp(32px,6vh,64px) 0 28px}
+}
+@media (max-width:640px){
+  :root{--shell-pad-x:clamp(16px,5vw,24px)}
+  .topbar{padding:14px var(--shell-pad-x)}
+  .nav{gap:12px;font-size:12.5px}
+  .nav a:not(.nav-cta){display:none}
+  .nav-cta{display:inline-flex;padding:7px 13px;font-size:12.5px}
+  .systems-grid{grid-template-columns:1fr}
+  .caveat-grid{grid-template-columns:1fr}
+  .section{padding:32px 0}
+  h1.page-title{font-size:clamp(32px,9vw,44px)}
+}
+</style>
+</head>
+<body>
+<div class="theme-switcher"><button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme"><span class="tt-sun">☀</span><span class="tt-moon">☾</span></button></div>
+
+<header class="topbar">
+  <a href="/" class="brand"><span class="brand-mark">B</span><span class="brand-word">Brain<b>Diff</b></span></a>
+  <nav class="nav">
+    <a href="/research">Research</a>
+    <a href="/methodology" class="is-active">Methodology</a>
+    <a href="/#case-study">Case studies</a>
+    <a href="/launch" class="nav-cta">Launch →</a>
+  </nav>
+</header>
+
+<main>
+  <section class="page-hero shell">
+    <div class="page-eyebrow">Methodology</div>
+    <h1 class="page-title">How a BrainDiff is <em>computed.</em></h1>
+    <p class="page-sub">Every comparison runs through the same three-stage pipeline. The output is a signed cortical contrast — not a score, not a verdict. A map of where two pieces of content diverge in the brain.</p>
+  </section>
+
+  <section class="section shell">
+    <div class="section-eyebrow">The pipeline</div>
+    <h2 class="section-title">Three stages, one contrast map.</h2>
+    <div class="method-list">
+      <div class="method-item">
+        <div class="method-num">Stage 1</div>
+        <div class="method-title">Encode each text with TRIBE v2</div>
+        <p class="method-body">Meta FAIR's open brain-response model converts each piece of content into a predicted response pattern across the cortex. TRIBE v2 was trained on fMRI from 8 subjects watching hours of naturalistic video and listening to narrative audio.</p>
+        <div class="method-cite">Tang et al., Meta FAIR · 2025</div>
+      </div>
+      <div class="method-item">
+        <div class="method-num">Stage 2</div>
+        <div class="method-title">Project onto the fsaverage5 surface</div>
+        <p class="method-body">Both predictions are mapped onto the standard 20,484-vertex cortical mesh, then contrasted vertex-by-vertex. Positive values mean text B evokes a stronger response at that vertex; negative values mean text A does.</p>
+        <div class="method-cite">HCP MMP1.0 atlas · Glasser et al., 2016</div>
+      </div>
+      <div class="method-item">
+        <div class="method-num">Stage 3</div>
+        <div class="method-title">Decompose into seven systems</div>
+        <p class="method-body">A Bayesian model average assigns each cortical region to one of seven functional systems mapped from the literature. The result: a seven-number readout that tells you <em>why</em> the brain is responding differently, not just <em>where</em>.</p>
+        <div class="method-cite">Yeo et al., 2011 · Power et al., 2011</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section shell">
+    <div class="section-eyebrow">The seven systems</div>
+    <h2 class="section-title">What each number in your readout means.</h2>
+    <p class="section-lead">Every BrainDiff result includes a seven-dimensional decomposition. Each number answers a different question about how the cortex is responding.</p>
+    <div class="systems-grid">
+      <div class="system-card">
+        <h3>Attention</h3>
+        <div class="region">Dorsal attention network</div>
+        <p>What the reader selects and holds. Novelty, urgency, and contrast pull activity here (Corbetta &amp; Shulman, 2002).</p>
+      </div>
+      <div class="system-card">
+        <h3>Memory encoding</h3>
+        <div class="region">Left ventrolateral prefrontal cortex · vlPFC</div>
+        <p>A cortical driver of what tends to stick. Two versions can feel equivalent in the moment and differ sharply in what the reader will remember tomorrow (Paller &amp; Wagner, 2002).</p>
+      </div>
+      <div class="system-card">
+        <h3>Personal relevance</h3>
+        <div class="region">Medial prefrontal cortex · mPFC</div>
+        <p>Tracks whether a message feels like it's about you. Stronger activation here has predicted real-world behaviour change at population scale (Falk, 2012).</p>
+      </div>
+      <div class="system-card">
+        <h3>Gut reaction</h3>
+        <div class="region">Anterior insula</div>
+        <p>The visceral, felt edge of a message. Sensitive to urgency, stakes, moral weight, personal risk (Craig, 2009).</p>
+      </div>
+      <div class="system-card">
+        <h3>Social reasoning</h3>
+        <div class="region">Temporoparietal junction · TPJ</div>
+        <p>The cortical system for modelling other minds — perspective-taking and social inference (Saxe &amp; Kanwisher, 2003).</p>
+      </div>
+      <div class="system-card">
+        <h3>Language depth</h3>
+        <div class="region">Broca's + Wernicke's network</div>
+        <p>Structural and semantic language processing. Deeper activation means more meaning is being extracted from the text itself (Fedorenko et al., 2010).</p>
+      </div>
+      <div class="system-card">
+        <h3>Processing effort</h3>
+        <div class="region">Dorsolateral prefrontal cortex · dlPFC</div>
+        <p>How hard the brain is working to parse the message. Higher isn't automatically worse — context-dependent (Owen et al., 2005).</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section shell">
+    <div class="section-eyebrow">Scope</div>
+    <h2 class="section-title">What BrainDiff <em>does not</em> claim.</h2>
+    <p class="section-lead">It's a lens, not a verdict. Four limits worth stating clearly up front.</p>
+    <div class="caveat-grid">
+      <div class="caveat">
+        <h4>Not a diagnosis.</h4>
+        <p>BrainDiff is a simulation of a population-average cortical response. It does not evaluate, diagnose, or describe any individual reader.</p>
+      </div>
+      <div class="caveat">
+        <h4>Not a scan.</h4>
+        <p>We don't record your brain. The model was trained on 8 subjects; the output is what an average cortex in that training distribution would predictably do.</p>
+      </div>
+      <div class="caveat">
+        <h4>Not a "good/bad" score.</h4>
+        <p>Stronger response isn't automatically better. Strong gut reaction is useful for emergency messaging and wrong for a patient-consent form. Context matters.</p>
+      </div>
+      <div class="caveat">
+        <h4>Not about individuals.</h4>
+        <p>Two readers will diverge from the population average in their own ways. BrainDiff tells you how two versions differ at the average — it cannot tell you how one specific reader will respond.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="cta-footer shell">
+    <a href="/launch" class="btn btn-primary">Launch app <span>→</span></a>
+    <a href="/research" class="btn btn-ghost">Read the research →</a>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="shell">
+    <span class="footer-brand">BrainDiff</span>
+    <span class="footer-credit">Made with <span class="heart" aria-hidden="true">♥</span> by <a href="https://polka.foundation" target="_blank" rel="noopener">Polka Foundation</a> · <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+
+<script>
+function toggleTheme(){
+  var r=document.documentElement;
+  var next=r.getAttribute('data-theme')==='light'?'dark':'light';
+  if(next==='light') r.setAttribute('data-theme','light');
+  else r.removeAttribute('data-theme');
+  try{localStorage.setItem('braindiff-theme',next);}catch(e){}
+}
+</script>
+</body>
+</html>

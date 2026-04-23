@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<script>(function(){try{var t=localStorage.getItem('braindiff-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark'){r.removeAttribute('data-theme');}else{r.setAttribute('data-theme','light');}}catch(e){r.setAttribute('data-theme','light');}})();</script>
 <style>
 /* ============================================================
    BrainDiff · tokens (shared with index / run / results)
@@ -170,20 +170,11 @@ h1.page-title em{font-style:italic;color:var(--accent);font-variation-settings:"
 .input-hint{font-size:11px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:0.03em}
 .input-hint.warn{color:var(--accent)}
 
-/* Soft-warning banner shown above the submit button. Non-blocking. */
-.warn-banner{
-  display:none;margin:14px 0 0;padding:10px 14px;border-radius:12px;
-  background:color-mix(in srgb, var(--accent) 10%, transparent);
-  border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
-  color:var(--ink);font-size:13px;line-height:1.5;
-}
-.warn-banner.on{display:block}
-.warn-banner strong{color:var(--accent);font-weight:600}
-.warn-banner ul{margin:6px 0 0;padding-left:18px}
-.warn-banner li{margin:2px 0}
-.warn-banner .warn-ack{
-  margin-top:8px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--ink-dim);
-}
+/* Example pre-sets: fill both sides with one click. Lab-log-style buttons. */
+.examples-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0 28px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.examples-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-mute);margin-right:6px}
+.example-btn{font-family:'Inter Tight',system-ui,sans-serif;font-size:12.5px;padding:6px 12px;border:1px solid var(--line-2);border-radius:999px;background:var(--surface);color:var(--ink-dim);cursor:pointer;transition:all .15s ease;letter-spacing:-0.005em}
+.example-btn:hover{color:var(--ink);border-color:var(--accent);background:color-mix(in srgb, var(--accent) 8%, var(--surface))}
 textarea{
   width:100%;min-height:260px;resize:vertical;
   background:transparent;border:none;outline:none;
@@ -198,8 +189,7 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
   padding:18px 0;border-top:1px solid var(--line);
   flex-wrap:wrap;
 }
-.action-meta{font-size:12px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
-.action-meta .dot{width:5px;height:5px;border-radius:50%;background:var(--good);display:inline-block;margin-right:6px;vertical-align:middle}
+.action-meta{flex:1}  /* empty spacer so action-btns sits on the right */
 .action-btns{display:flex;gap:12px;align-items:center}
 .btn{
   display:inline-flex;align-items:center;gap:8px;
@@ -217,15 +207,100 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
 }
 .btn-ghost:hover{color:var(--ink);border-color:var(--accent)}
 
-.error-banner{
-  display:none;margin:14px 0 0;padding:12px 14px;
-  border:1px solid color-mix(in srgb, var(--accent) 45%, var(--line-2));
-  border-radius:10px;
-  background:color-mix(in srgb, var(--accent) 8%, var(--surface));
-  color:var(--ink);font-size:13px;
+/* Songbird easter egg — fixed bottom-right. Subtle, discoverable on hover.
+   On click, a mini prompt appears asking about A/V support. On "Yes", the
+   bird flies along a curved path to the Polka Foundation link in the footer. */
+.bird-btn{
+  position:fixed;bottom:24px;right:24px;z-index:50;
+  width:38px;height:38px;border-radius:50%;
+  background:var(--surface);border:1px solid var(--line-2);color:var(--ink-mute);
+  display:grid;place-items:center;cursor:pointer;
+  box-shadow:var(--shadow-sm);
+  transition:color .2s ease, border-color .2s ease, transform .2s ease, opacity .2s ease;
+  will-change:transform;
 }
-.error-banner.on{display:block}
-.error-banner code{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent)}
+.bird-btn:hover{color:var(--accent);border-color:var(--accent);transform:scale(1.08) rotate(-4deg)}
+.bird-btn:hover svg{animation:birdHop 0.9s ease-in-out infinite}
+.bird-btn.flapping svg{animation:birdFlap 0.22s ease-in-out infinite}
+.bird-btn.flown{pointer-events:none}
+@keyframes birdHop{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-2px)}
+}
+@keyframes birdFlap{
+  0%,100%{transform:scale(1, 1)}
+  50%{transform:scale(1.06, 0.94)}
+}
+@media (prefers-reduced-motion: reduce){
+  .bird-btn:hover svg,
+  .bird-btn.flapping svg{animation:none}
+}
+
+/* Prompt bubble that appears above the bird. */
+.bird-prompt{
+  position:fixed;bottom:74px;right:16px;z-index:51;
+  display:none;flex-direction:column;gap:10px;
+  padding:12px 14px;border-radius:12px;min-width:200px;
+  background:rgba(20,22,28,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.1);box-shadow:var(--shadow-md);
+  color:#e8e4db;
+  opacity:0;transform:translateY(6px);transition:opacity .18s ease, transform .18s ease;
+}
+.bird-prompt.show{display:flex;opacity:1;transform:translateY(0)}
+.bird-prompt-q{font-size:13px;line-height:1.35;color:#e8e4db}
+.bird-prompt-btns{display:flex;gap:6px;justify-content:flex-end}
+.bird-prompt button{
+  font-family:'Inter Tight',system-ui,sans-serif;
+  font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--line-2);background:var(--surface);color:var(--ink-dim);
+  transition:all .15s ease;
+}
+.bird-prompt .bird-yes{background:var(--accent);border-color:var(--accent);color:#fff}
+.bird-prompt .bird-yes:hover{background:color-mix(in srgb, var(--accent) 88%, black)}
+.bird-prompt .bird-no:hover{color:var(--ink);border-color:var(--accent)}
+.bird-prompt-tail{
+  position:absolute;bottom:-6px;right:26px;width:12px;height:12px;
+  background:rgba(20,22,28,0.96);border-right:1px solid rgba(255,255,255,0.1);
+  border-bottom:1px solid rgba(255,255,255,0.1);transform:rotate(45deg);
+}
+:root[data-theme="light"] .bird-prompt{background:rgba(255,255,255,0.97);color:var(--ink);border-color:var(--line-2)}
+:root[data-theme="light"] .bird-prompt-q{color:var(--ink)}
+:root[data-theme="light"] .bird-prompt-tail{background:rgba(255,255,255,0.97);border-color:var(--line-2)}
+
+/* A brief highlight on the Polka link when the bird arrives. */
+.polka-pinged{
+  animation:polkaPulse 1.6s ease-out;
+  color:var(--accent) !important;
+}
+@keyframes polkaPulse{
+  0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); text-shadow:0 0 0 transparent}
+  40%{box-shadow:0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent); text-shadow:0 0 6px color-mix(in srgb, var(--accent) 70%, transparent)}
+  100%{box-shadow:0 0 0 0 transparent; text-shadow:0 0 0 transparent}
+}
+
+/* Toast surface — transient messages, never permanent. */
+.toast-layer{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  z-index:80;display:flex;flex-direction:column;gap:8px;
+  pointer-events:none;align-items:center;max-width:min(520px, 90vw);
+}
+.toast{
+  background:rgba(20,22,28,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  color:#e8e4db;padding:12px 16px;border-radius:10px;
+  border:1px solid rgba(255,255,255,0.10);box-shadow:var(--shadow-md);
+  font-size:13px;line-height:1.5;
+  opacity:0;transform:translateY(10px);transition:opacity .22s ease, transform .22s ease;
+  pointer-events:auto;max-width:100%;
+}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast-warn{border-left:3px solid var(--accent)}
+.toast-err{border-left:3px solid #e04a2e;background:rgba(30,18,18,0.96)}
+.toast-info{border-left:3px solid var(--good)}
+.toast strong{color:var(--accent);font-weight:600}
+.toast ul{margin:6px 0 0;padding-left:18px}
+.toast li{margin:2px 0;color:#c8c3b8}
+:root[data-theme="light"] .toast{background:rgba(255,255,255,0.97);color:var(--ink);border-color:var(--line-2)}
+:root[data-theme="light"] .toast li{color:var(--ink-dim)}
 
 /* INK BLOT (same visual language as other pages) */
 .ink-blot{
@@ -241,16 +316,27 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
 @media (prefers-reduced-motion: reduce){ .ink-blot{ transition:none !important; } }
 
 /* FOOTER */
-.footer{border-top:1px solid var(--line);padding:28px 0;color:var(--ink-mute);font-size:11.5px;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
-.footer .shell{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.footer a{color:var(--ink-mute)}
-.footer a:hover{color:var(--accent)}
+.footer{border-top:1px solid var(--line);padding:36px 0;color:var(--ink-mute);font-size:12px;font-family:'Inter Tight',system-ui,sans-serif;letter-spacing:-0.005em}
+.footer .shell{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.footer a{color:var(--ink-dim);transition:color .15s ease;border-bottom:1px solid transparent;padding-bottom:1px}
+.footer a:hover{color:var(--accent);border-bottom-color:color-mix(in srgb, var(--accent) 50%, transparent)}
+.footer .footer-brand{font-family:'Fraunces',serif;font-variation-settings:"opsz" 48;font-size:15px;color:var(--ink);font-weight:500;letter-spacing:-0.01em}
+.footer .footer-credit{color:var(--ink-mute)}
+.footer .heart{color:var(--accent);display:inline-block;margin:0 2px;animation:heartbeat 1.6s ease-in-out infinite}
+@keyframes heartbeat{0%,60%,100%{transform:scale(1)}30%{transform:scale(1.12)}45%{transform:scale(1.05)}}
 
 /* RESPONSIVE */
 @media (max-width: 860px){
   .input-grid{grid-template-columns:1fr;gap:16px}
   .tips{grid-template-columns:1fr;gap:8px}
   textarea{min-height:200px}
+  .topbar-right{gap:14px;font-size:12.5px}
+}
+@media (max-width: 640px){
+  :root{--shell-pad-x:clamp(16px,5vw,24px)}
+  .topbar{padding:14px var(--shell-pad-x)}
+  .topbar-right{gap:10px;font-size:12px}
+  .topbar-right a:not(:last-child){display:none}
 }
 </style>
 </head>
@@ -262,34 +348,44 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
 <div class="ink-blot" id="inkBlot" aria-hidden="true"></div>
 
 <header class="topbar">
-  <a href="./index.html" class="brand">
+  <a href="/" class="brand">
     <span class="brand-mark">B</span>
     <span class="brand-word">Brain<b>Diff</b></span>
   </a>
   <div class="topbar-right">
-    <a href="./index.html">← back</a>
+    <a href="/research">Research</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/#case-study">Case studies</a>
+    <a href="/">← home</a>
   </div>
 </header>
 
 <main class="shell">
   <div class="page-head">
-    <div class="kicker">New comparison</div>
-    <h1 class="page-title">Paste two versions. See where they <em>diverge.</em></h1>
-    <p class="page-sub">BrainDiff will encode each text through TRIBE v2 and surface the cortical contrast across seven mapped systems.</p>
+    <div class="kicker">Trial setup</div>
+    <h1 class="page-title">Prepare your <em>stimuli.</em></h1>
+    <p class="page-sub">Load two pieces of content. Watch where the cortex diverges across seven systems.</p>
+  </div>
+
+  <div class="examples-row" aria-label="Load an example comparison">
+    <span class="examples-label">Or load a pre-set:</span>
+    <button type="button" class="example-btn" data-example="wsj-fox">WSJ vs. Fox News</button>
+    <button type="button" class="example-btn" data-example="elon-pope">Elon vs. Pope on AI</button>
+    <button type="button" class="example-btn" data-example="click-inform">Clickbait vs. informative</button>
   </div>
 
   <div class="tips">
     <div class="tip">
-      <span class="tip-num">1</span>
-      <span class="tip-text"><strong>Same topic, two takes.</strong> Works best when both texts are trying to solve the same communication problem.</span>
+      <span class="tip-num">01</span>
+      <span class="tip-text"><strong>Same topic, different take.</strong> Best contrasts come from samples solving the same communication problem.</span>
     </div>
     <div class="tip">
-      <span class="tip-num">2</span>
-      <span class="tip-text"><strong>A few sentences up to 5,000 characters.</strong> Very short inputs produce less reliable contrasts.</span>
+      <span class="tip-num">02</span>
+      <span class="tip-text"><strong>10 – 1,000 characters per side.</strong> Richer samples produce cleaner readings.</span>
     </div>
     <div class="tip">
-      <span class="tip-num">3</span>
-      <span class="tip-text"><strong>Give it time.</strong> Most runs finish in 6 to 12 minutes on the population-average model.</span>
+      <span class="tip-num">03</span>
+      <span class="tip-text"><strong>6 – 12 minutes per trial.</strong> Runs through a population-average cortex model.</span>
     </div>
   </div>
 
@@ -299,50 +395,70 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
         <div class="input-head">
           <div style="display:flex;align-items:center;gap:10px">
             <span class="input-tag a">A</span>
-            <span class="input-label">Version A</span>
+            <span class="input-label">Stimulus A</span>
           </div>
-          <span class="input-hint" id="countA">0 / 5000</span>
+          <span class="input-hint" id="countA">0 / 1000</span>
         </div>
-        <textarea id="textA" name="text_a" maxlength="5000" spellcheck="true"
-          placeholder="Paste the first version here — the calmer, more observational take."></textarea>
+        <textarea id="textA" name="text_a" maxlength="1000" spellcheck="true"
+          placeholder="Paste the first sample — the baseline, the control, the calmer take."></textarea>
       </div>
       <div class="input-card">
         <div class="input-head">
           <div style="display:flex;align-items:center;gap:10px">
             <span class="input-tag b">B</span>
-            <span class="input-label">Version B</span>
+            <span class="input-label">Stimulus B</span>
           </div>
-          <span class="input-hint" id="countB">0 / 5000</span>
+          <span class="input-hint" id="countB">0 / 1000</span>
         </div>
-        <textarea id="textB" name="text_b" maxlength="5000" spellcheck="true"
-          placeholder="Paste the second version — the sharper, more personal take."></textarea>
+        <textarea id="textB" name="text_b" maxlength="1000" spellcheck="true"
+          placeholder="Paste the second sample — the variant, the experimental condition, the sharper take."></textarea>
       </div>
     </div>
 
     <div class="action-row">
-      <div class="action-meta">
-        <span><span class="dot"></span>TRIBE v2 · Meta FAIR</span>
-        &nbsp;·&nbsp;
-        <span>fsaverage5 · 20,484 verts</span>
-        &nbsp;·&nbsp;
-        <span>7 mapped systems</span>
-      </div>
+      <div class="action-meta"></div>
       <div class="action-btns">
-        <a href="./index.html" class="btn btn-ghost">Cancel</a>
+        <a href="/" class="btn btn-ghost">Cancel</a>
         <button id="submitBtn" type="submit" class="btn btn-primary" disabled>
-          Compare <span aria-hidden="true">→</span>
+          Begin trial <span aria-hidden="true">→</span>
         </button>
       </div>
     </div>
-    <div class="warn-banner" id="warnBanner" role="status" aria-live="polite"></div>
-    <div class="error-banner" id="errorBanner" role="alert" aria-live="polite"></div>
   </form>
 </main>
 
+<!-- Easter egg: a small songbird. Click → y/n prompt → flies to Polka
+     Foundation link in the footer to "deliver" the signal. -->
+<button type="button" class="bird-btn" id="birdBtn"
+  title="A little bird wants to know…"
+  aria-label="A little bird wants to know if you'd like audio/video support">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M16 7h.01"/>
+    <path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/>
+    <path d="m20 7 2 .5-2 .5"/>
+    <path d="M10 18v3"/>
+    <path d="M14 17.75V21"/>
+    <path d="M7 18a6 6 0 0 0 3.84-10.61"/>
+  </svg>
+</button>
+
+<!-- Mini prompt popover that emerges above the bird. -->
+<div class="bird-prompt" id="birdPrompt" role="dialog" aria-hidden="true" aria-labelledby="birdPromptQ">
+  <div class="bird-prompt-q" id="birdPromptQ">Audio &amp; video comparisons too?</div>
+  <div class="bird-prompt-btns">
+    <button type="button" class="bird-yes" id="birdYes">Yes</button>
+    <button type="button" class="bird-no" id="birdNo">No</button>
+  </div>
+  <div class="bird-prompt-tail" aria-hidden="true"></div>
+</div>
+
+<!-- Transient toast surface: warnings + errors appear here, never permanent. -->
+<div class="toast-layer" id="toastLayer" aria-live="polite" aria-atomic="false"></div>
+
 <footer class="footer">
   <div class="shell">
-    <span>BrainDiff · cortical comparison for written content</span>
-    <span>v2 · April 2026 · <a href="#">method</a> · <a href="#">github</a></span>
+    <span class="footer-brand">BrainDiff</span>
+    <span class="footer-credit">Made with <span class="heart" aria-hidden="true">♥</span> by <a href="https://polka.foundation" target="_blank" rel="noopener">Polka Foundation</a> · <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a></span>
   </div>
 </footer>
 
@@ -356,17 +472,156 @@ function toggleTheme(){
 }
 
 (function(){
-  const MAX = 5000;
-  const MIN = 1;
+  const MAX = 1000;
+  const MIN = 10;
   const a = document.getElementById('textA');
   const b = document.getElementById('textB');
   const ca = document.getElementById('countA');
   const cb = document.getElementById('countB');
   const btn = document.getElementById('submitBtn');
   const form = document.getElementById('compareForm');
-  const err = document.getElementById('errorBanner');
-  const warn = document.getElementById('warnBanner');
+  const toastLayer = document.getElementById('toastLayer');
   const REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- Toast system — all warnings/errors appear here transiently.
+  function showToast(html, opts){
+    opts = opts || {};
+    const kind = opts.kind || 'info';   // 'info' | 'warn' | 'err'
+    const durationMs = opts.durationMs != null ? opts.durationMs : 6000;
+    const key = opts.key;               // de-dupe key — avoids stacking duplicates
+    if (key){
+      const existing = toastLayer.querySelector('[data-key="'+key+'"]');
+      if (existing) existing.remove();
+    }
+    const el = document.createElement('div');
+    el.className = 'toast toast-' + kind;
+    if (key) el.setAttribute('data-key', key);
+    el.innerHTML = html;
+    el.addEventListener('click', () => dismiss(el));
+    toastLayer.appendChild(el);
+    requestAnimationFrame(() => el.classList.add('show'));
+    let t = setTimeout(() => dismiss(el), durationMs);
+    function dismiss(node){
+      if (!node.parentNode) return;
+      clearTimeout(t);
+      node.classList.remove('show');
+      setTimeout(() => { if (node.parentNode) node.remove(); }, 250);
+    }
+    return el;
+  }
+
+  // ---------- Pre-loaded example pairs — contrasting takes on the same topic.
+  const EXAMPLES = {
+    'wsj-fox': {
+      a: "The Federal Reserve held its benchmark interest rate steady on Wednesday, signaling a measured approach as policymakers weigh persistent inflation against softening labor-market data. Analysts surveyed by the Journal expect the central bank to begin easing later this year, though the pace remains uncertain as core prices continue to moderate unevenly across sectors.",
+      b: "The Fed is STUCK. They can't lower rates — they can't raise them. Meanwhile, working families are getting crushed at the pump, at the grocery store, at the gas station. This is the economy Biden built, and Americans are paying the price every single day. How much longer will Washington pretend this is fine?"
+    },
+    'elon-pope': {
+      a: "We must approach artificial intelligence with wisdom and humility. These instruments can serve the common good — relieving suffering, expanding knowledge, lifting the poor — but they also risk widening the chasm between the powerful and the vulnerable. Our responsibility, as a human family, is to ensure they uplift the dignity of every person, never replace it.",
+      b: "AI is the most transformative tech in human history. Either we get radical abundance — everyone's life gets 10x better — or we get the Terminator. No middle ground. We need to move fast, build the infrastructure, and make sure the good guys stay ahead. The stakes couldn't be higher. This is literally civilizational."
+    },
+    'click-inform': {
+      a: "Regular aerobic exercise has been shown to reduce the risk of cardiovascular disease by approximately 30 percent. The American Heart Association recommends 150 minutes of moderate-intensity activity each week, distributed across at least three days, to maintain long-term cardiac health and support healthy blood-pressure regulation.",
+      b: "Doctors HATE this ONE simple trick that SLASHES your heart attack risk by a THIRD. You won't believe how easy it is — and it's totally FREE. Number 3 will shock you. Cardiologists are FURIOUS this is getting out. Keep reading to find out what they've been hiding."
+    },
+  };
+
+  document.querySelectorAll('.example-btn').forEach(eb => {
+    eb.addEventListener('click', () => {
+      const ex = EXAMPLES[eb.dataset.example];
+      if (!ex) return;
+      a.value = ex.a;
+      b.value = ex.b;
+      refresh();
+      showToast("Loaded preset: <strong>" + eb.textContent + "</strong>. Run when ready.", {kind:'info', durationMs:3500, key:'preset'});
+    });
+  });
+
+  // ---------- Songbird easter egg.
+  // Click the bird → mini prompt asks Yes/No to A/V support →
+  // on Yes, the bird takes off along a curved path to the Polka Foundation
+  // footer link, "delivering" the signal. On No, the prompt simply closes.
+  const bird = document.getElementById('birdBtn');
+  const birdPrompt = document.getElementById('birdPrompt');
+  const birdYes = document.getElementById('birdYes');
+  const birdNo = document.getElementById('birdNo');
+  function polkaLink(){
+    return document.querySelector('.footer-credit a[href*="polka.foundation"]');
+  }
+  function openPrompt(){
+    if (!birdPrompt) return;
+    birdPrompt.classList.add('show');
+    birdPrompt.setAttribute('aria-hidden', 'false');
+  }
+  function closePrompt(){
+    if (!birdPrompt) return;
+    birdPrompt.classList.remove('show');
+    birdPrompt.setAttribute('aria-hidden', 'true');
+  }
+  function recordAnswer(answer){
+    try {
+      const key = 'braindiff-av-ring';
+      const prev = JSON.parse(localStorage.getItem(key) || '{"yes":0,"no":0}');
+      prev[answer] = (prev[answer] || 0) + 1;
+      localStorage.setItem(key, JSON.stringify(prev));
+    } catch(_){}
+  }
+  function flyToPolka(){
+    if (!bird) return;
+    const target = polkaLink();
+    const bRect = bird.getBoundingClientRect();
+    let dx = -140, dy = -240, rot = -14;
+    if (target){
+      const tRect = target.getBoundingClientRect();
+      dx = (tRect.left + tRect.width/2)  - (bRect.left + bRect.width/2);
+      dy = (tRect.top  + tRect.height/2) - (bRect.top  + bRect.height/2);
+      // Tilt toward travel direction for character.
+      rot = Math.max(-22, Math.min(22, Math.atan2(dy, dx) * (180/Math.PI) * 0.3));
+    }
+    bird.classList.add('flapping', 'flown');
+    // Two-stage path for a curved "arc" feel: lift + sideways, then swoop in.
+    const midX = dx * 0.55;
+    const midY = dy * 0.55 - 90;   // arc upward before descending
+    bird.style.transition = 'transform 0.8s cubic-bezier(0.3, 0, 0.55, 0.45)';
+    bird.style.transform = `translate(${midX}px, ${midY}px) scale(0.85) rotate(${rot*0.6}deg)`;
+    setTimeout(() => {
+      bird.style.transition = 'transform 0.85s cubic-bezier(0.45, 0.6, 0.35, 1), opacity .3s ease 0.55s';
+      bird.style.transform = `translate(${dx}px, ${dy}px) scale(0.3) rotate(${rot}deg)`;
+      bird.style.opacity = '0';
+    }, 780);
+    // On arrival: pulse the Polka link + reset the bird so the user can ring again.
+    setTimeout(() => {
+      if (target){
+        target.classList.add('polka-pinged');
+        setTimeout(() => target.classList.remove('polka-pinged'), 1600);
+      }
+      showToast("🐦 Delivered to Polka Foundation — we'll know you want audio &amp; video support.", {kind:'info', durationMs:4500, key:'bird'});
+    }, 1500);
+    setTimeout(() => {
+      bird.classList.remove('flapping', 'flown');
+      bird.style.transition = '';
+      bird.style.transform = '';
+      bird.style.opacity = '';
+    }, 3200);
+  }
+  if (bird){
+    bird.addEventListener('click', (e) => { e.stopPropagation(); openPrompt(); });
+  }
+  if (birdYes){
+    birdYes.addEventListener('click', () => { recordAnswer('yes'); closePrompt(); flyToPolka(); });
+  }
+  if (birdNo){
+    birdNo.addEventListener('click', () => { recordAnswer('no'); closePrompt(); showToast("No worries — we'll keep it text-only.", {kind:'info', durationMs:2600, key:'bird'}); });
+  }
+  // Click outside the prompt closes it.
+  document.addEventListener('click', (e) => {
+    if (!birdPrompt || !birdPrompt.classList.contains('show')) return;
+    if (birdPrompt.contains(e.target) || bird.contains(e.target)) return;
+    closePrompt();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePrompt();
+  });
 
   function updateCount(ta, out){
     const n = ta.value.length;
@@ -403,21 +658,19 @@ function toggleTheme(){
       copy:  'Both versions need some text.' },
     { code: 'OVER_LIMIT',    sev: 'hard',
       check: function(A, B){ return A.length > MAX || B.length > MAX; },
-      copy:  'Max 5,000 characters per version.' },
-    { code: 'TOO_SHORT',     sev: 'soft',
+      copy:  'Max 1,000 characters per stimulus.' },
+    { code: 'TOO_SHORT',     sev: 'hard',
+      check: function(A, B){
+        return A.trim().length < MIN || B.trim().length < MIN;
+      },
+      copy:  'Each stimulus needs at least 10 characters.' },
+    { code: 'LIGHT_TEXT',    sev: 'soft',
       check: function(A, B){
         const wA = words(A).length, wB = words(B).length;
-        return A.trim().length < 15 || B.trim().length < 15 || wA < 3 || wB < 3;
+        if (A.trim().length < MIN || B.trim().length < MIN) return false;
+        return wA < 8 || wB < 8;
       },
-      copy:  'Very short text produces noisy contrasts. Add a couple more sentences.' },
-    { code: 'LIGHT',         sev: 'soft',
-      check: function(A, B){
-        const wA = words(A).length, wB = words(B).length;
-        // Only fire if we didn't already fire TOO_SHORT.
-        if (A.trim().length < 15 || B.trim().length < 15 || wA < 3 || wB < 3) return false;
-        return wA <= 8 || wB <= 8;
-      },
-      copy:  'Short inputs work but amplify randomness — aim for 15+ words per side.' },
+      copy:  'Short samples amplify randomness — aim for 15+ words per side for cleaner readings.' },
     { code: 'LENGTH_SKEW',   sev: 'soft',
       check: function(A, B){
         const la = A.trim().length, lb = B.trim().length;
@@ -470,46 +723,16 @@ function toggleTheme(){
     return hits;
   }
 
-  function renderWarnings(hits){
-    const hard = hits.filter(function(h){ return h.sev === 'hard'; });
-    const soft = hits.filter(function(h){ return h.sev === 'soft'; });
-
-    // Hard rules that come from content (not just "empty") deserve a visible reason,
-    // otherwise the user just sees a disabled button with no explanation.
-    const blocking = hard.filter(function(h){ return h.code !== 'EMPTY'; });
-    if (blocking.length){
-      const body = blocking.map(function(h){
-        return h.copy + ' <span style="color:var(--ink-mute);font-family:\'JetBrains Mono\',monospace;font-size:11.5px">· ' + h.code + '</span>';
-      }).join('<br>');
-      err.innerHTML = body;
-      err.classList.add('on');
-    } else {
-      err.classList.remove('on'); err.innerHTML = '';
-    }
-
-    if (!soft.length){ warn.classList.remove('on'); warn.innerHTML = ''; return; }
-    const body = [
-      '<strong>Heads-up before you run this:</strong>',
-      '<ul>' + soft.map(function(h){ return '<li>' + h.copy + ' <span style="color:var(--ink-mute);font-family:\'JetBrains Mono\',monospace;font-size:11.5px">· ' + h.code + '</span></li>'; }).join('') + '</ul>',
-      '<div class="warn-ack">You can still run the comparison — results will just be noisier.</div>'
-    ].join('');
-    warn.innerHTML = body;
-    warn.classList.add('on');
-  }
-
   function canSubmit(){
     const la = a.value.trim().length;
     const lb = b.value.trim().length;
     if (la < MIN || la > MAX || lb < MIN || lb > MAX) return false;
-    // Any hard rule blocks submission.
-    const hits = evaluate();
-    return !hits.some(function(h){ return h.sev === 'hard'; });
+    return !evaluate().some(function(h){ return h.sev === 'hard'; });
   }
 
   function refresh(){
     updateCount(a, ca);
     updateCount(b, cb);
-    renderWarnings(evaluate());
     btn.disabled = !canSubmit();
   }
   a.addEventListener('input', refresh);
@@ -518,22 +741,33 @@ function toggleTheme(){
   b.addEventListener('blur', refresh);
   refresh();
 
-  function showError(msg, code){
-    err.innerHTML = '';
-    const t = document.createTextNode(msg);
-    err.appendChild(t);
-    if (code){
-      err.appendChild(document.createTextNode(' · '));
-      const c = document.createElement('code');
-      c.textContent = code;
-      err.appendChild(c);
-    }
-    err.classList.add('on');
+  // Toast-wrapped versions of the old banner helpers. Never permanent.
+  function toastIssues(hits, opts){
+    opts = opts || {};
+    const title = opts.title || 'Heads-up before you run this:';
+    const kind = opts.kind || 'warn';
+    const body = [
+      '<strong>' + title + '</strong>',
+      '<ul>' + hits.map(function(h){ return '<li>' + h.copy + '</li>'; }).join('') + '</ul>',
+    ].join('');
+    showToast(body, {kind: kind, durationMs: 7000, key: 'form-issues'});
   }
-  function hideError(){ err.classList.remove('on'); err.textContent = ''; }
+  function showError(msg, code){
+    showToast(msg + (code ? ' <code style="font-family:\'JetBrains Mono\',monospace;font-size:11.5px;opacity:0.7">· ' + code + '</code>' : ''), {kind:'err', durationMs:8000, key:'api-error'});
+  }
 
   async function start(){
-    hideError();
+    const hits = evaluate();
+    const hard = hits.filter(function(h){ return h.sev === 'hard' && h.code !== 'EMPTY'; });
+    const soft = hits.filter(function(h){ return h.sev === 'soft'; });
+    if (hard.length){
+      toastIssues(hard, {title:"Can't run the trial yet:", kind:'err'});
+      return;
+    }
+    if (soft.length){
+      // Allowed to proceed — the toast just flags what'll be noisy.
+      toastIssues(soft);
+    }
     if (!canSubmit()) return;
     btn.disabled = true;
     const originalLabel = btn.innerHTML;
@@ -586,6 +820,18 @@ function toggleTheme(){
     e.preventDefault();
     start();
   });
+
+  // bfcache safety: if the browser restores this page with .ink-blot.on
+  // still applied (user hit Back mid-navigation), clear it so the whole
+  // viewport isn't covered in vermillion.
+  function resetInkBlot(){
+    const blot = document.getElementById('inkBlot');
+    if (!blot) return;
+    blot.classList.remove('on');
+    blot.classList.remove('fading');
+  }
+  window.addEventListener('pageshow', resetInkBlot);
+  resetInkBlot();
 })();
 </script>
 </body>

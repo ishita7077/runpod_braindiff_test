@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<script>(function(){try{var t=localStorage.getItem('braindiff-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark'){r.removeAttribute('data-theme');}else{r.setAttribute('data-theme','light');}}catch(e){r.setAttribute('data-theme','light');}})();</script>
 <style>
 /* ============================================================
    BrainDiff · Results · tokens
@@ -416,27 +416,31 @@ main { max-width: 1280px; margin: 0 auto; padding: 28px 36px 80px; }
 .axis-sub { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute); display: block; font-weight: 400; letter-spacing: 0.08em; margin-top: 2px; }
 
 .axis-points {
-  position: relative; height: 110px; margin-top: 20px;
+  position: relative; height: 72px; margin-top: 20px;
 }
-.axis-point {
-  position: absolute; top: 0;
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
+.axis-dot-wrap {
+  position: absolute; top: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
   transform: translateX(-50%);
 }
-.axis-point.row2 { top: 48px; }
 .axis-dot {
-  width: 12px; height: 12px; border-radius: 50%;
-  box-shadow: 0 0 0 4px var(--bg);
+  display: block; border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--bg);
+  transition: transform .15s ease;
 }
+.axis-dot-wrap:hover .axis-dot { transform: scale(1.15); }
 .axis-dot.cool { background: var(--good); }
 .axis-dot.warm { background: var(--accent); }
-.axis-dot.neutral { background: var(--ink-mute); }
-.axis-dot.neutral.pattern {
-  background: repeating-linear-gradient(45deg, var(--ink-mute) 0 2px, transparent 2px 4px), var(--ink-mute);
-  opacity: 0.7;
+.axis-dot.neutral { background: var(--ink-mute); opacity: 0.55; }
+.axis-label-pill {
+  display: inline-block; padding: 4px 9px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 500; white-space: nowrap;
+  background: var(--surface); border: 1px solid var(--line-2);
+  color: var(--ink); letter-spacing: -0.005em;
+  font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;
 }
-.axis-name { font-size: 11.5px; color: var(--ink); white-space: nowrap; }
-.axis-val { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute); }
+.axis-label-pill.warm { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line-2)); }
+.axis-label-pill.cool { color: var(--good);  border-color: color-mix(in srgb, var(--good) 45%, var(--line-2)); }
 
 .tradeoff-takeaway {
   margin-top: 18px; padding: 14px 18px; background: var(--panel-2);
@@ -445,6 +449,188 @@ main { max-width: 1280px; margin: 0 auto; padding: 28px 36px 80px; }
 }
 .tradeoff-takeaway strong { color: var(--ink); font-weight: 600; }
 .tradeoff-takeaway em { color: var(--accent); font-style: italic; font-family: 'Fraunces', serif; font-variation-settings: "opsz" 48, "SOFT" 0, "WONK" 0; }
+.tradeoff-explainer {
+  margin: 14px 0 0; padding: 14px 18px;
+  background: color-mix(in srgb, var(--ink-mute) 6%, transparent);
+  border: 1px solid var(--line); border-radius: 10px;
+  font-size: 12.5px; line-height: 1.65; color: var(--ink-dim);
+}
+.tradeoff-explainer strong { color: var(--ink); font-weight: 500; }
+.tradeoff-explainer em { color: var(--accent); font-style: italic; }
+
+/* ---------- Dimension graphs — per-dimension horizontal bars with a
+              B−A · B · A toggle. Same 7 metrics as the trade-off axis. ---------- */
+.dim-graphs {
+  background: var(--panel); border: 1px solid var(--line);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px; padding: 32px 36px; margin-bottom: 28px;
+  box-shadow: var(--shadow-sm);
+}
+.dim-graphs .view-group {
+  display: inline-flex; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.dim-graphs .view-group button {
+  background: transparent; border: none; color: var(--ink-dim);
+  font-family: inherit; font-size: 12.5px; font-weight: 500;
+  padding: 6px 14px; border-radius: 6px; cursor: pointer;
+}
+.dim-graphs .view-group button.active { background: var(--accent); color: #ffffff; }
+.dim-graph-legend {
+  margin: 4px 0 14px; font-size: 12.5px; color: var(--ink-dim); line-height: 1.6;
+  background: color-mix(in srgb, var(--ink-mute) 5%, transparent);
+  border: 1px solid var(--line); border-radius: 8px;
+  padding: 10px 14px;
+}
+.dim-graph-legend strong { color: var(--ink); font-weight: 500; }
+
+/* Toggle chips — one per dimension, coloured to match its line. Clicking a
+   chip hides/shows that line on the combined chart. */
+.dim-graph-chips {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
+}
+.dim-chip {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 6px 12px 6px 10px; border-radius: 999px;
+  border: 1px solid var(--line-2); background: var(--surface);
+  color: var(--ink-dim); cursor: pointer;
+  font-family: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: -0.005em;
+  transition: opacity .15s ease, border-color .15s ease, background .15s ease;
+}
+.dim-chip:hover { border-color: var(--ink-mute); }
+.dim-chip.is-off { opacity: 0.38; background: transparent; }
+.dim-chip-dot {
+  width: 10px; height: 10px; border-radius: 50%; display: inline-block;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+.dim-chip.is-off .dim-chip-dot { opacity: 0.4; }
+
+/* The combined chart — single SVG containing up to 7 overlaid lines. */
+.dim-graph-canvas {
+  position: relative;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 14px 14px 8px; min-height: 260px;
+}
+.dim-graph-canvas svg { display: block; width: 100%; height: 260px; overflow: visible; }
+.dim-graph-canvas .empty {
+  padding: 60px 20px; text-align: center; color: var(--ink-mute); font-size: 13px;
+}
+.dim-graph-axes-label {
+  display: flex; justify-content: space-between; margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute);
+  letter-spacing: 0.04em;
+}
+@media (max-width: 720px) {
+  .dim-graphs { padding: 24px 20px; }
+  .dim-graph-canvas svg { height: 200px; }
+}
+
+/* ---------- Final sign-off line, sits below everything in small type ---------- */
+.report-signoff{
+  text-align:center;margin:40px 0 60px;
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;
+  letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-mute);
+}
+.report-signoff em{font-style:italic;color:var(--accent);font-family:'Fraunces',serif;text-transform:none;font-size:13px;letter-spacing:0;font-variation-settings:"opsz" 48}
+
+/* ---------- End-of-report CTA (stronger primary action + framing copy) ---------- */
+.report-cta {
+  margin: 0 0 60px;
+  padding: 40px 44px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(1200px 400px at 10% -30%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
+    radial-gradient(900px 500px at 110% 120%, color-mix(in srgb, var(--good) 10%, transparent), transparent 60%),
+    var(--panel);
+  box-shadow: var(--shadow-md);
+  display: grid; grid-template-columns: 1.3fr auto; gap: 32px; align-items: center;
+}
+.report-cta-head { max-width: 560px; }
+.report-cta-title {
+  font-family: 'Fraunces', serif; font-weight: 400;
+  font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
+  font-size: clamp(26px, 3.2vw, 38px); line-height: 1.08; letter-spacing: -0.02em;
+  margin: 0 0 10px; color: var(--ink);
+}
+.report-cta-title em { font-style: italic; color: var(--accent); }
+.report-cta-sub { font-size: 14.5px; line-height: 1.6; color: var(--ink-dim); margin: 0; }
+.report-cta-sub em { font-style: italic; color: var(--ink); font-weight: 500; }
+.report-cta-actions {
+  display: flex; flex-direction: column; gap: 10px; align-items: stretch;
+}
+.btn-cta-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px 22px; border-radius: 10px;
+  background: var(--accent); color: #fff;
+  font-family: inherit; font-size: 15px; font-weight: 500; letter-spacing: -0.005em;
+  border: none; cursor: pointer; text-decoration: none;
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
+  transition: transform .15s ease, box-shadow .2s ease, background .15s ease;
+  white-space: nowrap;
+}
+.btn-cta-primary:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--accent) 88%, black); box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 45%, transparent); }
+.btn-cta-primary span { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
+.btn-cta-ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  padding: 10px 18px; border-radius: 10px;
+  background: var(--surface); color: var(--ink-dim);
+  font-family: inherit; font-size: 13.5px; font-weight: 500;
+  border: 1px solid var(--line-2); cursor: pointer;
+  transition: color .15s ease, border-color .15s ease;
+}
+.btn-cta-ghost:hover { color: var(--ink); border-color: var(--accent); }
+.report-cta-actions .dropdown-menu { right: 0; left: auto; top: auto; bottom: calc(100% + 8px); min-width: 220px; }
+@media (max-width: 720px) {
+  .report-cta { grid-template-columns: 1fr; padding: 26px 22px; gap: 22px; }
+  .report-cta-actions { flex-direction: row; flex-wrap: wrap; }
+  .btn-cta-primary { flex: 1 1 100%; }
+  .btn-cta-ghost { flex: 1; }
+}
+
+/* ---------- Per-metric expander cards (Dimensions · dig in) ---------- */
+.metric-detail-section {
+  background: var(--panel); border: 1px solid var(--line);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-radius: 16px; padding: 32px 36px; margin-bottom: 28px;
+  box-shadow: var(--shadow-sm);
+}
+.metric-cards { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+.metric-card {
+  border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+  transition: border-color .15s ease, background .15s ease;
+}
+.metric-card:hover { border-color: var(--line-2); }
+.metric-card[open] { background: var(--panel-2); border-color: var(--line-2); }
+.metric-summary {
+  display: grid; grid-template-columns: 1fr auto auto 18px; gap: 14px; align-items: center;
+  padding: 14px 18px; cursor: pointer; user-select: none; list-style: none;
+}
+.metric-summary::-webkit-details-marker { display: none; }
+.metric-name { font-size: 14.5px; color: var(--ink); font-weight: 500; letter-spacing: -0.005em; }
+.metric-value { font-family: 'JetBrains Mono', monospace; font-size: 13px; min-width: 60px; text-align: right; }
+.metric-value.b { color: var(--accent); }
+.metric-value.a { color: var(--good); }
+.metric-value.neutral { color: var(--ink-mute); }
+.metric-region {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-mute);
+  letter-spacing: 0.04em; text-align: right; max-width: 220px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.metric-chevron { color: var(--ink-mute); font-size: 12px; transition: transform .2s ease; justify-self: end; }
+.metric-card[open] .metric-chevron { transform: rotate(180deg); }
+.metric-body {
+  padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 14px;
+  border-top: 1px solid var(--line);
+}
+.metric-row { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: baseline; }
+.metric-row-label {
+  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute);
+}
+.metric-row-text { font-size: 13.5px; color: var(--ink); line-height: 1.55; }
+.metric-row-text strong { color: var(--accent); font-weight: 500; }
 
 /* ---------- Supporting card ---------- */
 .deep-card {
@@ -512,6 +698,11 @@ body.low-contrast .money-shot .empty-state { display: block; }
   .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
   .section-head p { text-align: left; }
   .brain-hint { display: none; }
+  .metric-detail-section { padding: 24px 20px; }
+  .metric-summary { grid-template-columns: 1fr auto 18px; gap: 10px; }
+  .metric-region { display: none; }
+  .metric-row { grid-template-columns: 1fr; gap: 4px; }
+  .metric-row-label { font-size: 10px; }
   .recall { flex-direction: column; align-items: stretch; gap: 8px; }
   .recall-divider { display: none; }
   .recall-preview { max-width: 100%; }
@@ -689,22 +880,22 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
       </div>
     </div>
 
-    <a href="./input.html" class="top-btn primary">New comparison</a>
+    <a href="/launch" class="top-btn primary">New comparison</a>
   </div>
 </header>
 
 <main>
 
-  <!-- A/B recall card -->
+  <!-- A/B recall — collapsed by default; toggle to see full text. -->
   <div class="recall" id="recallCard">
     <div class="recall-col a">
       <span class="recall-tag">A</span>
-      <span class="recall-preview" id="recallA">Text A</span>
+      <span class="recall-preview" id="recallA">—</span>
     </div>
     <div class="recall-divider"></div>
     <div class="recall-col b">
       <span class="recall-tag">B</span>
-      <span class="recall-preview" id="recallB">Text B</span>
+      <span class="recall-preview" id="recallB">—</span>
     </div>
     <button class="recall-expand" onclick="toggleRecall()" id="recallToggle">Show both in full ↓</button>
   </div>
@@ -713,11 +904,10 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
   <section class="money-shot">
     <div class="brain-stage">
       <div class="brain-toolbar">
-        <div class="view-group" role="tablist">
-          <button class="active" data-tip="Shows where B activates more (vermillion) or less (slate) than A.">B − A</button>
-          <button data-tip="See each brain on its own, side by side.">Side by side</button>
-          <button data-tip="Just text B, rendered alone.">Just B</button>
-          <button data-tip="Just text A, rendered alone.">Just A</button>
+        <div class="view-group" role="tablist" id="brainViewGroup">
+          <button class="active" data-view="diff" data-tip="Where B activates more (vermillion) or less (slate) than A.">B − A</button>
+          <button data-view="b"    data-tip="Version B's predicted cortical response, on its own.">Just B</button>
+          <button data-view="a"    data-tip="Version A's predicted cortical response, on its own.">Just A</button>
         </div>
         <div class="brain-extras">
           <button class="icon-btn" title="Rotate">⟳</button>
@@ -725,8 +915,6 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
           <button class="icon-btn" title="Fullscreen">⛶</button>
         </div>
       </div>
-
-      <button class="a11y-toggle" id="a11yToggle" title="Add brightness + stipple so the map stays readable without relying on color alone">Pattern mode</button>
 
       <canvas class="brain-canvas" id="resultBrain"></canvas>
 
@@ -791,12 +979,6 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
     </div>
   </section>
 
-  <!-- Iterate strip -->
-  <div class="iterate-strip">
-    <button class="mini-btn">↺ Swap B</button>
-    <button class="mini-btn b-lead">↗ Iterate on B</button>
-  </div>
-
   <!-- CORE TRADE-OFF -->
   <section class="tradeoff">
     <div class="section-head">
@@ -814,29 +996,83 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
     </div>
 
     <div class="tradeoff-takeaway" id="tradeoffTakeaway">
-      <strong>In one sentence:</strong> <span id="tradeoffLine">—</span>
+      <strong>Strongest contrast:</strong> <span id="tradeoffLine">—</span>
+    </div>
+
+    <p class="tradeoff-explainer">
+      <strong>How to read this.</strong> <strong>+0.30</strong> means B's response in this system was about <em>30% of the run's strongest signal</em> stronger than A's. The bigger the number, the bigger the difference. <strong>A bigger number means one side pushed a cortical system harder — not that that version is better. That call is yours.</strong>
+    </p>
+  </section>
+
+  <!-- DIMENSION GRAPHS — per-dimension time-series. Each text gets converted
+       to speech and run through TRIBE v2 timestep-by-timestep; the dimension
+       series is that dimension's average activation at each timestep. Three
+       views: B−A difference over time, B alone, A alone. -->
+  <section class="dim-graphs">
+    <div class="section-head">
+      <h2>Dimension <em>graphs</em></h2>
+      <p>Each line is the activation of one cortical system <em>across the duration of the text</em>. TRIBE v2 predicts 20,484 vertex values per second; we average the ones in that system's mask.</p>
+    </div>
+    <div class="view-group" role="tablist" id="dimGraphViewGroup">
+      <button class="active" data-view="diff">B − A</button>
+      <button data-view="b">Just B</button>
+      <button data-view="a">Just A</button>
+    </div>
+    <p class="dim-graph-legend" id="dimGraphLegend"></p>
+    <div class="dim-graph-chips" id="dimGraphChips"></div>
+    <div class="dim-graph-canvas" id="dimGraphCanvas"></div>
+  </section>
+
+  <!-- DIMENSIONS · DIG IN — per-metric expander cards. Replaces the old
+       "what changed / what stayed" two-column. Each card opens to show:
+       what we measured · where · what your number means · lab science ·
+       real-world use. -->
+  <section class="metric-detail-section">
+    <div class="section-head">
+      <h2>Each dimension, <em>explained</em></h2>
+      <p>Click any one to see the region, what your number implies, and the published study behind it.</p>
+    </div>
+    <div class="metric-cards" id="metricCards"></div>
+  </section>
+
+  <!-- End-of-report CTA. Primary action = another comparison; secondary
+       actions = share + export. Mirrors the topbar dropdowns so the user
+       doesn't have to scroll back up. -->
+  <section class="report-cta">
+    <div class="report-cta-head">
+      <h2 class="report-cta-title">Try <em>another</em> comparison.</h2>
+      <p class="report-cta-sub">
+        The interesting pairs are ones that <em>say</em> the same thing but land differently. Pick a new A and B and re-run — or save this one.
+      </p>
+    </div>
+    <div class="report-cta-actions">
+      <a class="btn-cta-primary" href="/launch">+ Run another comparison <span aria-hidden="true">→</span></a>
+      <div class="dropdown" id="shareDropEnd">
+        <button class="btn-cta-ghost" onclick="toggleDrop('shareDropEnd')">Share <span class="caret">▾</span></button>
+        <div class="dropdown-menu">
+          <div class="dropdown-head">Link</div>
+          <div class="dropdown-item" onclick="copyShareLink(true)">Copy public link <span class="item-sub">anyone with link</span></div>
+          <div class="dropdown-item" onclick="copyShareLink(false)">Copy private link <span class="item-sub">only you</span></div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-head">Send</div>
+          <div class="dropdown-item">Email a summary</div>
+          <div class="dropdown-item">Copy to clipboard</div>
+        </div>
+      </div>
+      <div class="dropdown" id="exportDropEnd">
+        <button class="btn-cta-ghost" onclick="toggleDrop('exportDropEnd')">Export <span class="caret">▾</span></button>
+        <div class="dropdown-menu">
+          <div class="dropdown-item">PDF report <span class="item-sub">.pdf</span></div>
+          <div class="dropdown-item">Brain snapshot <span class="item-sub">.png</span></div>
+          <div class="dropdown-item">Raw scores <span class="item-sub">.json</span></div>
+          <div class="dropdown-divider"></div>
+          <div class="dropdown-item">Copy embed code <span class="item-sub">&lt;iframe&gt;</span></div>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- WHAT CHANGED / WHAT HELD STEADY -->
-  <section class="deep-card">
-    <div>
-      <h3>What <em>changed</em>, ranked</h3>
-      <p>
-        Top of the list drove the headline. Bottom barely moved — those regions handled
-        both versions the same way, which is also signal.
-      </p>
-      <ul class="dim-list" id="dimChanged"></ul>
-    </div>
-    <div>
-      <h3>What <em>held steady</em></h3>
-      <p>
-        These regions responded almost the same to both texts. Either the shared parts are
-        doing the work, or neither version is pushing those systems. Useful as a baseline.
-      </p>
-      <ul class="dim-list" id="dimSteady"></ul>
-    </div>
-  </section>
+  <p class="report-signoff">TRIBE v2 predicts. <em>You decide.</em></p>
 
 </main>
 
@@ -847,6 +1083,7 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
     if(next==='light') r.setAttribute('data-theme','light');
     else r.removeAttribute('data-theme');
     try{localStorage.setItem('braindiff-theme',next);}catch(e){}
+    window.dispatchEvent(new CustomEvent('braindiff:theme',{detail:{theme:next}}));
   }
 
   // Dropdown toggles
@@ -870,15 +1107,21 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
     btn.textContent = card.classList.contains('expanded') ? 'Collapse ↑' : 'Show both in full ↓';
   }
 
-  // Pattern-mode (color-independent channel) toggle
-  const a11yBtn = document.getElementById('a11yToggle');
-  let patternMode = false;
-  a11yBtn.addEventListener('click', () => {
-    patternMode = !patternMode;
-    a11yBtn.classList.toggle('on', patternMode);
-    window.__patternMode = patternMode;
-    window.dispatchEvent(new Event('brain:repaint'));
-  });
+  // Pattern-mode toggle removed.
+
+  // Share helpers used by both the topbar and end-of-report dropdowns.
+  function copyShareLink(publicLink){
+    const url = location.origin + location.pathname + '?job=' +
+      encodeURIComponent((new URLSearchParams(location.search)).get('job') || '');
+    navigator.clipboard && navigator.clipboard.writeText(url).then(() => {
+      // Minimal inline feedback — avoids pulling in a toast library here.
+      const el = document.createElement('div');
+      el.textContent = publicLink ? 'Public link copied' : 'Private link copied';
+      el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(20,22,28,0.96);color:#e8e4db;padding:10px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 10px 24px rgba(0,0,0,0.5);font-size:13px;z-index:200';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 2000);
+    });
+  }
 
   // Toggle low-contrast empty state with ?low=1 (for demo)
   if (new URLSearchParams(location.search).get('low') === '1') {
@@ -952,7 +1195,7 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
 <script type="importmap">
 {
   "imports": {
-    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js"
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
   }
 }
 </script>
@@ -964,12 +1207,13 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
    vertex_delta intensity. Reuses the existing `window.__revealProgress`
    bloom driver and `window.__patternMode` toggle from the <script> above.
    ===================================================================== */
-import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
 
 const params = new URLSearchParams(location.search);
 const JOB_ID = params.get('job');
 if (!JOB_ID){
-  window.location.replace('./input.html');
+  window.location.replace('/launch');
 }
 
 /* ---------- tiny helpers ---------- */
@@ -1034,7 +1278,7 @@ const [job, meshPayload] = await Promise.all([
 
 if (job.__err){
   if (job.__err.kind === 'notfound'){
-    window.location.replace('./input.html');
+    window.location.replace('/launch');
   }
   // any other error: fall through; UI will just show "—" placeholders.
 }
@@ -1044,21 +1288,19 @@ if (job && job.status && job.status !== 'done'){
   window.location.replace('./run.html?job=' + encodeURIComponent(JOB_ID));
 }
 
-/* ---------- Populate recall card from sessionStorage (stashed on input page) ---------- */
+/* ---------- Populate recall card. Prefers sessionStorage stash (set by
+              input.html on submit), falls back to the authoritative copy
+              the backend now returns in meta.text_a / meta.text_b, and
+              finally degrades to char counts if the server is older. ---------- */
 try {
   const stash = JSON.parse(sessionStorage.getItem('braindiff:texts:' + JOB_ID) || 'null');
-  if (stash){
-    const a = document.getElementById('recallA');
-    const b = document.getElementById('recallB');
-    if (a) a.textContent = stash.a || 'Text A';
-    if (b) b.textContent = stash.b || 'Text B';
-  } else if (job && job.result && job.result.meta){
-    // Fallback: just show char counts
-    const a = document.getElementById('recallA');
-    const b = document.getElementById('recallB');
-    if (a) a.textContent = 'Text A · ' + job.result.meta.text_a_length + ' chars';
-    if (b) b.textContent = 'Text B · ' + job.result.meta.text_b_length + ' chars';
-  }
+  const meta = (job && job.result && job.result.meta) || {};
+  const aEl = document.getElementById('recallA');
+  const bEl = document.getElementById('recallB');
+  const textA = (stash && stash.a) || meta.text_a || ('Text A · ' + (meta.text_a_length || 0) + ' chars');
+  const textB = (stash && stash.b) || meta.text_b || ('Text B · ' + (meta.text_b_length || 0) + ' chars');
+  if (aEl) aEl.textContent = textA;
+  if (bEl) bEl.textContent = textB;
 } catch(_){}
 
 /* ---------- Populate verdict / facts / axis / deep-card ---------- */
@@ -1104,8 +1346,40 @@ const subEl = document.getElementById('verdictSub');
 if (insights.subhead) subEl.textContent = insights.subhead; else subEl.style.display = 'none';
 
 // Biggest shift card
+// Expand HCP-MMP atlas codes (L_V2_ROI → "Left V2 (secondary visual)") so
+// the user isn't staring at raw region IDs. For unknown areas, just strip
+// the L_/R_/_ROI noise so it reads as "Left <area>" at minimum.
+const HCP_AREA_NAMES = {
+  'V1':'V1 (primary visual)','V2':'V2 (secondary visual)','V3':'V3','V4':'V4 (color)','V6':'V6 (peripheral)','V7':'V7','V8':'V8',
+  'MT':'MT (motion)','MST':'MST (motion + self-motion)','LO1':'LO1 (object form)','LO2':'LO2 (object form)','LO3':'LO3 (object form)',
+  'A1':'A1 (primary auditory)','A4':'A4 (auditory)','A5':'A5 (auditory)','RI':'RI (auditory)','LBelt':'LBelt (auditory belt)','MBelt':'MBelt (auditory belt)',
+  '4':'M1 (primary motor)','3a':'S1 (somatosensory)','3b':'S1 (somatosensory)','1':'S1 (somatosensory)','2':'S1 (somatosensory)',
+  '8Av':'8Av (frontal eye field)','FEF':'FEF (frontal eye field)','PEF':'PEF (parietal eye field)',
+  'IPS1':'IPS1 (parietal attention)','LIPv':'LIPv (parietal attention)','LIPd':'LIPd (parietal attention)','MIP':'MIP (parietal)','VIP':'VIP (parietal)','AIP':'AIP (parietal)',
+  '7Pm':'7Pm (precuneus)','7m':'7m (precuneus)','POS1':'POS1 (parieto-occipital)','POS2':'POS2 (parieto-occipital)',
+  'p32':'p32 (anterior cingulate)','a32pr':'a32pr (anterior cingulate)','p32pr':'p32pr (anterior cingulate)','d32':'d32 (anterior cingulate)','s32':'s32 (anterior cingulate)','25':'25 (subgenual)',
+  '9m':'9m (medial prefrontal)','10v':'10v (orbitofrontal)','10r':'10r (medial OFC)','10d':'10d (medial PFC)','14m':'14m (medial PFC)','11l':'11l (lateral OFC)','13l':'13l (lateral OFC)',
+  'IFSp':'IFSp (inferior frontal sulcus)','IFJp':'IFJp (inferior frontal junction)','IFJa':'IFJa (inferior frontal junction)','IFSa':'IFSa (inferior frontal sulcus)',
+  '44':'Broca 44 (language)','45':'Broca 45 (language)','47l':'47l (lateral OFC)','47m':'47m (medial OFC)',
+  'STSdp':'STSdp (superior temporal sulcus)','STSva':'STSva (superior temporal sulcus)','STSvp':'STSvp (superior temporal sulcus)','STSda':'STSda (superior temporal sulcus)',
+  'TPOJ1':'TPOJ1 (temporo-parieto-occipital junction)','TPOJ2':'TPOJ2 (TPOJ)','TPOJ3':'TPOJ3 (TPOJ)',
+  'TE1a':'TE1a (anterior temporal)','TE1m':'TE1m (mid temporal)','TE1p':'TE1p (posterior temporal)','TE2a':'TE2a (temporal)','TE2p':'TE2p (temporal)',
+  'PFm':'PFm (Wernicke region)','PGi':'PGi (angular gyrus)','PGs':'PGs (angular gyrus)',
+  'AAIC':'AAIC (anterior insula)','MI':'MI (insula)','PoI1':'PoI1 (posterior insula)','PoI2':'PoI2 (posterior insula)','Ig':'Ig (insular gyri)',
+  'SFL':'SFL (superior frontal)','SCEF':'SCEF (supplementary motor)','6ma':'6ma (premotor)','6mp':'6mp (premotor)','6r':'6r (premotor)','6d':'6d (premotor)','6v':'6v (premotor)',
+  '46':'46 (dlPFC working memory)','9-46d':'9-46d (dlPFC)','a9-46v':'a9-46v (dlPFC)','p9-46v':'p9-46v (dlPFC)',
+};
+function expandRoi(label){
+  if (!label) return '—';
+  const m = String(label).match(/^([LR])_(.+?)(_ROI)?$/);
+  if (!m) return label;
+  const side = m[1] === 'L' ? 'Left' : 'Right';
+  const code = m[2];
+  return side + ' ' + (HCP_AREA_NAMES[code] || code);
+}
+
 document.getElementById('biggestTitle').textContent =
-  (atlasPeak && atlasPeak.label ? atlasPeak.label : (dimensions[0] ? dimensions[0].label : 'Cortex'))
+  (atlasPeak && atlasPeak.label ? expandRoi(atlasPeak.label) : (dimensions[0] ? dimensions[0].label : 'Cortex'))
   + ' · ' + fmtDelta(signedAtPeak);
 document.getElementById('biggestBody').textContent =
   'Strongest signed contrast in this run (HCP atlas region).';
@@ -1114,7 +1388,7 @@ document.getElementById('biggestBody').textContent =
 document.getElementById('factWinner').textContent = winnerLine;
 const peakFact = document.getElementById('factPeak');
 peakFact.innerHTML = '<span class="' + (signedAtPeak >= 0 ? 'delta-up' : 'delta-down') + '">'
-  + esc(fmtDelta(signedAtPeak)) + '</span> · ' + esc(atlasPeak && atlasPeak.label ? atlasPeak.label : '—');
+  + esc(fmtDelta(signedAtPeak)) + '</span> · ' + esc(atlasPeak && atlasPeak.label ? expandRoi(atlasPeak.label) : '—');
 document.getElementById('factSimilarity').textContent = similarityString(rawDelta);
 
 const tier = confidenceTier(peakAbs);
@@ -1130,20 +1404,44 @@ if (tier === 'too_close' || params.get('low') === '1'){
   document.body.classList.add('low-contrast');
 }
 
-/* ---------- Axis (trade-off) — 7 dots placed by delta ---------- */
+/* ---------- Axis (trade-off) — minimalist redesign.
+   Seven dots positioned by delta, sized by magnitude. Only the two strongest
+   (one per side if present, else top two) carry labels. Individual dimension
+   detail lives in the "Dimension graphs" section below — the axis is about
+   showing the SPREAD of the seven, not identifying every point. ---------- */
 const axisEl = document.getElementById('axisPoints');
 axisEl.innerHTML = '';
-dimensions.forEach((row, idx) => {
+const sortedForAxis = [...dimensions].sort((a,b) => a.delta - b.delta);
+const labelWinners = (function pickLabelWinners(){
+  // Prefer the single most-extreme on each side. If one side has nothing
+  // strong enough (all deltas on one side of 0), label the top two by |Δ|.
+  const labeled = new Set();
+  const mostA = sortedForAxis[0];                                 // most negative
+  const mostB = sortedForAxis[sortedForAxis.length - 1];           // most positive
+  if (mostA && mostA.delta < -0.02) labeled.add(mostA);
+  if (mostB && mostB.delta >  0.02) labeled.add(mostB);
+  if (labeled.size < 2){
+    const byMag = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
+    for (const r of byMag){ labeled.add(r); if (labeled.size >= 2) break; }
+  }
+  return labeled;
+})();
+sortedForAxis.forEach((row) => {
   const pct = clamp((row.delta + 0.3) / 0.6, 0, 1) * 100;
-  const isNeutral = row.low_confidence || Math.abs(row.delta) < 0.05;
-  const dotCls = isNeutral ? 'neutral pattern' : (row.delta > 0 ? 'warm' : 'cool');
+  const absMag = Math.abs(row.delta);
+  const isNeutral = row.low_confidence || absMag < 0.05;
+  const dotCls = isNeutral ? 'neutral' : (row.delta > 0 ? 'warm' : 'cool');
   const point = document.createElement('div');
-  point.className = 'axis-point' + (idx >= 4 ? ' row2' : '');
+  const isLabeled = labelWinners.has(row);
+  point.className = 'axis-dot-wrap' + (isLabeled ? ' is-labeled' : '');
   point.style.left = pct.toFixed(1) + '%';
+  // Scale dot size by magnitude so the eye sees the distribution even without labels.
+  const dotPx = Math.round(8 + Math.min(12, absMag * 28));
   point.innerHTML =
-    '<span class="axis-dot ' + dotCls + '"></span>' +
-    '<span class="axis-name">' + esc(row.label) + '</span>' +
-    '<span class="axis-val">' + esc(fmtDelta(row.delta)) + '</span>';
+    '<span class="axis-dot ' + dotCls + '" style="width:' + dotPx + 'px;height:' + dotPx + 'px;"></span>' +
+    (isLabeled
+      ? '<span class="axis-label-pill ' + dotCls + '">' + esc(row.label) + ' ' + esc(fmtDelta(row.delta)) + '</span>'
+      : '');
   axisEl.appendChild(point);
 });
 
@@ -1161,31 +1459,340 @@ if (insights.subhead){
   tradeoffLineEl.textContent = '—';
 }
 
-/* ---------- Deep card: "What changed" (top 5 by magnitude) + "Held steady" ---------- */
-function dimRowHtml(row){
-  const mag = Math.abs(row.delta);
-  const w = Math.min(45, mag * 220);
-  const isB = row.delta > 0;
-  const barLeft = isB ? 50 : (50 - w);
-  const cls = Math.abs(row.delta) < 0.005 ? 'neutral' : (isB ? 'b' : 'a');
-  const barCls = isB ? 'b' : 'a';
-  return '<li>' +
-    '<span class="dim-name">' + esc(row.label) + '</span>' +
-    '<span class="dim-bar"><span class="dim-bar-fill ' + barCls + '" style="left:' + barLeft + '%;width:' + w + '%;"></span></span>' +
-    '<span class="dim-val ' + cls + '">' + esc(fmtDelta(row.delta)) + '</span>' +
-    '</li>';
+/* ---------- Per-metric expander cards. Each dimension opens to:
+     · what we measured  · where (anatomy)  · what your number means
+     · lab science (citation)  · real-world use (concrete example) ---------- */
+const METRIC_DETAILS = {
+  attention_salience: {
+    region: 'Dorsal attention network',
+    whatMeasured: "How strongly each text commands and holds the reader's attention — the cortical signature of pulled focus.",
+    whereLong: 'Bilateral parietal cortex and frontal eye fields — the dorsal attention system, on both sides, toward the top-back of the brain.',
+    interpret(delta){
+      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
+      const mag = abs > 0.30 ? 'dramatically more' : abs > 0.15 ? 'meaningfully more' : abs > 0.05 ? 'modestly more' : 'about the same';
+      return who + ' commands ' + mag + ' attention. The contrast of ' + fmtDelta(delta) + ' corresponds to roughly a ' + Math.round(abs * 100) + '% difference in predicted dorsal-attention activation between the two texts.';
+    },
+    labScience: 'Corbetta & Shulman (2002), "Control of goal-directed and stimulus-driven attention in the brain". Dorsal-attention activity tracks moment-by-moment engagement with narrative content.',
+    realWorld: 'Super Bowl ad testing. Nielsen and Neuro-Insight measure attention this way before brands commit $8M per airing.'
+  },
+  memory_encoding: {
+    region: 'Left ventrolateral prefrontal cortex (vlPFC)',
+    whatMeasured: 'How likely each text is to be remembered tomorrow — not just felt now.',
+    whereLong: 'Left inferior frontal gyrus — front of the brain on the left side, roughly behind the temple.',
+    interpret(delta){
+      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
+      const mag = abs > 0.30 ? 'much more' : abs > 0.15 ? 'meaningfully more' : abs > 0.05 ? 'somewhat more' : 'similarly';
+      return who + ' is ' + mag + ' likely to stick. A ' + fmtDelta(delta) + ' contrast on this axis is the model\'s bet that a reader recalling either text in 24 hours would' + (abs > 0.15 ? ' clearly remember ' + who.toLowerCase() + '\'s wording better.' : ' show only a small preference.');
+    },
+    labScience: 'Paller & Wagner (2002), "Observing the transformation of experience into memory". Left-vlPFC activation during exposure predicts later recall.',
+    realWorld: 'Mars, Mondelez, Coca-Cola test ads on this metric — it correlates with real sales 6 months out, far above self-reported "I liked it".'
+  },
+  personal_resonance: {
+    region: 'Medial prefrontal cortex (mPFC)',
+    whatMeasured: "How strongly each text reads as 'about me' to the population-average reader.",
+    whereLong: 'Medial prefrontal cortex — along the midline of the frontal lobe, just above the eyes.',
+    interpret(delta){
+      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
+      const mag = abs > 0.30 ? 'dramatically' : abs > 0.15 ? 'meaningfully' : abs > 0.05 ? 'modestly' : 'barely';
+      return who + ' lands ' + mag + ' more personally. A ' + fmtDelta(delta) + ' value is roughly a ' + Math.round(abs * 100) + '% shift in mPFC activation — the same signal Falk\'s lab showed predicts real behavioural change at population scale.';
+    },
+    labScience: 'Falk, Berkman & Lieberman (2012). mPFC activity in 30 smokers predicted which anti-smoking ads drove real call volume nationally — self-report missed it entirely.',
+    realWorld: 'Anti-smoking PSAs · pharma direct-to-patient · financial disclosures — anywhere a message has to feel personally relevant to drive action.'
+  },
+  gut_reaction: {
+    region: 'Anterior insula',
+    whatMeasured: 'The visceral, bodily reaction a text provokes — the response that arrives before language catches up.',
+    whereLong: 'Anterior insula — tucked deep inside the lateral fold of the brain, on both sides. Tracks the felt, bodily edge of experience.',
+    interpret(delta){
+      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
+      const mag = abs > 0.30 ? 'far stronger' : abs > 0.15 ? 'noticeably stronger' : abs > 0.05 ? 'slightly stronger' : 'roughly equal';
+      return who + ' elicits a ' + mag + ' visceral response. The contrast of ' + fmtDelta(delta) + ' suggests one of the two pulls the reader\'s gut more than the other — useful when urgency and stakes matter.';
+    },
+    labScience: 'Craig (2009), "How do you feel — now? The anterior insula and human awareness". Anterior-insula activity tracks felt salience.',
+    realWorld: 'WHO public-health fear appeals · insurance urgency campaigns (Allstate "Mayhem").'
+  },
+  social_thinking: {
+    region: 'Temporoparietal junction (TPJ)',
+    whatMeasured: "How much each text recruits the reader's social-reasoning circuitry — figuring out intent, relationship, what someone else is thinking.",
+    whereLong: 'Temporoparietal junction — where the temporal and parietal lobes meet, on both sides of the brain behind the ears.',
+    interpret(delta){
+      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
+      const mag = abs > 0.30 ? 'much harder' : abs > 0.15 ? 'meaningfully harder' : abs > 0.05 ? 'modestly harder' : 'about the same';
+      return who + ' pulls ' + mag + ' on the social-reasoning network. ' + fmtDelta(delta) + ' on this axis means the reader is doing ' + (abs > 0.15 ? 'noticeably' : 'somewhat') + ' more theory-of-mind work on one side than the other.';
+    },
+    labScience: 'Saxe & Kanwisher (2003), "People thinking about thinking people". TPJ activates when attributing mental states to others.',
+    realWorld: 'Netflix thumbnail and trailer testing — which shot makes viewers infer character intent fastest.'
+  },
+  language_depth: {
+    region: "Broca's + Wernicke's networks",
+    whatMeasured: 'How deeply meaning is being extracted from the text itself — structural and semantic richness, not word count.',
+    whereLong: "Broca's area (left frontal, behind the temple) and Wernicke's area (left temporal, behind the ear) — the brain's main language network.",
+    interpret(delta){
+      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
+      const mag = abs > 0.30 ? 'far' : abs > 0.15 ? 'meaningfully' : abs > 0.05 ? 'somewhat' : 'barely';
+      return who + ' is being parsed ' + mag + ' more deeply. A ' + fmtDelta(delta) + ' contrast usually means one version is structurally richer — denser syntax or semantics — not just longer.';
+    },
+    labScience: 'Fedorenko et al. (2010), "New method for fMRI investigations of language". Broca + Wernicke responses scale with linguistic richness.',
+    realWorld: 'Pharma consent-form comprehension testing · legal disclosure A/B testing.'
+  },
+  brain_effort: {
+    region: 'Dorsolateral prefrontal cortex (dlPFC)',
+    whatMeasured: "How much processing effort each text demands. Higher isn't always worse — depends on whether the payoff justifies it.",
+    whereLong: 'Dorsolateral prefrontal cortex — upper-outer surface of the frontal lobe, on both sides. The brain\'s cognitive-control workhorse.',
+    interpret(delta){
+      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
+      const mag = abs > 0.30 ? 'much harder' : abs > 0.15 ? 'noticeably harder' : abs > 0.05 ? 'somewhat harder' : 'about the same';
+      return who + ' is ' + mag + ' to process. A ' + fmtDelta(delta) + ' contrast means readers spend more cognitive effort on one side — costly when they can just leave, fine when the payoff is big.';
+    },
+    labScience: 'Owen et al. (2005), "N-back working memory paradigm". dlPFC activation reliably tracks cognitive load.',
+    realWorld: 'CFPB mortgage-form simplification · financial disclosure UX testing.'
+  },
+};
+
+/* ---------- Dimension graphs — ONE combined time-series chart.
+   All seven cortical systems on one x-axis (text timestep), one y-axis
+   (activation / contrast). Toggle chips above the chart show/hide each
+   line. Three view modes:
+     diff → B − A at every timestep (zero line dashed)
+     b    → Version B's activation at every timestep
+     a    → Version A's activation at every timestep
+   Data source: dimensions[i].timeseries_a / .timeseries_b from the backend.
+   Dimensions are ordered to match the landing-page hierarchy. ---------- */
+
+// Landing-page order (same everywhere): Attention → Memory → Personal
+// relevance → Gut reaction → Social reasoning → Language depth → Processing
+// effort. Matches modes/ and index.html's pill order.
+const DIM_ORDER = [
+  'attention_salience','memory_encoding','personal_resonance','gut_reaction',
+  'social_thinking','language_depth','brain_effort',
+];
+// One distinguishable colour per dimension — tuned to stay legible on both
+// the cream (light) and charcoal (dark) result surfaces.
+const DIM_COLORS = {
+  attention_salience: '#e04a2e',  // brand vermillion
+  memory_encoding:    '#4fb3a1',  // teal
+  personal_resonance: '#eab447',  // warm gold
+  gut_reaction:       '#c4543b',  // deep orange-red
+  social_thinking:    '#6a97c9',  // brand slate blue
+  language_depth:     '#a572d9',  // violet
+  brain_effort:       '#87a85c',  // olive
+};
+
+const dimGraphCanvas  = document.getElementById('dimGraphCanvas');
+const dimGraphChips   = document.getElementById('dimGraphChips');
+const dimGraphView    = document.getElementById('dimGraphViewGroup');
+const dimGraphLegend  = document.getElementById('dimGraphLegend');
+let dimGraphMode = 'diff';
+// Per-dimension show/hide state. All on by default.
+const dimVisible = {};
+DIM_ORDER.forEach(function(k){ dimVisible[k] = true; });
+
+function resampleSeries(series, targetLen){
+  if (!series || !series.length) return new Array(targetLen).fill(0);
+  if (series.length === targetLen) return series.slice();
+  const out = new Array(targetLen);
+  const n = series.length;
+  for (let i = 0; i < targetLen; i++){
+    const t = i / Math.max(1, targetLen - 1) * (n - 1);
+    const lo = Math.floor(t), hi = Math.min(n - 1, lo + 1), f = t - lo;
+    out[i] = series[lo] * (1 - f) + series[hi] * f;
+  }
+  return out;
+}
+function buildDimViewSeries(row, mode){
+  const a = (row.timeseries_a || []).map(Number);
+  const b = (row.timeseries_b || []).map(Number);
+  if (!a.length && !b.length) return null;
+  if (mode === 'a') return a;
+  if (mode === 'b') return b;
+  const n = Math.max(a.length, b.length);
+  const A = resampleSeries(a, n);
+  const B = resampleSeries(b, n);
+  const out = new Array(n);
+  for (let i = 0; i < n; i++) out[i] = B[i] - A[i];
+  return out;
 }
 
-const sorted = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
-const changedEl = document.getElementById('dimChanged');
-changedEl.innerHTML = sorted.slice(0, 5).map(dimRowHtml).join('') || '<li style="color:var(--ink-mute);font-size:12px;">No dimension data.</li>';
+function legendCopy(mode){
+  if (mode === 'diff'){
+    return 'Each line is one cortical system\'s <strong>B&nbsp;−&nbsp;A</strong> contrast at every timestep of the audio. <strong>Above&nbsp;0</strong> = B\'s signal is stronger there; <strong>below</strong> = A is. Toggle systems on or off to de-clutter.';
+  }
+  if (mode === 'b') return 'Each line is one cortical system\'s predicted activation while <strong>Version&nbsp;B</strong> plays, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
+  return         'Each line is one cortical system\'s predicted activation while <strong>Version&nbsp;A</strong> plays, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
+}
 
-const heldRows = dimensions.filter(r => r.low_confidence || Math.abs(r.delta) < 0.05);
-const steadyEl = document.getElementById('dimSteady');
-steadyEl.innerHTML = heldRows.map(dimRowHtml).join('') +
-  '<li style="color:var(--ink-mute);font-size:12px;margin-top:8px;border:none;padding:4px 0;">' +
-  '<span style="grid-column:1/-1;">' + heldRows.length + ' of ' + dimCount +
-  ' dimensions fell inside the "held steady" band (|Δ| &lt; 0.05).</span></li>';
+function renderDimChips(){
+  if (!dimGraphChips) return;
+  // Build chips in DIM_ORDER. A dimension that isn't in the result set is
+  // skipped (shouldn't happen with TRIBE v2's 7, but defensive).
+  const byKey = {};
+  dimensions.forEach(function(d){ byKey[d.key] = d; });
+  dimGraphChips.innerHTML = DIM_ORDER
+    .filter(function(k){ return byKey[k]; })
+    .map(function(k){
+      const d = byKey[k];
+      const on = dimVisible[k];
+      return '<button type="button" class="dim-chip' + (on ? '' : ' is-off') +
+        '" data-key="' + k + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
+        '<span class="dim-chip-dot" style="background:' + DIM_COLORS[k] + '"></span>' +
+        esc(d.label) +
+      '</button>';
+    }).join('');
+}
+
+function renderDimGraphs(mode){
+  dimGraphMode = mode;
+  if (dimGraphLegend) dimGraphLegend.innerHTML = legendCopy(mode);
+  if (!dimGraphCanvas) return;
+
+  // Build (and resample to common length) a series per dim, keyed.
+  const byKey = {};
+  dimensions.forEach(function(d){ byKey[d.key] = d; });
+  let maxLen = 0;
+  const rawSeries = {};
+  DIM_ORDER.forEach(function(k){
+    const d = byKey[k];
+    if (!d) return;
+    const s = buildDimViewSeries(d, mode);
+    if (s && s.length){ rawSeries[k] = s; if (s.length > maxLen) maxLen = s.length; }
+  });
+  if (maxLen < 2){
+    dimGraphCanvas.innerHTML = '<div class="empty">No time-series data yet — this usually means the run hasn\'t finished computing per-dimension scores.</div>';
+    return;
+  }
+  const lines = {};
+  DIM_ORDER.forEach(function(k){
+    if (rawSeries[k]) lines[k] = resampleSeries(rawSeries[k], maxLen);
+  });
+
+  // Y-axis range: include all currently-visible dimensions.
+  const visibleKeys = DIM_ORDER.filter(function(k){ return lines[k] && dimVisible[k]; });
+  let yMin, yMax;
+  if (mode === 'diff'){
+    let peak = 0;
+    visibleKeys.forEach(function(k){
+      for (const v of lines[k]){ const a = Math.abs(v); if (a > peak) peak = a; }
+    });
+    peak = Math.max(0.1, peak);
+    yMin = -peak; yMax = peak;
+  } else {
+    let lo = Infinity, hi = -Infinity;
+    visibleKeys.forEach(function(k){
+      for (const v of lines[k]){ if (v < lo) lo = v; if (v > hi) hi = v; }
+    });
+    if (!isFinite(lo) || !isFinite(hi) || lo === hi){ lo = -0.1; hi = 0.1; }
+    const padY = (hi - lo) * 0.1;
+    yMin = lo - padY; yMax = hi + padY;
+  }
+
+  // SVG layout constants.
+  const W = 1000, H = 260;                        // viewBox units
+  const padL = 42, padR = 12, padT = 10, padB = 28;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+  function xToPx(i){ return padL + (i / (maxLen - 1)) * plotW; }
+  function yToPx(v){ return padT + (1 - (v - yMin) / (yMax - yMin)) * plotH; }
+
+  // Grid: 4 horizontal lines inside the plot area + left Y-axis tick labels.
+  const gridStops = 4;
+  let grid = '';
+  for (let g = 0; g <= gridStops; g++){
+    const v = yMin + (yMax - yMin) * (g / gridStops);
+    const y = yToPx(v);
+    const isZero = mode === 'diff' && Math.abs(v) < 1e-6;
+    grid +=
+      '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) +
+        '" stroke="' + (isZero ? 'var(--ink-mute)' : 'var(--line)') +
+        '" stroke-opacity="' + (isZero ? '0.55' : '0.8') +
+        '"' + (isZero ? ' stroke-dasharray="3 3"' : '') + '/>' +
+      '<text x="' + (padL - 6) + '" y="' + (y + 3).toFixed(1) +
+        '" text-anchor="end" fill="var(--ink-mute)" font-size="10" font-family="\'JetBrains Mono\',monospace">' +
+        (v >= 0 ? '+' : '') + v.toFixed(2) + '</text>';
+  }
+  // X-axis ticks (start / middle / end).
+  const xTicks = [
+    { i: 0,             label: '0s (start)' },
+    { i: maxLen >> 1,   label: 'mid' },
+    { i: maxLen - 1,    label: 'end' },
+  ];
+  xTicks.forEach(function(t){
+    const x = xToPx(t.i);
+    grid += '<text x="' + x.toFixed(1) + '" y="' + (H - padB + 18) +
+      '" text-anchor="' + (t.i === 0 ? 'start' : t.i === maxLen - 1 ? 'end' : 'middle') +
+      '" fill="var(--ink-mute)" font-size="10" font-family="\'JetBrains Mono\',monospace">' +
+      t.label + '</text>';
+  });
+
+  // Paths per visible dimension.
+  let paths = '';
+  DIM_ORDER.forEach(function(k){
+    const s = lines[k]; if (!s) return;
+    const color = DIM_COLORS[k] || '#999';
+    const opacity = dimVisible[k] ? 1 : 0.08;
+    const width = dimVisible[k] ? 2 : 1;
+    let d = '';
+    for (let i = 0; i < s.length; i++){
+      d += (i === 0 ? 'M' : 'L') + xToPx(i).toFixed(1) + ' ' + yToPx(s[i]).toFixed(1) + ' ';
+    }
+    paths += '<path d="' + d + '" fill="none" stroke="' + color +
+      '" stroke-width="' + width + '" stroke-opacity="' + opacity +
+      '" stroke-linejoin="round" stroke-linecap="round"/>';
+  });
+
+  dimGraphCanvas.innerHTML =
+    '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+      grid + paths +
+    '</svg>';
+  renderDimChips();
+}
+renderDimChips();
+renderDimGraphs('diff');
+
+if (dimGraphView){
+  dimGraphView.addEventListener('click', function(e){
+    const btn = e.target.closest('button[data-view]');
+    if (!btn) return;
+    const v = btn.dataset.view;
+    if (v === dimGraphMode) return;
+    dimGraphView.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    renderDimGraphs(v);
+  });
+}
+if (dimGraphChips){
+  dimGraphChips.addEventListener('click', function(e){
+    const chip = e.target.closest('.dim-chip');
+    if (!chip) return;
+    const k = chip.dataset.key;
+    if (!k) return;
+    dimVisible[k] = !dimVisible[k];
+    renderDimGraphs(dimGraphMode);  // re-renders both chips + chart
+  });
+}
+
+const metricCardsEl = document.getElementById('metricCards');
+const sortedDims = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
+metricCardsEl.innerHTML = sortedDims.map(function(d){
+  const detail = METRIC_DETAILS[d.key] || {};
+  const isNeutral = d.low_confidence || Math.abs(d.delta) < 0.005;
+  const sign = isNeutral ? 'neutral' : (d.delta > 0 ? 'b' : 'a');
+  const region = detail.region || '';
+  return '<details class="metric-card metric-card-' + sign + '">' +
+    '<summary class="metric-summary">' +
+      '<span class="metric-name">' + esc(d.label) + '</span>' +
+      '<span class="metric-value ' + sign + '">' + esc(fmtDelta(d.delta)) + '</span>' +
+      '<span class="metric-region">' + esc(region) + '</span>' +
+      '<span class="metric-chevron" aria-hidden="true">▾</span>' +
+    '</summary>' +
+    '<div class="metric-body">' +
+      '<div class="metric-row"><span class="metric-row-label">What we measured</span><span class="metric-row-text">' + esc(detail.whatMeasured || '—') + '</span></div>' +
+      '<div class="metric-row"><span class="metric-row-label">Where</span><span class="metric-row-text">' + esc(detail.whereLong || '—') + '</span></div>' +
+      '<div class="metric-row"><span class="metric-row-label">What ' + esc(fmtDelta(d.delta)) + ' means</span><span class="metric-row-text">' + esc(detail.interpret ? detail.interpret(d.delta) : '—') + '</span></div>' +
+      '<div class="metric-row"><span class="metric-row-label">Academic basis</span><span class="metric-row-text">' + esc(detail.labScience || '—') + '</span></div>' +
+      '<div class="metric-row"><span class="metric-row-label">Real world</span><span class="metric-row-text">' + esc(detail.realWorld || '—') + '</span></div>' +
+    '</div>' +
+  '</details>';
+}).join('');
 
 /* =====================================================================
    Brain viewer — real fsaverage5 mesh (merged LH+RH) with real intensity.
@@ -1263,7 +1870,7 @@ function mountResultBrain(){
   renderer.setSize(w, h, false);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(30, w/h, 0.05, 100);
-  camera.position.set(0.2, 0.2, 5.6);
+  camera.position.set(0.2, 0.2, 7.6);
 
   scene.add(new THREE.AmbientLight(0xffffff, 0.38));
   const keyL = new THREE.DirectionalLight(0xffe7bd, 1.0); keyL.position.set(3, 2.5, 4); scene.add(keyL);
@@ -1273,31 +1880,63 @@ function mountResultBrain(){
   const { geometry, vertexCount } = (meshPayload ? buildMeshGeometry(meshPayload) : buildFallbackGeometry());
   const pos = geometry.attributes.position;
 
-  // Normalize delta so 98th-percentile |Δ| ≈ 1 for saturated ends of the palette.
-  // When all vertices are ~0 (identical-text short-circuit), keep intensity zero.
-  let intensity;
-  if (rawDelta.length){
+  // Decode all three vertex buffers — the brain view toolbar switches
+  // between them: B−A signed contrast (default), Just B (vermillion only),
+  // Just A (slate only). Backend ships all three from /api/diff/status.
+  const rawA = decodeFloat32B64(result && result.vertex_a_b64);
+  const rawB = decodeFloat32B64(result && result.vertex_b_b64);
+
+  function buildSignedIntensity(buf){
+    if (!buf || !buf.length) return new Float32Array(vertexCount);
     let maxAbs = 0;
-    for (let i = 0; i < rawDelta.length; i++){
-      const v = Math.abs(rawDelta[i]);
-      if (v > maxAbs) maxAbs = v;
+    for (let i = 0; i < buf.length; i++){
+      const v = Math.abs(buf[i]); if (v > maxAbs) maxAbs = v;
     }
-    if (maxAbs < 1e-6){
-      intensity = new Float32Array(vertexCount);
-    } else {
-      const scale = percentileAbs(rawDelta, 98);
-      const normed = new Float32Array(rawDelta.length);
-      for (let i = 0; i < rawDelta.length; i++) normed[i] = rawDelta[i] / scale;
-      intensity = resampleIntensity(normed, vertexCount);
+    if (maxAbs < 1e-6) return new Float32Array(vertexCount);
+    const scale = percentileAbs(buf, 98);
+    const normed = new Float32Array(buf.length);
+    for (let i = 0; i < buf.length; i++) normed[i] = buf[i] / scale;
+    return resampleIntensity(normed, vertexCount);
+  }
+  function buildOneSidedIntensity(buf, signMul){
+    // Map a positive activation buffer to a single side of the signed
+    // colour palette by giving it a constant sign. signMul = +1 → B/vermillion,
+    // -1 → A/slate. We take |buf| so prediction noise (which can be slightly
+    // negative) doesn't bleed into the wrong colour band.
+    if (!buf || !buf.length) return new Float32Array(vertexCount);
+    let maxAbs = 0;
+    for (let i = 0; i < buf.length; i++){
+      const v = Math.abs(buf[i]); if (v > maxAbs) maxAbs = v;
     }
-  } else {
-    intensity = new Float32Array(vertexCount);
+    if (maxAbs < 1e-6) return new Float32Array(vertexCount);
+    const scale = percentileAbs(buf, 98);
+    const normed = new Float32Array(buf.length);
+    for (let i = 0; i < buf.length; i++) normed[i] = signMul * Math.abs(buf[i]) / scale;
+    return resampleIntensity(normed, vertexCount);
   }
 
+  const VIEW_INTENSITY = {
+    diff: buildSignedIntensity(rawDelta),
+    b:    buildOneSidedIntensity(rawB, +1),
+    a:    buildOneSidedIntensity(rawA, -1),
+  };
+  let currentView = 'diff';
+  let intensity = VIEW_INTENSITY[currentView];
+
   // Palette (matches CSS tokens / scale-legend gradient).
-  const B_R = 0.88, B_G = 0.29, B_B = 0.18;
-  const A_R = 0.42, A_G = 0.59, A_B = 0.79;
-  const BASE_R = 0.48, BASE_G = 0.50, BASE_B = 0.55;
+  // Theme-aware palette. The base flips between cream (dark theme, light
+  // brain on near-black stage) and warm gray (light theme, darker brain on
+  // cream stage) so the highlight always has 30%+ luminance contrast.
+  // B = vermillion, A = deep slate blue. Both saturated for visibility.
+  const B_R = 0.92, B_G = 0.26, B_B = 0.15;
+  const A_R = 0.20, A_G = 0.42, A_B = 0.74;
+  let BASE_R, BASE_G, BASE_B;
+  function applyBrainBase(){
+    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+    if (isLight){ BASE_R = 0.55; BASE_G = 0.52; BASE_B = 0.47; }   // warm gray on cream stage
+    else        { BASE_R = 0.83; BASE_G = 0.80; BASE_B = 0.73; }   // cream on dark stage
+  }
+  applyBrainBase();
 
   const colors = new Float32Array(vertexCount * 3);
 
@@ -1309,11 +1948,13 @@ function mountResultBrain(){
       const s = Math.max(-1, Math.min(1, s0));
       const mag = Math.abs(s);
       let r = BASE_R, g = BASE_G, b = BASE_B;
+      // Use a softer gamma (0.7) so weak-but-real signals don't get
+      // crushed flat — the user complained colors were invisible.
       if (s > 0){
-        const t = Math.pow(s, 1.4);
+        const t = Math.pow(s, 0.7);
         r = r + t * (B_R - r); g = g + t * (B_G - g); b = b + t * (B_B - b);
       } else if (s < 0){
-        const t = Math.pow(-s, 1.4);
+        const t = Math.pow(-s, 0.7);
         r = r + t * (A_R - r); g = g + t * (A_G - g); b = b + t * (A_B - b);
       }
       if (pattern){
@@ -1335,6 +1976,23 @@ function mountResultBrain(){
   repaint();
   window.addEventListener('brain:repaint', repaint);
 
+  // Brain view toolbar (B−A · Just B · Just A) — switches the intensity
+  // buffer in place and triggers a repaint. Three buffers were decoded above.
+  const viewGroupEl = document.getElementById('brainViewGroup');
+  if (viewGroupEl){
+    viewGroupEl.addEventListener('click', function(e){
+      const btn = e.target.closest('button[data-view]');
+      if (!btn) return;
+      const v = btn.dataset.view;
+      if (!VIEW_INTENSITY[v] || v === currentView) return;
+      viewGroupEl.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      currentView = v;
+      intensity = VIEW_INTENSITY[v];
+      repaint();
+    });
+  }
+
   const mat = new THREE.MeshPhysicalMaterial({
     vertexColors: true, roughness: 0.55, metalness: 0.08,
     clearcoat: 0.4, clearcoatRoughness: 0.5,
@@ -1343,20 +2001,29 @@ function mountResultBrain(){
   const mesh = new THREE.Mesh(geometry, mat);
   scene.add(mesh);
 
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let targetY = -0.35, targetX = 0.05;
-  parent.addEventListener('mousemove', (e) => {
-    const rect = parent.getBoundingClientRect();
-    const mx = (e.clientX - rect.left) / rect.width - 0.5;
-    const my = (e.clientY - rect.top) / rect.height - 0.5;
-    targetY = -0.35 + mx * 0.6;
-    targetX = 0.05 + my * 0.4;
+  // OrbitControls — user can drag to rotate, scroll to zoom. Pan disabled
+  // so the brain stays centred. Damping = silky inertia after a flick.
+  // Initial slight rotation so they land on a 3/4 view, not dead-on dorsal.
+  mesh.rotation.set(0.05, -0.35, 0);
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.dampingFactor = 0.08;
+  controls.enablePan = false;
+  controls.minDistance = 3.2;
+  controls.maxDistance = 12;
+  controls.target.set(0, 0, 0);
+  controls.rotateSpeed = 0.8;
+  controls.zoomSpeed = 2.2;   // was 0.6 — user said scroll-zoom was too slow
+
+  // Repaint whenever the theme changes so the base palette flips with it.
+  window.addEventListener('braindiff:theme', function(){
+    applyBrainBase();
+    repaint();
   });
 
   let raf = 0;
   function loop(){
-    mesh.rotation.y += (targetY - mesh.rotation.y) * 0.05 + (reduceMotion ? 0 : 0.002);
-    mesh.rotation.x += (targetX - mesh.rotation.x) * 0.05;
+    controls.update();
     renderer.render(scene, camera);
     raf = requestAnimationFrame(loop);
   }

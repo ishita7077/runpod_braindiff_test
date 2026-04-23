@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>BrainDiff — cortical comparison for written content</title>
-<meta name="description" content="A research experiment. Cortical contrast viewer built on Meta FAIR's TRIBE v2 — see how two pieces of writing land in the same population-average brain." />
+<title>BrainDiff — EQ in AI</title>
+<meta name="description" content="EQ in AI. BrainDiff takes two pieces of content and simulates, region by region, how a brain responds to each — built on Meta FAIR's TRIBE v2." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<script>(function(){try{var t=localStorage.getItem('braindiff-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark'){r.removeAttribute('data-theme');}else{r.setAttribute('data-theme','light');}}catch(e){r.setAttribute('data-theme','light');}})();</script>
 <style>
 /* ============================================================
    BrainDiff · tokens
@@ -35,9 +35,11 @@
   --good-2:#8db2d4;
   --good-3:rgba(106,151,201,0.12);
   --brain-stage:#07080b;
+  --brain-stage-2:#050608;
+  --brain-stage-glow:rgba(40,60,100,0.18);
   --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
   --shadow-md:0 12px 32px rgba(0,0,0,0.45);
-  --shell-pad-x:clamp(20px,4vw,56px);
+  --shell-pad-x:clamp(64px,7vw,176px);
   --shell-max:1200px;
 }
 :root[data-theme="light"]{
@@ -59,7 +61,9 @@
   --good:#2a5583;
   --good-2:#4a78ab;
   --good-3:#e6edf6;
-  --brain-stage:#0a0c10;
+  --brain-stage:#ebe6da;
+  --brain-stage-2:#e0d9ca;
+  --brain-stage-glow:rgba(150,160,185,0.18);
   --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
   --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
 }
@@ -129,7 +133,7 @@ a{color:inherit;text-decoration:none}
 .nav-cta:hover{border-color:var(--accent);color:var(--accent)}
 
 /* HERO */
-.hero{padding:clamp(64px,11vh,128px) 0 88px}
+.hero{padding:clamp(56px,9vh,104px) 0 48px}
 .hero-grid{display:grid;grid-template-columns:1.05fr 1fr;gap:clamp(32px,5vw,80px);align-items:center}
 .kicker{
   display:inline-block;font-family:'JetBrains Mono',monospace;
@@ -154,7 +158,12 @@ h1.hero-title em{font-style:italic;color:var(--accent);font-variation-settings:"
   color:var(--ink-dim);
   max-width:48ch;line-height:1.6;margin:0 0 30px;
 }
-.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.hero-cta-sub{
+  font-size:13.5px;line-height:1.55;color:var(--ink-mute);margin:0 0 24px;
+  max-width:48ch;font-style:italic;
+  font-family:'Fraunces',serif;font-variation-settings:"opsz" 48;
+}
 .btn{
   display:inline-flex;align-items:center;gap:8px;
   padding:12px 20px;border-radius:8px;
@@ -174,27 +183,132 @@ h1.hero-title em{font-style:italic;color:var(--accent);font-variation-settings:"
 .btn-ghost:hover{color:var(--ink);border-color:var(--accent)}
 .meta-row{display:flex;gap:16px;align-items:center;font-size:12px;color:var(--ink-mute);flex-wrap:wrap;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
 .meta-row .dot{width:5px;height:5px;border-radius:50%;background:var(--good);display:inline-block;margin-right:6px;vertical-align:middle}
+
+/* Attribution row — Meta FAIR lockup + inline research link */
+.attribution-row{display:flex;gap:14px;align-items:center;flex-wrap:wrap;font-size:12.5px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
+.attribution-built{text-transform:uppercase;letter-spacing:0.14em;font-size:10.5px;color:var(--ink-mute)}
+.meta-lockup{display:inline-flex;align-items:center;gap:9px;padding:6px 12px;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb, var(--surface) 70%, transparent);box-shadow:var(--shadow-sm)}
+.meta-logo{flex-shrink:0;display:block}
+.meta-wordmark{font-family:'Inter Tight',system-ui,sans-serif;font-size:13px;font-weight:400;letter-spacing:-0.005em;color:var(--ink);text-transform:none}
+.meta-wordmark b{font-weight:600;color:var(--ink)}
+.btn-inline{display:inline-flex;align-items:center;gap:4px;padding:6px 12px;border:1px solid var(--line-2);border-radius:999px;background:var(--surface);color:var(--ink-dim);font-family:'Inter Tight',system-ui,sans-serif;font-size:12.5px;font-weight:500;letter-spacing:-0.005em;text-transform:none;transition:all .15s ease;box-shadow:var(--shadow-sm)}
+.btn-inline:hover{color:var(--accent);border-color:var(--accent)}
 .hero-stage{
-  position:relative;height:clamp(420px,55vh,560px);
+  position:relative;height:clamp(520px,68vh,720px);
   border-radius:16px;overflow:hidden;
   background:
-    radial-gradient(ellipse at 50% 30%, color-mix(in srgb, var(--good) 18%, transparent), transparent 60%),
-    linear-gradient(180deg, #0d1018, var(--brain-stage));
+    radial-gradient(ellipse at 50% 30%, var(--brain-stage-glow), transparent 70%),
+    linear-gradient(180deg, var(--brain-stage), var(--brain-stage-2));
   border:1px solid var(--line);
   box-shadow:var(--shadow-md);
+  transition:background-color .35s ease;
 }
 canvas.brain-canvas{width:100%;height:100%;display:block}
-.hero-stage-note{
-  position:absolute;bottom:14px;left:16px;right:16px;
-  font-size:10.5px;color:#8a857b;font-family:'JetBrains Mono',monospace;
-  letter-spacing:0.06em;display:flex;justify-content:space-between;align-items:center;
-}
-.hero-stage-note .live{color:#8db2d4}
-.hero-stage-note .live::before{content:"●";margin-right:5px;animation:pulse 1.6s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
+/* Dimension annotation card — floating overlay, top-left, connected to the
+   active brain region by a curved SVG line that tracks rotation. */
+.hero-dim-card{
+  position:absolute;top:18px;left:18px;max-width:330px;
+  background:rgba(7,8,11,0.86);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border:1px solid rgba(255,255,255,0.10);border-radius:14px;
+  padding:16px 18px 17px;
+  color:#e8e4db;
+  box-shadow:0 14px 32px rgba(0,0,0,0.55);
+  transition:opacity .35s ease;
+  pointer-events:none;
+  z-index:4;
+}
+.hero-dim-card.fading{opacity:0.45}
+/* Stacked header: label on line 1, anatomy on line 2 — constant card height
+   across regions whether the anatomy name is short or long. */
+.hero-dim-head{display:flex;flex-direction:column;align-items:flex-start;gap:4px;margin-bottom:10px}
+.hero-dim-label{font-family:'Fraunces',serif;font-variation-settings:"opsz" 96;font-size:20px;font-weight:400;color:#7ea4d4;letter-spacing:-0.01em;line-height:1.1}
+.hero-dim-region{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:#8893a8;letter-spacing:0.06em;text-transform:uppercase;line-height:1.35}
+.hero-dim-body{font-size:13.5px;line-height:1.55;color:#d2d6dc;margin:0}
+
+/* SVG connector line from card to active brain region */
+.hero-line-svg{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  pointer-events:none;z-index:3;overflow:visible;
+  transition:opacity .35s ease;
+}
+.hero-line-svg.fading{opacity:0.35}
+.hero-line-path{
+  fill:none;
+  stroke:rgba(120,160,210,0.55);
+  stroke-width:1.2;
+  stroke-dasharray:4 4;
+  stroke-linecap:round;
+}
+.hero-line-end{
+  fill:rgba(160,200,240,0.9);
+  filter:drop-shadow(0 0 6px rgba(120,160,210,0.7)) drop-shadow(0 0 14px rgba(120,160,210,0.4));
+}
+
+/* Stage foot — pills row + real-world use line, inside the brain stage */
+.hero-stage-foot{
+  position:absolute;left:16px;right:16px;bottom:40px;
+  display:flex;flex-direction:column;gap:10px;
+  z-index:2;pointer-events:none;
+}
+.hero-pills{display:flex;flex-wrap:wrap;gap:6px;pointer-events:auto}
+.hero-pill{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.08em;
+  text-transform:uppercase;font-weight:500;
+  padding:5px 10px;border:1px solid rgba(255,255,255,0.12);
+  background:rgba(7,8,11,0.55);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  color:#a8a29e;border-radius:6px;cursor:pointer;
+  transition:color .15s ease, border-color .15s ease, background .15s ease, transform .15s ease;
+}
+.hero-pill:hover,
+.hero-pill:focus-visible{color:#e8e4db;border-color:var(--accent);background:rgba(7,8,11,0.78);outline:none;transform:translateY(-1px)}
+.hero-pill.is-active{background:var(--accent);border-color:var(--accent);color:#fff}
+.hero-pill.is-active:hover{transform:none}
+
+/* "Others" pill + popover */
+.hero-pill-group{position:relative;display:inline-block}
+.hero-pill-others{display:inline-flex;align-items:center;gap:5px}
+.hero-pill-others .caret{font-size:9px;line-height:1;opacity:0.7;transition:transform .15s ease}
+.hero-pill-group.is-open .hero-pill-others .caret{transform:rotate(180deg)}
+/* Invisible bridge between pill and popover so the cursor doesn't fall into a
+   gap and lose hover. Must sit inside the group's bounds. */
+.hero-pill-popover-wrap{
+  position:absolute;bottom:100%;left:0;padding-bottom:6px;
+  opacity:0;pointer-events:none;transform:translateY(6px);
+  transition:opacity .15s ease, transform .15s ease;
+  z-index:3;
+}
+.hero-pill-group.is-open .hero-pill-popover-wrap{
+  opacity:1;pointer-events:auto;transform:translateY(0);
+}
+.hero-pill-popover{
+  display:flex;flex-direction:column;gap:4px;
+  padding:6px;border-radius:10px;min-width:170px;
+  background:rgba(7,8,11,0.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid rgba(255,255,255,0.1);
+  box-shadow:0 14px 32px rgba(0,0,0,0.55);
+}
+.hero-pill-popover .hero-pill{width:100%;text-align:left;background:transparent;border-color:transparent;color:#c8c3b8}
+.hero-pill-popover .hero-pill:hover{background:rgba(255,255,255,0.05);border-color:var(--accent);color:#fff;transform:none}
+.hero-pill-popover .hero-pill.is-active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+.hero-use-line{
+  display:flex;gap:10px;align-items:baseline;flex-wrap:wrap;
+  font-size:12px;color:#b6b1a6;
+  font-family:'Inter Tight',system-ui,sans-serif;
+  transition:opacity .3s ease;
+  padding:2px 2px 0;
+}
+.hero-use-line.fading{opacity:0}
+.hero-use-tag-inline{
+  flex-shrink:0;
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--accent);font-weight:500;
+}
+
 /* SECTIONS */
-.section{padding:88px 0;border-top:1px solid var(--line)}
+.section{padding:64px 0 72px;border-top:1px solid var(--line)}
 .section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
 h2.section-title{
   font-family:'Fraunces', 'Source Serif 4', Georgia, serif;font-weight:400;
@@ -204,6 +318,7 @@ h2.section-title{
 }
 h2.section-title em{font-style:italic;color:var(--accent);font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0}
 .section-lead{color:var(--ink-dim);max-width:58ch;margin:0 0 44px;font-size:16px;line-height:1.65}
+.section-lead strong{color:var(--ink);font-weight:500;display:block;margin-bottom:10px;font-size:17px}
 
 /* LIVE COMPARE */
 .compare-grid{display:grid;grid-template-columns:260px 1fr 300px;gap:22px;align-items:stretch}
@@ -213,10 +328,22 @@ h2.section-title em{font-style:italic;color:var(--accent);font-variation-setting
 .compare-tag{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:5px;font-weight:600;font-size:11px;font-family:'JetBrains Mono',monospace}
 .compare-tag.a{background:var(--good-3);color:var(--good);border:1px solid color-mix(in srgb, var(--good) 30%, transparent)}
 .compare-tag.b{background:var(--accent-3);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
-.compare-thumb{height:110px;border-radius:8px;background:linear-gradient(135deg,#14181f,#0c0f14);position:relative;overflow:hidden;display:grid;place-items:center;border:1px solid var(--line)}
-.compare-thumb::before{content:"▶";font-size:18px;color:rgba(255,255,255,0.35)}
+/* Clickable YouTube preview inside A/B compare cards. Thumbnail comes from
+   YouTube's CDN (hqdefault); the click opens the video starting at 0s and
+   ending at 30s. Real embed avoided — lighter weight + no tracking iframe. */
+.compare-video{position:relative;display:block;border-radius:8px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/9;background:#0b0d11;transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease}
+.compare-video:hover{border-color:var(--accent);transform:translateY(-1px);box-shadow:0 10px 24px rgba(0,0,0,0.4)}
+.compare-video img{display:block;width:100%;height:100%;object-fit:cover;filter:brightness(0.85) saturate(0.95)}
+.compare-video-play{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;transition:transform .2s ease}
+.compare-video:hover .compare-video-play{transform:scale(1.08)}
 .compare-quote{font-family:'Fraunces', serif;font-variation-settings:"opsz" 48, "SOFT" 0, "WONK" 0;font-style:italic;font-size:14.5px;line-height:1.5;color:var(--ink-dim);margin-top:4px}
+.compare-stage-col{display:flex;flex-direction:column;gap:12px;min-width:0}
 .compare-stage{position:relative;border-radius:14px;border:1px solid var(--line);background:var(--brain-stage);overflow:hidden;min-height:440px;box-shadow:var(--shadow-md)}
+.compare-caption{
+  font-family:'Fraunces',serif;font-variation-settings:"opsz" 48;font-style:italic;
+  font-size:14px;line-height:1.5;color:var(--ink-dim);margin:0;padding:0 2px;text-align:center;
+}
+.compare-caption em{color:var(--accent);font-style:italic}
 .compare-stage canvas{width:100%;height:100%;display:block}
 .compare-scale{position:absolute;bottom:14px;left:16px;right:16px;display:flex;align-items:center;gap:10px;font-size:10.5px;color:#a8a29e;font-family:'JetBrains Mono',monospace;letter-spacing:0.06em}
 .compare-scale .bar{flex:1;height:4px;border-radius:2px;background:linear-gradient(90deg,#527ebd 0%,#2a2d35 45%,#2a2d35 55%,#e04a2e 100%)}
@@ -232,24 +359,122 @@ h2.section-title em{font-style:italic;color:var(--accent);font-variation-setting
 .readout-summary{font-size:13px;color:var(--ink-dim);line-height:1.6;padding-top:8px;border-top:1px solid var(--line)}
 .readout-summary em{font-style:italic;font-family:'Fraunces', serif;font-variation-settings:"opsz" 48, "SOFT" 0, "WONK" 0;font-size:14.5px;color:var(--ink)}
 
-/* CASE STUDIES */
-.cases-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
-.case{
-  background:var(--panel);border:1px solid var(--line);border-radius:14px;
-  padding:24px;display:flex;flex-direction:column;gap:14px;
-  transition:border-color .15s ease, transform .2s ease, box-shadow .2s ease;
-  cursor:pointer;box-shadow:var(--shadow-sm);backdrop-filter:blur(8px);
+/* CASE STUDY — single Falk 2012 anchor piece, replaces the old 3-card grid */
+.case-study{padding-top:72px;padding-bottom:72px}
+.case-leadquote{
+  font-family:'Fraunces','Source Serif 4',Georgia,serif;
+  font-weight:400;font-variation-settings:"opsz" 96, "SOFT" 0, "WONK" 0;
+  font-size:clamp(20px,1.9vw,26px);line-height:1.35;letter-spacing:-0.01em;
+  color:var(--ink-dim);max-width:62ch;margin:0 0 28px;
+  padding-left:18px;border-left:2px solid var(--accent);
 }
-.case:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:var(--shadow-md)}
-.case-kicker{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-mute)}
-.case-title{font-family:'Fraunces', serif;font-variation-settings:"opsz" 96, "SOFT" 0, "WONK" 0;font-size:21px;line-height:1.2;margin:0;color:var(--ink);letter-spacing:-0.01em;font-weight:400}
-.case-pair{display:flex;flex-direction:column;gap:8px;font-size:13px;color:var(--ink-dim);line-height:1.55}
-.case-pair .pair-line{display:flex;gap:8px;align-items:flex-start}
-.case-pair .pair-line .tag{flex-shrink:0;width:18px;height:18px;border-radius:4px;display:grid;place-items:center;font-size:10px;font-weight:600;font-family:'JetBrains Mono',monospace;margin-top:1px}
-.case-pair .tag.a{background:var(--good-3);color:var(--good);border:1px solid color-mix(in srgb, var(--good) 30%, transparent)}
-.case-pair .tag.b{background:var(--accent-3);color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 30%, transparent)}
-.case-result{font-size:11.5px;color:var(--ink-mute);padding-top:14px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
-.case-result .arrow{color:var(--accent)}
+.case-leadquote em{font-style:italic;color:var(--ink);font-variation-settings:"opsz" 96, "SOFT" 0, "WONK" 0}
+.case-head{display:grid;grid-template-columns:1fr auto;gap:32px;align-items:center;margin-bottom:28px}
+.case-head-left{max-width:720px}
+.case-h2{max-width:26ch}
+.case-h2 em{
+  font-style:italic;color:var(--accent);
+  font-variation-settings:"opsz" 144, "SOFT" 60, "WONK" 0;
+}
+.case-inst{
+  display:flex;align-items:center;gap:14px;text-decoration:none;
+  padding:12px 14px;border-radius:12px;border:1px solid transparent;
+  transition:border-color .2s ease, background .2s ease;
+}
+.case-inst:hover,
+.case-inst:focus-visible{border-color:var(--line);background:var(--panel-2);outline:none}
+.case-inst-shield{flex-shrink:0;line-height:0}
+.case-inst-text{display:flex;flex-direction:column;gap:2px;text-align:left}
+.case-inst-line1{font-family:'Fraunces',serif;font-variation-settings:"opsz" 48;font-size:15px;color:var(--ink);letter-spacing:-0.005em}
+.case-inst-line2{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.04em;color:var(--ink-mute)}
+
+/* The card — single surface in BOTH themes. No dark stage anywhere. */
+.case-card{
+  display:grid;grid-template-columns:1fr 1.1fr;
+  background:var(--surface);border:1px solid var(--line);
+  border-radius:18px;overflow:hidden;
+}
+.case-story,
+.case-visual{padding:28px 30px}
+.case-story{border-right:1px solid var(--line);display:flex;flex-direction:column;gap:14px;background:var(--surface)}
+.case-visual{display:flex;flex-direction:column;gap:14px;background:var(--surface)}
+
+.case-p{font-size:15px;line-height:1.6;color:var(--ink-dim);margin:0}
+.case-p strong{color:var(--ink);font-weight:500}
+
+.case-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.case-chip{
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.04em;
+  padding:5px 10px;border:1px solid var(--line);border-radius:999px;
+  color:var(--ink-dim);background:color-mix(in srgb, var(--ink-mute) 8%, transparent);
+}
+
+.case-divider{height:1px;background:var(--line);margin:6px 0 4px}
+
+.case-cite{
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;line-height:1.55;
+  color:var(--ink-mute);letter-spacing:0.01em;
+}
+.case-cite em{font-style:italic;color:var(--ink-dim)}
+.case-cite-journal{color:var(--accent)}
+
+.case-paper-link{
+  align-self:flex-start;
+  display:inline-flex;align-items:center;gap:8px;
+  margin-top:6px;padding:8px 14px;border-radius:999px;
+  border:1px solid var(--line-2);background:transparent;
+  font-family:'JetBrains Mono',monospace;font-size:11.5px;letter-spacing:0.10em;text-transform:uppercase;
+  color:var(--ink-dim);text-decoration:none;
+  transition:color .15s ease, border-color .15s ease, background .15s ease;
+}
+.case-paper-link:hover,
+.case-paper-link:focus-visible{color:var(--ink);border-color:var(--ink-mute);background:var(--panel-2);outline:none}
+
+/* Visual half */
+.case-visual-head{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;
+  text-transform:uppercase;color:var(--ink-mute);margin-bottom:6px;
+}
+.case-row{
+  display:grid;grid-template-columns:36px 1fr 220px;gap:14px;align-items:center;
+  padding:12px 0;border-bottom:1px solid var(--line);
+}
+.case-row:last-of-type{border-bottom:none}
+.case-tile{
+  width:32px;height:32px;border-radius:6px;
+  display:grid;place-items:center;
+  background:color-mix(in srgb, var(--ink-mute) 18%, transparent);
+  border:1px solid var(--line);
+  font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--ink);
+}
+.case-row-meta{display:flex;flex-direction:column;gap:2px;min-width:0}
+.case-row-name{font-size:14px;font-weight:500;color:var(--ink);letter-spacing:-0.005em}
+.case-row-desc{font-style:italic;font-size:12.5px;color:var(--ink-mute);font-family:'Fraunces',serif;font-variation-settings:"opsz" 48}
+
+.case-row-bars{display:flex;flex-direction:column;gap:3px;width:100%}
+.case-bar{
+  position:relative;display:flex;align-items:center;gap:8px;
+  height:6px;border-radius:4px;
+  background:color-mix(in srgb, var(--ink-mute) 15%, transparent);
+}
+.case-bar-fill{display:block;height:100%;border-radius:4px}
+.case-bar-brain .case-bar-fill{background:var(--accent)}
+.case-bar-calls .case-bar-fill{background:var(--good)}
+.case-bar-label{
+  position:absolute;left:calc(100% + 8px);
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.06em;color:var(--ink-mute);
+  text-transform:lowercase;
+}
+
+.case-legend{
+  display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+  margin-top:8px;padding-top:14px;border-top:1px solid var(--line);
+  font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.04em;color:var(--ink-dim);
+}
+.case-legend-item{display:inline-flex;align-items:center;gap:7px}
+.case-legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.case-legend-brain .case-legend-dot{background:var(--accent)}
+.case-legend-calls .case-legend-dot{background:var(--good)}
 
 /* LENS */
 .lens-panel{display:grid;grid-template-columns:1fr 1.1fr;gap:40px;align-items:stretch}
@@ -275,34 +500,61 @@ h2.section-title em{font-style:italic;color:var(--accent);font-variation-setting
 .lens-note .rg{font-size:11.5px;color:#a8a29e;margin-bottom:8px;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
 .lens-note .bd{font-size:13px;line-height:1.55;color:#c8c3b8;margin-bottom:8px}
 .lens-note .ct{font-size:11px;color:#8a857b;font-style:italic}
+.lens-note .ct-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:4px}
+.lens-note .ct-labs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.lab-chip{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:4px;font-family:'Inter Tight',system-ui,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.03em;color:#fff;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.35)}
 
-/* METHOD / AUTHOR NOTE */
-.method-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:60px;align-items:start}
-.method-head h2{margin:0 0 16px}
-.method-head .section-lead{margin-bottom:0}
-.method-list{display:flex;flex-direction:column;gap:22px}
-.method-item{padding:20px 22px;border:1px solid var(--line);border-radius:12px;background:var(--panel);backdrop-filter:blur(8px);box-shadow:var(--shadow-sm)}
-.method-num{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--accent);letter-spacing:0.16em;margin-bottom:8px}
-.method-title{font-size:15.5px;font-weight:600;color:var(--ink);margin:0 0 6px;letter-spacing:-0.005em}
-.method-body{font-size:13.5px;color:var(--ink-dim);line-height:1.6;margin:0}
-.method-cite{font-size:11.5px;color:var(--ink-mute);margin-top:10px;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
-
-/* CLOSING */
-.closing{padding:100px 0;border-top:1px solid var(--line)}
-.closing-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:60px;align-items:end}
-.closing-line{font-family:'Fraunces', serif;font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;font-weight:400;font-size:clamp(36px,4.5vw,52px);line-height:1.06;letter-spacing:-0.022em;color:var(--ink);margin:0}
-.closing-line em{font-style:italic;color:var(--accent)}
-.closing-copy{color:var(--ink-dim);font-size:15px;line-height:1.65}
-.closing-copy p{margin:0 0 18px}
-.closing-links{display:flex;gap:22px;flex-wrap:wrap}
-.closing-links a{color:var(--accent);border-bottom:1px solid color-mix(in srgb, var(--accent) 35%, transparent);padding-bottom:2px;font-size:13.5px}
-.closing-links a:hover{border-bottom-color:var(--accent)}
+/* RESEARCH-NUDGE (closing section) — tells the science story with numbers,
+   labs, and a single CTA. No walls of text. */
+.research-nudge{padding:80px 0 96px;border-top:1px solid var(--line);text-align:center}
+.science-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:20px}
+.science-heading{font-family:'Fraunces','Source Serif 4',Georgia,serif;font-weight:400;font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;font-size:clamp(32px,3.6vw,46px);line-height:1.05;letter-spacing:-0.022em;margin:0 0 48px;color:var(--ink);max-width:22ch;margin-inline:auto}
+.science-heading em{font-style:italic;color:var(--accent);font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0}
+.science-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;max-width:900px;margin:0 auto 48px}
+.science-stat{padding:24px 20px;border:1px solid var(--line);border-radius:14px;background:var(--panel);backdrop-filter:blur(8px);box-shadow:var(--shadow-sm)}
+.science-num{font-family:'Fraunces',serif;font-variation-settings:"opsz" 144;font-weight:400;font-size:clamp(36px,4vw,54px);line-height:1;color:var(--accent);letter-spacing:-0.02em;margin-bottom:10px}
+.science-num .unit{font-size:0.55em;color:var(--accent-2);margin-left:1px}
+.science-num .vs{font-size:0.45em;color:var(--ink-mute);margin:0 4px;font-family:'JetBrains Mono',monospace;vertical-align:middle}
+.science-lbl{font-size:13px;color:var(--ink-dim);line-height:1.45;max-width:24ch;margin-inline:auto}
+.science-labs{display:flex;flex-direction:column;align-items:center;gap:14px;margin-bottom:40px}
+.science-labs-label{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--ink-mute)}
+.science-labs-chips{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+/* Citation badges — replace the solid-colour logo wall with real paper refs.
+   Each badge is a subtle outlined card that tints on hover toward its
+   institution colour. Anchor links jump to the matching research-page entry. */
+.citation-badges{
+  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;
+  max-width:900px;margin:0 auto;width:100%;
+}
+@media (max-width:720px){ .citation-badges{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:480px){ .citation-badges{grid-template-columns:1fr} }
+.citation-badge{
+  display:flex;flex-direction:column;align-items:flex-start;gap:2px;
+  padding:12px 14px;border-radius:10px;
+  background:var(--surface);border:1px solid var(--line);
+  text-decoration:none;text-align:left;
+  transition:border-color .18s ease, transform .18s ease, background .18s ease;
+  border-left:3px solid var(--badge-tint, var(--accent));
+}
+.citation-badge:hover{
+  transform:translateY(-1px);
+  border-color:var(--badge-tint, var(--accent));
+  background:color-mix(in srgb, var(--badge-tint, var(--accent)) 5%, var(--surface));
+}
+.citation-inst{font-family:'Fraunces',serif;font-variation-settings:"opsz" 48;font-size:15px;color:var(--ink);font-weight:500;letter-spacing:-0.005em}
+.citation-paper{font-family:'Inter Tight',system-ui,sans-serif;font-size:12.5px;color:var(--ink-dim);line-height:1.35}
+.citation-venue{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-mute);letter-spacing:0.04em;margin-top:2px}
+.science-cta{display:flex;justify-content:center}
 
 /* FOOTER */
-.footer{border-top:1px solid var(--line);padding:28px 0;color:var(--ink-mute);font-size:11.5px;font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
-.footer .shell{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px}
-.footer a{color:var(--ink-mute)}
-.footer a:hover{color:var(--accent)}
+.footer{border-top:1px solid var(--line);padding:36px 0;color:var(--ink-mute);font-size:12px;font-family:'Inter Tight',system-ui,sans-serif;letter-spacing:-0.005em}
+.footer .shell{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.footer a{color:var(--ink-dim);transition:color .15s ease;border-bottom:1px solid transparent;padding-bottom:1px}
+.footer a:hover{color:var(--accent);border-bottom-color:color-mix(in srgb, var(--accent) 50%, transparent)}
+.footer .footer-brand{font-family:'Fraunces',serif;font-variation-settings:"opsz" 48;font-size:15px;color:var(--ink);font-weight:500;letter-spacing:-0.01em}
+.footer .footer-credit{color:var(--ink-mute)}
+.footer .heart{color:var(--accent);display:inline-block;margin:0 2px;animation:heartbeat 1.6s ease-in-out infinite}
+@keyframes heartbeat{0%,60%,100%{transform:scale(1)}30%{transform:scale(1.12)}45%{transform:scale(1.05)}}
 
 /* REVEAL */
 .reveal{opacity:0;transform:translateY(16px);transition:opacity .6s ease, transform .6s ease}
@@ -331,15 +583,17 @@ body.landing-reveal .kicker,
 body.landing-reveal .hero-sub,
 body.landing-reveal .cta-row,
 body.landing-reveal .meta-row,
+body.landing-reveal .attribution-row,
 body.landing-reveal .hero-stage{
   opacity:0; transform:translateY(10px);
   animation: bdLandingReveal 620ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
 }
-body.landing-reveal .kicker       { animation-delay: 0.10s; }
-body.landing-reveal .hero-stage   { animation-delay: 0.35s; transform:translateY(0) scale(0.975); }
-body.landing-reveal .hero-sub     { animation-delay: 1.25s; }
-body.landing-reveal .cta-row      { animation-delay: 1.45s; }
-body.landing-reveal .meta-row     { animation-delay: 1.65s; }
+body.landing-reveal .kicker            { animation-delay: 0.10s; }
+body.landing-reveal .hero-stage        { animation-delay: 0.35s; transform:translateY(0) scale(0.975); }
+body.landing-reveal .hero-sub          { animation-delay: 1.25s; }
+body.landing-reveal .cta-row           { animation-delay: 1.45s; }
+body.landing-reveal .meta-row          { animation-delay: 1.65s; }
+body.landing-reveal .attribution-row   { animation-delay: 1.65s; }
 @keyframes bdLandingReveal { to { opacity:1; transform:translateY(0) scale(1); } }
 
 /* Subtle warm glow flash behind the hero brain during first paint */
@@ -404,18 +658,61 @@ body.landing-reveal .hero-stage::before{
 }
 
 /* RESPONSIVE */
+/* Tablet / small laptop — keep the nav, collapse the two-column layouts. */
 @media (max-width: 960px){
-  .hero-grid{grid-template-columns:1fr;gap:40px}
-  .hero-stage{height:380px}
+  .hero{padding:clamp(40px,8vh,80px) 0 56px}
+  .hero-grid{grid-template-columns:1fr;gap:36px}
+  .hero-stage{height:clamp(340px,48vh,440px)}
+  .hero-dim-card{top:14px;left:14px;right:14px;max-width:none}
   .compare-grid{grid-template-columns:1fr;gap:14px}
-  .cases-grid{grid-template-columns:1fr;gap:12px}
+  /* Tablet / small-laptop: stack the card vertically, separator flips horizontal */
+  .case-head{grid-template-columns:1fr;gap:16px}
+  .case-card{grid-template-columns:1fr}
+  .case-story{border-right:none;border-bottom:1px solid var(--line)}
+  .case-row{grid-template-columns:32px 1fr 180px;gap:12px}
   .lens-panel{grid-template-columns:1fr;gap:28px}
   .lens-stage{min-height:320px}
-  .method-grid{grid-template-columns:1fr;gap:32px}
-  .closing-grid{grid-template-columns:1fr;gap:28px}
-  .nav{display:none}
-  .nav-cta{display:inline-flex}
+  .science-stats{grid-template-columns:1fr;gap:12px}
   .section{padding:56px 0}
+  .attribution-row{gap:10px;font-size:12px}
+  .nav{gap:18px;font-size:13px}
+}
+
+/* Phones — drop nav labels, keep the Launch CTA, compact the hero further. */
+@media (max-width: 640px){
+  :root{--shell-pad-x:clamp(16px,5vw,24px)}
+  .topbar{padding:14px var(--shell-pad-x)}
+  .nav{gap:12px;font-size:12.5px}
+  .nav a:not(.nav-cta){display:none}
+  .nav-cta{display:inline-flex;padding:7px 13px;font-size:12.5px}
+  .hero{padding:24px 0 40px}
+  .hero-stage{height:clamp(300px,45vh,380px)}
+  h1.hero-title{font-size:clamp(36px,9vw,48px)}
+  .hero-sub{font-size:15px}
+  .section{padding:40px 0}
+  .research-nudge{padding:56px 0 64px}
+  .meta-lockup,.lab-lockup{padding:5px 10px;gap:7px}
+  .meta-wordmark,.lab-wordmark{font-size:12px}
+  .attribution-sep{display:none}
+  .hero-dim-card{padding:12px 14px}
+  .hero-dim-label{font-size:16px}
+  .hero-dim-body{font-size:12.5px}
+  .hero-dim-use-body{font-size:11.5px}
+  /* Case study — mobile */
+  .case-h2{font-size:30px}
+  .case-story,.case-visual{padding:22px 20px}
+  .case-row{grid-template-columns:28px 1fr;row-gap:8px}
+  .case-tile{width:28px;height:28px;font-size:12px}
+  .case-row-bars{grid-column:1 / -1;margin-top:4px}
+  .case-bar-label{font-size:9.5px}
+  .case-inst{padding:8px 10px;gap:10px}
+  .case-inst-line1{font-size:13px}
+}
+
+/* Very narrow phones — allow horizontal scroll on the nav row instead of hiding it fully. */
+@media (max-width: 400px){
+  .nav{white-space:nowrap}
+  .hero-sub{font-size:14.5px}
 }
 </style>
 </head>
@@ -432,11 +729,10 @@ body.landing-reveal .hero-stage::before{
     <span class="brand-word">Brain<b>Diff</b></span>
   </a>
   <nav class="nav">
-    <a href="#see">See it</a>
-    <a href="#cases">Examples</a>
-    <a href="#systems">Mapped systems</a>
-    <a href="#method">Method</a>
-    <a href="./input.html" class="nav-cta" id="navCta">Open BrainDiff →</a>
+    <a href="/research">Research</a>
+    <a href="/methodology">Methodology</a>
+    <a href="#case-study">Case studies</a>
+    <a href="/launch" class="nav-cta" id="navCta">Launch →</a>
   </nav>
 </header>
 
@@ -444,26 +740,67 @@ body.landing-reveal .hero-stage::before{
   <section class="hero shell">
     <div class="hero-grid">
       <div class="hero-copy reveal">
-        <div class="kicker">A research experiment</div>
-        <h1 class="hero-title">See how two versions<br/>land in <em>the same brain.</em></h1>
-        <p class="hero-sub">BrainDiff compares two pieces of writing by simulating how a population-average cortex responds to each — built on Meta FAIR's TRIBE v2 brain-response model.</p>
+        <div class="kicker">EQ in AI</div>
+        <h1 class="hero-title">How do you <em>feel?</em></h1>
+        <p class="hero-sub">It is the oldest question in art and the newest question in technology. BrainDiff takes two pieces of content and simulates, region by region, how a brain responds to each.</p>
         <div class="cta-row">
-          <a href="./input.html" class="btn btn-primary" id="heroCta">Open a comparison <span>→</span></a>
-          <a href="#method" class="btn btn-ghost">How it works</a>
+          <a href="/launch" class="btn btn-primary" id="heroCta">Launch app <span>→</span></a>
         </div>
-        <div class="meta-row">
-          <span><span class="dot"></span>TRIBE v2 · Meta FAIR</span>
-          <span>·</span>
-          <span>20,484 cortical vertices</span>
-          <span>·</span>
-          <span>7 mapped systems</span>
+        <p class="hero-cta-sub">We don't score your content. We show what the cortex does with it.</p>
+        <div class="attribution-row">
+          <span class="attribution-built">Built on</span>
+          <span class="meta-lockup" aria-label="Meta FAIR">
+            <svg class="meta-logo" viewBox="0 0 287 191" width="28" height="18" aria-hidden="true" focusable="false">
+              <defs>
+                <linearGradient id="metaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#0081FB"/>
+                  <stop offset="50%" stop-color="#0064E0"/>
+                  <stop offset="100%" stop-color="#0040B0"/>
+                </linearGradient>
+              </defs>
+              <path fill="url(#metaGrad)" d="M31.06 126.38c0 11 2.41 19.41 5.56 24.51 4.13 6.68 10.29 9.51 16.57 9.51 8.1 0 15.51-2.01 29.79-21.76 11.44-15.83 24.92-38.05 33.99-51.98l15.36-23.6c10.67-16.39 23.02-34.61 37.18-46.96C180.99 5.98 193.69 0 206.47 0c21.46 0 41.9 12.43 57.53 35.77 17.1 25.56 25.41 57.75 25.41 90.98 0 19.76-3.89 34.27-10.51 45.73-6.39 11.08-18.85 22.14-39.81 22.14v-31.56c17.95 0 22.43-16.49 22.43-35.37 0-26.9-6.27-56.76-20.09-78.09-9.81-15.13-22.53-24.38-36.52-24.38-15.13 0-27.31 11.41-41 31.75-7.28 10.81-14.75 23.99-23.14 38.87l-9.06 16.05c-18.2 32.27-22.81 39.62-31.91 51.75C84.05 184.5 70.69 191 53.19 191c-21.66 0-35.36-9.38-43.83-23.52C2.45 155.92 0 142.35 0 126.38l31.06 0Z"/>
+              <path fill="url(#metaGrad)" d="M24.49 38C39 15.62 59.95 0 83.98 0c13.92 0 27.76 4.12 42.21 15.91 15.81 12.88 32.67 34.11 53.72 69.06l7.55 12.58c18.21 30.26 28.56 45.8 34.62 53.19 7.79 9.5 13.24 12.33 20.34 12.33 17.95 0 22.43-16.49 22.43-35.37l27.36-1.23c0 19.76-3.89 34.27-10.51 45.73-6.39 11.08-18.85 22.14-39.81 22.14-13.03 0-24.58-2.83-37.35-14.88-9.81-9.23-21.28-25.63-30.1-40.39L161.99 95.64c-13.17-22.03-25.24-38.53-32.3-46.07-7.58-8.09-17.31-17.89-32.83-17.89-12.56 0-23.21 8.81-32.12 22.29L24.49 38Z"/>
+              <path fill="url(#metaGrad)" d="M83.41 31.66c-12.56 0-23.21 8.81-32.12 22.29C38.71 73.11 31.06 101.5 31.06 126.38c0 11 2.41 19.41 5.56 24.51L10.58 170.54C2.45 155.92 0 142.35 0 126.38c0-28.21 7.74-57.6 22.48-80.33C35.23 26.7 53.61 14.55 74.36 14.55l9.05 17.11Z"/>
+            </svg>
+            <span class="meta-wordmark">Meta <b>FAIR</b> · TRIBEv2</span>
+          </span>
+          <a href="/research" class="btn-inline">Read the research →</a>
         </div>
       </div>
       <div class="hero-stage reveal">
         <canvas id="heroBrain" class="brain-canvas"></canvas>
-        <div class="hero-stage-note">
-          <span>fsaverage5 · population-average cortical surface</span>
-          <span class="live">live</span>
+        <svg class="hero-line-svg" id="heroLineSvg" aria-hidden="true">
+          <path class="hero-line-path" id="heroLinePath" d=""/>
+          <circle class="hero-line-end" id="heroLineEnd" r="4"/>
+        </svg>
+        <div class="hero-dim-card" id="heroDimCard" aria-live="polite">
+          <div class="hero-dim-head">
+            <span class="hero-dim-label" id="heroDimLabel">Attention</span>
+            <span class="hero-dim-region" id="heroDimRegion">Dorsal attention network</span>
+          </div>
+          <p class="hero-dim-body" id="heroDimBody">Where the reader locks focus. Activity here spikes on novelty, urgency, and anything that breaks the rhythm of what came before.</p>
+        </div>
+        <div class="hero-stage-foot">
+          <div class="hero-pills" id="heroPills" role="tablist" aria-label="Cortical dimensions — hover to explore">
+            <button class="hero-pill is-active" data-key="attention_salience" type="button">Attention</button>
+            <button class="hero-pill" data-key="memory_encoding" type="button">Memory encoding</button>
+            <div class="hero-pill-group">
+              <button class="hero-pill hero-pill-others" type="button" aria-haspopup="true">Others <span class="caret">▾</span></button>
+              <div class="hero-pill-popover-wrap">
+                <div class="hero-pill-popover" role="menu">
+                  <button class="hero-pill" data-key="personal_resonance" type="button">Personal relevance</button>
+                  <button class="hero-pill" data-key="gut_reaction" type="button">Gut reaction</button>
+                  <button class="hero-pill" data-key="social_thinking" type="button">Social reasoning</button>
+                  <button class="hero-pill" data-key="language_depth" type="button">Language depth</button>
+                  <button class="hero-pill" data-key="brain_effort" type="button">Processing effort</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="hero-use-line" id="heroUseLine" aria-live="polite">
+            <span class="hero-use-tag-inline">In the real world</span>
+            <span id="heroUseText">Super Bowl ad testing · Nielsen / Neuro-Insight · $8M per airing</span>
+          </div>
         </div>
       </div>
     </div>
@@ -482,25 +819,38 @@ body.landing-reveal .hero-stage::before{
             <span class="compare-tag a">A</span>
             <h3>Calm &amp; informative</h3>
           </div>
-          <p class="compare-quote">"Today I'm going to show you how to save a little money on groceries."</p>
-          <p class="sub">15 sec · slower setup · clearer context</p>
+          <a class="compare-video" href="https://www.youtube.com/watch?v=lBYC4_Lccjw&start=0&end=30" target="_blank" rel="noopener" aria-label="Open video A on YouTube (first 30s)">
+            <img src="https://img.youtube.com/vi/lBYC4_Lccjw/hqdefault.jpg" alt="" loading="lazy" />
+            <span class="compare-video-play" aria-hidden="true">
+              <svg viewBox="0 0 48 48" width="44" height="44"><circle cx="24" cy="24" r="23" fill="rgba(7,8,11,0.72)" stroke="rgba(255,255,255,0.55)"/><path d="M19 15 L34 24 L19 33 Z" fill="#fff"/></svg>
+            </span>
+          </a>
+          <p class="sub">First 30s · slower setup · clearer context</p>
         </div>
         <div class="compare-card">
           <div style="display:flex;align-items:center;gap:10px">
             <span class="compare-tag b">B</span>
             <h3>Sharp &amp; personal</h3>
           </div>
-          <p class="compare-quote">"I tried this for 30 days and my grocery bill dropped by half. Here's exactly how."</p>
-          <p class="sub">15 sec · harder hook · personal stakes</p>
+          <a class="compare-video" href="https://www.youtube.com/watch?v=0e3GPea1Tyg&start=0&end=30" target="_blank" rel="noopener" aria-label="Open video B on YouTube (first 30s)">
+            <img src="https://img.youtube.com/vi/0e3GPea1Tyg/hqdefault.jpg" alt="" loading="lazy" />
+            <span class="compare-video-play" aria-hidden="true">
+              <svg viewBox="0 0 48 48" width="44" height="44"><circle cx="24" cy="24" r="23" fill="rgba(7,8,11,0.72)" stroke="rgba(255,255,255,0.55)"/><path d="M19 15 L34 24 L19 33 Z" fill="#fff"/></svg>
+            </span>
+          </a>
+          <p class="sub">First 30s · harder hook · personal stakes</p>
         </div>
       </div>
-      <div class="compare-stage">
-        <canvas id="compareBrain" class="brain-canvas"></canvas>
-        <div class="compare-scale">
-          <span>A stronger</span>
-          <div class="bar"></div>
-          <span>B stronger</span>
+      <div class="compare-stage-col">
+        <div class="compare-stage">
+          <canvas id="compareBrain" class="brain-canvas"></canvas>
+          <div class="compare-scale">
+            <span>A stronger</span>
+            <div class="bar"></div>
+            <span>B stronger</span>
+          </div>
         </div>
+        <p class="compare-caption">The cortex either engages a system or it doesn't. Whether that's <em>good</em> is your call.</p>
       </div>
       <div class="readout">
         <h4>Key shifts · B − A</h4>
@@ -523,125 +873,223 @@ body.landing-reveal .hero-stage::before{
     </div>
   </section>
 
-  <section class="section shell" id="cases">
-    <div class="reveal">
-      <div class="section-eyebrow">Examples</div>
-      <h2 class="section-title">Comparisons worth running.</h2>
-      <p class="section-lead">A starter set across short-form content, brand communication, and public-interest messaging. Each opens to the full contrast map.</p>
+  <!-- Falk 2012 case study — the anchor evidence piece. Numbers marked
+       "TODO verify" are best-guess placeholders; verify against the paper
+       (Falk, Berkman &amp; Lieberman, Psychological Science 2012) before
+       treating them as settled. -->
+  <section class="case-study section shell" id="case-study" aria-labelledby="case-h2">
+    <p class="case-leadquote reveal">
+      Thirty fMRI scans predicted a national campaign response better than focus groups did. <em>That's the bet BrainDiff is built on.</em>
+    </p>
+    <div class="case-head reveal">
+      <div class="case-head-left">
+        <div class="section-eyebrow">The evidence</div>
+        <h2 class="section-title case-h2" id="case-h2">Thirty brains ranked three ads. <em>The nation</em> ranked them the same way.</h2>
+      </div>
+      <a class="case-inst" href="https://www.asc.upenn.edu/" target="_blank" rel="noopener noreferrer" aria-label="Annenberg School for Communication, University of Pennsylvania">
+        <span class="case-inst-shield" aria-hidden="true">
+          <!-- University of Pennsylvania shield — inline SVG, sourced from the
+               Wikimedia Commons public-domain vectorisation of the official
+               seal. Colors kept faithful to UPenn brand. -->
+          <svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" width="38" height="48" focusable="false" role="img" aria-label="University of Pennsylvania">
+            <defs>
+              <clipPath id="upennShieldClip">
+                <path d="M4 4 H116 V74 C116 110 92 138 60 146 C28 138 4 110 4 74 Z"/>
+              </clipPath>
+            </defs>
+            <!-- Shield outline -->
+            <path d="M4 4 H116 V74 C116 110 92 138 60 146 C28 138 4 110 4 74 Z"
+                  fill="#ffffff" stroke="#011F5B" stroke-width="3"/>
+            <g clip-path="url(#upennShieldClip)">
+              <!-- Red chief band (top third) -->
+              <rect x="0" y="0" width="120" height="42" fill="#990000"/>
+              <!-- Three gold plates on the chief -->
+              <rect x="18" y="14" width="18" height="14" fill="#F2C75A" stroke="#011F5B" stroke-width="1"/>
+              <rect x="51" y="14" width="18" height="14" fill="#F2C75A" stroke="#011F5B" stroke-width="1"/>
+              <rect x="84" y="14" width="18" height="14" fill="#F2C75A" stroke="#011F5B" stroke-width="1"/>
+              <!-- Blue field (lower two-thirds) -->
+              <rect x="0" y="42" width="120" height="108" fill="#011F5B"/>
+              <!-- Open book (silver / white stylised) -->
+              <g transform="translate(60,90)">
+                <path d="M-26 -6 Q-26 -12 -18 -10 L-2 -6 L-2 18 L-18 14 Q-26 12 -26 6 Z"
+                      fill="#ffffff" stroke="#011F5B" stroke-width="1.2"/>
+                <path d="M26 -6 Q26 -12 18 -10 L2 -6 L2 18 L18 14 Q26 12 26 6 Z"
+                      fill="#ffffff" stroke="#011F5B" stroke-width="1.2"/>
+                <line x1="0" y1="-6" x2="0" y2="18" stroke="#011F5B" stroke-width="1.2"/>
+                <!-- LEGES text lines (stylised, not readable at this size) -->
+                <line x1="-20" y1="-1" x2="-5" y2="1" stroke="#011F5B" stroke-width="0.8"/>
+                <line x1="-20" y1="4" x2="-5" y2="6" stroke="#011F5B" stroke-width="0.8"/>
+                <line x1="-20" y1="9" x2="-5" y2="11" stroke="#011F5B" stroke-width="0.8"/>
+                <line x1="5" y1="1" x2="20" y2="-1" stroke="#011F5B" stroke-width="0.8"/>
+                <line x1="5" y1="6" x2="20" y2="4" stroke="#011F5B" stroke-width="0.8"/>
+                <line x1="5" y1="11" x2="20" y2="9" stroke="#011F5B" stroke-width="0.8"/>
+              </g>
+            </g>
+          </svg>
+        </span>
+        <span class="case-inst-text">
+          <span class="case-inst-line1">Annenberg School</span>
+          <span class="case-inst-line2">Psychological Science · 2012</span>
+        </span>
+      </a>
     </div>
-    <div class="cases-grid reveal">
-      <article class="case">
-        <div class="case-kicker">Short-form hook</div>
-        <h3 class="case-title">Opening line · calm vs. stakes</h3>
-        <div class="case-pair">
-          <div class="pair-line"><span class="tag a">A</span><span>"Today I'm giving away $100,000."</span></div>
-          <div class="pair-line"><span class="tag b">B</span><span>"If you survive the next 10 minutes, you win $100,000."</span></div>
+
+    <article class="case-card reveal">
+      <!-- Story half -->
+      <div class="case-story">
+        <p class="case-p">Emily Falk's lab showed three anti-smoking campaigns to <strong>30 smokers</strong> in an fMRI scanner. They watched for activity in one small region — the part of the cortex that fires when a message feels personally relevant.</p>
+        <p class="case-p">Weeks later, the team pulled the real-world data: how many people actually called <strong>1-800-QUIT-NOW</strong> after each ad aired nationally. The brain ranking and the call-volume ranking matched. <strong>Focus groups and self-report had ranked the ads differently.</strong></p>
+
+        <div class="case-chips">
+          <span class="case-chip">n = 30 smokers</span>
+          <span class="case-chip">r = 0.87 · brain ↔ national call volume</span>
         </div>
-        <div class="case-result">
-          <span>+0.42 gut reaction</span>
-          <span class="arrow">view diff →</span>
+
+        <div class="case-divider"></div>
+
+        <div class="case-cite">
+          <span>Falk, Berkman &amp; Lieberman (2012). <em>From neural responses to population behavior: neural focus group predicts population-level media effects.</em> <span class="case-cite-journal">Psychological Science</span> 23(5), 439–445.</span>
         </div>
-      </article>
-      <article class="case">
-        <div class="case-kicker">Kids' media</div>
-        <h3 class="case-title">Opening scene · static vs. motion</h3>
-        <div class="case-pair">
-          <div class="pair-line"><span class="tag a">A</span><span>Generic greeting, hero introduces themselves.</span></div>
-          <div class="pair-line"><span class="tag b">B</span><span>Family in motion, conflict in five seconds.</span></div>
+
+        <a class="case-paper-link" href="https://journals.sagepub.com/doi/10.1177/0956797611434964" target="_blank" rel="noopener noreferrer">Read the paper →</a>
+      </div>
+
+      <!-- Visual half — bars tell the story without captions. -->
+      <div class="case-visual" role="img"
+           aria-label="Three ad campaigns ranked by brain signal and by real-world call volume. Both rankings match: Campaign A (Nicotine addiction) scored lowest on both. Campaign B (Quit now, live longer) was in the middle. Campaign C (Every cigarette is doing you damage) scored highest on both.">
+        <div class="case-visual-head">How the brain ranked · how america ranked</div>
+
+        <!-- TODO verify against paper: exact campaign titles and effect sizes -->
+        <div class="case-row">
+          <span class="case-tile" aria-hidden="true">A</span>
+          <div class="case-row-meta">
+            <div class="case-row-name">Nicotine addiction</div>
+            <div class="case-row-desc">clinical · fact-led</div>
+          </div>
+          <div class="case-row-bars" aria-hidden="true">
+            <div class="case-bar case-bar-brain"><span class="case-bar-fill" style="width:26%"></span><span class="case-bar-label">brain</span></div>
+            <div class="case-bar case-bar-calls"><span class="case-bar-fill" style="width:22%"></span><span class="case-bar-label">calls</span></div>
+          </div>
         </div>
-        <div class="case-result">
-          <span>+0.28 social reasoning</span>
-          <span class="arrow">view diff →</span>
+        <div class="case-row">
+          <span class="case-tile" aria-hidden="true">B</span>
+          <div class="case-row-meta">
+            <div class="case-row-name">Quit now, live longer</div>
+            <div class="case-row-desc">informational · motivational</div>
+          </div>
+          <div class="case-row-bars" aria-hidden="true">
+            <div class="case-bar case-bar-brain"><span class="case-bar-fill" style="width:54%"></span><span class="case-bar-label">brain</span></div>
+            <div class="case-bar case-bar-calls"><span class="case-bar-fill" style="width:58%"></span><span class="case-bar-label">calls</span></div>
+          </div>
         </div>
-      </article>
-      <article class="case">
-        <div class="case-kicker">Public health</div>
-        <h3 class="case-title">Health message · fear vs. hope</h3>
-        <div class="case-pair">
-          <div class="pair-line"><span class="tag a">A</span><span>"Smoking kills 480,000 Americans every year."</span></div>
-          <div class="pair-line"><span class="tag b">B</span><span>"Every cigarette you skip gives your lungs a chance to come back."</span></div>
+        <div class="case-row">
+          <span class="case-tile" aria-hidden="true">C</span>
+          <div class="case-row-meta">
+            <div class="case-row-name">Every cigarette is doing you damage</div>
+            <div class="case-row-desc">embodied · personal</div>
+          </div>
+          <div class="case-row-bars" aria-hidden="true">
+            <div class="case-bar case-bar-brain"><span class="case-bar-fill" style="width:92%"></span><span class="case-bar-label">brain</span></div>
+            <div class="case-bar case-bar-calls"><span class="case-bar-fill" style="width:88%"></span><span class="case-bar-label">calls</span></div>
+          </div>
         </div>
-        <div class="case-result">
-          <span>+0.36 personal relevance</span>
-          <span class="arrow">view diff →</span>
+
+        <div class="case-legend" aria-hidden="true">
+          <span class="case-legend-item case-legend-brain"><span class="case-legend-dot"></span>brain signal</span>
+          <span class="case-legend-item case-legend-calls"><span class="case-legend-dot"></span>real-world response</span>
         </div>
-      </article>
-    </div>
+      </div>
+    </article>
   </section>
 
   <section class="section shell" id="systems">
     <div class="reveal">
       <div class="section-eyebrow">Mapped systems</div>
-      <h2 class="section-title">Seven cortical systems, one surface.</h2>
+      <h2 class="section-title">One cortex. <em>Seven answers.</em></h2>
     </div>
     <div class="lens-panel reveal">
       <div class="lens-copy">
-        <p class="section-lead" style="margin-bottom:0">Each comparison decomposes into seven brain systems. Each answers a different question. Click a system to see where it lives on the cortex — the same surface you'll see in your results.</p>
+        <p class="section-lead" style="margin-bottom:0">Every comparison returns seven readings — one per cortical system. Click a system to see where it lives. The same surface shows up in your own results.</p>
         <div class="lens-list" role="tablist">
-          <button class="lens-pill active" data-key="personal_resonance">Personal relevance</button>
-          <button class="lens-pill" data-key="social_thinking">Social reasoning</button>
-          <button class="lens-pill" data-key="brain_effort">Processing effort</button>
-          <button class="lens-pill" data-key="language_depth">Language depth</button>
-          <button class="lens-pill" data-key="gut_reaction">Gut reaction</button>
+          <button class="lens-pill active" data-key="attention_salience">Attention</button>
           <button class="lens-pill" data-key="memory_encoding">Memory encoding</button>
-          <button class="lens-pill" data-key="attention_salience">Attention</button>
+          <button class="lens-pill" data-key="personal_resonance">Personal relevance</button>
+          <button class="lens-pill" data-key="gut_reaction">Gut reaction</button>
+          <button class="lens-pill" data-key="social_thinking">Social reasoning</button>
+          <button class="lens-pill" data-key="language_depth">Language depth</button>
+          <button class="lens-pill" data-key="brain_effort">Processing effort</button>
         </div>
       </div>
       <div class="lens-stage">
         <canvas id="lensBrain" class="brain-canvas"></canvas>
         <div class="lens-note">
-          <div class="nm" id="lensNm">Personal relevance</div>
-          <div class="rg" id="lensRg">Medial prefrontal cortex · mPFC</div>
-          <div class="bd" id="lensBd">Tracks whether a message feels like it's about <em>you</em>. Stronger activation here has predicted real-world behaviour change at population scale.</div>
-          <div class="ct" id="lensCt">Falk et al., 2012 · Scholz et al., 2025</div>
+          <div class="nm" id="lensNm">Attention</div>
+          <div class="rg" id="lensRg">Dorsal attention network</div>
+          <div class="bd" id="lensBd">Where the reader locks focus. Activity here spikes on novelty, urgency, a sharp cut, a personal stake — anything that breaks the rhythm of what came before.</div>
+          <div class="ct-row">
+            <div class="ct" id="lensCt">Corbetta &amp; Shulman, 2002</div>
+            <div class="ct-labs" id="lensLabs"></div>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="section shell" id="method">
+  <section class="research-nudge shell" id="science">
     <div class="reveal">
-      <div class="section-eyebrow">Method</div>
-      <div class="method-grid">
-        <div class="method-head">
-          <h2 class="section-title" style="margin-bottom:20px">How a <em>BrainDiff</em> is computed.</h2>
-          <p class="section-lead">Every comparison runs through the same three-stage pipeline. The output is a signed cortical contrast — not a score, not a verdict. A map.</p>
+      <div class="science-eyebrow">The science</div>
+      <h2 class="science-heading">Peer-reviewed. <em>Population-tested.</em></h2>
+      <div class="science-stats">
+        <div class="science-stat">
+          <div class="science-num">720<span class="unit">+</span></div>
+          <div class="science-lbl">people's fMRI behind every prediction — TRIBE v2's training set</div>
         </div>
-        <div class="method-list">
-          <div class="method-item">
-            <div class="method-num">Stage 1</div>
-            <div class="method-title">Encode each text with TRIBE v2</div>
-            <p class="method-body">Meta FAIR's open brain-response model converts each text into a predicted response pattern across the cortex, trained on fMRI data from 8 subjects viewing hours of naturalistic stimuli.</p>
-            <div class="method-cite">Tang et al., Meta FAIR · 2025</div>
-          </div>
-          <div class="method-item">
-            <div class="method-num">Stage 2</div>
-            <div class="method-title">Project onto fsaverage5 surface</div>
-            <p class="method-body">Both predicted responses are mapped onto the standard 20,484-vertex cortical mesh, then contrasted vertex-by-vertex. Positive values = B stronger, negative = A stronger.</p>
-            <div class="method-cite">HCP MMP1.0 atlas · Glasser et al., 2016</div>
-          </div>
-          <div class="method-item">
-            <div class="method-num">Stage 3</div>
-            <div class="method-title">Decompose into seven systems</div>
-            <p class="method-body">A Bayesian model average assigns each cortical region to one of seven functional systems mapped from the literature. This is where the seven-dimensional readout comes from.</p>
-            <div class="method-cite">Yeo et al., 2011 · Power et al., 2011</div>
-          </div>
+        <div class="science-stat">
+          <div class="science-num">~20,000</div>
+          <div class="science-lbl">cortical vertices per comparison — fsaverage5 resolution</div>
+        </div>
+        <div class="science-stat">
+          <div class="science-num">1,000<span class="unit">+</span></div>
+          <div class="science-lbl">hours of fMRI in the model (Meta FAIR)</div>
         </div>
       </div>
-    </div>
-  </section>
-
-  <section class="closing shell">
-    <div class="closing-grid reveal">
-      <p class="closing-line">Not a diagnosis. Not an identity. <em>A lens.</em></p>
-      <div class="closing-copy">
-        <p>BrainDiff models a population-average response to written content for comparison — it does not read minds, assess individuals, or make clinical claims. It's a tool for people who want to see two versions through something other than their own ear.</p>
-        <div class="closing-links">
-          <a href="#method">Method</a>
-          <a href="./input.html">Open BrainDiff</a>
-          <a href="#">Research notes</a>
-          <a href="#">Limits &amp; caveats</a>
+      <div class="science-labs">
+        <span class="science-labs-label">Anchored in peer-reviewed research</span>
+        <div class="citation-badges">
+          <a class="citation-badge" href="/research#falk" style="--badge-tint:#011F5B">
+            <span class="citation-inst">Penn</span>
+            <span class="citation-paper">Falk, Berkman &amp; Lieberman · 2012</span>
+            <span class="citation-venue">Psychological Science</span>
+          </a>
+          <a class="citation-badge" href="/research#huth" style="--badge-tint:#BF5700">
+            <span class="citation-inst">UT Austin</span>
+            <span class="citation-paper">Huth et al. · 2016</span>
+            <span class="citation-venue">Nature</span>
+          </a>
+          <a class="citation-badge" href="/research#fedorenko" style="--badge-tint:#750014">
+            <span class="citation-inst">MIT</span>
+            <span class="citation-paper">Fedorenko et al. · 2010</span>
+            <span class="citation-venue">J. Neurophysiology</span>
+          </a>
+          <a class="citation-badge" href="/research#knutson" style="--badge-tint:#8C1515">
+            <span class="citation-inst">Stanford</span>
+            <span class="citation-paper">Knutson et al. · 2007</span>
+            <span class="citation-venue">Neuron</span>
+          </a>
+          <a class="citation-badge" href="/research#hasson" style="--badge-tint:#FF6F0F">
+            <span class="citation-inst">Princeton</span>
+            <span class="citation-paper">Hasson et al. · 2008</span>
+            <span class="citation-venue">J. Neuroscience</span>
+          </a>
+          <a class="citation-badge" href="/research#tribe" style="--badge-tint:#0064E0">
+            <span class="citation-inst">Meta FAIR</span>
+            <span class="citation-paper">Tang et al. · 2025</span>
+            <span class="citation-venue">TRIBE v2</span>
+          </a>
         </div>
+      </div>
+      <div class="science-cta">
+        <a href="/research" class="btn btn-primary">Read the research <span>→</span></a>
       </div>
     </div>
   </section>
@@ -649,8 +1097,8 @@ body.landing-reveal .hero-stage::before{
 
 <footer class="footer">
   <div class="shell">
-    <span>BrainDiff · cortical comparison for written content</span>
-    <span>v2 · April 2026 · <a href="#">method</a> · <a href="#">github</a></span>
+    <span class="footer-brand">BrainDiff</span>
+    <span class="footer-credit">Made with <span class="heart" aria-hidden="true">♥</span> by <a href="https://polka.foundation" target="_blank" rel="noopener">Polka Foundation</a> · <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a></span>
   </div>
 </footer>
 
@@ -661,6 +1109,8 @@ function toggleTheme(){
   if(next==='light') r.setAttribute('data-theme','light');
   else r.removeAttribute('data-theme');
   try{localStorage.setItem('braindiff-theme',next);}catch(e){}
+  // Brain canvases listen for this and repaint their palettes.
+  window.dispatchEvent(new CustomEvent('braindiff:theme',{detail:{theme:next}}));
 }
 
 /* ---------- Landing reveal orchestration (preview only) ---------- */
@@ -735,6 +1185,19 @@ function toggleTheme(){
   });
 
   /* ---------- CTA ink-blot page transition ---------- */
+  // Safety net: if the browser restores this page from bfcache (i.e. the user
+  // hit Back after an ink-blot navigation), the .on class would still be on
+  // the blot — leaving the whole viewport covered in vermillion. Reset it
+  // on every pageshow, and also once on load as a belt-and-braces guard.
+  function resetInkBlot(){
+    var blot = document.getElementById('inkBlot');
+    if (!blot) return;
+    blot.classList.remove('on');
+    blot.classList.remove('fading');
+  }
+  window.addEventListener('pageshow', resetInkBlot);
+  resetInkBlot();
+
   document.addEventListener('click', function(e){
     var a = e.target.closest('#heroCta, #navCta');
     if (!a) return;
@@ -761,6 +1224,60 @@ function toggleTheme(){
 <script type="module">
 import * as THREE from "three";
 
+/* ---------------------------------------------------------------------------
+   Real fsaverage5 mesh loader (shared cache — one fetch per page).
+   Backend endpoint: /api/brain-mesh. Returns { lh_coord, lh_faces, rh_coord, rh_faces }.
+   If unavailable, callers fall back to a procedural placeholder.
+--------------------------------------------------------------------------- */
+let _brainMeshPromise = null;
+function fetchBrainMesh(){
+  if (_brainMeshPromise) return _brainMeshPromise;
+  _brainMeshPromise = (async () => {
+    try {
+      const res = await fetch('/api/brain-mesh', { cache: 'force-cache' });
+      if (!res.ok) return null;
+      return await res.json();
+    } catch(_err) { return null; }
+  })();
+  return _brainMeshPromise;
+}
+function buildRealMeshGeometry(payload, targetRadius){
+  const flatCoord = (c) => Array.isArray(c[0]) ? c.flat() : c;
+  const lh = Float32Array.from(flatCoord(payload.lh_coord));
+  const rh = Float32Array.from(flatCoord(payload.rh_coord));
+  const lhVerts = lh.length / 3;
+  const positions = new Float32Array(lh.length + rh.length);
+  positions.set(lh, 0);
+  positions.set(rh, lh.length);
+
+  const lhF = flatCoord(payload.lh_faces);
+  const rhF = flatCoord(payload.rh_faces);
+  const idx = new Uint32Array(lhF.length + rhF.length);
+  idx.set(lhF, 0);
+  for (let i = 0; i < rhF.length; i++) idx[lhF.length + i] = rhF[i] + lhVerts;
+
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  g.setIndex(new THREE.BufferAttribute(idx, 1));
+  g.computeVertexNormals();
+
+  // Center + scale so it sits in the same view space as the placeholder sphere.
+  g.computeBoundingSphere();
+  const bs = g.boundingSphere;
+  if (bs){
+    const p = g.attributes.position;
+    const s = (targetRadius || 1.4) / Math.max(bs.radius, 1e-6);
+    const cx = bs.center.x, cy = bs.center.y, cz = bs.center.z;
+    for (let i = 0; i < p.count; i++){
+      p.setXYZ(i, (p.getX(i) - cx) * s, (p.getY(i) - cy) * s, (p.getZ(i) - cz) * s);
+    }
+    p.needsUpdate = true;
+    g.computeVertexNormals();
+    g.computeBoundingSphere();
+  }
+  return g;
+}
+
 function mountBrain(canvas, opts={}){
   const {
     rotation=true,
@@ -768,23 +1285,80 @@ function mountBrain(canvas, opts={}){
     diff=false,
     highlight=null,
     dpr=Math.min(window.devicePixelRatio||1, 2),
+    useRealMesh=false,
+    cycleRegions=false,
+    diffRegions=null,   // { regionKey: signedDelta } for the compare section
+    lensMode=false,     // manual region switching via setHighlight (lens panel)
+    initialRegion='attention_salience',
   } = opts;
+
+  // Set inside the real-mesh-ready callback; used by ctrl.setHighlight below.
+  let lensSetRegion = null;
+  // Each paint mode (cycle / lens / diff) installs a repainter so the brain
+  // can re-color itself when the theme flips.
+  let themeRepainter = null;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
   const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
   renderer.setPixelRatio(dpr);
 
-  scene.add(new THREE.AmbientLight(0xe0dccf, 0.3));
-  const key = new THREE.DirectionalLight(0xffffff, 1.05);
-  key.position.set(5, 9, 7);
-  scene.add(key);
-  const fill = new THREE.DirectionalLight(0xaec3dc, 0.45);
-  fill.position.set(-4, 2, 6);
-  scene.add(fill);
-  const rim = new THREE.DirectionalLight(0x4a78ab, 0.4);
-  rim.position.set(-6, -2, -8);
-  scene.add(rim);
+  // Two brain palettes, one per theme. In dark mode the brain is cream on
+  // black with blue highlights; in light mode it inverts — dark slate brain
+  // on cream stage with deep blue highlights. applyBrainTheme() re-colors
+  // everything when the user toggles the theme.
+  const BRAIN_THEMES = {
+    dark: {
+      base:[0.83, 0.80, 0.73],
+      ambient:0xd6d4cc, ambI:0.45,
+      key:0xfffaf2,     keyI:1.05,
+      fill:0xc2cbd8,    fillI:0.50,
+      rim:0x3a4d6b,     rimI:0.40,
+    },
+    light: {
+      // Medium warm gray brain on cream stage — reads like a specimen
+      // photograph. Warm undertone so it doesn't clash with the cream page.
+      base:[0.56, 0.52, 0.47],
+      ambient:0xd8cebd, ambI:0.45,     // warm cream ambient
+      key:0xffffff,     keyI:1.20,     // clean white key
+      fill:0xf0e2c8,    fillI:0.45,    // warm cream fill
+      rim:0x3a4a5c,     rimI:0.55,     // cool blue rim for silhouette separation
+    },
+  };
+  function currentTheme(){
+    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+  }
+
+  const ambLight = new THREE.AmbientLight(0xffffff, 0.3);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.0);
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
+  const rimLight = new THREE.DirectionalLight(0xffffff, 0.4);
+  keyLight.position.set(5, 9, 7);
+  fillLight.position.set(-4, 2, 6);
+  rimLight.position.set(-6, -2, -8);
+  scene.add(ambLight);
+  scene.add(keyLight);
+  scene.add(fillLight);
+  scene.add(rimLight);
+
+  // Sphere-preview canvases (compare/lens placeholders) keep the original
+  // neutral lights; the theme-responsive setup below is only for the real
+  // cortex renders. Flip a switch so we can dispatch accordingly.
+  function applyBrainLighting(theme){
+    if (!useRealMesh){
+      ambLight.color.setHex(0xe0dccf); ambLight.intensity = 0.32;
+      keyLight.color.setHex(0xffffff); keyLight.intensity = 1.05;
+      fillLight.color.setHex(0xaec3dc); fillLight.intensity = 0.50;
+      rimLight.color.setHex(0x4a78ab); rimLight.intensity = 0.55;
+      return;
+    }
+    const t = BRAIN_THEMES[theme] || BRAIN_THEMES.dark;
+    ambLight.color.setHex(t.ambient); ambLight.intensity = t.ambI;
+    keyLight.color.setHex(t.key);     keyLight.intensity = t.keyI;
+    fillLight.color.setHex(t.fill);   fillLight.intensity = t.fillI;
+    rimLight.color.setHex(t.rim);     rimLight.intensity = t.rimI;
+  }
+  applyBrainLighting(currentTheme());
 
   const geom = new THREE.SphereGeometry(1, 96, 72);
   const pos = geom.attributes.position;
@@ -796,10 +1370,15 @@ function mountBrain(canvas, opts={}){
   }
   geom.computeVertexNormals();
 
-  // Base tone: cool pewter that reads on dark stage
+  // Base tone starts from the current theme's palette and swaps when the
+  // user toggles dark/light. `let` so applyBrainTheme can update in place.
   const count = pos.count;
   const colors = new Float32Array(count*3);
-  const baseR = 0.48, baseG = 0.50, baseB = 0.55;
+  let baseR, baseG, baseB;
+  (function initBase(){
+    const t = useRealMesh ? (BRAIN_THEMES[currentTheme()] || BRAIN_THEMES.dark).base : [0.48, 0.50, 0.55];
+    baseR = t[0]; baseG = t[1]; baseB = t[2];
+  })();
 
   // Encoding palette (NEVER change without updating scale-bar gradient)
   const B_R = 0.88, B_G = 0.29, B_B = 0.18;  // vermillion #e04a2e
@@ -858,10 +1437,11 @@ function mountBrain(canvas, opts={}){
   });
 
   const root = new THREE.Group();
+  const rightGeom = geom.clone();  // keep reference so we can dispose on swap
   const leftHemi = new THREE.Mesh(geom, material);
   leftHemi.scale.set(0.9, 1.25, 1.05);
   leftHemi.position.set(-0.48, 0, 0);
-  const rightHemi = new THREE.Mesh(geom.clone(), material);
+  const rightHemi = new THREE.Mesh(rightGeom, material);
   rightHemi.scale.set(0.9, 1.25, 1.05);
   rightHemi.position.set(0.48, 0, 0);
   root.add(leftHemi, rightHemi);
@@ -869,8 +1449,602 @@ function mountBrain(canvas, opts={}){
 
   paint(diff ? 'diff' : (highlight ? 'highlight' : 'plain'), highlight);
 
-  camera.position.set(0, 0, 4.6);
+  // Card is now a top strip (not a floating overlay), so the brain doesn't
+  // need to be tiny to avoid it. Pull back just enough to leave room for the
+  // strip on top + the pills/caption at bottom.
+  camera.position.set(0, 0, useRealMesh ? 6.0 : 4.6);
   camera.lookAt(0,0,0);
+
+  // Region-orientation tween targets. The tick loop eases currentRot toward
+  // these and adds a small sine sway on top, so transitions between regions
+  // feel like the brain calmly turns to show the new area.
+  let targetRotY = -0.05, targetRotX = -0.28;
+  let currentRotY = -0.05, currentRotX = -0.28;
+
+  // 3D centroid of the currently-active region. The line endpoint projects
+  // this through the camera each frame so the line stays anchored to the
+  // glowing patch as the brain rotates.
+  let activeCentroid = null;
+
+  // Mouse-drag rotation state. When the user drags the canvas, we override
+  // the idle sway + region tween with their input. On release, the next pill
+  // hover or auto-cycle will gently pull the brain back to a region orient.
+  let isDragging = false;
+  let dragPointerId = null;
+  let dragStartX = 0, dragStartY = 0;
+  let dragStartRotY = 0, dragStartRotX = 0;
+  if (useRealMesh){
+    canvas.style.cursor = 'grab';
+    canvas.style.touchAction = 'none';
+    canvas.addEventListener('pointerdown', (e) => {
+      isDragging = true;
+      dragPointerId = e.pointerId;
+      dragStartX = e.clientX;
+      dragStartY = e.clientY;
+      dragStartRotY = currentRotY;
+      dragStartRotX = currentRotX;
+      canvas.setPointerCapture(e.pointerId);
+      canvas.style.cursor = 'grabbing';
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!isDragging || e.pointerId !== dragPointerId) return;
+      const dx = e.clientX - dragStartX;
+      const dy = e.clientY - dragStartY;
+      currentRotY = dragStartRotY + dx * 0.008;
+      currentRotX = dragStartRotX + dy * 0.008;
+      // Collapse the lerp target to where the user is dragging so the tick
+      // doesn't snap back while the mouse is held down.
+      targetRotY = currentRotY;
+      targetRotX = currentRotX;
+    });
+    const endDrag = (e) => {
+      if (!isDragging) return;
+      if (e.pointerId !== undefined && e.pointerId !== dragPointerId) return;
+      isDragging = false;
+      dragPointerId = null;
+      canvas.style.cursor = 'grab';
+      try { canvas.releasePointerCapture(e.pointerId); } catch(_){}
+    };
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+    canvas.addEventListener('pointerleave', endDrag);
+  }
+  const _projVec = new THREE.Vector3();
+  function updateConnectorLine(){
+    const lineSvg  = document.getElementById('heroLineSvg');
+    const linePath = document.getElementById('heroLinePath');
+    const lineEnd  = document.getElementById('heroLineEnd');
+    const cardEl   = document.getElementById('heroDimCard');
+    if (!lineSvg || !linePath || !lineEnd || !cardEl || !activeCentroid) return;
+    root.updateMatrixWorld();
+    _projVec.copy(activeCentroid).applyMatrix4(root.matrixWorld).project(camera);
+    if (_projVec.z >= 1){
+      // behind camera — hide line
+      linePath.setAttribute('opacity', '0');
+      lineEnd.setAttribute('opacity', '0');
+      return;
+    }
+    linePath.setAttribute('opacity', '1');
+    lineEnd.setAttribute('opacity', '1');
+    const stageRect = lineSvg.getBoundingClientRect();
+    const cardRect  = cardEl.getBoundingClientRect();
+    const w = stageRect.width, h = stageRect.height;
+    const ex = (_projVec.x + 1) * 0.5 * w;
+    const ey = (1 - _projVec.y) * 0.5 * h;
+    // Anchor point: bottom-right inset of the card.
+    const sx = (cardRect.right - stageRect.left) - 14;
+    const sy = (cardRect.bottom - stageRect.top) - 10;
+    // Quadratic curve: control point above the midpoint for a gentle arc.
+    const mx = (sx + ex) / 2;
+    const my = Math.min(sy, ey) - 28;
+    linePath.setAttribute('d', `M${sx.toFixed(1)} ${sy.toFixed(1)} Q${mx.toFixed(1)} ${my.toFixed(1)} ${ex.toFixed(1)} ${ey.toFixed(1)}`);
+    lineEnd.setAttribute('cx', ex.toFixed(1));
+    lineEnd.setAttribute('cy', ey.toFixed(1));
+  }
+
+  /* ---------------------------------------------------------------
+     Region highlighting — used by the hero brain to pulse Attention
+     and Memory-encoding areas in sequence, synchronised with the
+     annotation card. Works on the real fsaverage5 geometry.
+  ----------------------------------------------------------------*/
+  // Rough gaussian centres for each of the seven cortical systems, in the
+  // post-scaling coord space (mesh normalised to radius ~1.4, centred at 0).
+  // Mesh axes: +X = right, +Y = anterior, +Z = superior.
+  // These are approximations — enough to light up the right neighbourhood
+  // on the cortex without needing the real atlas parcellation client-side.
+  const REGION_TARGETS = {
+    attention_salience:  [{x:-0.55, y:-0.25, z: 0.85}, {x: 0.55, y:-0.25, z: 0.85}], // bilateral superior parietal + FEF
+    memory_encoding:     [{x:-0.95, y: 0.55, z: 0.10}],                               // left vlPFC
+    personal_resonance:  [{x: 0.00, y: 0.95, z: 0.30}],                               // medial prefrontal (midline)
+    gut_reaction:        [{x:-0.70, y: 0.25, z:-0.05}, {x: 0.70, y: 0.25, z:-0.05}], // bilateral anterior insula
+    social_thinking:     [{x:-1.10, y:-0.30, z: 0.45}, {x: 1.10, y:-0.30, z: 0.45}], // bilateral TPJ
+    language_depth:      [{x:-1.00, y: 0.55, z: 0.05}, {x:-1.00, y:-0.40, z: 0.15}], // left Broca + Wernicke
+    brain_effort:        [{x:-0.85, y: 0.70, z: 0.70}, {x: 0.85, y: 0.70, z: 0.70}], // bilateral dlPFC
+  };
+
+  function computeRegionWeights(geometry){
+    const p = geometry.attributes.position;
+    const n = p.count;
+    const sigma2 = 0.32;
+    const out = {};
+    const centroids = {};
+    for (const key of Object.keys(REGION_TARGETS)){
+      const targets = REGION_TARGETS[key];
+      const w = new Float32Array(n);
+      let cx = 0, cy = 0, cz = 0, cw = 0;
+      for (let i = 0; i < n; i++){
+        const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+        let best = 0;
+        for (let t = 0; t < targets.length; t++){
+          const tg = targets[t];
+          const d2 = (x-tg.x)*(x-tg.x) + (y-tg.y)*(y-tg.y) + (z-tg.z)*(z-tg.z);
+          const g = Math.exp(-d2 / sigma2);
+          if (g > best) best = g;
+        }
+        w[i] = best;
+        if (best > 0.4){ cx += x*best; cy += y*best; cz += z*best; cw += best; }
+      }
+      out[key] = w;
+      centroids[key] = cw > 0
+        ? new THREE.Vector3(cx/cw, cy/cw, cz/cw)
+        // Fallback: use the first target centre.
+        : new THREE.Vector3(targets[0].x, targets[0].y, targets[0].z);
+    }
+    out.__centroids = centroids;
+    return out;
+  }
+
+  const REGION_COPY = {
+    attention_salience: {
+      label: 'Attention',
+      region: 'Dorsal attention network',
+      body: "Where the reader locks focus. This network lights up when something breaks the rhythm of what came before — novelty, urgency, a sharp cut, a personal stake.",
+      use:  "Super Bowl ad testing · Nielsen / Neuro-Insight · $8M per airing"
+    },
+    memory_encoding: {
+      label: 'Memory encoding',
+      region: 'Left ventrolateral prefrontal cortex',
+      body: "Not what the reader feels now — what they will still remember tomorrow. Two pieces of content can feel equal in the moment and differ sharply in what sticks.",
+      use:  "Mars, Mondelez, Coca-Cola · long-term campaign ROI (sales 6 months out)"
+    },
+    personal_resonance: {
+      label: 'Personal relevance',
+      region: 'Medial prefrontal cortex (mPFC)',
+      body: "Tracks whether a message feels like it is about you. Activation here has predicted real-world behaviour change where self-reports missed it entirely.",
+      use:  "Anti-smoking PSA testing · Falk et al. showed mPFC predicts population quit rates"
+    },
+    gut_reaction: {
+      label: 'Gut reaction',
+      region: 'Anterior insula',
+      body: "The visceral, felt edge of a message. Sensitive to urgency, moral weight, personal risk — the reaction that arrives before language catches up.",
+      use:  "Public-health fear appeals (WHO) · insurance (Allstate \"Mayhem\")"
+    },
+    social_thinking: {
+      label: 'Social reasoning',
+      region: 'Temporoparietal junction (TPJ)',
+      body: "The cortical system for modelling other minds — figuring out intent, relationship, what a character is about to do.",
+      use:  "Netflix thumbnail + trailer testing · which shot makes viewers infer intent"
+    },
+    language_depth: {
+      label: 'Language depth',
+      region: "Broca's + Wernicke's network",
+      body: "Structural and semantic parsing. Stronger activation means more meaning is being pulled out of the words themselves.",
+      use:  "Pharma consent-form comprehension · legal-disclosure testing"
+    },
+    brain_effort: {
+      label: 'Processing effort',
+      region: 'Dorsolateral prefrontal cortex (dlPFC)',
+      body: "How hard the brain is working to parse the message. Higher effort is fine when the payoff is big — and costly when the reader can just leave.",
+      use:  "CFPB mortgage-form simplification · financial disclosure UX"
+    },
+  };
+
+  // Per-region camera orientation. Brain rotates so the highlighted patch
+  // sits roughly in the middle of the stage. Values tuned to center each
+  // region based on its anatomical location; larger yaws for lateral/left
+  // regions, forward pitch for medial anterior regions.
+  const REGION_ORIENT = {
+    attention_salience: { y:  0.00, x: -0.25 }, // bilateral dorsal — top-down
+    memory_encoding:    { y:  1.05, x:  0.00 }, // left vlPFC — rotate to left 3/4 view
+    personal_resonance: { y:  0.00, x: -0.60 }, // mPFC midline — tilt forward to show anterior
+    gut_reaction:       { y:  0.85, x:  0.15 }, // bilateral insula — lateral with forward tilt
+    social_thinking:    { y:  1.00, x: -0.10 }, // bilateral TPJ — left 3/4 lateral-posterior
+    language_depth:     { y:  1.30, x:  0.00 }, // left Broca+Wernicke — left profile view
+    brain_effort:       { y:  0.40, x: -0.30 }, // bilateral dlPFC — slight left dorsolateral
+  };
+
+  // Activation gradient LUT. Two calibrations:
+  //   - CREAM base (dark theme): cream → periwinkle → royal → deep blue.
+  //     The intermediate stops brighten slightly before darkening, giving a
+  //     "soft paper absorbing ink" feel that reads well on a near-black stage.
+  //   - WARM-GRAY base (light theme): gray → slate → royal → deep navy.
+  //     Monotonic cooling + darkening — no lightening bump — so activation
+  //     reads as "more intense = darker blue" against the cream stage.
+  const LUT_SIZE = 128;
+  function buildHeatLUT(baseDim){
+    const lut = new Float32Array(LUT_SIZE * 3);
+    const dimR = baseDim[0], dimG = baseDim[1], dimB = baseDim[2];
+    const isCream = (dimR + dimG + dimB) / 3 > 0.65;
+    function lerp(a,b,u){ return a + (b-a)*u; }
+    // Stops: [tStart, tEnd, rFrom, gFrom, bFrom, rTo, gTo, bTo]
+    const stops = isCream ? [
+      [0.00, 0.25, dimR, dimG, dimB,  0.72, 0.74, 0.82],   // cream → faint blue
+      [0.25, 0.55, 0.72, 0.74, 0.82,  0.50, 0.60, 0.86],   // faint blue → periwinkle
+      [0.55, 0.78, 0.50, 0.60, 0.86,  0.22, 0.38, 0.78],   // periwinkle → royal
+      [0.78, 1.00, 0.22, 0.38, 0.78,  0.06, 0.18, 0.62],   // royal → deep blue
+    ] : [
+      [0.00, 0.30, dimR, dimG, dimB,  0.42, 0.45, 0.55],   // warm gray → cool gray
+      [0.30, 0.60, 0.42, 0.45, 0.55,  0.26, 0.36, 0.58],   // cool gray → slate blue
+      [0.60, 0.82, 0.26, 0.36, 0.58,  0.13, 0.26, 0.56],   // slate → royal
+      [0.82, 1.00, 0.13, 0.26, 0.56,  0.04, 0.14, 0.50],   // royal → deep navy
+    ];
+    for (let i = 0; i < LUT_SIZE; i++){
+      const t = i / (LUT_SIZE - 1);
+      let r = dimR, g = dimG, b = dimB;
+      for (let s = 0; s < stops.length; s++){
+        const st = stops[s];
+        if (t >= st[0] && t <= st[1]){
+          const u = (t - st[0]) / (st[1] - st[0]);
+          r = lerp(st[2], st[5], u);
+          g = lerp(st[3], st[6], u);
+          b = lerp(st[4], st[7], u);
+          break;
+        }
+      }
+      lut[i*3] = r; lut[i*3+1] = g; lut[i*3+2] = b;
+    }
+    return lut;
+  }
+
+  // Lens mode — single region at a time, manual switching via setHighlight.
+  // No auto-cycle, no pill listeners (the lens panel owns its own pills).
+  // Returns a setHighlight(key) function that paints the region and eases
+  // the brain toward that region's orientation.
+  function startLensMode(geometry, colors, nVerts, initialKey){
+    const weights = computeRegionWeights(geometry);
+    const LUT_MAX = LUT_SIZE - 1;
+    let currentKey = initialKey;
+    let currentLUT = buildHeatLUT([baseR, baseG, baseB]);
+
+    function paintRegion(key){
+      const w = weights[key];
+      if (!w) return;
+      for (let i = 0; i < nVerts; i++){
+        const t = w[i];
+        const u = Math.min(1, Math.pow(t, 0.9) * 1.15);
+        const idx = Math.min(LUT_MAX, Math.floor(u * LUT_MAX));
+        colors[i*3]   = currentLUT[idx*3];
+        colors[i*3+1] = currentLUT[idx*3+1];
+        colors[i*3+2] = currentLUT[idx*3+2];
+      }
+      geometry.attributes.color.needsUpdate = true;
+    }
+
+    function setHighlight(key){
+      currentKey = key;
+      paintRegion(key);
+      const orient = REGION_ORIENT[key];
+      if (orient){ targetRotY = orient.y; targetRotX = orient.x; }
+      const cents = weights.__centroids;
+      if (cents && cents[key]) activeCentroid = cents[key];
+    }
+
+    setHighlight(initialKey);
+    themeRepainter = () => {
+      currentLUT = buildHeatLUT([baseR, baseG, baseB]);
+      paintRegion(currentKey);
+    };
+    return setHighlight;
+  }
+
+  // Paints the real mesh with a diverging blue↔vermillion map based on
+  // per-region signed deltas (positive = B stronger, negative = A stronger).
+  // Mock data now — swap in real backend deltas later without code changes.
+  function paintMockDiff(geometry, colors, nVerts, regionDeltas){
+    const regionWeights = computeRegionWeights(geometry);
+    // Accumulate a signed per-vertex delta: Σ weight[region][i] * delta[region]
+    const dPerVert = new Float32Array(nVerts);
+    let maxAbs = 0;
+    for (const key of Object.keys(regionDeltas)){
+      const w = regionWeights[key];
+      const d = regionDeltas[key];
+      if (!w) continue;
+      for (let i = 0; i < nVerts; i++){
+        dPerVert[i] += w[i] * d;
+      }
+    }
+    for (let i = 0; i < nVerts; i++) if (Math.abs(dPerVert[i]) > maxAbs) maxAbs = Math.abs(dPerVert[i]);
+    const scale = maxAbs > 1e-6 ? 1 / maxAbs : 1;
+    const POS  = [0.92, 0.32, 0.20];
+    const NEG  = [0.32, 0.54, 0.80];
+    function repaint(){
+      const NEUT = [baseR, baseG, baseB];
+      for (let i = 0; i < nVerts; i++){
+        const d = dPerVert[i] * scale;
+        const u = Math.min(1, Math.abs(d));
+        const target = d >= 0 ? POS : NEG;
+        colors[i*3]   = NEUT[0] + (target[0] - NEUT[0]) * u;
+        colors[i*3+1] = NEUT[1] + (target[1] - NEUT[1]) * u;
+        colors[i*3+2] = NEUT[2] + (target[2] - NEUT[2]) * u;
+      }
+      geometry.attributes.color.needsUpdate = true;
+    }
+    repaint();
+    themeRepainter = repaint;
+  }
+
+  function startRegionCycle(geometry, colors, nVerts){
+    const weights = computeRegionWeights(geometry);
+    // Base is now dark on its own — no extra dim multiplier needed. The LUT
+    // starts from the full base colour, so unilluminated cortex shows its
+    // real shaded slate tone with all the gyri and sulci visible.
+    const DIM = 1.0;
+    let heatLUT = buildHeatLUT([baseR * DIM, baseG * DIM, baseB * DIM]);
+
+    // Crossfade between two weight buffers using the heat LUT.
+    const displayW = new Float32Array(nVerts);
+    function paintFromBlended(fromW, toW, e){
+      const last = LUT_SIZE - 1;
+      for (let i = 0; i < nVerts; i++){
+        const t = fromW[i] * (1 - e) + toW[i] * e;
+        const idx = (t < 0 ? 0 : t > 1 ? last : t * last) | 0;
+        const li = idx * 3;
+        colors[i*3  ] = heatLUT[li];
+        colors[i*3+1] = heatLUT[li+1];
+        colors[i*3+2] = heatLUT[li+2];
+      }
+      geometry.attributes.color.needsUpdate = true;
+    }
+    function paintFromWeight(w){
+      paintFromBlended(w, w, 0); // identical from/to → just paint w
+      // also stash as the current display buffer
+      displayW.set(w);
+    }
+
+    // Cubic-ease crossfade scheduler.
+    let xfFrom = null, xfTo = null, xfStart = 0;
+    const XF_MS = 700;
+    function startCrossfade(toW){
+      // From = current display, so transitions chain cleanly even mid-fade.
+      xfFrom = new Float32Array(displayW);
+      xfTo = toW;
+      xfStart = performance.now();
+      const tick = () => {
+        const f = Math.min(1, (performance.now() - xfStart) / XF_MS);
+        const e = f < 0.5 ? 4*f*f*f : 1 - Math.pow(-2*f + 2, 3) / 2;
+        paintFromBlended(xfFrom, xfTo, e);
+        // also advance displayW so subsequent crossfades start from "now"
+        for (let i = 0; i < nVerts; i++){
+          displayW[i] = xfFrom[i] * (1 - e) + xfTo[i] * e;
+        }
+        if (f < 1) requestAnimationFrame(tick);
+        else { xfFrom = null; xfTo = null; }
+      };
+      requestAnimationFrame(tick);
+    }
+
+    const card   = document.getElementById('heroDimCard');
+    const useLn  = document.getElementById('heroUseLine');
+    const nmEl   = document.getElementById('heroDimLabel');
+    const rgEl   = document.getElementById('heroDimRegion');
+    const bdEl   = document.getElementById('heroDimBody');
+    const useEl  = document.getElementById('heroUseText');
+    const pillsEl = document.getElementById('heroPills');
+
+    function updatePillActive(key){
+      if (!pillsEl) return;
+      pillsEl.querySelectorAll('.hero-pill').forEach(p => {
+        p.classList.toggle('is-active', p.dataset.key === key);
+      });
+    }
+
+    function swapCopy(key){
+      const c = REGION_COPY[key];
+      if (!c) return;
+      if (card)  card.classList.add('fading');
+      if (useLn) useLn.classList.add('fading');
+      setTimeout(() => {
+        if (nmEl)  nmEl.textContent  = c.label;
+        if (rgEl)  rgEl.textContent  = c.region;
+        if (bdEl)  bdEl.textContent  = c.body;
+        if (useEl) useEl.textContent = c.use;
+        if (card)  card.classList.remove('fading');
+        if (useLn) useLn.classList.remove('fading');
+      }, 280);
+    }
+
+    function go(key){
+      const w = weights[key];
+      if (!w) return;
+      // Aim the camera toward this region's view.
+      const orient = REGION_ORIENT[key];
+      if (orient){ targetRotY = orient.y; targetRotX = orient.x; }
+      // Update connector line endpoint.
+      const cents = weights.__centroids;
+      if (cents && cents[key]) activeCentroid = cents[key];
+      // Smooth colour crossfade.
+      startCrossfade(w);
+      // Card + pill state in parallel.
+      swapCopy(key);
+      updatePillActive(key);
+    }
+
+    // Auto-cycle between the two flagship dimensions.
+    const autoOrder = ['attention_salience', 'memory_encoding'];
+    let autoIdx = 0;
+    let autoTimer = null;
+    const INTERVAL_MS = 8000;
+
+    function startAuto(){
+      if (autoTimer) return;
+      autoTimer = setInterval(() => {
+        autoIdx = (autoIdx + 1) % autoOrder.length;
+        go(autoOrder[autoIdx]);
+      }, INTERVAL_MS);
+    }
+    function stopAuto(){
+      if (autoTimer){ clearInterval(autoTimer); autoTimer = null; }
+    }
+
+    // ----- Pill hover + Others popover (JS-controlled, not CSS-only) -----
+    // Debounced resume so the user can move between pills and into the
+    // popover without restarting the auto-cycle.
+    let resumeTimer = null;
+    function scheduleResume(){
+      if (resumeTimer) clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => {
+        autoIdx = 0;                  // reset to Attention
+        go(autoOrder[autoIdx]);
+        startAuto();
+        resumeTimer = null;
+      }, 320);
+    }
+    function cancelResume(){
+      if (resumeTimer){ clearTimeout(resumeTimer); resumeTimer = null; }
+    }
+
+    const pillGroup = pillsEl ? pillsEl.querySelector('.hero-pill-group') : null;
+    let popoverCloseTimer = null;
+    function openPopover(){
+      if (popoverCloseTimer){ clearTimeout(popoverCloseTimer); popoverCloseTimer = null; }
+      if (pillGroup) pillGroup.classList.add('is-open');
+    }
+    function closePopover(immediate){
+      if (popoverCloseTimer){ clearTimeout(popoverCloseTimer); popoverCloseTimer = null; }
+      if (immediate){
+        if (pillGroup) pillGroup.classList.remove('is-open');
+      } else {
+        popoverCloseTimer = setTimeout(() => {
+          if (pillGroup) pillGroup.classList.remove('is-open');
+          popoverCloseTimer = null;
+        }, 180);
+      }
+    }
+    if (pillGroup){
+      pillGroup.addEventListener('mouseenter', openPopover);
+      pillGroup.addEventListener('mouseleave', () => closePopover(false));
+      pillGroup.addEventListener('focusin', openPopover);
+      pillGroup.addEventListener('focusout', () => {
+        setTimeout(() => {
+          if (!pillGroup.contains(document.activeElement)) closePopover(true);
+        }, 50);
+      });
+    }
+
+    if (pillsEl){
+      pillsEl.querySelectorAll('.hero-pill[data-key]').forEach(pill => {
+        const key = pill.dataset.key;
+        const isInPopover = !!pill.closest('.hero-pill-popover');
+        const activate = () => { cancelResume(); stopAuto(); go(key); };
+        pill.addEventListener('mouseenter', () => {
+          activate();
+          // Hovering Attention/Memory (outside popover) should close the
+          // Others popover immediately so it doesn't linger.
+          if (!isInPopover) closePopover(true);
+        });
+        pill.addEventListener('focus', activate);
+        // Click is treated as activate ONLY — no blur, no popover close, no
+        // resume schedule. This prevents the "click on Processing Effort →
+        // brain rotates there → 320ms later auto-resumes to Attention" bounce.
+        pill.addEventListener('click', activate);
+        pill.addEventListener('mouseleave', scheduleResume);
+      });
+    }
+
+    // First paint — set displayW to the initial region weights without a
+    // visible transition (skip the crossfade so the brain renders correctly
+    // right after the sphere fades out).
+    paintFromWeight(weights[autoOrder[autoIdx]]);
+    swapCopy(autoOrder[autoIdx]);
+    updatePillActive(autoOrder[autoIdx]);
+    const orient0 = REGION_ORIENT[autoOrder[autoIdx]];
+    if (orient0){ targetRotY = orient0.y; targetRotX = orient0.x; }
+    startAuto();
+
+    // On theme toggle, rebuild the LUT with the new base colour and repaint
+    // the currently-displayed region. The sway + rotation continue as usual.
+    themeRepainter = () => {
+      heatLUT = buildHeatLUT([baseR * DIM, baseG * DIM, baseB * DIM]);
+      paintFromBlended(displayW, displayW, 0);
+    };
+  }
+
+  /* ---------------------------------------------------------------
+     Real fsaverage5 mesh swap-in (optional).
+     Flow: placeholder sphere renders immediately → fetch /api/brain-mesh
+     in background → on arrival, crossfade sphere out + real mesh in.
+     Silent fallback to the sphere if the backend is unreachable.
+  ----------------------------------------------------------------*/
+  if (useRealMesh) {
+    fetchBrainMesh().then((payload) => {
+      if (!payload) {
+        console.warn('[BrainDiff] /api/brain-mesh unavailable — keeping placeholder cortex.');
+        return;
+      }
+      try {
+        const realGeom = buildRealMeshGeometry(payload, 1.4);
+        // Neutral base color for the real cortex (matches the pewter placeholder tone).
+        const nVerts = realGeom.attributes.position.count;
+        const realColors = new Float32Array(nVerts * 3);
+        for (let i = 0; i < nVerts; i++) {
+          realColors[i*3]   = baseR;
+          realColors[i*3+1] = baseG;
+          realColors[i*3+2] = baseB;
+        }
+        realGeom.setAttribute('color', new THREE.BufferAttribute(realColors, 3));
+
+        const realMat = new THREE.MeshPhysicalMaterial({
+          color: 0xffffff,
+          vertexColors: true,
+          metalness: 0.08,
+          roughness: 0.56,
+          clearcoat: 0.25,
+          clearcoatRoughness: 0.55,
+          reflectivity: 0.4,
+          sheen: 0.22,
+          sheenColor: new THREE.Color(0xcad3df),
+          sheenRoughness: 0.66,
+          emissive: 0x0a0e14,
+          emissiveIntensity: 0.2,
+          transparent: true,
+          opacity: 0,
+        });
+        const realMesh = new THREE.Mesh(realGeom, realMat);
+        // fsaverage5 from nilearn arrives in RAS-like orientation:
+        //   +X = right · +Y = anterior · +Z = superior
+        // With the camera at (0,0,4.6) looking down -Z, leaving rotations at
+        // zero gives a true dorsal view (looking at the top of the head with
+        // anterior up, right hemisphere on the right). The gentle sway is
+        // driven by root.rotation in the tick loop, not by the mesh itself.
+        realMesh.rotation.set(0, 0, 0);
+        root.add(realMesh);
+
+        // Crossfade: 900ms
+        material.transparent = true;
+        const fadeMs = 900;
+        const startTs = performance.now();
+        (function fadeStep(){
+          const e = Math.min(1, (performance.now() - startTs) / fadeMs);
+          material.opacity = 1 - e;
+          realMat.opacity = e;
+          if (e < 1) requestAnimationFrame(fadeStep);
+          else {
+            // Dispose the placeholder once it's offscreen.
+            root.remove(leftHemi);
+            root.remove(rightHemi);
+            geom.dispose();
+            rightGeom.dispose();
+            material.dispose();
+            if (cycleRegions) startRegionCycle(realGeom, realColors, nVerts);
+            else if (diffRegions) paintMockDiff(realGeom, realColors, nVerts, diffRegions);
+            else if (lensMode) lensSetRegion = startLensMode(realGeom, realColors, nVerts, initialRegion);
+          }
+        })();
+      } catch (err) {
+        console.warn('[BrainDiff] failed to build real mesh geometry:', err);
+      }
+    });
+  }
 
   function resize(){
     const r = canvas.getBoundingClientRect();
@@ -891,16 +2065,55 @@ function mountBrain(canvas, opts={}){
     raf = requestAnimationFrame(tick);
     const t = (now - t0) * 0.001;
     if(rotation && !reduced){
-      root.rotation.y = -0.42 + Math.sin(t*rotationSpeed)*0.08 + t*0.12;
-      root.rotation.x = -0.05 + Math.sin(t*rotationSpeed*0.8+0.9)*0.04;
+      if (useRealMesh){
+        if (isDragging){
+          // Direct user control — skip sway + lerp so cursor maps 1:1.
+          root.rotation.y = currentRotY;
+          root.rotation.x = currentRotX;
+        } else {
+          // Ease toward the active region's orientation. 0.045 lerp lands in
+          // ~700ms — slow enough to read as a deliberate camera move.
+          currentRotY += (targetRotY - currentRotY) * 0.045;
+          currentRotX += (targetRotX - currentRotX) * 0.045;
+          root.rotation.y = currentRotY + Math.sin(t * 0.18) * 0.06;
+          root.rotation.x = currentRotX + Math.sin(t * 0.14 + 0.6) * 0.025;
+        }
+      } else {
+        // Placeholder sphere (compare / lens canvases) — original motion.
+        root.rotation.y = -0.42 + Math.sin(t*rotationSpeed)*0.08 + t*0.12;
+        root.rotation.x = -0.05 + Math.sin(t*rotationSpeed*0.8+0.9)*0.04;
+      }
     }
     renderer.render(scene, camera);
+    if (useRealMesh) updateConnectorLine();
   }
   raf = requestAnimationFrame(tick);
 
+  // Listen for theme toggles and recolour everything — base, lighting, LUT —
+  // so the dark ↔ light transition is coherent across the whole brain scene.
+  function onThemeChange(ev){
+    const theme = (ev && ev.detail && ev.detail.theme) || currentTheme();
+    if (useRealMesh){
+      const t = BRAIN_THEMES[theme] || BRAIN_THEMES.dark;
+      baseR = t.base[0]; baseG = t.base[1]; baseB = t.base[2];
+    }
+    applyBrainLighting(theme);
+    if (themeRepainter) themeRepainter();
+  }
+  window.addEventListener('braindiff:theme', onThemeChange);
+
   return {
-    setHighlight(k){ paint('highlight', k); },
-    dispose(){ cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); geom.dispose(); material.dispose(); }
+    setHighlight(k){
+      // Prefer the lens-mode real-mesh highlighter once the real mesh has
+      // loaded; fall back to the sphere's region-direction highlight until
+      // then (or for non-lens canvases that still use the placeholder).
+      if (lensSetRegion) { lensSetRegion(k); return; }
+      paint('highlight', k);
+    },
+    dispose(){
+      window.removeEventListener('braindiff:theme', onThemeChange);
+      cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); geom.dispose(); material.dispose();
+    }
   };
 }
 
@@ -908,21 +2121,75 @@ const heroCanvas = document.getElementById('heroBrain');
 const compareCanvas = document.getElementById('compareBrain');
 const lensCanvas = document.getElementById('lensBrain');
 
-if(heroCanvas) mountBrain(heroCanvas, { rotation:true, rotationSpeed:0.22 });
-if(compareCanvas) mountBrain(compareCanvas, { rotation:true, rotationSpeed:0.14, diff:true });
+if(heroCanvas) mountBrain(heroCanvas, {
+  rotation:true,
+  rotationSpeed:0.05,          // slower — give the reader time to read the card
+  useRealMesh:true,
+  cycleRegions:true,           // alternate Attention ↔ Memory encoding highlight
+});
+
+// Mock per-region deltas for the compare-section demo. When real data lands
+// in production, replace this object with the backend's signed deltas.
+// Positive = B stronger; negative = A stronger.
+const MOCK_COMPARE_DELTAS = {
+  attention_salience:   0.05,
+  memory_encoding:      0.08,
+  personal_resonance:   0.31,
+  gut_reaction:         0.22,
+  social_thinking:     -0.04,
+  language_depth:      -0.12,
+  brain_effort:        -0.09,
+};
+if(compareCanvas) mountBrain(compareCanvas, {
+  rotation:true,
+  rotationSpeed:0.08,
+  useRealMesh:true,
+  diffRegions:MOCK_COMPARE_DELTAS,    // paint real mesh with mock A/B contrast
+});
 
 let lensCtrl = null;
-if(lensCanvas) lensCtrl = mountBrain(lensCanvas, { rotation:true, rotationSpeed:0.12, highlight:'personal_resonance' });
+if(lensCanvas) lensCtrl = mountBrain(lensCanvas, {
+  rotation:true,
+  rotationSpeed:0.05,
+  useRealMesh:true,
+  lensMode:true,
+  initialRegion:'attention_salience',
+});
 
+// Hierarchy order used throughout the site: Attention → Memory → Personal →
+// Gut → Social → Language → Processing.
 const LENS_COPY = {
-  personal_resonance:{ nm:"Personal relevance", rg:"Medial prefrontal cortex · mPFC", bd:"Tracks whether a message feels like it's about <em>you</em>. Stronger activation here has predicted real-world behaviour change at population scale.", ct:"Falk et al., 2012 · Scholz et al., 2025" },
-  social_thinking:{ nm:"Social reasoning", rg:"Temporoparietal junction · TPJ", bd:"The cortical system for modeling other minds — perspective-taking and social inference.", ct:"Saxe &amp; Kanwisher, 2003" },
-  brain_effort:{ nm:"Processing effort", rg:"Dorsolateral prefrontal cortex · dlPFC", bd:"How hard the brain works to parse a message. Higher isn't automatically worse — it depends on the reader.", ct:"Owen et al., 2005" },
-  language_depth:{ nm:"Language depth", rg:"Broca's + Wernicke's network", bd:"Structural and semantic language processing. Deeper activation means more meaning being extracted.", ct:"Fedorenko et al., 2010" },
-  gut_reaction:{ nm:"Gut reaction", rg:"Anterior insula", bd:"The visceral, felt edge of a message. Sensitive to urgency and personal stakes.", ct:"Craig, 2009" },
-  memory_encoding:{ nm:"Memory encoding", rg:"Left ventrolateral prefrontal cortex · vlPFC", bd:"A cortical driver of what tends to <em>stick</em>. Two versions can feel similar in the moment but differ in what endures.", ct:"Paller &amp; Wagner, 2002" },
-  attention_salience:{ nm:"Attention", rg:"Dorsal attention network", bd:"What the reader selects and holds. Content that commands focus through novelty, urgency, or contrast pulls here.", ct:"Corbetta &amp; Shulman, 2002" },
+  attention_salience:{ nm:"Attention", rg:"Dorsal attention network", bd:"Where the reader locks focus. Activity here spikes on novelty, urgency, a sharp cut, a personal stake — anything that breaks the rhythm of what came before.", ct:"Corbetta &amp; Shulman, 2002" },
+  memory_encoding:{ nm:"Memory encoding", rg:"Left ventrolateral prefrontal cortex · vlPFC", bd:"Not what the reader feels now — what they will still remember tomorrow. Two pieces of content can feel equal in the moment and differ sharply in what sticks.", ct:"Paller &amp; Wagner, 2002" },
+  personal_resonance:{ nm:"Personal relevance", rg:"Medial prefrontal cortex · mPFC", bd:"Tracks whether a message feels like it's about <em>you</em>. Activation here has predicted real-world behaviour change at population scale where self-reports missed it entirely.", ct:"Falk et al., 2012 · Scholz et al., 2025" },
+  gut_reaction:{ nm:"Gut reaction", rg:"Anterior insula", bd:"The visceral, felt edge of a message. Sensitive to urgency, moral weight, personal risk — the reaction that arrives before language catches up.", ct:"Craig, 2009" },
+  social_thinking:{ nm:"Social reasoning", rg:"Temporoparietal junction · TPJ", bd:"The cortical system for modeling other minds — figuring out intent, relationship, what a character is about to do.", ct:"Saxe &amp; Kanwisher, 2003" },
+  language_depth:{ nm:"Language depth", rg:"Broca's + Wernicke's network", bd:"Structural and semantic parsing. Stronger activation means more meaning is being pulled from the words themselves.", ct:"Fedorenko et al., 2010" },
+  brain_effort:{ nm:"Processing effort", rg:"Dorsolateral prefrontal cortex · dlPFC", bd:"How hard the brain is working to parse the message. Higher effort is fine when the payoff is big — costly when the reader can just leave.", ct:"Owen et al., 2005" },
 };
+
+// University affiliations behind each citation — picked for trust signal
+// (primary author's home institution for the cited paper). 1–2 per region.
+const LAB_LOGOS = {
+  attention_salience:  [{ label:'WashU',       color:'#A51417' }],
+  memory_encoding:     [{ label:'Northwestern', color:'#4E2A84' }],
+  personal_resonance:  [{ label:'Penn',        color:'#011F5B' }, { label:'UCLA', color:'#2774AE' }],
+  gut_reaction:        [],
+  social_thinking:     [{ label:'MIT',         color:'#750014' }],
+  language_depth:      [{ label:'MIT',         color:'#750014' }],
+  brain_effort:        [{ label:'Cambridge',   color:'#003B5B' }],
+};
+
+function renderLabChips(key){
+  const el = document.getElementById('lensLabs');
+  if (!el) return;
+  const labs = LAB_LOGOS[key] || [];
+  el.innerHTML = labs.map(l =>
+    `<span class="lab-chip" style="background:${l.color}">${l.label}</span>`
+  ).join('');
+}
+renderLabChips('attention_salience');
+
 document.querySelectorAll('.lens-pill').forEach(pill=>{
   pill.addEventListener('click', ()=>{
     document.querySelectorAll('.lens-pill').forEach(p=>p.classList.remove('active'));
@@ -933,9 +2200,10 @@ document.querySelectorAll('.lens-pill').forEach(pill=>{
       document.getElementById('lensNm').textContent = c.nm;
       document.getElementById('lensRg').textContent = c.rg;
       document.getElementById('lensBd').innerHTML = c.bd;
-      document.getElementById('lensCt').textContent = c.ct;
+      document.getElementById('lensCt').innerHTML = c.ct;
     }
-    if(lensCtrl) lensCtrl.setHighlight(k);
+    renderLabChips(k);
+    if(lensCtrl && lensCtrl.setHighlight) lensCtrl.setHighlight(k);
   });
 });
 

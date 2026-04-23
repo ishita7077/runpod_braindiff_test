@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Research — BrainDiff</title>
+<meta name="description" content="The science behind BrainDiff — why self-report misses what people actually do, and how TRIBE v2 lets us peek at the cortex instead." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark'){r.removeAttribute('data-theme');}else{r.setAttribute('data-theme','light');}}catch(e){r.setAttribute('data-theme','light');}})();</script>
+<style>
+:root{
+  color-scheme:dark;
+  --bg:#0b0c0f;--bg-2:#101116;--bg-3:#15171c;
+  --surface:#15171c;--panel:rgba(20,22,28,0.72);--panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07);--line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db;--ink-dim:#b6b1a6;--ink-mute:#7f7a70;
+  --accent:#e04a2e;--accent-2:#f27455;--accent-3:rgba(224,74,46,0.12);
+  --good:#6a97c9;--good-2:#8db2d4;--good-3:rgba(106,151,201,0.12);
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+  --shell-pad-x:clamp(20px,4vw,56px);--shell-max:1000px;
+}
+:root[data-theme="light"]{
+  color-scheme:light;
+  --bg:#f7f4ec;--bg-2:#efeadf;--bg-3:#e7e2d4;--surface:#ffffff;--panel:#ffffff;--panel-2:#f1ecde;
+  --line:#e2ddcf;--line-2:#cbc5b4;--ink:#17171a;--ink-dim:#3d3d42;--ink-mute:#77736b;
+  --accent:#c1272d;--accent-2:#d94a4e;--accent-3:#f8e9e6;--good:#2a5583;--good-2:#4a78ab;--good-3:#e6edf6;
+  --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
+  --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
+}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+    var(--bg);
+  color:var(--ink);font-family:'Inter Tight',system-ui,-apple-system,sans-serif;
+  font-feature-settings:"cv11","ss01";-webkit-font-smoothing:antialiased;line-height:1.6;
+}
+:root[data-theme="light"] body{
+  background:radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),var(--bg);
+}
+a{color:inherit;text-decoration:none}
+.shell{max-width:var(--shell-max);margin:0 auto;padding:0 var(--shell-pad-x)}
+
+.theme-switcher{position:fixed;top:14px;right:20px;z-index:60}
+.theme-toggle{width:34px;height:34px;border-radius:8px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-dim);cursor:pointer;font-size:14px;display:grid;place-items:center;box-shadow:var(--shadow-sm);font-family:inherit;transition:color .15s ease, border-color .15s ease}
+.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.theme-toggle .tt-moon{display:inline}.theme-toggle .tt-sun{display:none}
+:root[data-theme="light"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="light"] .theme-toggle .tt-moon{display:none}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px var(--shell-pad-x);max-width:var(--shell-max);margin:0 auto;position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--bg) 84%, transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.01em;font-size:15px;color:var(--ink)}
+.brand-mark{width:24px;height:24px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.brand-word b{font-weight:600}
+.nav{display:flex;gap:28px;align-items:center;font-size:13.5px;color:var(--ink-dim)}
+.nav a{transition:color .15s ease}
+.nav a:hover{color:var(--ink)}
+.nav a.is-active{color:var(--ink)}
+.nav-cta{padding:8px 16px;border:1px solid var(--line-2);border-radius:8px;color:var(--ink);background:var(--surface);font-weight:500;font-size:13px;transition:all .15s ease;box-shadow:var(--shadow-sm)}
+.nav-cta:hover{border-color:var(--accent);color:var(--accent)}
+
+.page-hero{padding:clamp(48px,9vh,96px) 0 40px}
+.page-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:inline-block;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb, var(--surface) 60%, transparent)}
+h1.page-title{font-family:'Fraunces','Source Serif 4',Georgia,serif;font-weight:400;font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;font-size:clamp(36px,4.6vw,58px);line-height:1.06;letter-spacing:-0.022em;margin:0 0 18px;color:var(--ink)}
+h1.page-title em{font-style:italic;color:var(--accent)}
+.page-sub{font-size:clamp(15.5px,1.25vw,18px);color:var(--ink-dim);max-width:58ch;line-height:1.6;margin:0 0 20px}
+
+.section{padding:48px 0;border-top:1px solid var(--line)}
+.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
+h2.section-title{font-family:'Fraunces','Source Serif 4',Georgia,serif;font-weight:400;font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;font-size:clamp(26px,2.6vw,34px);line-height:1.1;letter-spacing:-0.02em;margin:0 0 14px;max-width:26ch;color:var(--ink)}
+h2.section-title em{font-style:italic;color:var(--accent)}
+.section-lead{color:var(--ink-dim);max-width:60ch;margin:0 0 22px;font-size:15.5px;line-height:1.7}
+.prose{color:var(--ink-dim);font-size:15.5px;line-height:1.75;max-width:62ch}
+.prose p{margin:0 0 16px}
+.prose strong{color:var(--ink);font-weight:600}
+.prose em{font-style:italic;color:var(--ink)}
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0 8px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:var(--shadow-sm);backdrop-filter:blur(8px)}
+.stat .num{font-family:'Fraunces',serif;font-variation-settings:"opsz" 144;font-size:36px;color:var(--accent);line-height:1;margin-bottom:8px;letter-spacing:-0.02em}
+.stat .lbl{font-size:13px;color:var(--ink-dim);line-height:1.5}
+
+.cite-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px}
+.cite-list li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow-sm)}
+.cite-list .title{color:var(--ink);font-weight:500;font-size:14px}
+.cite-list .meta{font-size:12px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:0.03em}
+.cite-list a{color:var(--accent);border-bottom:1px solid color-mix(in srgb, var(--accent) 35%, transparent);font-size:12px;align-self:flex-start;margin-top:4px}
+.cite-list a:hover{border-bottom-color:var(--accent)}
+
+.cta-footer{padding:64px 0;border-top:1px solid var(--line);display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:8px;font-weight:500;font-size:14px;letter-spacing:-0.005em;transition:all .15s ease;cursor:pointer;border:none;font-family:inherit}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:var(--shadow-md)}
+.btn-primary:hover{background:color-mix(in srgb, var(--accent) 88%, black);transform:translateY(-1px)}
+.btn-ghost{background:var(--surface);color:var(--ink-dim);border:1px solid var(--line-2);box-shadow:var(--shadow-sm)}
+.btn-ghost:hover{color:var(--ink);border-color:var(--accent)}
+
+.footer{border-top:1px solid var(--line);padding:36px 0;color:var(--ink-mute);font-size:12px;font-family:'Inter Tight',system-ui,sans-serif;letter-spacing:-0.005em}
+.footer .shell{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
+.footer a{color:var(--ink-dim);transition:color .15s ease;border-bottom:1px solid transparent;padding-bottom:1px}
+.footer a:hover{color:var(--accent);border-bottom-color:color-mix(in srgb, var(--accent) 50%, transparent)}
+.footer .footer-brand{font-family:'Fraunces',serif;font-variation-settings:"opsz" 48;font-size:15px;color:var(--ink);font-weight:500;letter-spacing:-0.01em}
+.footer .footer-credit{color:var(--ink-mute)}
+.footer .heart{color:var(--accent);display:inline-block;margin:0 2px;animation:heartbeat 1.6s ease-in-out infinite}
+@keyframes heartbeat{0%,60%,100%{transform:scale(1)}30%{transform:scale(1.12)}45%{transform:scale(1.05)}}
+
+@media (max-width: 960px){
+  .nav{gap:18px;font-size:13px}
+  .stat-grid{grid-template-columns:1fr 1fr;gap:12px}
+  .section{padding:40px 0}
+  .page-hero{padding:clamp(32px,6vh,64px) 0 28px}
+}
+@media (max-width: 640px){
+  :root{--shell-pad-x:clamp(16px,5vw,24px)}
+  .topbar{padding:14px var(--shell-pad-x)}
+  .nav{gap:12px;font-size:12.5px}
+  .nav a:not(.nav-cta){display:none}
+  .nav-cta{display:inline-flex;padding:7px 13px;font-size:12.5px}
+  .stat-grid{grid-template-columns:1fr}
+  .section{padding:32px 0}
+  h1.page-title{font-size:clamp(32px,9vw,44px)}
+}
+</style>
+</head>
+<body>
+<div class="theme-switcher"><button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle light/dark"><span class="tt-sun">☀</span><span class="tt-moon">☾</span></button></div>
+
+<header class="topbar">
+  <a href="/" class="brand"><span class="brand-mark">B</span><span class="brand-word">Brain<b>Diff</b></span></a>
+  <nav class="nav">
+    <a href="/research" class="is-active">Research</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/#case-study">Case studies</a>
+    <a href="/launch" class="nav-cta">Launch →</a>
+  </nav>
+</header>
+
+<main>
+  <section class="page-hero shell">
+    <div class="page-eyebrow">Research</div>
+    <h1 class="page-title">Why self-report <em>misses.</em></h1>
+    <p class="page-sub">Roughly 90% of decisions happen below conscious awareness — driven by instinct, emotion, and memory. Asking someone <em>why</em> they chose, liked, or bought returns a story the conscious brain wrote after the fact. BrainDiff skips the story and looks at the response.</p>
+  </section>
+
+  <section class="section shell">
+    <div class="section-eyebrow">The gap</div>
+    <h2 class="section-title">The brain acts first. The mouth explains after.</h2>
+    <div class="prose">
+      <p>Traditional market research asks a conscious mind to report on a subconscious process. That's asking consumers to act as their own psychologists — and it rarely works.</p>
+      <p>When researchers compare what people <strong>say</strong> they'll do with what they <strong>actually</strong> do, self-reported data only predicts real-world behaviour around <strong>24%</strong> of the time. When they compare neural measures (fMRI, EEG) to real-world behaviour, prediction jumps to about <strong>86%</strong>.</p>
+      <p>That gap is the reason BrainDiff exists.</p>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="num">720+</div><div class="lbl">people's fMRI behind every BrainDiff prediction — TRIBE v2's training set.</div></div>
+      <div class="stat"><div class="num">~20,000</div><div class="lbl">cortical vertices per comparison — fsaverage5 resolution, the standard surface atlas.</div></div>
+      <div class="stat"><div class="num">1,000+</div><div class="lbl">hours of fMRI data inside the model, released open-access by Meta FAIR.</div></div>
+    </div>
+    <p class="prose" style="margin-top:16px;color:var(--ink-mute);font-size:13px">
+      On the same scale: <strong>r = 0.87</strong> — the correlation Falk, Berkman &amp; Lieberman (2012) reported between one small cortical region's response in 30 smokers and the national call volume their anti-smoking ads would drive weeks later. Focus groups and self-report had ranked those same ads differently.
+    </p>
+  </section>
+
+  <section class="section shell">
+    <div class="section-eyebrow">What the cortex actually tracks</div>
+    <h2 class="section-title">Three signals drive behaviour.</h2>
+    <div class="prose">
+      <p>Decades of neuroscience, and more recently neuromarketing, converge on three signals that predict what people do next:</p>
+      <p><strong>Personal relevance</strong> — activity in medial prefrontal cortex (mPFC) tracks whether a message feels like it's about <em>you</em>. Falk et al. (2012) showed mPFC activation predicted population-level smoking-cessation response even when self-reports didn't.</p>
+      <p><strong>Memory encoding</strong> — activity in the ventrolateral prefrontal cortex during exposure predicts whether content will be remembered days later. Memory is the bridge between seeing a message today and acting on it tomorrow.</p>
+      <p><strong>Emotional + visceral response</strong> — the anterior insula and related regions fire on gut reactions: urgency, stakes, moral weight. This is the "felt edge" of a message that self-report usually flattens out.</p>
+      <p>BrainDiff reports on all three — plus four more (social reasoning, language depth, attention, processing effort) — every time you run a comparison.</p>
+    </div>
+  </section>
+
+  <section class="section shell">
+    <div class="section-eyebrow">The model</div>
+    <h2 class="section-title">TRIBE v2 — Meta FAIR's open brain-response model.</h2>
+    <div class="prose">
+      <p>BrainDiff is not a scanner. We don't record your brain. Instead, we borrow a model trained on other people's brains — Meta FAIR's <strong>TRIBE v2</strong>, released in 2025.</p>
+      <p>TRIBE v2 was trained on fMRI recordings from 8 subjects watching hours of naturalistic video and listening to rich narrative audio. From that data, it learned a mapping: given any piece of content, predict the cortical response pattern across the standard fsaverage5 surface — 20,484 vertices covering the whole cortex.</p>
+      <p>We take that prediction, run it for two pieces of content side-by-side, and subtract. The result: a signed map of where, and how strongly, one version moves the cortex more than the other.</p>
+    </div>
+  </section>
+
+  <section class="section shell">
+    <div class="section-eyebrow">Sources</div>
+    <h2 class="section-title">Citations.</h2>
+    <p class="section-lead">The science BrainDiff rests on. External links lead to the original papers where available.</p>
+    <ul class="cite-list">
+      <li id="falk">
+        <div class="title">From neural responses to population behavior: Neural focus group predicts population-level media effects</div>
+        <div class="meta">Falk, Berkman &amp; Lieberman · Penn · Psychological Science 23(5), 439–445 · 2012</div>
+        <a href="https://journals.sagepub.com/doi/10.1177/0956797611434964" target="_blank" rel="noopener">Sage · DOI 10.1177/0956797611434964 →</a>
+      </li>
+      <li id="huth">
+        <div class="title">Natural speech reveals the semantic maps that tile human cerebral cortex</div>
+        <div class="meta">Huth, de Heer, Griffiths, Theunissen &amp; Gallant · UT Austin / UC Berkeley · Nature 532, 453–458 · 2016</div>
+        <a href="https://www.nature.com/articles/nature17637" target="_blank" rel="noopener">Nature · DOI 10.1038/nature17637 →</a>
+      </li>
+      <li id="fedorenko">
+        <div class="title">New method for fMRI investigations of language: defining ROIs functionally in individual subjects</div>
+        <div class="meta">Fedorenko, Hsieh, Nieto-Castañón, Whitfield-Gabrieli &amp; Kanwisher · MIT · Journal of Neurophysiology 104, 1177–1194 · 2010</div>
+        <a href="https://journals.physiology.org/doi/10.1152/jn.00032.2010" target="_blank" rel="noopener">J. Neurophysiology · DOI 10.1152/jn.00032.2010 →</a>
+      </li>
+      <li id="knutson">
+        <div class="title">Neural predictors of purchases</div>
+        <div class="meta">Knutson, Rick, Wimmer, Prelec &amp; Loewenstein · Stanford · Neuron 53, 147–156 · 2007</div>
+        <a href="https://www.cell.com/neuron/fulltext/S0896-6273(06)00904-1" target="_blank" rel="noopener">Neuron · DOI 10.1016/j.neuron.2006.11.010 →</a>
+      </li>
+      <li id="hasson">
+        <div class="title">A hierarchy of temporal receptive windows in human cortex</div>
+        <div class="meta">Hasson, Yang, Vallines, Heeger &amp; Rubin · Princeton / NYU · Journal of Neuroscience 28(10), 2539–2550 · 2008</div>
+        <a href="https://www.jneurosci.org/content/28/10/2539" target="_blank" rel="noopener">J. Neuroscience · DOI 10.1523/JNEUROSCI.5487-07.2008 →</a>
+      </li>
+      <li id="tribe">
+        <div class="title">TRIBE v2 — Transformer for Brain Responses to Everything</div>
+        <div class="meta">Tang et al. · Meta FAIR · 2025 · open access model weights</div>
+        <a href="https://huggingface.co/facebook/tribev2" target="_blank" rel="noopener">Hugging Face · facebook/tribev2 →</a>
+      </li>
+    </ul>
+  </section>
+
+  <section class="cta-footer shell">
+    <a href="/launch" class="btn btn-primary">Launch app <span>→</span></a>
+    <a href="/methodology" class="btn btn-ghost">See the methodology →</a>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="shell">
+    <span class="footer-brand">BrainDiff</span>
+    <span class="footer-credit">Made with <span class="heart" aria-hidden="true">♥</span> by <a href="https://polka.foundation" target="_blank" rel="noopener">Polka Foundation</a> · <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a></span>
+  </div>
+</footer>
+
+<script>
+function toggleTheme(){
+  var r=document.documentElement;
+  var next=r.getAttribute('data-theme')==='light'?'dark':'light';
+  if(next==='light') r.setAttribute('data-theme','light');
+  else r.removeAttribute('data-theme');
+  try{localStorage.setItem('braindiff-theme',next);}catch(e){}
+}
+</script>
+</body>
+</html>

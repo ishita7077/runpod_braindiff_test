@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<script>(function(){try{var t=localStorage.getItem('braindiff-theme');if(t==='light')document.documentElement.setAttribute('data-theme','light');}catch(e){}})();</script>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark'){r.removeAttribute('data-theme');}else{r.setAttribute('data-theme','light');}}catch(e){r.setAttribute('data-theme','light');}})();</script>
 <style>
   :root {
     color-scheme: dark;
@@ -137,6 +137,96 @@
     padding: 10px 13px; background: var(--panel-2); border-radius: 8px;
     border-left: 2px solid var(--accent); line-height: 1.55;
   }
+
+  /* ===== Deep Scope =====
+     Terminal-style live status. Replaces the old "Stay on this tab" banner.
+     Shows per-step elapsed + progress, plus an expandable event log. After
+     20+ runs in localStorage history, surfaces avg ± stdev per step. */
+  .deep-scope {
+    margin: 0 0 20px;
+    padding: 14px 16px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow-sm);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .ds-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px; }
+  .ds-eyebrow { font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  .ds-elapsed { font-size: 12px; color: var(--ink); font-variant-numeric: tabular-nums; }
+  .ds-history-note { font-size: 10.5px; color: var(--ink-mute); margin-bottom: 10px; line-height: 1.4; }
+  .ds-history-note.hide { display: none; }
+  .ds-steps { display: flex; flex-direction: column; gap: 8px; }
+  .ds-step {
+    display: grid; grid-template-columns: 24px 1fr auto; gap: 10px;
+    padding: 8px 10px; border-radius: 6px;
+    background: color-mix(in srgb, var(--ink-mute) 6%, transparent);
+    transition: background .25s ease;
+  }
+  .ds-step.is-active { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  .ds-step.is-done   { background: color-mix(in srgb, var(--good) 7%, transparent); }
+  .ds-step-icon {
+    display: grid; place-items: center;
+    width: 22px; height: 22px; border-radius: 5px;
+    font-size: 11px; font-weight: 600;
+    background: var(--surface); border: 1px solid var(--line-2); color: var(--ink-mute);
+    font-variant-numeric: tabular-nums;
+  }
+  .ds-step.is-active .ds-step-icon { background: var(--accent); color: #fff; border-color: var(--accent); animation: dsPulse 1.6s ease-in-out infinite; }
+  .ds-step.is-done   .ds-step-icon { background: var(--good); color: #fff; border-color: var(--good); }
+  .ds-step.is-done   .ds-step-icon::before { content: '✓'; }
+  .ds-step.is-done   .ds-step-icon { font-size: 12px; }
+  .ds-step.is-done   .ds-step-icon-num { display: none; }
+  @keyframes dsPulse { 0%,100%{ box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 35%, transparent);} 50%{ box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 0%, transparent);} }
+  .ds-step-body { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  .ds-step-label { font-size: 12.5px; color: var(--ink); font-family: 'Inter Tight', system-ui, sans-serif; letter-spacing: -0.005em; }
+  .ds-step-bar {
+    width: 100%; height: 3px; border-radius: 2px;
+    background: color-mix(in srgb, var(--ink-mute) 16%, transparent);
+    overflow: hidden;
+  }
+  .ds-step-bar-fill {
+    display: block; height: 100%;
+    background: var(--accent);
+    width: 0%;
+    transition: width .4s linear;
+  }
+  .ds-step.is-done .ds-step-bar-fill { background: var(--good); width: 100% !important; }
+  .ds-step.is-pending .ds-step-bar { opacity: 0.3; }
+  .ds-step-time {
+    font-size: 11px; color: var(--ink-dim);
+    text-align: right; font-variant-numeric: tabular-nums;
+    align-self: center;
+    min-width: 92px;
+  }
+  .ds-step.is-active .ds-step-time { color: var(--accent); }
+  .ds-step.is-done   .ds-step-time { color: var(--good); }
+  .ds-step-time-avg { display: block; font-size: 9.5px; color: var(--ink-mute); margin-top: 2px; }
+
+  .ds-step-warn { color: var(--accent); font-size: 11px; margin-top: 4px; }
+
+  /* Expandable event log */
+  .ds-log-wrap { margin-top: 10px; }
+  .ds-log-summary {
+    cursor: pointer; font-size: 10.5px; color: var(--ink-mute);
+    letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 0;
+    list-style: none; user-select: none;
+  }
+  .ds-log-summary::-webkit-details-marker { display: none; }
+  .ds-log-summary::before { content: '▸ '; margin-right: 4px; transition: transform .15s ease; display: inline-block; }
+  details[open] .ds-log-summary::before { transform: rotate(90deg); }
+  .ds-log {
+    margin-top: 6px; padding: 8px 10px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 11px; color: var(--ink-dim);
+    max-height: 180px; overflow-y: auto;
+    line-height: 1.5;
+  }
+  .ds-log-line { font-variant-numeric: tabular-nums; padding: 1px 0; }
+  .ds-log-line .ds-log-ts { color: var(--ink-mute); margin-right: 8px; }
+  .ds-log-line .ds-log-msg { color: var(--ink); }
+  .ds-log-empty { color: var(--ink-mute); font-style: italic; }
   .stay-on-tab strong { color: var(--ink); font-weight: 600; }
 
   .steps { list-style: none; padding: 0; margin: 0 0 18px; }
@@ -180,6 +270,14 @@
     font-size: 12.5px; color: var(--ink-dim); line-height: 1.55;
   }
   .honest-eta strong { color: var(--ink); font-weight: 600; }
+  .honest-eta.is-slow { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 6%, var(--panel-2)); }
+  .honest-eta.is-slow strong { color: var(--accent); }
+
+  .edu-intro {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10.5px; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--ink-mute); margin: 0 0 14px;
+  }
 
   .meta-row {
     display: flex; gap: 10px; flex-wrap: wrap; font-size: 11px;
@@ -519,7 +617,7 @@
 <div class="ink-blot" id="inkBlot" aria-hidden="true"></div>
 
 <header class="topbar">
-  <a class="brand" href="./index.html"><span class="brand-mark">B</span>BrainDiff</a>
+  <a class="brand" href="/"><span class="brand-mark">B</span>BrainDiff</a>
   <div class="topbar-right">
     <span class="job-id" id="jobIdLabel">job · ········</span>
   </div>
@@ -530,65 +628,30 @@
   <aside class="status-card">
     <div class="eyebrow" id="statusEyebrow">Analysis in progress</div>
     <h1 class="status-headline" id="statusHeadline">Running your brain-response <em>contrast.</em></h1>
-    <p class="status-sub" id="statusSub">Your two texts are being encoded through TRIBE v2 and compared across seven cortical dimensions.</p>
+    <p class="status-sub" id="statusSub">Your two texts are being encoded and compared across seven cortical dimensions.</p>
 
     <div class="eta-pill hide" id="etaPill"><span class="dot"></span></div>
 
-    <p class="stay-on-tab" id="stayBanner"><strong>Stay on this tab</strong> — we'll surface the contrast map the moment it's ready.</p>
-
-    <ol class="steps" id="stepsList">
-      <li>
-        <span class="step-dot">1</span>
-        <span class="step-row">
-          <span class="step-label">Reading your texts</span>
-        </span>
-        <span class="step-time">pending</span>
-      </li>
-      <li>
-        <span class="step-dot">2</span>
-        <span class="step-row">
-          <span class="step-label">Running TRIBE v2</span>
-        </span>
-        <span class="step-time">pending</span>
-      </li>
-      <li>
-        <span class="step-dot">3</span>
-        <span class="step-row">
-          <span class="step-label">Mapping to the brain surface</span>
-          <span class="step-micro">Projecting onto 20,484 vertices…</span>
-        </span>
-        <span class="step-time">pending</span>
-      </li>
-      <li>
-        <span class="step-dot">4</span>
-        <span class="step-row">
-          <span class="step-label">Scoring the seven dimensions</span>
-        </span>
-        <span class="step-time">pending</span>
-      </li>
-    </ol>
-
-    <div class="honest-eta">
-      <strong>Most runs finish in 6 to 12 minutes.</strong>
-      Surface projection is the slowest step — that's expected. If anything goes sideways past 15 minutes, we'll say so here.
-    </div>
-
-    <div class="meta-row">
-      <span>TRIBE v2 · Meta FAIR</span>
-      <span>·</span>
-      <span>fsaverage5 · 20,484 verts</span>
-    </div>
-
-    <div class="cancel-area" id="cancelArea">
-      <button class="cancel-btn" id="cancelBtn" type="button">Cancel run</button>
-      <div class="cancel-confirm" id="cancelConfirm">
-        <p class="cancel-helper">This ends the run. You'll need to resubmit both texts to try again.</p>
-        <div class="cancel-buttons">
-          <button class="btn-destructive" type="button">Yes, cancel</button>
-          <button class="btn-safe" id="keepRunning" type="button">Keep running</button>
-        </div>
+    <!-- Deep Scope: terminal-style live progress. Replaces the old
+         "Stay on this tab" banner. Step rows are injected by JS so we
+         keep one source of truth for step labels + history-derived ETAs. -->
+    <section class="deep-scope" id="deepScope" aria-label="Deep scope — live run telemetry">
+      <div class="ds-head">
+        <span class="ds-eyebrow">Deep scope</span>
+        <span class="ds-elapsed" id="dsElapsed">00:00</span>
       </div>
-    </div>
+      <div class="ds-history-note hide" id="dsHistoryNote"></div>
+      <div class="ds-steps" id="dsSteps"></div>
+      <details class="ds-log-wrap">
+        <summary class="ds-log-summary">Event log</summary>
+        <div class="ds-log" id="dsLog" role="log" aria-live="polite"></div>
+      </details>
+    </section>
+
+    <p class="honest-eta" id="honestEta">
+      <strong>Most runs finish in 6 to 12 minutes.</strong>
+      Encoding through TRIBE v2 is the slowest step — that's expected. If anything goes sideways past 15 minutes, we'll say so right here.
+    </p>
 
     <div class="done-cta" id="doneCta" aria-hidden="true">
       <p class="done-cta-label">Your contrast map is ready.</p>
@@ -598,18 +661,6 @@
 
   <!-- RIGHT: Education column -->
   <section class="education">
-
-    <div class="toggle-row">
-      <div class="toggle-group" role="tablist" id="modeToggle">
-        <button class="active" role="tab" data-mode="watch">
-          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 2h12v12H2V2zm4 3v6l5-3-5-3z"/></svg>Watch
-        </button>
-        <button role="tab" data-mode="read">
-          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 3h12v1H2V3zm0 3h12v1H2V6zm0 3h12v1H2V9zm0 3h8v1H2v-1z"/></svg>Read
-        </button>
-      </div>
-      <span class="toggle-helper">While you wait, learn to read what's coming.</span>
-    </div>
 
     <div class="watch-state" id="watchState">
       <div class="edu-hero">
@@ -641,84 +692,16 @@
           </div>
         </div>
       </div>
-
-      <div class="video-block">
-        <div class="video-frame">
-          <div class="video-play"></div>
-          <div class="video-duration">3:42</div>
-        </div>
-        <div class="video-meta">
-          <h3 class="video-title">How to read a BrainDiff map, in three minutes</h3>
-          <p class="video-sub">What the colors mean, what to look for, what the map can't tell you.</p>
-        </div>
-      </div>
     </div>
 
-    <div class="read-state hidden" id="readState">
-      <div class="read-hero">
-        <div class="read-eyebrow">Read · Seven cortical dimensions</div>
-        <h2 class="read-title">What your <em>result</em> is going to show you.</h2>
-        <p class="read-lead">
-          Every comparison decomposes into seven brain systems. Each answers a different question. Scan this while you wait — it makes the result map easier to read.
-        </p>
-      </div>
-      <div class="read-cards" style="margin-top:14px;">
-        <div class="read-card">
-          <div class="read-card-no">01 · Personal relevance</div>
-          <h3 class="read-card-title">Does it feel like it's <em>about me?</em></h3>
-          <p class="read-card-region">Medial prefrontal cortex</p>
-          <p class="read-card-body">How the brain answers "is this about me?" Versions that hit personally light this up harder — often without the reader knowing why.</p>
-        </div>
-        <div class="read-card">
-          <div class="read-card-no">02 · Social reasoning</div>
-          <h3 class="read-card-title">Am I <em>modeling</em> another mind?</h3>
-          <p class="read-card-region">Temporoparietal junction</p>
-          <p class="read-card-body">Lights up when one mind models another. If a version asks the reader to consider someone else's motives, intent, or feelings, this region carries that signal.</p>
-        </div>
-        <div class="read-card">
-          <div class="read-card-no">03 · Processing effort</div>
-          <h3 class="read-card-title">How <em>hard</em> is the system working?</h3>
-          <p class="read-card-region">Dorsolateral prefrontal cortex</p>
-          <p class="read-card-body">Effort isn't automatically good or bad. Sometimes a challenging message earns attention; sometimes it loses it. The map lets you see which is happening.</p>
-        </div>
-        <div class="read-card">
-          <div class="read-card-no">04 · Language depth</div>
-          <h3 class="read-card-title">How <em>deeply</em> is meaning being parsed?</h3>
-          <p class="read-card-region">Broca's and Wernicke's networks</p>
-          <p class="read-card-body">The brain's canonical language systems. Big shifts here usually mean one version is structurally richer — more syntactic or semantic texture — not just longer.</p>
-        </div>
-        <div class="read-card">
-          <div class="read-card-no">05 · Gut reaction</div>
-          <h3 class="read-card-title">Does this hit <em>viscerally?</em></h3>
-          <p class="read-card-region">Anterior insula</p>
-          <p class="read-card-body">Tracks felt salience — the bodily edge of a message. If one version provokes a stronger gut response, the insula shows it, even when the literal content is nearly identical.</p>
-        </div>
-        <div class="read-card">
-          <div class="read-card-no">06 · Memory encoding</div>
-          <h3 class="read-card-title">Will this <em>stick?</em></h3>
-          <p class="read-card-region">Left ventrolateral prefrontal cortex</p>
-          <p class="read-card-body">A cortical driver of memory formation. Two versions can feel similar in the moment but differ in what endures. If you care about a message lasting, watch this dimension closely.</p>
-        </div>
-        <div class="read-card">
-          <div class="read-card-no">07 · Attention</div>
-          <h3 class="read-card-title">Is the system <em>orienting</em> toward this?</h3>
-          <p class="read-card-region">Dorsal attention network</p>
-          <p class="read-card-body">Reflects what the reader selects and holds focus on. Content that commands attention through novelty, urgency, or contrast pulls this network harder than content that drifts.</p>
-        </div>
-        <div class="read-card" style="background:var(--panel-2); border-style:dashed;">
-          <div class="read-card-no">Keep going →</div>
-          <h3 class="read-card-title">The <em>trade-off</em> is where it gets interesting.</h3>
-          <p class="read-card-body" style="margin-top:10px;">Very few texts win on all seven. Most buy some dimensions by letting go of others. Your results page puts all seven on one axis so you can see what your B trades for what it gains.</p>
-        </div>
-      </div>
-    </div>
-
+    <!-- "While you wait" resources — PAPER / GUIDE / FAQ rows. Lives below
+         the brain + carousel. No toggle; always visible. -->
     <div class="resources">
       <h3>While you wait</h3>
       <ul>
-        <li><a href="#"><span class="resource-tag">Paper</span><span class="resource-title">TRIBE v2 — the model powering this comparison</span><span class="resource-sub">Meta FAIR · open access</span><span class="resource-arrow">→</span></a></li>
-        <li><a href="#"><span class="resource-tag">Guide</span><span class="resource-title">Signed vs. absolute contrast, and why we show signed</span><span class="resource-sub">5-minute read</span><span class="resource-arrow">→</span></a></li>
-        <li><a href="#"><span class="resource-tag">FAQ</span><span class="resource-title">What BrainDiff can't tell you</span><span class="resource-sub">limits &amp; caveats</span><span class="resource-arrow">→</span></a></li>
+        <li><a href="/research"><span class="resource-tag">Paper</span><span class="resource-title">TRIBE v2 — the model powering this comparison</span><span class="resource-sub">Meta FAIR · open access</span><span class="resource-arrow">→</span></a></li>
+        <li><a href="/methodology"><span class="resource-tag">Guide</span><span class="resource-title">Signed vs. absolute contrast, and why we show signed</span><span class="resource-sub">5-minute read</span><span class="resource-arrow">→</span></a></li>
+        <li><a href="/methodology#scope"><span class="resource-tag">FAQ</span><span class="resource-title">What BrainDiff can't tell you</span><span class="resource-sub">limits &amp; caveats</span><span class="resource-arrow">→</span></a></li>
       </ul>
     </div>
 
@@ -732,6 +715,8 @@ function toggleTheme(){
   if(next==='light') r.setAttribute('data-theme','light');
   else r.removeAttribute('data-theme');
   try{localStorage.setItem('braindiff-theme',next);}catch(e){}
+  // The brain renderer listens for this and recolours base + lighting + LUT.
+  window.dispatchEvent(new CustomEvent('braindiff:theme',{detail:{theme:next}}));
 }
 </script>
 
@@ -829,30 +814,317 @@ function toggleTheme(){
 
   const params = new URLSearchParams(location.search);
   const JOB_ID = params.get('job');
-  if (!JOB_ID){ window.location.replace('./input.html'); return; }
+  if (!JOB_ID){ window.location.replace('/launch'); return; }
 
   const jobLbl = document.getElementById('jobIdLabel');
   if (jobLbl) jobLbl.textContent = 'job · ' + JOB_ID.slice(0, 8);
 
-  (function resetSteps(){
-    const items = document.querySelectorAll('#stepsList li');
-    items.forEach(function(li, i){
-      li.classList.remove('done','active','just-done');
-      const dot = li.querySelector('.step-dot');
-      if (dot) dot.textContent = String(i + 1);
-      const t = li.querySelector('.step-time');
-      if (t) t.textContent = 'pending';
-      const existingBar = li.querySelector('.step-bar');
-      if (existingBar) existingBar.remove();
-    });
-    const metaRow = document.querySelector('.meta-row');
-    if (metaRow){
-      metaRow.innerHTML =
-        '<span>TRIBE v2 · Meta FAIR</span>' +
-        '<span>·</span>' +
-        '<span>fsaverage5 · 20,484 verts</span>';
+  // ===== Deep Scope ======================================================
+  // Self-contained module that owns the new live-progress UI in #deepScope.
+  // Receives backend events via DS.update(events) + a final completion via
+  // DS.complete(meta.stage_times). Persists per-run timing to localStorage
+  // so it can show avg ± stdev next to each step once the user has 20+ runs.
+  // -----------------------------------------------------------------------
+  const DS_STEPS = [
+    { id:'read',    label:'Reading both texts (WhisperX)',
+      backend: ['queued','converting_text_to_speech'],
+      stageKeys: ['events_a_ms','events_b_ms'],
+      expectedMs: 50_000 },
+    { id:'tribe',   label:'Encoding through TRIBE v2',
+      backend: [
+        'transcribing_version_a','predicting_version_a',
+        'transcribing_version_b','predicting_version_b',
+        'slow_processing',
+      ],
+      stageKeys: ['predict_a_ms','predict_b_ms','events_a_ms','events_b_ms'],
+      expectedMs: 600_000 },
+    { id:'surface', label:'Mapping to brain surface',
+      backend: ['computing_brain_contrast'],
+      stageKeys: ['heatmap_ms'],
+      expectedMs: 12_000 },
+    { id:'score',   label:'Scoring the seven dimensions',
+      backend: [],
+      stageKeys: ['score_diff_ms'],
+      expectedMs: 800 },
+  ];
+  const HISTORY_KEY = 'braindiff:run-history';
+  const HISTORY_MAX = 50;
+  const HISTORY_SHOW_AT = 20;
+  const SLOW_AT_MS = 15 * 60 * 1000;
+
+  function fmtMs(ms){
+    if (ms == null || !isFinite(ms)) return '—';
+    if (ms < 1000) return Math.round(ms) + ' ms';
+    const s = ms / 1000;
+    if (s < 60) return s.toFixed(1) + ' s';
+    const m = Math.floor(s / 60);
+    const r = Math.round(s - m*60);
+    return m + ':' + String(r).padStart(2, '0');
+  }
+  function fmtClock(ms){
+    const s = Math.max(0, Math.floor(ms / 1000));
+    return String(Math.floor(s/60)).padStart(2,'0') + ':' + String(s%60).padStart(2,'0');
+  }
+
+  const RunHistory = (function(){
+    function load(){
+      try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]') || []; }
+      catch(_){ return []; }
     }
+    function save(arr){
+      try { localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(-HISTORY_MAX))); }
+      catch(_){}
+    }
+    function push(entry){
+      const arr = load();
+      arr.push(entry);
+      save(arr);
+    }
+    function statsForStep(history, stageKeys){
+      const vals = [];
+      for (const h of history){
+        const t = h.stage_times || {};
+        let sum = 0, ok = false;
+        for (const k of stageKeys){ if (typeof t[k] === 'number'){ sum += t[k]; ok = true; } }
+        if (ok) vals.push(sum);
+      }
+      if (!vals.length) return null;
+      const avg = vals.reduce((a,b)=>a+b, 0) / vals.length;
+      const min = Math.min.apply(null, vals);
+      const max = Math.max.apply(null, vals);
+      return { n: vals.length, avgMs: avg, minMs: min, maxMs: max };
+    }
+    function totalStats(history){
+      const vals = history.map(h => h.total_ms).filter(v => typeof v === 'number');
+      if (!vals.length) return null;
+      const avg = vals.reduce((a,b)=>a+b, 0) / vals.length;
+      return { n: vals.length, avgMs: avg, minMs: Math.min.apply(null, vals), maxMs: Math.max.apply(null, vals) };
+    }
+    return { load, push, statsForStep, totalStats };
   })();
+
+  const DS = (function(){
+    const stepsEl = document.getElementById('dsSteps');
+    const elapsedEl = document.getElementById('dsElapsed');
+    const logEl = document.getElementById('dsLog');
+    const noteEl = document.getElementById('dsHistoryNote');
+    const honestEta = document.getElementById('honestEta');
+
+    const history = RunHistory.load();
+    const showHistory = history.length >= HISTORY_SHOW_AT;
+    const stepStats = DS_STEPS.map(s => RunHistory.statsForStep(history, s.stageKeys));
+    const totalStats = RunHistory.totalStats(history);
+
+    // Per-step state machine
+    const state = DS_STEPS.map(() => ({ status: 'pending', startMs: null, doneMs: null }));
+    let runStartMs = null;
+    let lastSeenLogIds = new Set();
+    let slowWarned = false;
+
+    // Minute heartbeat — emits a "still running" log line every 60s so the
+    // log doesn't look frozen during the long predict phases (~6 min each).
+    const HEARTBEAT_MS = 60_000;
+    let nextHeartbeatAt = null;
+
+    // The real backend emits exactly these events (see backend/api.py
+    // update_status() calls). We don't fabricate finer-grain ones — the
+    // log mirrors reality, heartbeat keeps it from looking frozen.
+
+    function init(){
+      if (!stepsEl) return;
+      stepsEl.innerHTML = '';
+      DS_STEPS.forEach(function(s, i){
+        const stat = stepStats[i];
+        const expectedDisplay = stat ? fmtMs(stat.avgMs) : fmtMs(s.expectedMs);
+        const avgLine = stat
+          ? 'avg ' + fmtMs(stat.avgMs) + ' · ' + fmtMs(stat.minMs) + '–' + fmtMs(stat.maxMs) + ' (n=' + stat.n + ')'
+          : 'expected ~' + fmtMs(s.expectedMs);
+        const row = document.createElement('div');
+        row.className = 'ds-step is-pending';
+        row.dataset.id = s.id;
+        row.innerHTML =
+          '<span class="ds-step-icon"><span class="ds-step-icon-num">' + (i+1) + '</span></span>' +
+          '<span class="ds-step-body">' +
+            '<span class="ds-step-label">' + s.label + '</span>' +
+            '<span class="ds-step-bar"><span class="ds-step-bar-fill" data-fill></span></span>' +
+          '</span>' +
+          '<span class="ds-step-time">' +
+            '<span data-elapsed>—</span>' +
+            '<span class="ds-step-time-avg">' + avgLine + '</span>' +
+          '</span>';
+        stepsEl.appendChild(row);
+      });
+      // Banner above the steps when history is rich enough.
+      if (noteEl && showHistory && totalStats){
+        noteEl.textContent =
+          'Across your last ' + totalStats.n + ' runs: average ' +
+          fmtMs(totalStats.avgMs) + ' (range ' +
+          fmtMs(totalStats.minMs) + '–' + fmtMs(totalStats.maxMs) + ').';
+        noteEl.classList.remove('hide');
+      }
+      // Honest-eta paragraph: replace static copy with measured median once enough data.
+      if (honestEta && totalStats && totalStats.n >= HISTORY_SHOW_AT){
+        honestEta.innerHTML =
+          '<strong>Your runs average ' + fmtMs(totalStats.avgMs) + '.</strong> ' +
+          'Encoding through TRIBE v2 is the slowest step. ' +
+          'If anything goes sideways past 15 minutes, we\'ll say so right here.';
+      }
+      if (logEl) logEl.innerHTML = '<span class="ds-log-empty">waiting for backend events…</span>';
+    }
+
+    function rowAt(i){ return stepsEl.children[i]; }
+
+    function setStatus(i, status){
+      const row = rowAt(i);
+      if (!row || state[i].status === status) return;
+      state[i].status = status;
+      row.classList.remove('is-pending','is-active','is-done');
+      row.classList.add('is-' + status);
+    }
+    function startStep(i, ms){
+      if (i < 0 || i >= state.length) return;
+      // Mark all previous steps done
+      for (let p = 0; p < i; p++){
+        if (state[p].status !== 'done'){
+          if (state[p].startMs == null) state[p].startMs = ms;
+          state[p].doneMs = ms;
+          setStatus(p, 'done');
+        }
+      }
+      if (state[i].startMs == null) state[i].startMs = ms;
+      setStatus(i, 'active');
+    }
+    function completeStep(i, ms){
+      if (i < 0 || i >= state.length) return;
+      if (state[i].startMs == null) state[i].startMs = ms;
+      state[i].doneMs = ms;
+      setStatus(i, 'done');
+    }
+    function appendLog(ts, msg){
+      if (!logEl) return;
+      const key = ts + '::' + msg;
+      if (lastSeenLogIds.has(key)) return;
+      lastSeenLogIds.add(key);
+      const empty = logEl.querySelector('.ds-log-empty');
+      if (empty) empty.remove();
+      const line = document.createElement('div');
+      line.className = 'ds-log-line';
+      const tStr = ts ? new Date(ts).toLocaleTimeString([], {hour12:false}) : '--:--:--';
+      line.innerHTML = '<span class="ds-log-ts">[' + tStr + ']</span><span class="ds-log-msg">' + String(msg).replace(/[<>&]/g, function(c){return ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c];}) + '</span>';
+      logEl.appendChild(line);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+    function update(events){
+      if (!events || !events.length) return;
+      // Track first observed run start + start the heartbeat countdown.
+      const first = events[0];
+      if (first && first.timestamp){
+        const t = Date.parse(first.timestamp);
+        if (isFinite(t) && (runStartMs == null || t < runStartMs)){
+          runStartMs = t;
+          nextHeartbeatAt = runStartMs + HEARTBEAT_MS;
+        }
+      }
+      // Map events to step transitions + log them. Only the 6 real backend
+      // statuses show up here: queued, converting_text_to_speech,
+      // predicting_version_a, slow_processing (warning), predicting_version_b,
+      // computing_brain_contrast, done.
+      for (const ev of events){
+        const ts = Date.parse(ev.timestamp);
+        const stepIdx = stepIndexForBackend(ev.status);
+        if (stepIdx >= 0){
+          startStep(stepIdx, isFinite(ts) ? ts : Date.now());
+        }
+        if (ev.message) appendLog(ts, ev.status + ' · ' + ev.message);
+        else appendLog(ts, ev.status);
+      }
+    }
+    function stepIndexForBackend(status){
+      for (let i = 0; i < DS_STEPS.length; i++){
+        if (DS_STEPS[i].backend.indexOf(status) !== -1) return i;
+      }
+      return -1;
+    }
+    function tick(){
+      const now = Date.now();
+      // Total elapsed clock
+      if (elapsedEl){
+        const elapsed = runStartMs ? (now - runStartMs) : 0;
+        elapsedEl.textContent = fmtClock(elapsed);
+        if (!slowWarned && elapsed > SLOW_AT_MS && honestEta){
+          slowWarned = true;
+          honestEta.classList.add('is-slow');
+          honestEta.innerHTML =
+            '<strong>This run has crossed 15 minutes.</strong> ' +
+            'That\'s longer than usual. The pipeline is still going — leaving the tab open is fine. ' +
+            'If it has stalled completely, the event log below will stop ticking.';
+        }
+      }
+
+      // Minute heartbeat — never let the log look frozen for more than 60s.
+      if (runStartMs && nextHeartbeatAt && now >= nextHeartbeatAt){
+        const activeIdx = state.findIndex(function(s){ return s.status === 'active'; });
+        const label = activeIdx >= 0 ? DS_STEPS[activeIdx].label : 'pipeline';
+        appendLog(now, 'heartbeat · T+' + fmtClock(now - runStartMs) + ' · still on: ' + label);
+        nextHeartbeatAt = now + HEARTBEAT_MS;
+      }
+
+      // (Removed the client-side micro-step extrapolation. Only real backend
+      //  events are surfaced — anything more would be theatre, not telemetry.)
+      // Per-step elapsed + progress
+      for (let i = 0; i < state.length; i++){
+        const row = rowAt(i);
+        if (!row) continue;
+        const s = state[i];
+        const elapsed = s.startMs == null ? null : (s.doneMs || now) - s.startMs;
+        const expected = (stepStats[i] && stepStats[i].avgMs) || DS_STEPS[i].expectedMs;
+        const elEl = row.querySelector('[data-elapsed]');
+        const fill = row.querySelector('[data-fill]');
+        if (elEl){
+          if (s.status === 'pending') elEl.textContent = '—';
+          else elEl.textContent = fmtMs(elapsed || 0);
+        }
+        if (fill){
+          if (s.status === 'done') fill.style.width = '100%';
+          else if (s.status === 'active' && elapsed != null && expected){
+            const pct = Math.max(2, Math.min(95, (elapsed / expected) * 100));
+            fill.style.width = pct.toFixed(1) + '%';
+          } else {
+            fill.style.width = '0%';
+          }
+        }
+      }
+    }
+    function complete(stageTimes, totalMs){
+      // Finalize all step timings using authoritative backend stage_times.
+      const now = Date.now();
+      DS_STEPS.forEach(function(s, i){
+        let sum = 0;
+        for (const k of s.stageKeys){
+          if (stageTimes && typeof stageTimes[k] === 'number') sum += stageTimes[k];
+        }
+        if (sum > 0){
+          state[i].startMs = state[i].startMs || (now - sum);
+          state[i].doneMs  = state[i].startMs + sum;
+        }
+        setStatus(i, 'done');
+      });
+      // Persist run for history.
+      RunHistory.push({
+        finished_at: new Date().toISOString(),
+        total_ms: totalMs,
+        stage_times: stageTimes || {},
+      });
+      tick();
+    }
+    init();
+    return { update, tick, complete, appendLog, stepIndexForBackend };
+  })();
+
+  // 500ms tick keeps the elapsed clock + progress bars live without bothering
+  // the polling loop (which fires every 1.5s). Stops when status flips to done.
+  let dsTickTimer = setInterval(function(){ DS.tick(); }, 500);
+  function stopDsTick(){ if (dsTickTimer){ clearInterval(dsTickTimer); dsTickTimer = null; } }
 
   function ensureBar(index){
     const li = document.querySelectorAll('#stepsList li')[index];
@@ -963,10 +1235,27 @@ function toggleTheme(){
       if (!res.ok){ schedule(); return; }
       const job = await res.json();
       ingestBackendTiming(job.events);
+      // Feed events into the Deep Scope panel so its step rows + log update.
+      DS.update(job.events || []);
       const latest = job.events && job.events.length ? job.events[job.events.length - 1] : null;
       if (latest && latest.message) setProgressMessage(latest.message);
-      if (job.status === 'done'){ stepTo(0, 'done'); stepTo(1, 'done'); completionSequence(); return; }
-      if (job.status === 'error'){ showError(job.error || {}); return; }
+      if (job.status === 'done'){
+        stepTo(0, 'done'); stepTo(1, 'done');
+        const meta = (job.result && job.result.meta) || {};
+        const stageTimes = meta.stage_times || {};
+        const totalMs = Object.values(stageTimes).reduce(function(a,b){ return a + (typeof b === 'number' ? b : 0); }, 0) || null;
+        DS.complete(stageTimes, totalMs);
+        DS.appendLog(Date.now(), 'done · result delivered');
+        stopDsTick();
+        completionSequence();
+        return;
+      }
+      if (job.status === 'error'){
+        DS.appendLog(Date.now(), 'error · ' + ((job.error && job.error.code) || 'unknown'));
+        stopDsTick();
+        showError(job.error || {});
+        return;
+      }
       applyStatus(job.status);
       const m = job.result && job.result.meta;
       if (m){
@@ -1004,18 +1293,29 @@ function toggleTheme(){
       setTimeout(function(){ window.location.href = go; }, 760);
     });
   });
+
+  // bfcache safety: clear .ink-blot.on if the page is restored from the
+  // browser back-forward cache so the viewport isn't covered in vermillion.
+  function resetInkBlot(){
+    const blot = document.getElementById('inkBlot');
+    if (!blot) return;
+    blot.classList.remove('on');
+    blot.classList.remove('fading');
+  }
+  window.addEventListener('pageshow', resetInkBlot);
+  resetInkBlot();
 })();
 </script>
 
 <script type="importmap">
 {
   "imports": {
-    "three": "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js"
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
   }
 }
 </script>
 <script type="module">
-import * as THREE from "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js";
+import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
 
 const DIMENSIONS = [
   { key:"personal_resonance",  num:"Dimension 1 of 7", title:'Does it feel like it&rsquo;s <em>about me?</em>',        region:"Medial prefrontal cortex",
@@ -1033,51 +1333,161 @@ const DIMENSIONS = [
   { key:"attention_salience",  num:"Dimension 7 of 7", title:'Is the system <em>orienting</em> toward this?',             region:"Dorsal attention network",
     body:"This reflects what the reader selects and holds focus on. Content that commands attention through novelty, urgency, or contrast tends to pull this network harder than content that drifts." },
 ];
-const REGIONS = {
-  personal_resonance:  new THREE.Vector3( 0.0,  0.15,  0.95).normalize(),
-  social_thinking:     new THREE.Vector3(-0.85, 0.05,  0.5).normalize(),
-  brain_effort:        new THREE.Vector3( 0.35, 0.85,  0.3).normalize(),
-  language_depth:      new THREE.Vector3(-0.9,  0.1,  -0.2).normalize(),
-  gut_reaction:        new THREE.Vector3( 0.2, -0.5,   0.8).normalize(),
-  memory_encoding:     new THREE.Vector3(-0.75, 0.25,  0.5).normalize(),
-  attention_salience:  new THREE.Vector3( 0.15, 0.85,  0.2).normalize(),
+// 3D centroids (in the post-scaled real-mesh space, radius ~1.4) per region.
+// Same numbers as the landing page so the same anatomy lights up everywhere.
+const REGION_TARGETS = {
+  attention_salience:  [{x:-0.55, y:-0.25, z: 0.85}, {x: 0.55, y:-0.25, z: 0.85}],
+  memory_encoding:     [{x:-0.95, y: 0.55, z: 0.10}],
+  personal_resonance:  [{x: 0.00, y: 0.95, z: 0.30}],
+  gut_reaction:        [{x:-0.70, y: 0.25, z:-0.05}, {x: 0.70, y: 0.25, z:-0.05}],
+  social_thinking:     [{x:-1.10, y:-0.30, z: 0.45}, {x: 1.10, y:-0.30, z: 0.45}],
+  language_depth:      [{x:-1.00, y: 0.55, z: 0.05}, {x:-1.00, y:-0.40, z: 0.15}],
+  brain_effort:        [{x:-0.85, y: 0.70, z: 0.70}, {x: 0.85, y: 0.70, z: 0.70}],
 };
+
+// Theme-aware brain palette. Mirrors the landing page exactly so the run-page
+// brain reads as the same instrument across the site.
+const BRAIN_THEMES = {
+  dark:  { base:[0.83,0.80,0.73], ambient:0xd6d4cc,ambI:0.45, key:0xfffaf2,keyI:1.05, fill:0xc2cbd8,fillI:0.50, rim:0x3a4d6b,rimI:0.40 },
+  light: { base:[0.56,0.52,0.47], ambient:0xd8cebd,ambI:0.45, key:0xffffff,keyI:1.20, fill:0xf0e2c8,fillI:0.45, rim:0x3a4a5c,rimI:0.55 },
+};
+function currentBrainTheme(){
+  return document.documentElement.getAttribute('data-theme') === 'light'
+    ? BRAIN_THEMES.light : BRAIN_THEMES.dark;
+}
 
 let currentIdx = 0;
 let cycleTimer = null;
 
+async function fetchMesh(){
+  try {
+    const res = await fetch('/api/brain-mesh', { cache: 'force-cache' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch(_){ return null; }
+}
+function buildRealMeshGeometry(payload, targetRadius){
+  const flat = c => Array.isArray(c[0]) ? c.flat() : c;
+  const lh = Float32Array.from(flat(payload.lh_coord));
+  const rh = Float32Array.from(flat(payload.rh_coord));
+  const lhVerts = lh.length / 3;
+  const positions = new Float32Array(lh.length + rh.length);
+  positions.set(lh, 0); positions.set(rh, lh.length);
+  const lhF = flat(payload.lh_faces), rhF = flat(payload.rh_faces);
+  const idx = new Uint32Array(lhF.length + rhF.length);
+  idx.set(lhF, 0);
+  for (let i = 0; i < rhF.length; i++) idx[lhF.length + i] = rhF[i] + lhVerts;
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  g.setIndex(new THREE.BufferAttribute(idx, 1));
+  g.computeVertexNormals();
+  g.computeBoundingSphere();
+  const bs = g.boundingSphere;
+  if (bs){
+    const p = g.attributes.position;
+    const s = (targetRadius || 1.4) / Math.max(bs.radius, 1e-6);
+    const cx = bs.center.x, cy = bs.center.y, cz = bs.center.z;
+    for (let i = 0; i < p.count; i++) p.setXYZ(i, (p.getX(i)-cx)*s, (p.getY(i)-cy)*s, (p.getZ(i)-cz)*s);
+    p.needsUpdate = true; g.computeVertexNormals(); g.computeBoundingSphere();
+  }
+  return g;
+}
+
 function mountEdu() {
   const canvas = document.getElementById("eduBrain");
+  if (!canvas){ console.warn('[run] eduBrain canvas missing'); return; }
   const parent = canvas.parentElement;
-  const w = parent.clientWidth, h = parent.clientHeight;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  // Fallback dimensions if layout hasn't settled by the time we mount.
+  // ResizeObserver below corrects on the next layout pass.
+  const w = parent.clientWidth  || 360;
+  const h = parent.clientHeight || 360;
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  } catch (err) {
+    console.warn('[run] WebGL not available — brain will not render:', err);
+    return;
+  }
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.setSize(w, h, false);
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(32, w/h, 0.1, 100);
-  camera.position.set(0, 0.1, 5.2);
+  const camera = new THREE.PerspectiveCamera(36, w/h, 0.1, 100);
+  // Real fsaverage5 mesh is RAS-oriented; sit the camera back enough to
+  // frame the dorsal view comfortably.
+  camera.position.set(0, 0, 6.0);
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.3));
-  const key = new THREE.DirectionalLight(0xfff3e0, 1.05); key.position.set(3, 2.5, 4); scene.add(key);
-  const rim = new THREE.DirectionalLight(0x6a97c9, 0.55); rim.position.set(-3, 1, -2); scene.add(rim);
-
-  const geo = new THREE.SphereGeometry(1.4, 96, 72);
-  const pos = geo.attributes.position;
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    const r = Math.hypot(x,y,z);
-    const nx = x/r, ny = y/r, nz = z/r;
-    const gyrus = 0.06 * Math.sin(nx*8) * Math.cos(ny*8) + 0.04 * Math.sin(nz*10+ny*6);
-    pos.setXYZ(i, nx*(1.4+gyrus), ny*(1.4+gyrus)*1.08, nz*(1.4+gyrus)*1.12);
+  // Theme-aware lights (will swap on theme toggle).
+  const ambLight  = new THREE.AmbientLight(0xffffff, 0.3);
+  const keyLight  = new THREE.DirectionalLight(0xffffff, 1.0); keyLight.position.set(5, 9, 7);
+  const fillLight = new THREE.DirectionalLight(0xffffff, 0.5); fillLight.position.set(-4, 2, 6);
+  const rimLight  = new THREE.DirectionalLight(0xffffff, 0.4); rimLight.position.set(-6, -2, -8);
+  scene.add(ambLight); scene.add(keyLight); scene.add(fillLight); scene.add(rimLight);
+  function applyLighting(){
+    const t = currentBrainTheme();
+    ambLight.color.setHex(t.ambient);   ambLight.intensity = t.ambI;
+    keyLight.color.setHex(t.key);       keyLight.intensity = t.keyI;
+    fillLight.color.setHex(t.fill);     fillLight.intensity = t.fillI;
+    rimLight.color.setHex(t.rim);       rimLight.intensity = t.rimI;
   }
-  geo.computeVertexNormals();
+  applyLighting();
+  let baseR, baseG, baseB;
+  function applyBase(){
+    const t = currentBrainTheme();
+    baseR = t.base[0]; baseG = t.base[1]; baseB = t.base[2];
+  }
+  applyBase();
 
-  // Base: cool pewter. Highlight: vermillion #e04a2e → rgb(0.88, 0.29, 0.18)
-  const BASE_R = 0.48, BASE_G = 0.50, BASE_B = 0.55;
-  const PEAK_R = 0.88, PEAK_G = 0.29, PEAK_B = 0.18;
+  // Heat LUT — mirrors landing's two-mode (cream→deep blue / warm-gray→deep navy).
+  const LUT_SIZE = 96;
+  function buildHeatLUT(base){
+    const lut = new Float32Array(LUT_SIZE * 3);
+    const isCream = (base[0]+base[1]+base[2])/3 > 0.65;
+    function lerp(a,b,u){ return a + (b-a)*u; }
+    const stops = isCream ? [
+      [0.00,0.25, base[0],base[1],base[2],  0.72,0.74,0.82],
+      [0.25,0.55, 0.72,0.74,0.82,           0.50,0.60,0.86],
+      [0.55,0.78, 0.50,0.60,0.86,           0.22,0.38,0.78],
+      [0.78,1.00, 0.22,0.38,0.78,           0.06,0.18,0.62],
+    ] : [
+      [0.00,0.30, base[0],base[1],base[2],  0.42,0.45,0.55],
+      [0.30,0.60, 0.42,0.45,0.55,           0.26,0.36,0.58],
+      [0.60,0.82, 0.26,0.36,0.58,           0.13,0.26,0.56],
+      [0.82,1.00, 0.13,0.26,0.56,           0.04,0.14,0.50],
+    ];
+    for (let i = 0; i < LUT_SIZE; i++){
+      const t = i / (LUT_SIZE - 1);
+      let r = base[0], g = base[1], b = base[2];
+      for (const s of stops){
+        if (t >= s[0] && t <= s[1]){
+          const u = (t - s[0]) / (s[1] - s[0]);
+          r = lerp(s[2], s[5], u);
+          g = lerp(s[3], s[6], u);
+          b = lerp(s[4], s[7], u);
+          break;
+        }
+      }
+      lut[i*3] = r; lut[i*3+1] = g; lut[i*3+2] = b;
+    }
+    return lut;
+  }
+  let heatLUT = buildHeatLUT([baseR, baseG, baseB]);
 
-  const colors = new Float32Array(pos.count * 3);
-  for (let i = 0; i < pos.count; i++) { colors[i*3]=BASE_R; colors[i*3+1]=BASE_G; colors[i*3+2]=BASE_B; }
+  // Start with placeholder sphere; swap to real fsaverage5 mesh once fetched.
+  let geo = new THREE.SphereGeometry(1.4, 96, 72);
+  (function deformSphere(){
+    const p = geo.attributes.position;
+    for (let i = 0; i < p.count; i++) {
+      const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
+      const r = Math.hypot(x,y,z);
+      const nx = x/r, ny = y/r, nz = z/r;
+      const gyrus = 0.06 * Math.sin(nx*8) * Math.cos(ny*8) + 0.04 * Math.sin(nz*10+ny*6);
+      p.setXYZ(i, nx*(1.4+gyrus), ny*(1.4+gyrus)*1.08, nz*(1.4+gyrus)*1.12);
+    }
+    geo.computeVertexNormals();
+  })();
+  let pos = geo.attributes.position;
+  let colors = new Float32Array(pos.count * 3);
+  for (let i = 0; i < pos.count; i++) { colors[i*3]=baseR; colors[i*3+1]=baseG; colors[i*3+2]=baseB; }
   geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
 
   const mat = new THREE.MeshPhysicalMaterial({
@@ -1087,24 +1497,81 @@ function mountEdu() {
   const mesh = new THREE.Mesh(geo, mat);
   scene.add(mesh);
 
-  function paintRegion(dir) {
-    for (let i = 0; i < pos.count; i++) {
-      const n = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i)).normalize();
-      const d = n.dot(dir);
-      const w = Math.max(0, (d - 0.55) / 0.45);
-      const t = Math.pow(w, 1.3);
-      const r = BASE_R + t*(PEAK_R - BASE_R);
-      const g = BASE_G + t*(PEAK_G - BASE_G);
-      const b = BASE_B + t*(PEAK_B - BASE_B);
-      colors[i*3]=r; colors[i*3+1]=g; colors[i*3+2]=b;
+  // For real mesh, we paint by gaussian falloff from a 3D centroid (anatomical).
+  // For sphere placeholder, fall back to direction-vector dot-product (approximate).
+  let usingRealMesh = false;
+
+  function paintRegion(key){
+    const targets = REGION_TARGETS[key];
+    if (!targets || !targets.length){
+      for (let i = 0; i < pos.count; i++){ colors[i*3]=baseR; colors[i*3+1]=baseG; colors[i*3+2]=baseB; }
+      geo.attributes.color.needsUpdate = true;
+      return;
+    }
+    if (usingRealMesh){
+      // Real fsaverage5 mesh — gaussian over distance to centroid.
+      const sigma2 = 0.32;
+      for (let i = 0; i < pos.count; i++){
+        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+        let best = 0;
+        for (const tg of targets){
+          const d2 = (x-tg.x)*(x-tg.x) + (y-tg.y)*(y-tg.y) + (z-tg.z)*(z-tg.z);
+          const g = Math.exp(-d2 / sigma2);
+          if (g > best) best = g;
+        }
+        const u = Math.min(1, Math.pow(best, 0.9) * 1.15);
+        const idx = Math.min(LUT_SIZE - 1, Math.floor(u * (LUT_SIZE - 1)));
+        colors[i*3]   = heatLUT[idx*3];
+        colors[i*3+1] = heatLUT[idx*3+1];
+        colors[i*3+2] = heatLUT[idx*3+2];
+      }
+    } else {
+      // Sphere placeholder — keep the old direction-vector approximation.
+      const dir = new THREE.Vector3(targets[0].x, targets[0].y, targets[0].z).normalize();
+      for (let i = 0; i < pos.count; i++){
+        const n = new THREE.Vector3(pos.getX(i), pos.getY(i), pos.getZ(i)).normalize();
+        const d = n.dot(dir);
+        const w = Math.max(0, (d - 0.55) / 0.45);
+        const u = Math.pow(w, 1.3);
+        const idx = Math.min(LUT_SIZE - 1, Math.floor(u * (LUT_SIZE - 1)));
+        colors[i*3]   = heatLUT[idx*3];
+        colors[i*3+1] = heatLUT[idx*3+1];
+        colors[i*3+2] = heatLUT[idx*3+2];
+      }
     }
     geo.attributes.color.needsUpdate = true;
   }
 
+  // Kick off real-mesh fetch in the background; swap when ready.
+  fetchMesh().then(payload => {
+    if (!payload) return;
+    try {
+      const realGeo = buildRealMeshGeometry(payload, 1.4);
+      const nVerts = realGeo.attributes.position.count;
+      const realColors = new Float32Array(nVerts * 3);
+      for (let i = 0; i < nVerts; i++){
+        realColors[i*3]=baseR; realColors[i*3+1]=baseG; realColors[i*3+2]=baseB;
+      }
+      realGeo.setAttribute('color', new THREE.BufferAttribute(realColors, 3));
+      mesh.geometry.dispose();
+      mesh.geometry = realGeo;
+      geo = realGeo; pos = realGeo.attributes.position; colors = realColors;
+      usingRealMesh = true;
+      paintRegion(DIMENSIONS[currentIdx].key);
+    } catch(err){ console.warn('[run] failed to swap to real mesh:', err); }
+  });
+
+  // Theme toggle support — repaint base + lighting on flip.
+  window.addEventListener('braindiff:theme', () => {
+    applyBase(); applyLighting();
+    heatLUT = buildHeatLUT([baseR, baseG, baseB]);
+    paintRegion(DIMENSIONS[currentIdx].key);
+  });
+
   function setDim(i) {
     currentIdx = (i + DIMENSIONS.length) % DIMENSIONS.length;
     const d = DIMENSIONS[currentIdx];
-    paintRegion(REGIONS[d.key]);
+    paintRegion(d.key);
     document.getElementById("eduNum").textContent = d.num;
     document.getElementById("eduTitle").innerHTML = d.title;
     document.getElementById("eduRegion").textContent = d.region;
@@ -1148,29 +1615,16 @@ function mountEdu() {
   ro.observe(parent);
 }
 
-mountEdu();
-
-// Watch / Read toggle
-document.querySelectorAll("#modeToggle button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    document.querySelectorAll("#modeToggle button").forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-    const mode = btn.dataset.mode;
-    document.getElementById("watchState").classList.toggle("hidden", mode !== "watch");
-    document.getElementById("readState").classList.toggle("hidden", mode !== "read");
-  });
+// Defer a frame so .edu-brain-wrap has been laid out (so clientWidth/Height
+// is not 0). Wrap in try/catch so any three.js error surfaces in console
+// instead of silently halting the rest of the module script.
+requestAnimationFrame(function(){
+  try { mountEdu(); console.log('[run] eduBrain mounted'); }
+  catch (err){ console.error('[run] eduBrain mount failed:', err); }
 });
 
-// Cancel confirm flow
-const cancelArea = document.getElementById("cancelArea");
-document.getElementById("cancelBtn").addEventListener("click", () => {
-  cancelArea.classList.add("confirming");
-  document.getElementById("cancelConfirm").classList.add("open");
-});
-document.getElementById("keepRunning").addEventListener("click", () => {
-  cancelArea.classList.remove("confirming");
-  document.getElementById("cancelConfirm").classList.remove("open");
-});
+// Watch/Read toggle removed — brain + carousel always visible at the top
+// of the right column; "While you wait" resources row sits below.
 
 /* ---------- Run completion + backend polling moved to its own <script> tag above so it is
    independent of the three.js module (a CDN hiccup or any error in mountEdu() used to halt
@@ -1246,7 +1700,7 @@ if (false) (function(){
 
   // No job in URL → send user back to input
   if (!JOB_ID){
-    window.location.replace('./input.html');
+    window.location.replace('/launch');
     return;
   }
 

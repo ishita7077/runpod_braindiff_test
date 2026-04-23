@@ -11,7 +11,7 @@ from typing import Any
 
 import numpy as np
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.atlas_peaks import describe_peak_abs_delta
@@ -279,6 +279,8 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                     "method_primary": "signed_roi_contrast",
                     "normalization": "within_stimulus_median",
                     "text_to_speech": True,
+                    "text_a": payload.text_a,
+                    "text_b": payload.text_b,
                     "text_a_length": len(payload.text_a),
                     "text_b_length": len(payload.text_b),
                     "text_a_timesteps": 0,
@@ -302,7 +304,15 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=0, text_b_timesteps=0, total_ms=processing_time_ms)
             return
 
-        job_store.update_status(job_id, "predicting_version_a", "Predicting neural response for Version A...")
+        # Split each side into two telemetry events so the client deep-scope
+        # log shows what's actually happening:
+        #   transcribing_*  → WhisperX text→audio (events_ms)
+        #   predicting_*    → TRIBE v2 forward pass on text+audio (predict_ms)
+        # The underlying tribe_service call is monolithic, so we still emit
+        # the second event right after the first; the timing reported back
+        # in stage_times comes from inside the call, not from our event gap.
+        job_store.update_status(job_id, "transcribing_version_a", "Transcribing Version A through WhisperX (text → audio)...")
+        job_store.update_status(job_id, "predicting_version_a", "Running TRIBE v2 forward pass on Version A (text + audio → cortex)...")
         preds_a, _, timing_a = _coerce_prediction_output(tribe_service.text_to_predictions(payload.text_a))
         stage_times["events_a_ms"] = timing_a.get("events_ms", 0)
         stage_times["predict_a_ms"] = timing_a.get("predict_ms", 0)
@@ -310,7 +320,8 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         if (time.perf_counter() - started_at) * 1000 > 15000:
             job_store.update_status(job_id, "slow_processing", "Still processing - longer texts take more time")
 
-        job_store.update_status(job_id, "predicting_version_b", "Predicting neural response for Version B...")
+        job_store.update_status(job_id, "transcribing_version_b", "Transcribing Version B through WhisperX (text → audio)...")
+        job_store.update_status(job_id, "predicting_version_b", "Running TRIBE v2 forward pass on Version B (text + audio → cortex)...")
         preds_b, _, timing_b = _coerce_prediction_output(tribe_service.text_to_predictions(payload.text_b))
         stage_times["events_b_ms"] = timing_b.get("events_ms", 0)
         stage_times["predict_b_ms"] = timing_b.get("predict_ms", 0)
@@ -351,6 +362,8 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                 "method_primary": "signed_roi_contrast",
                 "normalization": "within_stimulus_median",
                 "text_to_speech": True,
+                "text_a": payload.text_a,
+                "text_b": payload.text_b,
                 "text_a_length": len(payload.text_a),
                 "text_b_length": len(payload.text_b),
                 "text_a_timesteps": int(preds_a.shape[0]),
@@ -604,6 +617,36 @@ async def telemetry_run(job_id: str) -> JSONResponse:
     if not run:
         raise HTTPException(status_code=404, detail=f"Unknown job_id: {job_id}")
     return JSONResponse(run)
+
+# ---------------------------------------------------------------------------
+# Clean URL routes for the marketing site.
+# Routes are registered BEFORE the StaticFiles mount so they win over the
+# catch-all. Each returns the corresponding HTML file without the `.html`
+# extension so the public URLs are tidy (e.g. /research, /launch).
+# ---------------------------------------------------------------------------
+
+_FRONTEND_DIR = os.path.join(os.getcwd(), "frontend_new")
+
+
+def _page(name: str) -> FileResponse:
+    return FileResponse(os.path.join(_FRONTEND_DIR, f"{name}.html"))
+
+
+@app.get("/research")
+async def page_research() -> FileResponse:
+    return _page("research")
+
+
+@app.get("/methodology")
+async def page_methodology() -> FileResponse:
+    return _page("methodology")
+
+
+@app.get("/launch")
+async def page_launch() -> FileResponse:
+    # "Launch" is the input screen — the entry point to the live app flow.
+    return _page("input")
+
 
 app.mount("/", StaticFiles(directory="frontend_new", html=True), name="frontend")
 
