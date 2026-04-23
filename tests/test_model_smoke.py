@@ -50,6 +50,7 @@ def test_tribe_service_smoke(monkeypatch):
     # Patch both import paths that TribeService tries.
     with (
         patch("backend.model_service.apply_huggingface_text_mps_dtype_patch"),
+        patch("backend.model_service.TribeService._ensure_ffmpeg_on_path"),
         patch.dict("sys.modules", {"tribev2": MagicMock(TribeModel=_FakeTribeModel)}),
     ):
         from backend.model_service import TribeService

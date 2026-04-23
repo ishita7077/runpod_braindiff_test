@@ -1,4 +1,4 @@
-# Run Brain Diff locally
+# Run BrainDiff locally
 
 1. Create the local environment and install everything:
 

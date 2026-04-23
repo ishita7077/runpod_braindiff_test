@@ -1,7 +1,6 @@
 import asyncio
 import base64
 import hashlib
-import json
 import logging
 import os
 import time
@@ -11,7 +10,7 @@ from typing import Any
 
 import numpy as np
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.atlas_peaks import describe_peak_abs_delta
@@ -24,6 +23,7 @@ from backend.narrative import build_headline
 from backend.preflight import build_preflight_report
 from backend.result_semantics import enrich_dimension_payload, winner_summary
 from backend.insight_engine import build_insight_payload
+from backend.runtime import runtime_to_dict
 from backend.schemas import DiffRequest, JobStartResponse, ReportRequest
 from backend.scorer import score_predictions
 from backend.startup_manifest import build_startup_manifest, write_startup_manifest
@@ -81,12 +81,14 @@ def _compute_report_summary(results: list[dict[str, Any]], processing_time_ms: i
     }
 
 
+def _service_runtime_dict() -> dict[str, str]:
+    return runtime_to_dict(getattr(tribe_service, "runtime_profile", None))
+
+
 def _get_diff_semaphore() -> asyncio.Semaphore:
     global _diff_semaphore
     if _diff_semaphore is None:
-        runtime_backend = ""
-        if getattr(tribe_service, "runtime_profile", None) is not None:
-            runtime_backend = tribe_service.runtime_profile.backend
+        runtime_backend = _service_runtime_dict().get("backend", "")
         default_limit = 1  # conservative default for mps/cpu
         if runtime_backend == "cuda":
             default_limit = 4
@@ -141,12 +143,7 @@ def _initialize_app() -> None:
             startup_info["warmup_completed"] = False
             startup_info["warmup_error"] = str(werr)
             logger.warning("startup:warmup:failed_non_fatal: %s", werr, exc_info=True)
-    runtime_dict: dict[str, Any] = {}
-    if getattr(tribe_service, "runtime_profile", None) is not None:
-        runtime_dict = {
-            "device": tribe_service.runtime_profile.device,
-            "backend": tribe_service.runtime_profile.backend,
-        }
+    runtime_dict = _service_runtime_dict()
     manifest = build_startup_manifest(
         model_revision=tribe_service.model_revision,
         atlas_dir=os.getenv("BRAIN_DIFF_ATLAS_DIR", "atlases"),
@@ -181,12 +178,7 @@ def _persist_run(*, job_id: str, request_id: str, created_at: str, status: str, 
                  payload: DiffRequest, stage_times: dict[str, int], warnings: list[str],
                  text_a_timesteps: int, text_b_timesteps: int, total_ms: int,
                  error_code: str | None = None, error_message: str | None = None) -> None:
-    runtime = {}
-    if getattr(tribe_service, 'runtime_profile', None) is not None:
-        runtime = {
-            'device': tribe_service.runtime_profile.device,
-            'backend': tribe_service.runtime_profile.backend,
-        }
+    runtime = _service_runtime_dict()
     telemetry_store.upsert_run({
         'job_id': job_id,
         'request_id': request_id,
@@ -207,14 +199,10 @@ def _persist_run(*, job_id: str, request_id: str, created_at: str, status: str, 
         'error_message': error_message,
     })
 def _coerce_prediction_output(output: Any) -> tuple[np.ndarray, Any, dict[str, int]]:
-    if isinstance(output, tuple):
-        if len(output) == 3:
-            preds, segments, timing = output
-            return preds, segments, timing
-        if len(output) == 2:
-            preds, segments = output
-            return preds, segments, {"events_ms": 0, "predict_ms": 0}
-    raise ValueError(f"Unexpected prediction output shape: {type(output).__name__}")
+    if not (isinstance(output, tuple) and len(output) == 3):
+        raise ValueError(f"Unexpected prediction output shape: {type(output).__name__}")
+    preds, segments, timing = output
+    return preds, segments, timing
 
 
 def _warnings_for_input(text_a: str, text_b: str) -> list[str]:
@@ -228,6 +216,78 @@ def _warnings_for_input(text_a: str, text_b: str) -> list[str]:
     if max_len / min_len >= 10:
         warnings.append("Large length difference may affect comparison")
     return warnings
+
+
+def _narrative_tone() -> str:
+    tone = os.environ.get("BRAIN_DIFF_NARRATIVE_TONE", "sober").strip().lower()
+    return tone or "sober"
+
+
+def _build_diff_result(
+    *,
+    payload: DiffRequest,
+    request_id: str,
+    job_id: str,
+    diff: dict[str, Any],
+    dimension_rows: list[dict[str, Any]],
+    warnings: list[str],
+    vertex_delta: np.ndarray,
+    vertex_a: np.ndarray,
+    vertex_b: np.ndarray,
+    heatmap: dict[str, Any],
+    stage_times: dict[str, int],
+    processing_time_ms: int,
+    text_a_timesteps: int,
+    text_b_timesteps: int,
+    median_a: float,
+    median_b: float,
+    identical_short_circuit: bool = False,
+) -> dict[str, Any]:
+    """Assemble the shared /api/diff response body used by both the real
+    and the identical-texts short-circuit paths."""
+    insights = build_insight_payload(
+        dimension_rows,
+        warnings,
+        narrative_tone=_narrative_tone(),
+        text_a=payload.text_a,
+        text_b=payload.text_b,
+    )
+    meta: dict[str, Any] = {
+        "model_revision": tribe_service.model_revision,
+        "atlas": "HCP_MMP1.0",
+        "method_primary": "signed_roi_contrast",
+        "normalization": "within_stimulus_median",
+        "text_to_speech": True,
+        "text_a": payload.text_a,
+        "text_b": payload.text_b,
+        "text_a_length": len(payload.text_a),
+        "text_b_length": len(payload.text_b),
+        "text_a_timesteps": text_a_timesteps,
+        "text_b_timesteps": text_b_timesteps,
+        "processing_time_ms": processing_time_ms,
+        "request_id": request_id,
+        "job_id": job_id,
+        "headline": build_headline(diff),
+        "winner_summary": winner_summary(dimension_rows),
+        "stage_times": stage_times,
+        "median_a": median_a,
+        "median_b": median_b,
+        "heatmap": heatmap,
+        "atlas_peak": describe_peak_abs_delta(vertex_delta),
+        "dimensions_count": len(diff),
+    }
+    if identical_short_circuit:
+        meta["identical_text_short_circuit"] = True
+    return {
+        "diff": diff,
+        "dimensions": dimension_rows,
+        "insights": insights,
+        "vertex_delta_b64": f32_b64(vertex_delta),
+        "vertex_a_b64": f32_b64(vertex_a),
+        "vertex_b_b64": f32_b64(vertex_b),
+        "warnings": warnings,
+        "meta": meta,
+    }
 
 
 def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
@@ -249,7 +309,6 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             }
             diff = compute_diff(zero_scores, zero_scores)
             dimension_rows = enrich_dimension_payload(diff)
-            summary = winner_summary(dimension_rows)
             vertex_delta = np.zeros(20484, dtype=np.float32)
             vertex_a = np.zeros(20484, dtype=np.float32)
             vertex_b = np.zeros(20484, dtype=np.float32)
@@ -257,48 +316,25 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             heatmap = generate_heatmap_artifact(vertex_delta)
             stage_times["heatmap_ms"] = int((time.perf_counter() - t_heat) * 1000)
             processing_time_ms = int((time.perf_counter() - started_at) * 1000)
-            tone = os.environ.get("BRAIN_DIFF_NARRATIVE_TONE", "sober").strip().lower() or "sober"
-            insights = build_insight_payload(
-                dimension_rows,
-                warnings,
-                narrative_tone=tone,
-                text_a=payload.text_a,
-                text_b=payload.text_b,
+            result = _build_diff_result(
+                payload=payload,
+                request_id=request_id,
+                job_id=job_id,
+                diff=diff,
+                dimension_rows=dimension_rows,
+                warnings=warnings,
+                vertex_delta=vertex_delta,
+                vertex_a=vertex_a,
+                vertex_b=vertex_b,
+                heatmap=heatmap,
+                stage_times=stage_times,
+                processing_time_ms=processing_time_ms,
+                text_a_timesteps=0,
+                text_b_timesteps=0,
+                median_a=0.0,
+                median_b=0.0,
+                identical_short_circuit=True,
             )
-            result = {
-                "diff": diff,
-                "dimensions": dimension_rows,
-                "insights": insights,
-                "vertex_delta_b64": f32_b64(vertex_delta),
-                "vertex_a_b64": f32_b64(vertex_a),
-                "vertex_b_b64": f32_b64(vertex_b),
-                "warnings": warnings,
-                "meta": {
-                    "model_revision": tribe_service.model_revision,
-                    "atlas": "HCP_MMP1.0",
-                    "method_primary": "signed_roi_contrast",
-                    "normalization": "within_stimulus_median",
-                    "text_to_speech": True,
-                    "text_a": payload.text_a,
-                    "text_b": payload.text_b,
-                    "text_a_length": len(payload.text_a),
-                    "text_b_length": len(payload.text_b),
-                    "text_a_timesteps": 0,
-                    "text_b_timesteps": 0,
-                    "processing_time_ms": processing_time_ms,
-                    "request_id": request_id,
-                    "job_id": job_id,
-                    "headline": build_headline(diff),
-                    "winner_summary": summary,
-                    "stage_times": stage_times,
-                    "median_a": 0.0,
-                    "median_b": 0.0,
-                    "heatmap": heatmap,
-                    "identical_text_short_circuit": True,
-                    "atlas_peak": describe_peak_abs_delta(vertex_delta),
-                    "dimensions_count": len(diff),
-                },
-            }
             job_store.set_result(job_id, result)
             job_store.update_status(job_id, "done", "Done")
             _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=0, text_b_timesteps=0, total_ms=processing_time_ms)
@@ -332,7 +368,6 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         scores_b, median_b = score_predictions(preds_b, masks)
         diff = compute_diff(scores_a, scores_b)
         dimension_rows = enrich_dimension_payload(diff)
-        summary = winner_summary(dimension_rows)
         stage_times["score_diff_ms"] = int((time.perf_counter() - t2) * 1000)
         t_heat = time.perf_counter()
         vertex_delta, vertex_a, vertex_b = compute_vertex_delta(preds_a, preds_b)
@@ -340,47 +375,24 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         stage_times["heatmap_ms"] = int((time.perf_counter() - t_heat) * 1000)
 
         processing_time_ms = int((time.perf_counter() - started_at) * 1000)
-        tone = os.environ.get("BRAIN_DIFF_NARRATIVE_TONE", "sober").strip().lower() or "sober"
-        insights = build_insight_payload(
-            dimension_rows,
-            warnings,
-            narrative_tone=tone,
-            text_a=payload.text_a,
-            text_b=payload.text_b,
+        result = _build_diff_result(
+            payload=payload,
+            request_id=request_id,
+            job_id=job_id,
+            diff=diff,
+            dimension_rows=dimension_rows,
+            warnings=warnings,
+            vertex_delta=vertex_delta,
+            vertex_a=vertex_a,
+            vertex_b=vertex_b,
+            heatmap=heatmap,
+            stage_times=stage_times,
+            processing_time_ms=processing_time_ms,
+            text_a_timesteps=int(preds_a.shape[0]),
+            text_b_timesteps=int(preds_b.shape[0]),
+            median_a=median_a,
+            median_b=median_b,
         )
-        result = {
-            "diff": diff,
-            "dimensions": dimension_rows,
-            "insights": insights,
-            "vertex_delta_b64": f32_b64(vertex_delta),
-            "vertex_a_b64": f32_b64(vertex_a),
-            "vertex_b_b64": f32_b64(vertex_b),
-            "warnings": warnings,
-            "meta": {
-                "model_revision": tribe_service.model_revision,
-                "atlas": "HCP_MMP1.0",
-                "method_primary": "signed_roi_contrast",
-                "normalization": "within_stimulus_median",
-                "text_to_speech": True,
-                "text_a": payload.text_a,
-                "text_b": payload.text_b,
-                "text_a_length": len(payload.text_a),
-                "text_b_length": len(payload.text_b),
-                "text_a_timesteps": int(preds_a.shape[0]),
-                "text_b_timesteps": int(preds_b.shape[0]),
-                "processing_time_ms": processing_time_ms,
-                "request_id": request_id,
-                "job_id": job_id,
-                "headline": build_headline(diff),
-                "winner_summary": summary,
-                "stage_times": stage_times,
-                "median_a": median_a,
-                "median_b": median_b,
-                "heatmap": heatmap,
-                "atlas_peak": describe_peak_abs_delta(vertex_delta),
-                    "dimensions_count": len(diff),
-            },
-        }
         job_store.set_result(job_id, result)
         job_store.update_status(job_id, "done", "Done")
         _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=int(preds_a.shape[0]), text_b_timesteps=int(preds_b.shape[0]), total_ms=processing_time_ms)
@@ -442,28 +454,6 @@ async def diff_status(job_id: str) -> JSONResponse:
     return JSONResponse(job)
 
 
-@app.get("/api/diff/status/{job_id}/stream")
-async def diff_status_stream(job_id: str) -> StreamingResponse:
-    async def _event_stream() -> Any:
-        cursor = 0
-        while True:
-            job = job_store.get(job_id)
-            if not job:
-                yield "event: error\ndata: {\"message\": \"Unknown job\"}\n\n"
-                return
-            events = job["events"]
-            while cursor < len(events):
-                event = events[cursor]
-                cursor += 1
-                yield f"event: status\ndata: {json.dumps(event)}\n\n"
-            if job["status"] in {"done", "error"}:
-                yield f"event: terminal\ndata: {{\"status\": \"{job['status']}\"}}\n\n"
-                return
-            await asyncio.sleep(0.25)
-
-    return StreamingResponse(_event_stream(), media_type="text/event-stream")
-
-
 @app.post("/api/diff")
 async def diff_sync(payload: DiffRequest) -> JSONResponse:
     request_id = str(uuid.uuid4())
@@ -520,12 +510,7 @@ async def report_batch(payload: ReportRequest) -> JSONResponse:
 
 @app.get("/api/preflight")
 async def preflight() -> JSONResponse:
-    runtime_dict: dict[str, Any] = {}
-    if getattr(tribe_service, "runtime_profile", None) is not None:
-        runtime_dict = {
-            "device": tribe_service.runtime_profile.device,
-            "backend": tribe_service.runtime_profile.backend,
-        }
+    runtime_dict = _service_runtime_dict()
     runtime_backend = runtime_dict.get("backend", "")
     default_max_jobs = 1 if runtime_backend in ("mps", "cpu", "") else 4
     max_concurrent_jobs = int(os.getenv("BRAIN_DIFF_MAX_CONCURRENT_JOBS", str(default_max_jobs)))
@@ -549,12 +534,7 @@ async def health() -> JSONResponse:
 @app.get("/api/ready")
 async def api_ready() -> JSONResponse:
     """Lightweight readiness probe (after lifespan startup). Model/masks are warm."""
-    runtime_dict: dict[str, Any] = {}
-    if getattr(tribe_service, "runtime_profile", None) is not None:
-        runtime_dict = {
-            "device": tribe_service.runtime_profile.device,
-            "backend": tribe_service.runtime_profile.backend,
-        }
+    runtime_dict = _service_runtime_dict()
     model_ok = tribe_service.model is not None
     masks_ok = len(masks) > 0
     return JSONResponse(
@@ -577,14 +557,6 @@ async def brain_mesh() -> JSONResponse:
     from backend.brain_mesh import build_brain_mesh_payload
 
     return JSONResponse(build_brain_mesh_payload())
-
-
-@app.get("/api/vertex-atlas")
-async def vertex_atlas() -> JSONResponse:
-    """Per-vertex HCP region labels + dimension reverse map (for hover tooltips)."""
-    from backend.atlas_peaks import build_vertex_atlas_payload
-
-    return JSONResponse(build_vertex_atlas_payload())
 
 
 @app.get("/api/dimension-masks")

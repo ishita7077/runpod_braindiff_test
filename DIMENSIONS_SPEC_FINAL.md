@@ -1,4 +1,4 @@
-# Brain Diff — Dimensions Specification (FINAL)
+# BrainDiff — Dimensions Specification (FINAL)
 
 Reference: NORTH_STAR_FINAL.md
 
@@ -166,7 +166,7 @@ Language Depth:      +0.008 (moderate)
 Gut Reaction:        +0.042 (high — "nearly died")
 ```
 
-### Brain Diff:
+### BrainDiff:
 ```
 A: "Q3 revenue grew 3.2% YoY across all segments."
 B: "You nearly died today. Your family waited outside."

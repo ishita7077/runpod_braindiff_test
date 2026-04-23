@@ -1,4 +1,4 @@
-# Brain Diff — UX Specification (FINAL)
+# BrainDiff — UX Specification (FINAL)
 
 Reference: NORTH_STAR_FINAL.md
 
@@ -18,7 +18,7 @@ The user experience is a sequence of 6 states. Each state has a clear purpose, a
 ```
 ┌─────────────────────────────────────────────────┐
 │                                                 │
-│              Brain Diff                         │
+│              BrainDiff                         │
 │                                                 │
 │   See how two pieces of content land            │
 │   differently in the human brain.               │
@@ -30,7 +30,7 @@ The user experience is a sequence of 6 states. Each state has a clear purpose, a
 │   │              │    │              │         │
 │   └──────────────┘    └──────────────┘         │
 │                                                 │
-│           [ Brain Diff ]                        │
+│           [ BrainDiff ]                        │
 │                                                 │
 │   Try an example:                               │
 │   Corporate vs Human  ·  Clickbait vs Honest    │
@@ -45,7 +45,7 @@ The user experience is a sequence of 6 states. Each state has a clear purpose, a
 **Rules:**
 - NO explanation paragraph. No "how it works." The subtitle IS the explanation.
 - Two text boxes side by side. Equal size. Labeled "Version A" and "Version B." Placeholder text: "Paste your first version here" / "Paste your second version here"
-- The button says "Brain Diff" — not "Compare" or "Analyze" or "Submit"
+- The button says "BrainDiff" — not "Compare" or "Analyze" or "Submit"
 - Example pairs are clickable one-liners below the button. Clicking one fills both text boxes instantly.
 - "Methodology →" is a text link to the methodology page. Small. Bottom. For the curious.
 - The landing state should feel like a tool, not a marketing page. No hero images, no testimonials, no pricing. Just the two boxes and the button.
@@ -253,7 +253,7 @@ Links to the methodology page (see Section 6). Does NOT open in a new tab — sc
 ### Screen Structure
 ```
 ┌─────────────────────────────────────────────────┐
-│  Brain Diff                    Methodology →    │  ← fixed top bar
+│  BrainDiff                    Methodology →    │  ← fixed top bar
 ├─────────────────────────────────────────────────┤
 │                                                 │
 │  [INPUT AREA or RESULTS AREA]                   │  ← main content
@@ -320,7 +320,7 @@ The user never needs to understand the math behind confidence. They just need to
 - "Version B is better" ❌
 - "Your audience will prefer Version B" ❌
 - "This content will go viral" ❌
-- "Brain Diff predicts performance" ❌
+- "BrainDiff predicts performance" ❌
 - Any claim without a citation ❌
 
 ---
@@ -338,7 +338,7 @@ The share image is the single most important growth mechanism. It must look perf
 ### Layout
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  Brain Diff                                                     │
+│  BrainDiff                                                     │
 │                                                                 │
 │  "Q3 revenue grew 3.2% YoY..."    vs    "You nearly died..."   │
 │                                                                 │
@@ -386,15 +386,15 @@ This is NOT a disclaimer. It's a research journey written for a curious reader w
 
 ### Structure
 
-**Title:** "How Brain Diff Works"
+**Title:** "How BrainDiff Works"
 
 **Section 1: What this does (2 sentences)**
-Brain Diff shows how two pieces of content engage the human brain differently. It uses a brain model trained on real fMRI scans of 700+ people to predict which brain regions respond more to each version.
+BrainDiff shows how two pieces of content engage the human brain differently. It uses a brain model trained on real fMRI scans of 700+ people to predict which brain regions respond more to each version.
 
 **Section 2: Where the brain data comes from**
 The predictions come from TRIBEv2, an open-source model released by Meta's AI research lab in March 2026. It was trained on 1,115 hours of fMRI recordings — brain scans that track blood flow while people watched movies, listened to podcasts, and read text. When neurons in a brain region fire, they need oxygen. Fresh blood rushes to that spot. The fMRI picks up this blood flow change. TRIBEv2 learned the pattern: given a stimulus, it predicts where blood would flow in the average brain.
 
-One important detail: when you paste text into Brain Diff, TRIBEv2 converts it to speech first and processes it as audio. This means the predictions reflect how the brain would respond to HEARING the text read aloud, not silently reading it. The brain regions for listening and reading overlap about 80%, but they're not identical.
+One important detail: when you paste text into BrainDiff, TRIBEv2 converts it to speech first and processes it as audio. This means the predictions reflect how the brain would respond to HEARING the text read aloud, not silently reading it. The brain regions for listening and reading overlap about 80%, but they're not identical.
 
 **Section 3: What the 20,484 numbers are**
 TRIBEv2's output is 20,484 numbers, one per point on the brain's cortical surface. Imagine the brain's outer layer (the cortex — the wrinkly part) covered with 20,484 evenly-spaced pins, like pins on a map. Each pin gets a number: how much blood flow is predicted at that spot. Positive = more than resting state. Negative = less than resting state (the region is actively suppressing).

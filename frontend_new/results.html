@@ -3,69 +3,50 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f4ec" />
 <title>BrainDiff — Results (reveal preview)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark'){r.removeAttribute('data-theme');}else{r.setAttribute('data-theme','light');}}catch(e){r.setAttribute('data-theme','light');}})();</script>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <style>
 /* ============================================================
    BrainDiff · Results · tokens
-   Dark is default. Light is opt-in via data-theme="light".
+   Light is default. Dark is opt-in via data-theme="dark".
    Vermillion (B-stronger) + slate blue (A-stronger) — Nature diverging.
    ============================================================ */
 :root{
-  color-scheme:dark;
-  --bg:#0b0c0f;
-  --bg-2:#101116;
-  --bg-3:#15171c;
-  --surface:#15171c;
-  --panel:rgba(20,22,28,0.72);
-  --panel-2:rgba(28,31,38,0.58);
-  --line:rgba(255,255,255,0.07);
-  --line-2:rgba(255,255,255,0.13);
-  --ink:#e8e4db;
-  --ink-dim:#b6b1a6;
-  --ink-mute:#7f7a70;
-  --accent:#e04a2e;
-  --accent-2:#f27455;
-  --accent-3:rgba(224,74,46,0.12);
-  --good:#6a97c9;
-  --good-2:#8db2d4;
-  --good-3:rgba(106,151,201,0.12);
-  --brain-stage:#07080b;
-  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
-  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
-}
-:root[data-theme="light"]{
   color-scheme:light;
-  --bg:#f7f4ec;
-  --bg-2:#efeadf;
-  --bg-3:#e7e2d4;
-  --surface:#ffffff;
-  --panel:#ffffff;
-  --panel-2:#f1ecde;
-  --line:#e2ddcf;
-  --line-2:#cbc5b4;
-  --ink:#17171a;
-  --ink-dim:#3d3d42;
-  --ink-mute:#77736b;
-  --accent:#c1272d;
-  --accent-2:#d94a4e;
-  --accent-3:#f8e9e6;
-  --good:#2a5583;
-  --good-2:#4a78ab;
-  --good-3:#e6edf6;
-  --brain-stage:#0a0c10;
+  --bg:#f7f4ec; --bg-2:#efeadf; --bg-3:#e7e2d4;
+  --surface:#ffffff; --panel:#ffffff; --panel-2:#f1ecde;
+  --line:#e2ddcf; --line-2:#cbc5b4;
+  --ink:#17171a; --ink-dim:#3d3d42; --ink-mute:#77736b;
+  --accent:#c1272d; --accent-2:#d94a4e; --accent-3:#f8e9e6;
+  --good:#2a5583; --good-2:#4a78ab; --good-3:#e6edf6;
+  --brain-stage:#ebe6da; --brain-stage-2:#e0d9ca; --brain-stage-glow:rgba(150,160,185,0.18);
+  --serif:'Fraunces','Source Serif 4',Georgia,serif;
   --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
   --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
 }
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0b0c0f; --bg-2:#101116; --bg-3:#15171c;
+  --surface:#15171c; --panel:rgba(20,22,28,0.72); --panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db; --ink-dim:#b6b1a6; --ink-mute:#7f7a70;
+  --accent:#e04a2e; --accent-2:#f27455; --accent-3:rgba(224,74,46,0.12);
+  --good:#6a97c9; --good-2:#8db2d4; --good-3:rgba(106,151,201,0.12);
+  --brain-stage:#07080b; --brain-stage-2:#050608; --brain-stage-glow:rgba(40,60,100,0.18);
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+}
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   background:
-    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
-    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
     var(--bg);
   color:var(--ink);
   font-family:'Inter Tight', system-ui, -apple-system, sans-serif;
@@ -74,10 +55,10 @@ body{
   line-height:1.6;
   min-height:100vh;
 }
-:root[data-theme="light"] body{
+:root[data-theme="dark"] body{
   background:
-    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
-    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
     var(--bg);
 }
 a{color:inherit;text-decoration:none}
@@ -93,8 +74,10 @@ a{color:inherit;text-decoration:none}
 .theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
 .theme-toggle .tt-moon{display:inline}
 .theme-toggle .tt-sun{display:none}
-:root[data-theme="light"] .theme-toggle .tt-sun{display:inline}
-:root[data-theme="light"] .theme-toggle .tt-moon{display:none}
+:root[data-theme="dark"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="dark"] .theme-toggle .tt-moon{display:none}
+
+
 
 /* TOP BAR */
 .topbar{
@@ -106,13 +89,14 @@ a{color:inherit;text-decoration:none}
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   border-bottom:1px solid var(--line);
 }
-.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.01em;font-size:15px;color:var(--ink)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.022em;font-size:15px;color:var(--ink)}
 .brand-mark{
   width:24px;height:24px;border-radius:6px;
   background:var(--accent);
   display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;
   font-family:'JetBrains Mono',monospace;
 }
+.brand-logo{height:24px;width:auto;display:block;border-radius:4px}
 .topbar-right { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-dim); position: relative; }
 .top-btn {
   background: var(--surface); border: 1px solid var(--line-2); color: var(--ink);
@@ -271,7 +255,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 28px 36px 80px; }
 
 /* Verdict side */
 .verdict {
-  padding: 44px 40px; display: flex; flex-direction: column;
+  padding: 32px 36px; display: flex; flex-direction: column;
   background: var(--panel);
 }
 .verdict-eyebrow {
@@ -294,7 +278,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 28px 36px 80px; }
   background: var(--ink-mute); display: inline-block;
 }
 .verdict-sub {
-  font-size: 15px; line-height: 1.6; color: var(--ink-dim); margin: 0 0 22px;
+  font-size: 15px; line-height: 1.6; color: var(--ink-dim); margin: 0 0 14px;
 }
 .biggest-shift {
   background: var(--panel-2); border: 1px solid var(--line);
@@ -306,7 +290,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 28px 36px 80px; }
   font-size: 12px; color: var(--ink-mute); margin-bottom: 6px;
   display: flex; align-items: center; gap: 8px;
 }
-.biggest-shift-label::before { content: '●'; color: var(--accent); }
+.biggest-shift-label::before { content: 'Δ'; font-family: var(--serif); font-style: italic; color: var(--accent); margin-right: 0.4em; }
 .biggest-shift-title { font-size: 17px; font-weight: 600; margin: 0 0 4px; color: var(--ink); }
 .biggest-shift-body { font-size: 13.5px; color: var(--ink-dim); line-height: 1.55; margin: 0; }
 .biggest-shift-hover {
@@ -852,7 +836,7 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
 </div>
 
 <header class="topbar">
-  <a class="brand" href="./"><span class="brand-mark">B</span>BrainDiff</a>
+  <a class="brand" href="./"><img class="brand-logo" src="/assets/braindiff-logo.png" alt="BrainDiff logo" /><span class="brand-word">Brain<b>Diff</b></span></a>
   <div class="topbar-right">
     <!-- Share dropdown -->
     <div class="dropdown" id="shareDrop">
@@ -1079,8 +1063,8 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
 <script>
   function toggleTheme(){
     var r=document.documentElement;
-    var next=r.getAttribute('data-theme')==='light'?'dark':'light';
-    if(next==='light') r.setAttribute('data-theme','light');
+    var next=r.getAttribute('data-theme')==='dark'?'light':'dark';
+    if(next==='dark') r.setAttribute('data-theme','dark');
     else r.removeAttribute('data-theme');
     try{localStorage.setItem('braindiff-theme',next);}catch(e){}
     window.dispatchEvent(new CustomEvent('braindiff:theme',{detail:{theme:next}}));
@@ -1932,9 +1916,9 @@ function mountResultBrain(){
   const A_R = 0.20, A_G = 0.42, A_B = 0.74;
   let BASE_R, BASE_G, BASE_B;
   function applyBrainBase(){
-    const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-    if (isLight){ BASE_R = 0.55; BASE_G = 0.52; BASE_B = 0.47; }   // warm gray on cream stage
-    else        { BASE_R = 0.83; BASE_G = 0.80; BASE_B = 0.73; }   // cream on dark stage
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    if (isDark){ BASE_R = 0.83; BASE_G = 0.80; BASE_B = 0.73; }   // cream on dark stage
+    else       { BASE_R = 0.55; BASE_G = 0.52; BASE_B = 0.47; }   // warm gray on cream stage
   }
   applyBrainBase();
 

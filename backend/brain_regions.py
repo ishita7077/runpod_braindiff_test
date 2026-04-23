@@ -50,23 +50,6 @@ DIMENSIONS_HCP = {
 
 REQUIRED_AREAS = {key: cfg["areas"] for key, cfg in DIMENSIONS_HCP.items()}
 
-DESTRIEUX_FALLBACK = {
-    "memory_encoding": {
-        "parcels": [
-            ("left", "G_front_inf-Opercular"),
-            ("left", "G_front_inf-Triangul"),
-            ("left", "G_front_inf-Orbital"),
-        ],
-    },
-    "attention_salience": {
-        "parcels": [
-            ("left", "S_intrapariet_and_P_trans"),
-            ("right", "S_intrapariet_and_P_trans"),
-            ("left", "G_front_middle"),
-            ("right", "G_front_middle"),
-        ],
-    },
-}
 
 def _decode_names(names):
     return [n.decode() if isinstance(n, bytes) else str(n) for n in names]

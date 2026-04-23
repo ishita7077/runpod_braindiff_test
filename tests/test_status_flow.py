@@ -15,7 +15,7 @@ class _DummyTribeService:
             base[:, :100] = 0.05
         else:
             base[:, :100] = 0.01
-        return base, []
+        return base, [], {"events_ms": 1, "predict_ms": 2}
 
 
 def _dummy_masks():
@@ -29,6 +29,8 @@ def _dummy_masks():
         "brain_effort": {"mask": empty},
         "language_depth": {"mask": empty},
         "gut_reaction": {"mask": empty},
+        "memory_encoding": {"mask": empty},
+        "attention_salience": {"mask": empty},
     }
 
 

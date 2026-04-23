@@ -3,31 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f4ec" />
 <title>BrainDiff — new comparison</title>
 <meta name="description" content="Paste two versions of a text. BrainDiff compares how a population-average cortex responds to each." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark'){r.removeAttribute('data-theme');}else{r.setAttribute('data-theme','light');}}catch(e){r.setAttribute('data-theme','light');}})();</script>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <style>
 /* ============================================================
    BrainDiff · tokens (shared with index / run / results)
    ============================================================ */
 :root{
-  color-scheme:dark;
-  --bg:#0b0c0f; --bg-2:#101116; --bg-3:#15171c;
-  --surface:#15171c;
-  --panel:rgba(20,22,28,0.72); --panel-2:rgba(28,31,38,0.58);
-  --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
-  --ink:#e8e4db; --ink-dim:#b6b1a6; --ink-mute:#7f7a70;
-  --accent:#e04a2e; --accent-2:#f27455; --accent-3:rgba(224,74,46,0.12);
-  --good:#6a97c9; --good-2:#8db2d4; --good-3:rgba(106,151,201,0.12);
-  --brain-stage:#07080b;
-  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
-  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
-  --shell-pad-x:clamp(20px,4vw,56px); --shell-max:1200px;
-}
-:root[data-theme="light"]{
   color-scheme:light;
   --bg:#f7f4ec; --bg-2:#efeadf; --bg-3:#e7e2d4;
   --surface:#ffffff; --panel:#ffffff; --panel-2:#f1ecde;
@@ -35,16 +22,29 @@
   --ink:#17171a; --ink-dim:#3d3d42; --ink-mute:#77736b;
   --accent:#c1272d; --accent-2:#d94a4e; --accent-3:#f8e9e6;
   --good:#2a5583; --good-2:#4a78ab; --good-3:#e6edf6;
-  --brain-stage:#0a0c10;
+  --brain-stage:#ebe6da; --brain-stage-2:#e0d9ca; --brain-stage-glow:rgba(150,160,185,0.18);
   --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
   --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
 }
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0b0c0f; --bg-2:#101116; --bg-3:#15171c;
+  --surface:#15171c; --panel:rgba(20,22,28,0.72); --panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db; --ink-dim:#b6b1a6; --ink-mute:#7f7a70;
+  --accent:#e04a2e; --accent-2:#f27455; --accent-3:rgba(224,74,46,0.12);
+  --good:#6a97c9; --good-2:#8db2d4; --good-3:rgba(106,151,201,0.12);
+  --brain-stage:#07080b; --brain-stage-2:#050608; --brain-stage-glow:rgba(40,60,100,0.18);
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+}
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   background:
-    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
-    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
     radial-gradient(800px 500px at 50% 50%, color-mix(in srgb, var(--accent) 3%, transparent), transparent 60%),
     var(--bg);
   color:var(--ink);
@@ -54,10 +54,10 @@ body{
   line-height:1.6;
   min-height:100vh;
 }
-:root[data-theme="light"] body{
+:root[data-theme="dark"] body{
   background:
-    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
-    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
+    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
     var(--bg);
 }
 a{color:inherit;text-decoration:none}
@@ -74,8 +74,8 @@ a{color:inherit;text-decoration:none}
 .theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
 .theme-toggle .tt-moon{display:inline}
 .theme-toggle .tt-sun{display:none}
-:root[data-theme="light"] .theme-toggle .tt-sun{display:inline}
-:root[data-theme="light"] .theme-toggle .tt-moon{display:none}
+:root[data-theme="dark"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="dark"] .theme-toggle .tt-moon{display:none}
 
 /* TOP BAR (identical to landing) */
 .topbar{
@@ -87,7 +87,7 @@ a{color:inherit;text-decoration:none}
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   border-bottom:1px solid var(--line);
 }
-.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.01em;font-size:15px;color:var(--ink)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.022em;font-size:15px;color:var(--ink)}
 .brand-mark{
   width:24px;height:24px;border-radius:6px;
   background:var(--accent);
@@ -95,6 +95,7 @@ a{color:inherit;text-decoration:none}
   font-family:'JetBrains Mono',monospace;
 }
 .brand-word b{font-weight:600}
+.brand-logo{height:24px;width:auto;display:block;border-radius:4px}
 .topbar-right{display:flex;gap:18px;align-items:center;font-size:13px;color:var(--ink-dim);font-family:'JetBrains Mono',monospace;letter-spacing:0.04em}
 .topbar-right a{color:var(--ink-dim);transition:color .15s ease}
 .topbar-right a:hover{color:var(--ink)}
@@ -263,9 +264,9 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
   background:rgba(20,22,28,0.96);border-right:1px solid rgba(255,255,255,0.1);
   border-bottom:1px solid rgba(255,255,255,0.1);transform:rotate(45deg);
 }
-:root[data-theme="light"] .bird-prompt{background:rgba(255,255,255,0.97);color:var(--ink);border-color:var(--line-2)}
-:root[data-theme="light"] .bird-prompt-q{color:var(--ink)}
-:root[data-theme="light"] .bird-prompt-tail{background:rgba(255,255,255,0.97);border-color:var(--line-2)}
+:root[data-theme="dark"] .bird-prompt{background:rgba(255,255,255,0.97);color:var(--ink);border-color:var(--line-2)}
+:root[data-theme="dark"] .bird-prompt-q{color:var(--ink)}
+:root[data-theme="dark"] .bird-prompt-tail{background:rgba(255,255,255,0.97);border-color:var(--line-2)}
 
 /* A brief highlight on the Polka link when the bird arrives. */
 .polka-pinged{
@@ -299,8 +300,8 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
 .toast strong{color:var(--accent);font-weight:600}
 .toast ul{margin:6px 0 0;padding-left:18px}
 .toast li{margin:2px 0;color:#c8c3b8}
-:root[data-theme="light"] .toast{background:rgba(255,255,255,0.97);color:var(--ink);border-color:var(--line-2)}
-:root[data-theme="light"] .toast li{color:var(--ink-dim)}
+:root[data-theme="dark"] .toast{background:rgba(255,255,255,0.97);color:var(--ink);border-color:var(--line-2)}
+:root[data-theme="dark"] .toast li{color:var(--ink-dim)}
 
 /* INK BLOT (same visual language as other pages) */
 .ink-blot{
@@ -349,7 +350,7 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
 
 <header class="topbar">
   <a href="/" class="brand">
-    <span class="brand-mark">B</span>
+    <img class="brand-logo" src="/assets/braindiff-logo.png" alt="BrainDiff logo" />
     <span class="brand-word">Brain<b>Diff</b></span>
   </a>
   <div class="topbar-right">
@@ -465,8 +466,8 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
 <script>
 function toggleTheme(){
   var r=document.documentElement;
-  var next=r.getAttribute('data-theme')==='light'?'dark':'light';
-  if(next==='light') r.setAttribute('data-theme','light');
+  var next=r.getAttribute('data-theme')==='dark'?'light':'dark';
+  if(next==='dark') r.setAttribute('data-theme','dark');
   else r.removeAttribute('data-theme');
   try{localStorage.setItem('braindiff-theme',next);}catch(e){}
 }

@@ -1,43 +1,32 @@
 
 from fastapi.testclient import TestClient
-import numpy as np
 
 from backend import api
 from backend.telemetry_store import TelemetryStore
+from conftest import DummyTribeService, apply_api_test_stubs, dummy_masks
 
 
-class _DummyTribeService:
-    model_revision = "facebook/tribev2@test"
-    runtime_profile = type("Runtime", (), {"device": "cpu", "backend": "torch_cpu"})()
-
-    def text_to_predictions(self, text: str):
-        base = np.zeros((6, 20484), dtype=np.float32)
-        if "B" in text:
-            base[:, :100] = 0.05
-        else:
-            base[:, :100] = 0.01
-        return base, [], {"events_ms": 12, "predict_ms": 34}
-
-
-def _dummy_masks():
-    mask = np.zeros(20484, dtype=bool)
-    mask[:100] = True
-    empty = np.zeros(20484, dtype=bool)
-    empty[100:200] = True
-    return {
-        "personal_resonance": {"mask": mask},
-        "social_thinking": {"mask": empty},
-        "brain_effort": {"mask": empty},
-        "language_depth": {"mask": empty},
-        "gut_reaction": {"mask": empty},
-    }
+def _telemetry_masks():
+    """Original telemetry fixture omitted memory_encoding; keep that behaviour by
+    trimming the shared dummy_masks() helper so this test exercises the same
+    mask set as before attention_salience / memory_encoding were added."""
+    masks = dummy_masks()
+    masks.pop("memory_encoding", None)
+    masks.pop("attention_salience", None)
+    return masks
 
 
 def test_telemetry_records_and_surfaces_recent_runs(monkeypatch, tmp_path):
-    monkeypatch.setattr(api, "tribe_service", _DummyTribeService())
-    monkeypatch.setattr(api, "masks", _dummy_masks())
+    apply_api_test_stubs(
+        monkeypatch,
+        api,
+        tribe_service=DummyTribeService(
+            runtime_backend="torch_cpu", events_ms=12, predict_ms=34
+        ),
+        masks=_telemetry_masks(),
+        skip_startup=False,
+    )
     monkeypatch.setattr(api, "telemetry_store", TelemetryStore(str(tmp_path / "telemetry.sqlite3")))
-    monkeypatch.setattr(api, "generate_heatmap_artifact", lambda vertex_delta: {"format": "png_base64", "image_base64": "x"})
 
     client = TestClient(api.app)
     start = client.post("/api/diff/start", json={"text_a": "Version A", "text_b": "Version B"})

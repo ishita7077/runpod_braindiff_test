@@ -1,4 +1,4 @@
-# Brain Diff — Implementation Plan (FINAL)
+# BrainDiff — Implementation Plan (FINAL)
 
 Reference: NORTH_STAR_FINAL.md, DIMENSIONS_SPEC_FINAL.md, UX_SPEC_FINAL.md
 
@@ -48,7 +48,7 @@ huggingface-cli login
 python -m tribev2.grids.test_run
 # If this fails, DO NOT proceed. Fix the environment first.
 
-# Step 5: ONLY THEN install Brain Diff dependencies
+# Step 5: ONLY THEN install BrainDiff dependencies
 pip install nilearn fastapi uvicorn
 ```
 Do NOT skip step 4. Do NOT invent your own install path. Do NOT use `pip install tribev2` (it's not on PyPI).
@@ -403,7 +403,7 @@ echo "TRIBE commit: $TRIBE_COMMIT"
 # Install TRIBEv2
 pip install -e .
 
-# Install Brain Diff deps
+# Install BrainDiff deps
 pip install nilearn fastapi uvicorn
 
 # Freeze all versions
@@ -422,7 +422,7 @@ huggingface-cli login
 ```bash
 python -m tribev2.grids.test_run
 ```
-If this fails, the environment is broken. Fix it before touching Brain Diff code.
+If this fails, the environment is broken. Fix it before touching BrainDiff code.
 
 ### 0.3 — Load model and run our smoke test
 
@@ -756,7 +756,7 @@ Key implementation details:
 Design: Dark. Editorial. Monospace + serif. Brain heatmap is the hero.
 
 ### UX contract tests (must pass before launch)
-1. Landing: two equal text boxes, `Brain Diff` CTA, clickable examples, methodology link, no marketing sections.
+1. Landing: two equal text boxes, `BrainDiff` CTA, clickable examples, methodology link, no marketing sections.
 2. Input behavior: autosize to 300px, char counters, empty-box shake on submit, disabled CTA until both non-empty.
 3. Loading: real backend-driven status lines with checkmarks in required order, >15s message, retry on error.
 4. Reveal choreography: 0.0s hero, 0.3s winner callout, 0.6s delta bars staggered, 1.2s heatmap, 1.5s explanation, 2.0s share pulse.
@@ -774,7 +774,7 @@ Higher activation here was linked to [real-world outcome] (Falk et al., 2012)."
 
 ### Methodology page (required):
 Full research journey in simple words. Cover:
-1. What Brain Diff does (2 sentences)
+1. What BrainDiff does (2 sentences)
 2. Where brain data comes from (TRIBEv2, 700+ people, text→speech)
 3. What the 20,484 numbers are (brain surface points)
 4. Why these 5 dimensions (cortical + validated for content)

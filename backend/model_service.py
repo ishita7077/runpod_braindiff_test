@@ -43,12 +43,7 @@ def _resolve_text_backend_strategy(profile: RuntimeProfile) -> str:
 
     if profile.device != "mps":
         return "cpu"
-    total_ram = 0
-    try:
-        if psutil is not None:
-            total_ram = int(psutil.virtual_memory().total)
-    except Exception:
-        total_ram = 0
+    total_ram = int(psutil.virtual_memory().total) if psutil is not None else 0
     if total_ram >= 16 * _GIB:
         return "mps_split"
     return "cpu"
@@ -63,12 +58,7 @@ def _apply_text_backend_strategy(strategy: str) -> None:
         os.environ["BRAIN_DIFF_LLAMA_ON_CPU"] = "0"
         os.environ["BRAIN_DIFF_MPS_LLAMA_FP32_FULL"] = "0"
         if "BRAIN_DIFF_MPS_TEXT_MAX_MEMORY" not in os.environ:
-            try:
-                if psutil is None:
-                    raise ImportError("psutil not available")
-                total_ram = psutil.virtual_memory().total
-            except Exception:
-                total_ram = 0
+            total_ram = psutil.virtual_memory().total if psutil is not None else 0
             cap = "3500MiB" if total_ram >= 16 * _GIB else "2500MiB"
             os.environ["BRAIN_DIFF_MPS_TEXT_MAX_MEMORY"] = cap
     elif strategy == "mps_full_fp32":

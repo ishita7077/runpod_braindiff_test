@@ -83,10 +83,7 @@ def generate_heatmap_artifact(vertex_delta: np.ndarray) -> dict[str, Any]:
             vmax=vmax,
             axes=ax,
         )
-        try:
-            ax.set_facecolor(_bg)
-        except Exception:
-            pass
+        ax.set_facecolor(_bg)
         ax.set_title(vlabel, color="#9aa3ad", fontsize=9, pad=4)
         for spine in ax.spines.values():
             spine.set_visible(False)

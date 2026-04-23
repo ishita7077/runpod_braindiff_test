@@ -19,3 +19,6 @@ tribev2/
 
 # Local agent mistake log (not for git)
 MISTAKES_AGENT.md
+
+# Local tooling binaries
+.tools/

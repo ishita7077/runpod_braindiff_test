@@ -3,77 +3,51 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f4ec" />
 <title>BrainDiff — EQ in AI</title>
 <meta name="description" content="EQ in AI. BrainDiff takes two pieces of content and simulates, region by region, how a brain responds to each — built on Meta FAIR's TRIBE v2." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark'){r.removeAttribute('data-theme');}else{r.setAttribute('data-theme','light');}}catch(e){r.setAttribute('data-theme','light');}})();</script>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <style>
 /* ============================================================
    BrainDiff · tokens
-   Dark is default. Light is opt-in via data-theme="light".
+   Light is default. Dark is opt-in via data-theme="dark".
    Vermillion (B-stronger) + slate blue (A-stronger) — Nature-journal diverging.
    ============================================================ */
 :root{
-  color-scheme:dark;
-  --bg:#0b0c0f;
-  --bg-2:#101116;
-  --bg-3:#15171c;
-  --surface:#15171c;
-  --panel:rgba(20,22,28,0.72);
-  --panel-2:rgba(28,31,38,0.58);
-  --line:rgba(255,255,255,0.07);
-  --line-2:rgba(255,255,255,0.13);
-  --ink:#e8e4db;
-  --ink-dim:#b6b1a6;
-  --ink-mute:#7f7a70;
-  --accent:#e04a2e;
-  --accent-2:#f27455;
-  --accent-3:rgba(224,74,46,0.12);
-  --good:#6a97c9;
-  --good-2:#8db2d4;
-  --good-3:rgba(106,151,201,0.12);
-  --brain-stage:#07080b;
-  --brain-stage-2:#050608;
-  --brain-stage-glow:rgba(40,60,100,0.18);
-  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
-  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
-  --shell-pad-x:clamp(64px,7vw,176px);
-  --shell-max:1200px;
-}
-:root[data-theme="light"]{
   color-scheme:light;
-  --bg:#f7f4ec;
-  --bg-2:#efeadf;
-  --bg-3:#e7e2d4;
-  --surface:#ffffff;
-  --panel:#ffffff;
-  --panel-2:#f1ecde;
-  --line:#e2ddcf;
-  --line-2:#cbc5b4;
-  --ink:#17171a;
-  --ink-dim:#3d3d42;
-  --ink-mute:#77736b;
-  --accent:#c1272d;
-  --accent-2:#d94a4e;
-  --accent-3:#f8e9e6;
-  --good:#2a5583;
-  --good-2:#4a78ab;
-  --good-3:#e6edf6;
-  --brain-stage:#ebe6da;
-  --brain-stage-2:#e0d9ca;
-  --brain-stage-glow:rgba(150,160,185,0.18);
+  --bg:#f7f4ec; --bg-2:#efeadf; --bg-3:#e7e2d4;
+  --surface:#ffffff; --panel:#ffffff; --panel-2:#f1ecde;
+  --line:#e2ddcf; --line-2:#cbc5b4;
+  --ink:#17171a; --ink-dim:#3d3d42; --ink-mute:#77736b;
+  --accent:#c1272d; --accent-2:#d94a4e; --accent-3:#f8e9e6;
+  --good:#2a5583; --good-2:#4a78ab; --good-3:#e6edf6;
+  --brain-stage:#ebe6da; --brain-stage-2:#e0d9ca; --brain-stage-glow:rgba(150,160,185,0.18);
   --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
   --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
 }
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0b0c0f; --bg-2:#101116; --bg-3:#15171c;
+  --surface:#15171c; --panel:rgba(20,22,28,0.72); --panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db; --ink-dim:#b6b1a6; --ink-mute:#7f7a70;
+  --accent:#e04a2e; --accent-2:#f27455; --accent-3:rgba(224,74,46,0.12);
+  --good:#6a97c9; --good-2:#8db2d4; --good-3:rgba(106,151,201,0.12);
+  --brain-stage:#07080b; --brain-stage-2:#050608; --brain-stage-glow:rgba(40,60,100,0.18);
+  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
+  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+}
+
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
+html{scroll-behavior:smooth}
 body{
   background:
-    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
-    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
-    radial-gradient(800px 500px at 50% 50%, color-mix(in srgb, var(--accent) 3%, transparent), transparent 60%),
+    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
     var(--bg);
   color:var(--ink);
   font-family:'Inter Tight', system-ui, -apple-system, sans-serif;
@@ -81,10 +55,11 @@ body{
   -webkit-font-smoothing:antialiased;
   line-height:1.6;
 }
-:root[data-theme="light"] body{
+:root[data-theme="dark"] body{
   background:
-    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
-    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+    radial-gradient(800px 500px at 50% 50%, color-mix(in srgb, var(--accent) 3%, transparent), transparent 60%),
     var(--bg);
 }
 a{color:inherit;text-decoration:none}
@@ -101,8 +76,10 @@ a{color:inherit;text-decoration:none}
 .theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
 .theme-toggle .tt-moon{display:inline}
 .theme-toggle .tt-sun{display:none}
-:root[data-theme="light"] .theme-toggle .tt-sun{display:inline}
-:root[data-theme="light"] .theme-toggle .tt-moon{display:none}
+:root[data-theme="dark"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="dark"] .theme-toggle .tt-moon{display:none}
+
+
 
 /* TOP BAR */
 .topbar{
@@ -114,7 +91,7 @@ a{color:inherit;text-decoration:none}
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
   border-bottom:1px solid var(--line);
 }
-.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.01em;font-size:15px;color:var(--ink)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.022em;font-size:15px;color:var(--ink)}
 .brand-mark{
   width:24px;height:24px;border-radius:6px;
   background:var(--accent);
@@ -122,6 +99,7 @@ a{color:inherit;text-decoration:none}
   font-family:'JetBrains Mono',monospace;
 }
 .brand-word b{font-weight:600}
+.brand-logo{height:24px;width:auto;display:block;border-radius:4px}
 .nav{display:flex;gap:28px;align-items:center;font-size:13.5px;color:var(--ink-dim)}
 .nav a{transition:color .15s ease}
 .nav a:hover{color:var(--ink)}
@@ -451,7 +429,8 @@ h2.section-title em{font-style:italic;color:var(--accent);font-variation-setting
 .case-row-name{font-size:14px;font-weight:500;color:var(--ink);letter-spacing:-0.005em}
 .case-row-desc{font-style:italic;font-size:12.5px;color:var(--ink-mute);font-family:'Fraunces',serif;font-variation-settings:"opsz" 48}
 
-.case-row-bars{display:flex;flex-direction:column;gap:3px;width:100%}
+.case-row-bars{display:flex;flex-direction:column;gap:3px;width:100%;position:relative;padding-left:4px}
+.case-row-bars::before{content:"";position:absolute;left:0;top:0;bottom:0;width:1px;background:var(--line-2)}
 .case-bar{
   position:relative;display:flex;align-items:center;gap:8px;
   height:6px;border-radius:4px;
@@ -725,7 +704,7 @@ body.landing-reveal .hero-stage::before{
 
 <header class="topbar">
   <a href="./" class="brand">
-    <span class="brand-mark">B</span>
+    <img class="brand-logo" src="/assets/braindiff-logo.png" alt="BrainDiff logo" />
     <span class="brand-word">Brain<b>Diff</b></span>
   </a>
   <nav class="nav">
@@ -746,7 +725,7 @@ body.landing-reveal .hero-stage::before{
         <div class="cta-row">
           <a href="/launch" class="btn btn-primary" id="heroCta">Launch app <span>→</span></a>
         </div>
-        <p class="hero-cta-sub">We don't score your content. We show what the cortex does with it.</p>
+        <p class="hero-cta-sub">TRIBE v2 predicts. <em>You decide.</em></p>
         <div class="attribution-row">
           <span class="attribution-built">Built on</span>
           <span class="meta-lockup" aria-label="Meta FAIR">
@@ -809,8 +788,8 @@ body.landing-reveal .hero-stage::before{
   <section class="section shell" id="see">
     <div class="reveal">
       <div class="section-eyebrow">See it in action</div>
-      <h2 class="section-title">Same idea. Two versions. One brain, two patterns.</h2>
-      <p class="section-lead">A calm informational hook versus a sharper, more personal one. Both say approximately the same thing. The cortex doesn't read them the same way.</p>
+      <h2 class="section-title">Same brain. <em>Different messages.</em></h2>
+      <p class="section-lead">Two ads. One cortex. Here's where they diverge.</p>
     </div>
     <div class="compare-grid reveal">
       <div style="display:flex;flex-direction:column;gap:14px">
@@ -850,7 +829,7 @@ body.landing-reveal .hero-stage::before{
             <span>B stronger</span>
           </div>
         </div>
-        <p class="compare-caption">The cortex either engages a system or it doesn't. Whether that's <em>good</em> is your call.</p>
+        <p class="compare-caption"><em>TRIBE v2 predicts. You decide.</em></p>
       </div>
       <div class="readout">
         <h4>Key shifts · B − A</h4>
@@ -867,8 +846,9 @@ body.landing-reveal .hero-stage::before{
           <div class="readout-value neg">−0.09</div>
         </div>
         <div class="readout-summary">
-          <em>Version B</em> pulls harder on relevance and momentum while asking slightly less of the reader.
+          <strong>Biggest shift:</strong> personal relevance, <em>+0.31 · B stronger</em> — the same vmPFC signal that predicted quit-line calls in Falk et al., 2012. B also engages attention (+0.22) and asks slightly less processing effort (−0.09). <strong>Whether that's "better" is your call.</strong>
         </div>
+        <a class="case-chip" href="#case-h2">r = 0.87 · brain ↔ national call volume · Falk 2012 →</a>
       </div>
     </div>
   </section>
@@ -1105,8 +1085,8 @@ body.landing-reveal .hero-stage::before{
 <script>
 function toggleTheme(){
   var r=document.documentElement;
-  var next=r.getAttribute('data-theme')==='light'?'dark':'light';
-  if(next==='light') r.setAttribute('data-theme','light');
+  var next=r.getAttribute('data-theme')==='dark'?'light':'dark';
+  if(next==='dark') r.setAttribute('data-theme','dark');
   else r.removeAttribute('data-theme');
   try{localStorage.setItem('braindiff-theme',next);}catch(e){}
   // Brain canvases listen for this and repaint their palettes.
@@ -1326,7 +1306,7 @@ function mountBrain(canvas, opts={}){
     },
   };
   function currentTheme(){
-    return document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+    return document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
   }
 
   const ambLight = new THREE.AmbientLight(0xffffff, 0.3);
@@ -1787,7 +1767,9 @@ function mountBrain(canvas, opts={}){
       const last = LUT_SIZE - 1;
       for (let i = 0; i < nVerts; i++){
         const t = fromW[i] * (1 - e) + toW[i] * e;
-        const idx = (t < 0 ? 0 : t > 1 ? last : t * last) | 0;
+        const tFloor = 0.24;
+        const tAdj = tFloor + (1 - tFloor) * (t < 0 ? 0 : t > 1 ? 1 : t);
+        const idx = (tAdj * last) | 0;
         const li = idx * 3;
         colors[i*3  ] = heatLUT[li];
         colors[i*3+1] = heatLUT[li+1];

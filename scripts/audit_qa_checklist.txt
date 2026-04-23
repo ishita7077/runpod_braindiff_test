@@ -6,19 +6,18 @@ P2 Layout shell
 [ ] App header uses site-shell; main content aligns; no horizontal scroll at 1440 and 390 widths.
 
 P3 Navigation
-[ ] index.html: How it works, Methodology link, Launch Brain Diff CTA resolve correctly.
-[ ] app.html: Inputs / Results anchors, methodology.html, Diagnostics drawer open/close.
+[ ] /: How it works, Methodology link, Launch Brain Diff CTA resolve correctly.
+[ ] /launch → /run → /results: inputs / run progress / results flow, Diagnostics drawer open/close.
 
 P4 Sections
 [ ] Landing demo: three WebGL activation canvases load (or graceful fallback); copy says illustrative/synthetic.
-[ ] App result order: product note → hero → cortical 3D + static figure → writing move → details (bars+radar) → insights → actions/science.
+[ ] Results order: product note → hero → cortical 3D + static figure → writing move → details (bars+radar) → insights → actions/science.
 [ ] Single heatmap-panel only; brain3dWrapA/B and dimensionRadar IDs unique.
 
 P5 Copy
 [ ] Product note and footers state population model + speech pathway + not medical advice.
-[ ] Methodology page sections read clearly; no stale claims.
+[ ] /methodology page sections read clearly; no stale claims.
 
 P6 QA / release
 [ ] pytest tests/test_api.py (includes /api/dimension-masks).
 [ ] Manual: run comparison end-to-end; staggered result sections animate including “writing move”.
-[ ] Optional: scripts/capture_p1_brain_baselines.sh with API up; review PNGs under frontend/baseline_screenshots/p1-3d/.

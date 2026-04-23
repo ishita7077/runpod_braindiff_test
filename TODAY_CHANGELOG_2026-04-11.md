@@ -1,7 +1,7 @@
-# Brain Diff Daily Changelog (2026-04-11)
+# BrainDiff Daily Changelog (2026-04-11)
 
 ## Scope
-- Stabilized local Apple Silicon execution path for Brain Diff.
+- Stabilized local Apple Silicon execution path for BrainDiff.
 - Improved backend runtime truthfulness and frontend behavior around long-running jobs.
 - Restructured frontend into a public landing experience plus separate app experience.
 - Added discovery-oriented narrative framing and follow-up experiment guidance.
@@ -18,7 +18,7 @@
 ## Frontend Updates
 - Split architecture into:
   - `index.html` (public landing page),
-  - `app.html` (interactive Brain Diff application).
+  - `app.html` (interactive BrainDiff application).
 - Added new landing experience:
   - trust-first hero,
   - read-only live demo section,

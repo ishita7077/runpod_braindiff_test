@@ -1,4 +1,4 @@
-# Brain Diff — North Star & Goals (FINAL)
+# BrainDiff — North Star & Goals (FINAL)
 
 ## North Star
 Build a product that goes viral, is genuinely useful, and looks professional.

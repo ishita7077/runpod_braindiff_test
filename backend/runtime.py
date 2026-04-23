@@ -4,7 +4,6 @@ import logging
 import os
 import platform
 from dataclasses import dataclass
-from typing import Any
 
 logger = logging.getLogger("braindiff.runtime")
 
@@ -13,8 +12,16 @@ logger = logging.getLogger("braindiff.runtime")
 class RuntimeProfile:
     device: str
     backend: str
-    config_update: dict[str, Any]
+    config_update: dict[str, str | int]
     fallback_chain: tuple[str, ...]
+
+
+def runtime_to_dict(profile: "RuntimeProfile | None") -> dict[str, str]:
+    """Return the `{device, backend}` snapshot dict used by /api/ready,
+    /api/preflight, telemetry, and startup manifest. Empty when no profile."""
+    if profile is None:
+        return {}
+    return {"device": profile.device, "backend": profile.backend}
 
 
 def _profile_for_device(device: str) -> RuntimeProfile:

@@ -37,7 +37,7 @@ sys.path.insert(0, str(REPO_ROOT))
 os.chdir(REPO_ROOT)
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.brain_mesh import build_brain_mesh_payload
@@ -200,24 +200,6 @@ async def mock_diff_status(job_id: str) -> JSONResponse:
         job["result"] = _build_mock_result(job["text_a"], job["text_b"])
         job["status"] = "done"
     return JSONResponse({"status": "done", "result": job["result"]})
-
-
-@app.get("/api/diff/status/{job_id}/stream")
-async def mock_diff_stream(job_id: str) -> StreamingResponse:
-    """Lightweight SSE fallback. Emits a 'done' event after MOCK_RUN_SECONDS
-    so run.html can keep listening even if it tries the stream variant."""
-    if job_id not in _MOCK_JOBS:
-        raise HTTPException(status_code=404, detail=f"Unknown job_id: {job_id}")
-
-    async def event_stream():
-        import asyncio
-        yield b"event: queued\ndata: {}\n\n"
-        await asyncio.sleep(0.4)
-        yield b"event: phase\ndata: {\"phase\":\"predict\"}\n\n"
-        await asyncio.sleep(max(0.1, MOCK_RUN_SECONDS - 0.4))
-        yield b"event: done\ndata: {}\n\n"
-
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
 
 
 app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
