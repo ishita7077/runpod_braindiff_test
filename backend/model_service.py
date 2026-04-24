@@ -268,3 +268,38 @@ class TribeService:
             raise
         finally:
             os.unlink(temp_path)
+
+    def audio_to_predictions(self, audio_path: str) -> tuple[np.ndarray, Any, dict[str, int]]:
+        return self._media_to_predictions(audio_path, kind="audio")
+
+    def video_to_predictions(self, video_path: str) -> tuple[np.ndarray, Any, dict[str, int]]:
+        return self._media_to_predictions(video_path, kind="video")
+
+    def _media_to_predictions(self, path: str, *, kind: str) -> tuple[np.ndarray, Any, dict[str, int]]:
+        if self.model is None:
+            raise RuntimeError("TRIBEv2 model not loaded")
+        if not os.path.isfile(path):
+            raise FileNotFoundError(path)
+        kwargs = {"audio_path": path} if kind == "audio" else {"video_path": path}
+        t0 = time.perf_counter()
+        try:
+            events = self.model.get_events_dataframe(**kwargs)
+        except Exception as err:
+            msg = str(err).lower()
+            if "whisperx failed" in msg or "ctranslate2" in msg:
+                raise RuntimeError(
+                    f"WHISPERX_FAILED: Transcription step in the {kind} pipeline failed. Detail: {err}"
+                ) from err
+            raise
+        events_ms = int((time.perf_counter() - t0) * 1000)
+        t1 = time.perf_counter()
+        preds, segments = self.model.predict(events=events)
+        predict_ms = int((time.perf_counter() - t1) * 1000)
+        if hasattr(preds, "detach"):
+            preds = preds.detach().cpu().numpy()
+        elif hasattr(preds, "values"):
+            preds = preds.values
+        preds_np = np.array(preds, dtype=np.float32)
+        if preds_np.ndim != 2:
+            raise ValueError(f"Unexpected predictions shape: {preds_np.shape}")
+        return preds_np, segments, {"events_ms": events_ms, "predict_ms": predict_ms}

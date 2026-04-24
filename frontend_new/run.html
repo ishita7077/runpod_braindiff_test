@@ -809,7 +809,7 @@ function toggleTheme(){
   // -----------------------------------------------------------------------
   const DS_STEPS = [
     { id:'read',    label:'Reading both texts (WhisperX)',
-      backend: ['queued','converting_text_to_speech'],
+      backend: ['queued','converting_text_to_speech','decoding_audio','decoding_video'],
       stageKeys: ['events_a_ms','events_b_ms'],
       expectedMs: 50_000 },
     { id:'tribe',   label:'Encoding through TRIBE v2',
@@ -1130,6 +1130,8 @@ function toggleTheme(){
   const STATUS_TO_STEP = {
     queued: 0,
     converting_text_to_speech: 0,
+    decoding_audio: 0,
+    decoding_video: 0,
     predicting_version_a: 1,
     predicting_version_b: 1,
     slow_processing: 2,
@@ -1164,7 +1166,7 @@ function toggleTheme(){
   }
 
   function applyStatus(status){
-    if (status === 'queued' || status === 'converting_text_to_speech'){
+    if (status === 'queued' || status === 'converting_text_to_speech' || status === 'decoding_audio' || status === 'decoding_video'){
       setStep(0, 'active');
     } else if (status === 'predicting_version_a' || status === 'predicting_version_b'){
       setStep(0, 'done'); setStep(1, 'active');

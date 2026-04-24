@@ -9,13 +9,20 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import numpy as np
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from backend.atlas_peaks import describe_peak_abs_delta
 from backend.brain_regions import build_vertex_masks
 from backend.differ import compute_diff
+from backend.duration_utils import (
+    DurationMismatch,
+    DurationProbeError,
+    check_media_similarity,
+    check_text_similarity,
+    ensure_within_max,
+)
 from backend.heatmap import compute_vertex_delta, generate_heatmap_artifact
 from backend.logging_utils import build_error_payload, configure_logging, write_structured_error
 from backend.model_service import TribeService
@@ -35,6 +42,7 @@ logger = logging.getLogger("braindiff.api")
 
 SLOW_NOTICE_MS = 180_000
 HARD_TIMEOUT_MS = 1_200_000
+HEARTBEAT_INTERVAL_SEC = 10
 
 # Populated by _initialize_app for /api/ready diagnostics.
 startup_info: dict[str, Any] = {
@@ -54,6 +62,18 @@ telemetry_store = TelemetryStore(TELEMETRY_DB_PATH)
 # Single-job concurrency guard for local (mps/cpu) execution.
 # CUDA users can raise the limit via BRAIN_DIFF_MAX_CONCURRENT_JOBS.
 _diff_semaphore: asyncio.Semaphore | None = None
+VIDEO_EXTRACTOR_WARMUP: dict[str, str] = {
+    "state": "idle",
+    "repo_id": "facebook/vjepa2-vitg-fpc64-256",
+    "local_path": "",
+    "error": "",
+    "started_at": "",
+    "finished_at": "",
+}
+UPLOAD_ROOT = os.path.join("cache", "uploads")
+AUDIO_EXTS = {".wav", ".mp3", ".flac", ".ogg"}
+VIDEO_EXTS = {".mp4", ".avi", ".mkv", ".mov", ".webm"}
+MAX_UPLOAD_BYTES = 100 * 1024 * 1024
 
 
 def _compute_report_summary(results: list[dict[str, Any]], processing_time_ms: int) -> dict[str, Any]:
@@ -98,7 +118,16 @@ def _get_diff_semaphore() -> asyncio.Semaphore:
 
 
 def _error_code_for_exception(err: Exception) -> tuple[str, str]:
+    if isinstance(err, DurationMismatch):
+        return "INPUT_REJECTED", str(err)
+    if isinstance(err, DurationProbeError):
+        return "MEDIA_PROBE_FAILED", str(err)
     msg = str(err)
+    if "Can't pickle" in msg and "LlamaDecoderLayer.forward" in msg:
+        return (
+            "MODEL_RUNTIME_PICKLE_ERROR",
+            "Model runtime hit a pickling error inside prediction; check model worker/runtime compatibility.",
+        )
     if msg.startswith("HF_AUTH_REQUIRED:"):
         return "HF_AUTH_REQUIRED", msg
     if msg.startswith("FFMPEG_REQUIRED:"):
@@ -179,16 +208,19 @@ def _persist_run(*, job_id: str, request_id: str, created_at: str, status: str, 
                  text_a_timesteps: int, text_b_timesteps: int, total_ms: int,
                  error_code: str | None = None, error_message: str | None = None) -> None:
     runtime = _service_runtime_dict()
+    text_a = payload.text_a or ""
+    text_b = payload.text_b or ""
     telemetry_store.upsert_run({
         'job_id': job_id,
         'request_id': request_id,
         'created_at': created_at,
+        'modality': payload.modality(),
         'status': status,
         'success': success,
-        'text_a_length': len(payload.text_a),
-        'text_b_length': len(payload.text_b),
-        'text_a_hash': _hash_text(payload.text_a),
-        'text_b_hash': _hash_text(payload.text_b),
+        'text_a_length': len(text_a),
+        'text_b_length': len(text_b),
+        'text_a_hash': _hash_text(text_a),
+        'text_b_hash': _hash_text(text_b),
         'text_a_timesteps': text_a_timesteps,
         'text_b_timesteps': text_b_timesteps,
         'total_ms': total_ms,
@@ -245,12 +277,14 @@ def _build_diff_result(
 ) -> dict[str, Any]:
     """Assemble the shared /api/diff response body used by both the real
     and the identical-texts short-circuit paths."""
+    text_a = payload.text_a or ""
+    text_b = payload.text_b or ""
     insights = build_insight_payload(
         dimension_rows,
         warnings,
         narrative_tone=_narrative_tone(),
-        text_a=payload.text_a,
-        text_b=payload.text_b,
+        text_a=text_a,
+        text_b=text_b,
     )
     meta: dict[str, Any] = {
         "model_revision": tribe_service.model_revision,
@@ -258,10 +292,10 @@ def _build_diff_result(
         "method_primary": "signed_roi_contrast",
         "normalization": "within_stimulus_median",
         "text_to_speech": True,
-        "text_a": payload.text_a,
-        "text_b": payload.text_b,
-        "text_a_length": len(payload.text_a),
-        "text_b_length": len(payload.text_b),
+        "text_a": text_a,
+        "text_b": text_b,
+        "text_a_length": len(text_a),
+        "text_b_length": len(text_b),
         "text_a_timesteps": text_a_timesteps,
         "text_b_timesteps": text_b_timesteps,
         "processing_time_ms": processing_time_ms,
@@ -275,6 +309,9 @@ def _build_diff_result(
         "heatmap": heatmap,
         "atlas_peak": describe_peak_abs_delta(vertex_delta),
         "dimensions_count": len(diff),
+        "modality": payload.modality(),
+        "stimulus_a_path": payload.audio_path_a or payload.video_path_a or "",
+        "stimulus_b_path": payload.audio_path_b or payload.video_path_b or "",
     }
     if identical_short_circuit:
         meta["identical_text_short_circuit"] = True
@@ -293,13 +330,42 @@ def _build_diff_result(
 def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
     started_at = time.perf_counter()
     created_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-    warnings = _warnings_for_input(payload.text_a, payload.text_b)
+    modality = payload.modality()
+    logger.info("diff_job:start request_id=%s job_id=%s modality=%s", request_id, job_id, modality)
+    warnings = _warnings_for_input(payload.text_a or "", payload.text_b or "") if modality == "text" else []
     stage_times: dict[str, int] = {}
-    route = "/api/diff/start"
+    route = "/api/diff/start" if modality == "text" else "/api/diff/upload"
 
     try:
-        job_store.update_status(job_id, "converting_text_to_speech", "Converting text to speech...")
-        if payload.text_a.strip() == payload.text_b.strip():
+        if modality == "text":
+            check_text_similarity(payload.text_a or "", payload.text_b or "")
+            job_store.update_status(job_id, "converting_text_to_speech", "Converting text to speech...")
+        elif modality == "audio":
+            job_store.update_status(job_id, "decoding_audio", "Decoding audio features...")
+            logger.info("diff_job:probe_media request_id=%s job_id=%s side=a modality=audio path=%s", request_id, job_id, payload.audio_path_a)
+            path_a, dur_a, trimmed_a = ensure_within_max(payload.audio_path_a or "")
+            logger.info("diff_job:probe_media_ok request_id=%s job_id=%s side=a duration_s=%.2f trimmed=%s", request_id, job_id, dur_a, trimmed_a)
+            logger.info("diff_job:probe_media request_id=%s job_id=%s side=b modality=audio path=%s", request_id, job_id, payload.audio_path_b)
+            path_b, dur_b, trimmed_b = ensure_within_max(payload.audio_path_b or "")
+            logger.info("diff_job:probe_media_ok request_id=%s job_id=%s side=b duration_s=%.2f trimmed=%s", request_id, job_id, dur_b, trimmed_b)
+            check_media_similarity(dur_a, dur_b)
+            payload = DiffRequest(audio_path_a=path_a, audio_path_b=path_b)
+            if trimmed_a or trimmed_b:
+                warnings.append("One or both stimuli were truncated to 30 seconds.")
+        else:
+            job_store.update_status(job_id, "decoding_video", "Decoding video + extracting frames...")
+            logger.info("diff_job:probe_media request_id=%s job_id=%s side=a modality=video path=%s", request_id, job_id, payload.video_path_a)
+            path_a, dur_a, trimmed_a = ensure_within_max(payload.video_path_a or "")
+            logger.info("diff_job:probe_media_ok request_id=%s job_id=%s side=a duration_s=%.2f trimmed=%s", request_id, job_id, dur_a, trimmed_a)
+            logger.info("diff_job:probe_media request_id=%s job_id=%s side=b modality=video path=%s", request_id, job_id, payload.video_path_b)
+            path_b, dur_b, trimmed_b = ensure_within_max(payload.video_path_b or "")
+            logger.info("diff_job:probe_media_ok request_id=%s job_id=%s side=b duration_s=%.2f trimmed=%s", request_id, job_id, dur_b, trimmed_b)
+            check_media_similarity(dur_a, dur_b)
+            payload = DiffRequest(video_path_a=path_a, video_path_b=path_b)
+            if trimmed_a or trimmed_b:
+                warnings.append("One or both stimuli were truncated to 30 seconds.")
+
+        if modality == "text" and (payload.text_a or "").strip() == (payload.text_b or "").strip():
             job_store.update_status(job_id, "predicting_version_a", "Predicting neural response for Version A...")
             job_store.update_status(job_id, "predicting_version_b", "Predicting neural response for Version B...")
             job_store.update_status(job_id, "computing_brain_contrast", "Computing brain contrast...")
@@ -347,18 +413,44 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         # The underlying tribe_service call is monolithic, so we still emit
         # the second event right after the first; the timing reported back
         # in stage_times comes from inside the call, not from our event gap.
-        job_store.update_status(job_id, "transcribing_version_a", "Transcribing Version A through WhisperX (text → audio)...")
-        job_store.update_status(job_id, "predicting_version_a", "Running TRIBE v2 forward pass on Version A (text + audio → cortex)...")
-        preds_a, _, timing_a = _coerce_prediction_output(tribe_service.text_to_predictions(payload.text_a))
+        if modality == "text":
+            job_store.update_status(job_id, "transcribing_version_a", "Transcribing Version A through WhisperX (text → audio)...")
+            job_store.update_status(job_id, "predicting_version_a", "Running TRIBE v2 forward pass on Version A (text + audio → cortex)...")
+            logger.info("diff_job:predict_start request_id=%s job_id=%s side=a modality=text", request_id, job_id)
+            preds_a, _, timing_a = _coerce_prediction_output(tribe_service.text_to_predictions(payload.text_a or ""))
+        elif modality == "audio":
+            job_store.update_status(job_id, "transcribing_version_a", "Aligning words in Version A audio (WhisperX)...")
+            job_store.update_status(job_id, "predicting_version_a", "Running TRIBE v2 forward pass on Version A (audio → cortex)...")
+            logger.info("diff_job:predict_start request_id=%s job_id=%s side=a modality=audio path=%s", request_id, job_id, payload.audio_path_a)
+            preds_a, _, timing_a = _coerce_prediction_output(tribe_service.audio_to_predictions(payload.audio_path_a or ""))
+        else:
+            job_store.update_status(job_id, "transcribing_version_a", "Extracting video frames + audio for Version A...")
+            job_store.update_status(job_id, "predicting_version_a", "Running TRIBE v2 forward pass on Version A (video + audio → cortex)...")
+            logger.info("diff_job:predict_start request_id=%s job_id=%s side=a modality=video path=%s", request_id, job_id, payload.video_path_a)
+            preds_a, _, timing_a = _coerce_prediction_output(tribe_service.video_to_predictions(payload.video_path_a or ""))
+        logger.info("diff_job:predict_ok request_id=%s job_id=%s side=a events_ms=%s predict_ms=%s timesteps=%s", request_id, job_id, timing_a.get("events_ms", 0), timing_a.get("predict_ms", 0), int(preds_a.shape[0]))
         stage_times["events_a_ms"] = timing_a.get("events_ms", 0)
         stage_times["predict_a_ms"] = timing_a.get("predict_ms", 0)
 
         if (time.perf_counter() - started_at) * 1000 > 15000:
-            job_store.update_status(job_id, "slow_processing", "Still processing - longer texts take more time")
+            job_store.update_status(job_id, "slow_processing", "Still processing - longer stimuli take more time")
 
-        job_store.update_status(job_id, "transcribing_version_b", "Transcribing Version B through WhisperX (text → audio)...")
-        job_store.update_status(job_id, "predicting_version_b", "Running TRIBE v2 forward pass on Version B (text + audio → cortex)...")
-        preds_b, _, timing_b = _coerce_prediction_output(tribe_service.text_to_predictions(payload.text_b))
+        if modality == "text":
+            job_store.update_status(job_id, "transcribing_version_b", "Transcribing Version B through WhisperX (text → audio)...")
+            job_store.update_status(job_id, "predicting_version_b", "Running TRIBE v2 forward pass on Version B (text + audio → cortex)...")
+            logger.info("diff_job:predict_start request_id=%s job_id=%s side=b modality=text", request_id, job_id)
+            preds_b, _, timing_b = _coerce_prediction_output(tribe_service.text_to_predictions(payload.text_b or ""))
+        elif modality == "audio":
+            job_store.update_status(job_id, "transcribing_version_b", "Aligning words in Version B audio (WhisperX)...")
+            job_store.update_status(job_id, "predicting_version_b", "Running TRIBE v2 forward pass on Version B (audio → cortex)...")
+            logger.info("diff_job:predict_start request_id=%s job_id=%s side=b modality=audio path=%s", request_id, job_id, payload.audio_path_b)
+            preds_b, _, timing_b = _coerce_prediction_output(tribe_service.audio_to_predictions(payload.audio_path_b or ""))
+        else:
+            job_store.update_status(job_id, "transcribing_version_b", "Extracting video frames + audio for Version B...")
+            job_store.update_status(job_id, "predicting_version_b", "Running TRIBE v2 forward pass on Version B (video + audio → cortex)...")
+            logger.info("diff_job:predict_start request_id=%s job_id=%s side=b modality=video path=%s", request_id, job_id, payload.video_path_b)
+            preds_b, _, timing_b = _coerce_prediction_output(tribe_service.video_to_predictions(payload.video_path_b or ""))
+        logger.info("diff_job:predict_ok request_id=%s job_id=%s side=b events_ms=%s predict_ms=%s timesteps=%s", request_id, job_id, timing_b.get("events_ms", 0), timing_b.get("predict_ms", 0), int(preds_b.shape[0]))
         stage_times["events_b_ms"] = timing_b.get("events_ms", 0)
         stage_times["predict_b_ms"] = timing_b.get("predict_ms", 0)
 
@@ -397,11 +489,12 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         job_store.update_status(job_id, "done", "Done")
         _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=int(preds_a.shape[0]), text_b_timesteps=int(preds_b.shape[0]), total_ms=processing_time_ms)
         logger.info(
-            "diff_job:ok request_id=%s job_id=%s a_len=%s b_len=%s total_ms=%s",
+            "diff_job:ok request_id=%s job_id=%s modality=%s a_len=%s b_len=%s total_ms=%s",
             request_id,
             job_id,
-            len(payload.text_a),
-            len(payload.text_b),
+            modality,
+            len(payload.text_a or ""),
+            len(payload.text_b or ""),
             processing_time_ms,
         )
     except Exception as err:
@@ -413,8 +506,8 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             err=err,
             extra={
                 "job_id": job_id,
-                "text_a_len": len(payload.text_a),
-                "text_b_len": len(payload.text_b),
+                "text_a_len": len(payload.text_a or ""),
+                "text_b_len": len(payload.text_b or ""),
             },
         )
         write_structured_error(LOG_DIR, error)
@@ -434,7 +527,167 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
 async def _guarded_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
     sem = _get_diff_semaphore()
     async with sem:
-        await asyncio.to_thread(_run_diff_job, job_id, request_id, payload)
+        started_at = time.perf_counter()
+        task = asyncio.create_task(asyncio.to_thread(_run_diff_job, job_id, request_id, payload))
+        timeout_sec = HARD_TIMEOUT_MS / 1000.0
+        try:
+            while True:
+                try:
+                    await asyncio.wait_for(asyncio.shield(task), timeout=HEARTBEAT_INTERVAL_SEC)
+                    break
+                except asyncio.TimeoutError:
+                    elapsed = int(time.perf_counter() - started_at)
+                    job = job_store.get(job_id) or {}
+                    status = job.get("status", "processing")
+                    events = job.get("events") or []
+                    last_message = events[-1]["message"] if events else "Processing..."
+                    base_message = last_message.split(" [heartbeat", 1)[0]
+                    heartbeat_message = f"{base_message} [heartbeat +{elapsed}s]"
+                    if status not in {"done", "error"}:
+                        job_store.update_status(job_id, status, heartbeat_message)
+                    logger.info(
+                        "diff_job:heartbeat request_id=%s job_id=%s status=%s elapsed_s=%s",
+                        request_id,
+                        job_id,
+                        status,
+                        elapsed,
+                    )
+                    if elapsed >= timeout_sec:
+                        raise asyncio.TimeoutError(f"Diff job exceeded {HARD_TIMEOUT_MS}ms")
+            await task
+        except asyncio.TimeoutError:
+            if not task.done():
+                task.cancel()
+            created_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            elapsed_ms = int((time.perf_counter() - started_at) * 1000)
+            message = (
+                f"The run exceeded the hard timeout ({HARD_TIMEOUT_MS // 1000}s). "
+                "Check logs for the last active stage."
+            )
+            logger.error(
+                "diff_job:timeout request_id=%s job_id=%s elapsed_ms=%s",
+                request_id,
+                job_id,
+                elapsed_ms,
+            )
+            job_store.set_error(
+                job_id,
+                {"request_id": request_id, "job_id": job_id, "code": "DIFF_TIMEOUT", "message": message},
+            )
+            warnings = _warnings_for_input(payload.text_a or "", payload.text_b or "") if payload.modality() == "text" else []
+            _persist_run(
+                job_id=job_id,
+                request_id=request_id,
+                created_at=created_at,
+                status="error",
+                success=False,
+                payload=payload,
+                stage_times={},
+                warnings=warnings,
+                text_a_timesteps=0,
+                text_b_timesteps=0,
+                total_ms=elapsed_ms,
+                error_code="DIFF_TIMEOUT",
+                error_message=message,
+            )
+
+
+def _classify_ext(filename: str) -> str | None:
+    ext = os.path.splitext(filename)[1].lower()
+    if ext in AUDIO_EXTS:
+        return "audio"
+    if ext in VIDEO_EXTS:
+        return "video"
+    return None
+
+
+async def _persist_upload(file: UploadFile, dest_dir: str, slot: str) -> str:
+    os.makedirs(dest_dir, exist_ok=True)
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    dest = os.path.join(dest_dir, f"{slot}{ext}")
+    total_bytes = 0
+    with open(dest, "wb") as handle:
+        while chunk := await file.read(1024 * 1024):
+            total_bytes += len(chunk)
+            if total_bytes > MAX_UPLOAD_BYTES:
+                handle.close()
+                os.remove(dest)
+                raise HTTPException(
+                    status_code=413,
+                    detail=f"{file.filename} exceeds 100 MB size cap.",
+                )
+            handle.write(chunk)
+    return dest
+
+
+def _warm_video_extractor_in_background() -> None:
+    if VIDEO_EXTRACTOR_WARMUP["state"] in {"warming", "ready"}:
+        return
+    VIDEO_EXTRACTOR_WARMUP["state"] = "warming"
+    VIDEO_EXTRACTOR_WARMUP["error"] = ""
+    VIDEO_EXTRACTOR_WARMUP["started_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    try:
+        from huggingface_hub import snapshot_download
+
+        local_path = snapshot_download(
+            repo_id=VIDEO_EXTRACTOR_WARMUP["repo_id"],
+            allow_patterns=["*.json", "*.safetensors", "*.bin"],
+        )
+        VIDEO_EXTRACTOR_WARMUP["state"] = "ready"
+        VIDEO_EXTRACTOR_WARMUP["local_path"] = local_path
+    except Exception as err:
+        VIDEO_EXTRACTOR_WARMUP["state"] = "error"
+        VIDEO_EXTRACTOR_WARMUP["error"] = str(err)
+    finally:
+        VIDEO_EXTRACTOR_WARMUP["finished_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+
+@app.post("/api/diff/upload", response_model=JobStartResponse, status_code=202)
+async def upload_diff(file_a: UploadFile, file_b: UploadFile) -> JSONResponse:
+    kind_a = _classify_ext(file_a.filename or "")
+    kind_b = _classify_ext(file_b.filename or "")
+    if kind_a is None or kind_b is None:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Unsupported file extension(s). Audio: {sorted(AUDIO_EXTS)}. "
+                f"Video: {sorted(VIDEO_EXTS)}."
+            ),
+        )
+    if kind_a != kind_b:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Both stimuli must be the same modality (got {kind_a} + {kind_b}).",
+        )
+    request_id = str(uuid.uuid4())
+    job_id = str(uuid.uuid4())
+    upload_dir = os.path.join(UPLOAD_ROOT, job_id)
+    try:
+        path_a = await _persist_upload(file_a, upload_dir, "a")
+        path_b = await _persist_upload(file_b, upload_dir, "b")
+    except Exception:
+        if os.path.isdir(upload_dir):
+            for filename in os.listdir(upload_dir):
+                try:
+                    os.remove(os.path.join(upload_dir, filename))
+                except OSError:
+                    pass
+            try:
+                os.rmdir(upload_dir)
+            except OSError:
+                pass
+        raise
+    payload = (
+        DiffRequest(audio_path_a=path_a, audio_path_b=path_b)
+        if kind_a == "audio"
+        else DiffRequest(video_path_a=path_a, video_path_b=path_b)
+    )
+    job_store.create(job_id, request_id)
+    asyncio.create_task(_guarded_diff_job(job_id, request_id, payload))
+    return JSONResponse(
+        status_code=202,
+        content={"job_id": job_id, "request_id": request_id, "status": "queued"},
+    )
 
 
 @app.post("/api/diff/start", response_model=JobStartResponse)
@@ -523,7 +776,23 @@ async def preflight() -> JSONResponse:
         hard_timeout_ms=HARD_TIMEOUT_MS,
         max_concurrent_jobs=max_concurrent_jobs,
     )
+    report["video_extractor"] = {
+        "ok": VIDEO_EXTRACTOR_WARMUP["state"] == "ready",
+        "state": VIDEO_EXTRACTOR_WARMUP["state"],
+        "repo_id": VIDEO_EXTRACTOR_WARMUP["repo_id"],
+        "local_path": VIDEO_EXTRACTOR_WARMUP["local_path"],
+        "error": VIDEO_EXTRACTOR_WARMUP["error"],
+        "started_at": VIDEO_EXTRACTOR_WARMUP["started_at"],
+        "finished_at": VIDEO_EXTRACTOR_WARMUP["finished_at"],
+    }
     return JSONResponse(report)
+
+
+@app.post("/api/warmup/video-extractor")
+async def warmup_video_extractor() -> JSONResponse:
+    if VIDEO_EXTRACTOR_WARMUP["state"] != "warming":
+        asyncio.create_task(asyncio.to_thread(_warm_video_extractor_in_background))
+    return JSONResponse(status_code=202, content={"ok": True, "status": VIDEO_EXTRACTOR_WARMUP})
 
 
 @app.get("/api/health")
@@ -590,6 +859,22 @@ async def telemetry_run(job_id: str) -> JSONResponse:
         raise HTTPException(status_code=404, detail=f"Unknown job_id: {job_id}")
     return JSONResponse(run)
 
+
+@app.get("/api/telemetry/dashboard")
+async def telemetry_dashboard(limit: int = 200, offset: int = 0) -> JSONResponse:
+    safe_limit = max(1, min(limit, 1000))
+    safe_offset = max(0, offset)
+    return JSONResponse(
+        {
+            "runs": telemetry_store.list_runs(limit=safe_limit, offset=safe_offset),
+            "aggregate": telemetry_store.aggregate_metrics(),
+            "pagination": {
+                "limit": safe_limit,
+                "offset": safe_offset,
+            },
+        }
+    )
+
 # ---------------------------------------------------------------------------
 # Clean URL routes for the marketing site.
 # Routes are registered BEFORE the StaticFiles mount so they win over the
@@ -618,6 +903,11 @@ async def page_methodology() -> FileResponse:
 async def page_launch() -> FileResponse:
     # "Launch" is the input screen — the entry point to the live app flow.
     return _page("input")
+
+
+@app.get("/dashboard")
+async def page_dashboard() -> FileResponse:
+    return _page("dashboard")
 
 
 app.mount("/", StaticFiles(directory="frontend_new", html=True), name="frontend")

@@ -6,6 +6,7 @@
 <meta name="theme-color" content="#f7f4ec" />
 <title>BrainDiff — new comparison</title>
 <meta name="description" content="Paste two versions of a text. BrainDiff compares how a population-average cortex responds to each." />
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -170,6 +171,31 @@ h1.page-title em{font-style:italic;color:var(--accent);font-variation-settings:"
 .input-label{font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-0.005em}
 .input-hint{font-size:11px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:0.03em}
 .input-hint.warn{color:var(--accent)}
+.mode-row{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:0 0 14px;
+}
+.mode-label{
+  font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--ink-mute);
+}
+.mode-pill{
+  border:1px solid var(--line-2);background:var(--surface);color:var(--ink-dim);
+  border-radius:999px;padding:6px 12px;font-size:12.5px;letter-spacing:-0.005em;
+  font-family:'Inter Tight',system-ui,sans-serif;cursor:pointer;transition:all .15s ease;
+}
+.mode-pill:hover{border-color:var(--accent);color:var(--ink)}
+.mode-pill.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.dropzone{
+  display:none;
+  border:1px dashed var(--line-2);border-radius:10px;background:var(--panel-2);
+  color:var(--ink-dim);font-size:13px;line-height:1.5;padding:18px 14px;
+  text-align:center;cursor:pointer;transition:all .15s ease;
+}
+.dropzone.show{display:block}
+.dropzone.drag{border-color:var(--accent);background:color-mix(in srgb, var(--accent) 8%, var(--panel-2));color:var(--ink)}
+.dropzone strong{color:var(--ink);font-weight:600}
+.dropzone-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute);margin-top:6px}
 
 /* Example pre-sets: fill both sides with one click. Lab-log-style buttons. */
 .examples-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0 28px;padding:12px 16px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
@@ -207,77 +233,6 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
   box-shadow:var(--shadow-sm);
 }
 .btn-ghost:hover{color:var(--ink);border-color:var(--accent)}
-
-/* Songbird easter egg — fixed bottom-right. Subtle, discoverable on hover.
-   On click, a mini prompt appears asking about A/V support. On "Yes", the
-   bird flies along a curved path to the Polka Foundation link in the footer. */
-.bird-btn{
-  position:fixed;bottom:24px;right:24px;z-index:50;
-  width:38px;height:38px;border-radius:50%;
-  background:var(--surface);border:1px solid var(--line-2);color:var(--ink-mute);
-  display:grid;place-items:center;cursor:pointer;
-  box-shadow:var(--shadow-sm);
-  transition:color .2s ease, border-color .2s ease, transform .2s ease, opacity .2s ease;
-  will-change:transform;
-}
-.bird-btn:hover{color:var(--accent);border-color:var(--accent);transform:scale(1.08) rotate(-4deg)}
-.bird-btn:hover svg{animation:birdHop 0.9s ease-in-out infinite}
-.bird-btn.flapping svg{animation:birdFlap 0.22s ease-in-out infinite}
-.bird-btn.flown{pointer-events:none}
-@keyframes birdHop{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-2px)}
-}
-@keyframes birdFlap{
-  0%,100%{transform:scale(1, 1)}
-  50%{transform:scale(1.06, 0.94)}
-}
-@media (prefers-reduced-motion: reduce){
-  .bird-btn:hover svg,
-  .bird-btn.flapping svg{animation:none}
-}
-
-/* Prompt bubble that appears above the bird. */
-.bird-prompt{
-  position:fixed;bottom:74px;right:16px;z-index:51;
-  display:none;flex-direction:column;gap:10px;
-  padding:12px 14px;border-radius:12px;min-width:200px;
-  background:rgba(20,22,28,0.96);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border:1px solid rgba(255,255,255,0.1);box-shadow:var(--shadow-md);
-  color:#e8e4db;
-  opacity:0;transform:translateY(6px);transition:opacity .18s ease, transform .18s ease;
-}
-.bird-prompt.show{display:flex;opacity:1;transform:translateY(0)}
-.bird-prompt-q{font-size:13px;line-height:1.35;color:#e8e4db}
-.bird-prompt-btns{display:flex;gap:6px;justify-content:flex-end}
-.bird-prompt button{
-  font-family:'Inter Tight',system-ui,sans-serif;
-  font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;
-  border:1px solid var(--line-2);background:var(--surface);color:var(--ink-dim);
-  transition:all .15s ease;
-}
-.bird-prompt .bird-yes{background:var(--accent);border-color:var(--accent);color:#fff}
-.bird-prompt .bird-yes:hover{background:color-mix(in srgb, var(--accent) 88%, black)}
-.bird-prompt .bird-no:hover{color:var(--ink);border-color:var(--accent)}
-.bird-prompt-tail{
-  position:absolute;bottom:-6px;right:26px;width:12px;height:12px;
-  background:rgba(20,22,28,0.96);border-right:1px solid rgba(255,255,255,0.1);
-  border-bottom:1px solid rgba(255,255,255,0.1);transform:rotate(45deg);
-}
-:root[data-theme="dark"] .bird-prompt{background:rgba(255,255,255,0.97);color:var(--ink);border-color:var(--line-2)}
-:root[data-theme="dark"] .bird-prompt-q{color:var(--ink)}
-:root[data-theme="dark"] .bird-prompt-tail{background:rgba(255,255,255,0.97);border-color:var(--line-2)}
-
-/* A brief highlight on the Polka link when the bird arrives. */
-.polka-pinged{
-  animation:polkaPulse 1.6s ease-out;
-  color:var(--accent) !important;
-}
-@keyframes polkaPulse{
-  0%{box-shadow:0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); text-shadow:0 0 0 transparent}
-  40%{box-shadow:0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent); text-shadow:0 0 6px color-mix(in srgb, var(--accent) 70%, transparent)}
-  100%{box-shadow:0 0 0 0 transparent; text-shadow:0 0 0 transparent}
-}
 
 /* Toast surface — transient messages, never permanent. */
 .toast-layer{
@@ -366,6 +321,7 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
     <div class="kicker">Trial setup</div>
     <h1 class="page-title">Prepare your <em>stimuli.</em></h1>
     <p class="page-sub">Load two pieces of content. Watch where the cortex diverges across seven systems.</p>
+    <p class="page-sub" style="font-size:13px;color:var(--accent);margin-top:8px;">Experimental v1. Do not upload sensitive content.</p>
   </div>
 
   <div class="examples-row" aria-label="Load an example comparison">
@@ -391,6 +347,12 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
   </div>
 
   <form id="compareForm" autocomplete="off">
+    <div class="mode-row" role="tablist" aria-label="Select modality">
+      <span class="mode-label">Modality</span>
+      <button type="button" class="mode-pill active" data-mode="text" role="tab" aria-selected="true">Text</button>
+      <button type="button" class="mode-pill" data-mode="audio" role="tab" aria-selected="false">Audio</button>
+      <button type="button" class="mode-pill" data-mode="video" role="tab" aria-selected="false">Video</button>
+    </div>
     <div class="input-grid">
       <div class="input-card">
         <div class="input-head">
@@ -402,6 +364,11 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
         </div>
         <textarea id="textA" name="text_a" maxlength="1000" spellcheck="true"
           placeholder="Paste the first sample — the baseline, the control, the calmer take."></textarea>
+        <input id="fileA" name="file_a" type="file" hidden />
+        <div class="dropzone" id="dropA" tabindex="0" role="button" aria-label="Upload stimulus A file">
+          <div><strong>Drop Stimulus A here</strong> or click to browse</div>
+          <div class="dropzone-meta">Max file size: 100MB</div>
+        </div>
       </div>
       <div class="input-card">
         <div class="input-head">
@@ -413,6 +380,11 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
         </div>
         <textarea id="textB" name="text_b" maxlength="1000" spellcheck="true"
           placeholder="Paste the second sample — the variant, the experimental condition, the sharper take."></textarea>
+        <input id="fileB" name="file_b" type="file" hidden />
+        <div class="dropzone" id="dropB" tabindex="0" role="button" aria-label="Upload stimulus B file">
+          <div><strong>Drop Stimulus B here</strong> or click to browse</div>
+          <div class="dropzone-meta">Max file size: 100MB</div>
+        </div>
       </div>
     </div>
 
@@ -425,33 +397,9 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
         </button>
       </div>
     </div>
+    <div id="turnstileContainer" style="margin-top:8px;"></div>
   </form>
 </main>
-
-<!-- Easter egg: a small songbird. Click → y/n prompt → flies to Polka
-     Foundation link in the footer to "deliver" the signal. -->
-<button type="button" class="bird-btn" id="birdBtn"
-  title="A little bird wants to know…"
-  aria-label="A little bird wants to know if you'd like audio/video support">
-  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-    <path d="M16 7h.01"/>
-    <path d="M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20"/>
-    <path d="m20 7 2 .5-2 .5"/>
-    <path d="M10 18v3"/>
-    <path d="M14 17.75V21"/>
-    <path d="M7 18a6 6 0 0 0 3.84-10.61"/>
-  </svg>
-</button>
-
-<!-- Mini prompt popover that emerges above the bird. -->
-<div class="bird-prompt" id="birdPrompt" role="dialog" aria-hidden="true" aria-labelledby="birdPromptQ">
-  <div class="bird-prompt-q" id="birdPromptQ">Audio &amp; video comparisons too?</div>
-  <div class="bird-prompt-btns">
-    <button type="button" class="bird-yes" id="birdYes">Yes</button>
-    <button type="button" class="bird-no" id="birdNo">No</button>
-  </div>
-  <div class="bird-prompt-tail" aria-hidden="true"></div>
-</div>
 
 <!-- Transient toast surface: warnings + errors appear here, never permanent. -->
 <div class="toast-layer" id="toastLayer" aria-live="polite" aria-atomic="false"></div>
@@ -483,6 +431,16 @@ function toggleTheme(){
   const form = document.getElementById('compareForm');
   const toastLayer = document.getElementById('toastLayer');
   const REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const modePills = Array.from(document.querySelectorAll('.mode-pill'));
+  const examplesRow = document.querySelector('.examples-row');
+  const dropA = document.getElementById('dropA');
+  const dropB = document.getElementById('dropB');
+  const fileA = document.getElementById('fileA');
+  const fileB = document.getElementById('fileB');
+  const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+  let mode = 'text';
+  let turnstileWidgetId = null;
+  let turnstileToken = '';
 
   // ---------- Toast system — all warnings/errors appear here transiently.
   function showToast(html, opts){
@@ -510,6 +468,11 @@ function toggleTheme(){
     }
     return el;
   }
+  function clearToast(key){
+    if (!key) return;
+    const existing = toastLayer.querySelector('[data-key="'+key+'"]');
+    if (existing) existing.remove();
+  }
 
   // ---------- Pre-loaded example pairs — contrasting takes on the same topic.
   const EXAMPLES = {
@@ -536,92 +499,6 @@ function toggleTheme(){
       refresh();
       showToast("Loaded preset: <strong>" + eb.textContent + "</strong>. Run when ready.", {kind:'info', durationMs:3500, key:'preset'});
     });
-  });
-
-  // ---------- Songbird easter egg.
-  // Click the bird → mini prompt asks Yes/No to A/V support →
-  // on Yes, the bird takes off along a curved path to the Polka Foundation
-  // footer link, "delivering" the signal. On No, the prompt simply closes.
-  const bird = document.getElementById('birdBtn');
-  const birdPrompt = document.getElementById('birdPrompt');
-  const birdYes = document.getElementById('birdYes');
-  const birdNo = document.getElementById('birdNo');
-  function polkaLink(){
-    return document.querySelector('.footer-credit a[href*="polka.foundation"]');
-  }
-  function openPrompt(){
-    if (!birdPrompt) return;
-    birdPrompt.classList.add('show');
-    birdPrompt.setAttribute('aria-hidden', 'false');
-  }
-  function closePrompt(){
-    if (!birdPrompt) return;
-    birdPrompt.classList.remove('show');
-    birdPrompt.setAttribute('aria-hidden', 'true');
-  }
-  function recordAnswer(answer){
-    try {
-      const key = 'braindiff-av-ring';
-      const prev = JSON.parse(localStorage.getItem(key) || '{"yes":0,"no":0}');
-      prev[answer] = (prev[answer] || 0) + 1;
-      localStorage.setItem(key, JSON.stringify(prev));
-    } catch(_){}
-  }
-  function flyToPolka(){
-    if (!bird) return;
-    const target = polkaLink();
-    const bRect = bird.getBoundingClientRect();
-    let dx = -140, dy = -240, rot = -14;
-    if (target){
-      const tRect = target.getBoundingClientRect();
-      dx = (tRect.left + tRect.width/2)  - (bRect.left + bRect.width/2);
-      dy = (tRect.top  + tRect.height/2) - (bRect.top  + bRect.height/2);
-      // Tilt toward travel direction for character.
-      rot = Math.max(-22, Math.min(22, Math.atan2(dy, dx) * (180/Math.PI) * 0.3));
-    }
-    bird.classList.add('flapping', 'flown');
-    // Two-stage path for a curved "arc" feel: lift + sideways, then swoop in.
-    const midX = dx * 0.55;
-    const midY = dy * 0.55 - 90;   // arc upward before descending
-    bird.style.transition = 'transform 0.8s cubic-bezier(0.3, 0, 0.55, 0.45)';
-    bird.style.transform = `translate(${midX}px, ${midY}px) scale(0.85) rotate(${rot*0.6}deg)`;
-    setTimeout(() => {
-      bird.style.transition = 'transform 0.85s cubic-bezier(0.45, 0.6, 0.35, 1), opacity .3s ease 0.55s';
-      bird.style.transform = `translate(${dx}px, ${dy}px) scale(0.3) rotate(${rot}deg)`;
-      bird.style.opacity = '0';
-    }, 780);
-    // On arrival: pulse the Polka link + reset the bird so the user can ring again.
-    setTimeout(() => {
-      if (target){
-        target.classList.add('polka-pinged');
-        setTimeout(() => target.classList.remove('polka-pinged'), 1600);
-      }
-      showToast("🐦 Delivered to Polka Foundation — we'll know you want audio &amp; video support.", {kind:'info', durationMs:4500, key:'bird'});
-    }, 1500);
-    setTimeout(() => {
-      bird.classList.remove('flapping', 'flown');
-      bird.style.transition = '';
-      bird.style.transform = '';
-      bird.style.opacity = '';
-    }, 3200);
-  }
-  if (bird){
-    bird.addEventListener('click', (e) => { e.stopPropagation(); openPrompt(); });
-  }
-  if (birdYes){
-    birdYes.addEventListener('click', () => { recordAnswer('yes'); closePrompt(); flyToPolka(); });
-  }
-  if (birdNo){
-    birdNo.addEventListener('click', () => { recordAnswer('no'); closePrompt(); showToast("No worries — we'll keep it text-only.", {kind:'info', durationMs:2600, key:'bird'}); });
-  }
-  // Click outside the prompt closes it.
-  document.addEventListener('click', (e) => {
-    if (!birdPrompt || !birdPrompt.classList.contains('show')) return;
-    if (birdPrompt.contains(e.target) || bird.contains(e.target)) return;
-    closePrompt();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') closePrompt();
   });
 
   function updateCount(ta, out){
@@ -725,6 +602,9 @@ function toggleTheme(){
   }
 
   function canSubmit(){
+    if (mode !== 'text'){
+      return Boolean(fileA.files && fileA.files[0] && fileB.files && fileB.files[0]);
+    }
     const la = a.value.trim().length;
     const lb = b.value.trim().length;
     if (la < MIN || la > MAX || lb < MIN || lb > MAX) return false;
@@ -734,6 +614,20 @@ function toggleTheme(){
   function refresh(){
     updateCount(a, ca);
     updateCount(b, cb);
+    const inTextMode = mode === 'text';
+    a.style.display = inTextMode ? '' : 'none';
+    b.style.display = inTextMode ? '' : 'none';
+    ca.style.display = inTextMode ? '' : 'none';
+    cb.style.display = inTextMode ? '' : 'none';
+    dropA.classList.toggle('show', !inTextMode);
+    dropB.classList.toggle('show', !inTextMode);
+    if (examplesRow) examplesRow.style.display = inTextMode ? '' : 'none';
+    if (!inTextMode){
+      const fa = fileA.files && fileA.files[0];
+      const fb = fileB.files && fileB.files[0];
+      dropA.querySelector('strong').textContent = fa ? fa.name : 'Drop Stimulus A here';
+      dropB.querySelector('strong').textContent = fb ? fb.name : 'Drop Stimulus B here';
+    }
     btn.disabled = !canSubmit();
   }
   a.addEventListener('input', refresh);
@@ -756,16 +650,68 @@ function toggleTheme(){
   function showError(msg, code){
     showToast(msg + (code ? ' <code style="font-family:\'JetBrains Mono\',monospace;font-size:11.5px;opacity:0.7">· ' + code + '</code>' : ''), {kind:'err', durationMs:8000, key:'api-error'});
   }
+  function acceptForMode(){
+    if (mode === 'audio') return 'audio/*';
+    if (mode === 'video') return 'video/*';
+    return '';
+  }
+  function assignFile(input, file, side){
+    if (!file) return;
+    if (file.size > MAX_UPLOAD_BYTES){
+      showToast(
+        'File ' + side + ' exceeds 100MB. Please choose a smaller file.',
+        {kind:'err', durationMs:7000, key:'upload-size-' + side}
+      );
+      input.value = '';
+      refresh();
+      return;
+    }
+    clearToast('upload-size-' + side);
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    input.files = dt.files;
+    refresh();
+  }
+  function bindDropzone(zone, input, side){
+    zone.addEventListener('click', function(){ input.click(); });
+    zone.addEventListener('keydown', function(e){
+      if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); input.click(); }
+    });
+    zone.addEventListener('dragover', function(e){ e.preventDefault(); zone.classList.add('drag'); });
+    zone.addEventListener('dragleave', function(){ zone.classList.remove('drag'); });
+    zone.addEventListener('drop', function(e){
+      e.preventDefault();
+      zone.classList.remove('drag');
+      const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+      assignFile(input, f, side);
+    });
+    input.addEventListener('change', function(){
+      assignFile(input, input.files && input.files[0], side);
+    });
+  }
 
   async function start(){
+    if (!turnstileToken){
+      showError('Please complete the bot check first.', 'TURNSTILE_REQUIRED');
+      return;
+    }
+    if (mode !== 'text'){
+      const fa = fileA.files && fileA.files[0];
+      const fb = fileB.files && fileB.files[0];
+      if (!fa || !fb){
+        showToast('Please upload both files before starting.', {kind:'err', durationMs:5000, key:'upload-missing'});
+        return;
+      }
+      clearToast('upload-missing');
+    }
     const hits = evaluate();
     const hard = hits.filter(function(h){ return h.sev === 'hard' && h.code !== 'EMPTY'; });
     const soft = hits.filter(function(h){ return h.sev === 'soft'; });
-    if (hard.length){
+    if (mode === 'text' && hard.length){
       toastIssues(hard, {title:"Can't run the trial yet:", kind:'err'});
       return;
     }
-    if (soft.length){
+    if (mode === 'text' && soft.length){
       // Allowed to proceed — the toast just flags what'll be noisy.
       toastIssues(soft);
     }
@@ -773,14 +719,38 @@ function toggleTheme(){
     btn.disabled = true;
     const originalLabel = btn.innerHTML;
     btn.innerHTML = 'Starting…';
-    const payload = { text_a: a.value, text_b: b.value };
     let job;
     try{
-      const res = await fetch('/api/diff/start', {
-        method:'POST',
-        headers:{'content-type':'application/json'},
-        body: JSON.stringify(payload),
-      });
+      let res;
+      if (mode === 'text'){
+        const payload = { text_a: a.value, text_b: b.value, modality: 'text', turnstileToken: turnstileToken };
+        res = await fetch('/api/diff/start', {
+          method:'POST',
+          headers:{'content-type':'application/json'},
+          body: JSON.stringify(payload),
+        });
+      } else {
+        const blobClient = await import('https://esm.sh/@vercel/blob/client');
+        const uploadA = await blobClient.upload(fileA.files[0].name, fileA.files[0], {
+          access: 'public',
+          handleUploadUrl: '/api/blob/upload'
+        });
+        const uploadB = await blobClient.upload(fileB.files[0].name, fileB.files[0], {
+          access: 'public',
+          handleUploadUrl: '/api/blob/upload'
+        });
+        const payload = {
+          modality: mode,
+          media_url_a: uploadA.url,
+          media_url_b: uploadB.url,
+          turnstileToken: turnstileToken
+        };
+        res = await fetch('/api/diff/start', {
+          method:'POST',
+          headers:{'content-type':'application/json'},
+          body: JSON.stringify(payload),
+        });
+      }
       if (!res.ok){
         let detail = '';
         try { detail = JSON.stringify((await res.json()).detail || ''); } catch(_){}
@@ -790,6 +760,10 @@ function toggleTheme(){
         return;
       }
       job = await res.json();
+      if (window.turnstile && turnstileWidgetId !== null){
+        turnstile.reset(turnstileWidgetId);
+        turnstileToken = '';
+      }
     } catch (e){
       showError('Network error reaching the BrainDiff API.', String(e && e.message || e));
       btn.innerHTML = originalLabel;
@@ -797,11 +771,13 @@ function toggleTheme(){
       return;
     }
     // Stash the two texts so the results page can render the A/B recall card
-    try {
-      sessionStorage.setItem('braindiff:texts:' + job.job_id, JSON.stringify({
-        a: a.value, b: b.value,
-      }));
-    } catch(_){}
+    if (mode === 'text'){
+      try {
+        sessionStorage.setItem('braindiff:texts:' + job.job_id, JSON.stringify({
+          a: a.value, b: b.value,
+        }));
+      } catch(_){}
+    }
 
     const go = '/run.html?job=' + encodeURIComponent(job.job_id);
     if (REDUCE){ window.location.href = go; return; }
@@ -821,6 +797,40 @@ function toggleTheme(){
     e.preventDefault();
     start();
   });
+  modePills.forEach(function(pill){
+    pill.addEventListener('click', function(){
+      mode = pill.dataset.mode || 'text';
+      modePills.forEach(function(other){
+        const active = other === pill;
+        other.classList.toggle('active', active);
+        other.setAttribute('aria-selected', active ? 'true' : 'false');
+      });
+      const accept = acceptForMode();
+      fileA.setAttribute('accept', accept);
+      fileB.setAttribute('accept', accept);
+      clearToast('upload-size-a');
+      clearToast('upload-size-b');
+      clearToast('upload-missing');
+      refresh();
+    });
+  });
+  bindDropzone(dropA, fileA, 'a');
+  bindDropzone(dropB, fileB, 'b');
+
+  (async function initTurnstile(){
+    try{
+      const cfgRes = await fetch('/api/config/public', { cache: 'no-store' });
+      if (!cfgRes.ok) return;
+      const cfg = await cfgRes.json();
+      if (!cfg.turnstileSiteKey || !window.turnstile) return;
+      turnstileWidgetId = turnstile.render('#turnstileContainer', {
+        sitekey: cfg.turnstileSiteKey,
+        callback: function(token){ turnstileToken = token; },
+        'expired-callback': function(){ turnstileToken = ''; },
+        'error-callback': function(){ turnstileToken = ''; }
+      });
+    } catch(_){}
+  })();
 
   // bfcache safety: if the browser restores this page with .ink-blot.on
   // still applied (user hit Back mid-navigation), clear it so the whole

@@ -1,0 +1,10 @@
+{
+  "name": "braindiff-vercel-adapter",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Minimal Vercel adapter for BrainDiff",
+  "dependencies": {
+    "@upstash/redis": "^1.35.3",
+    "@vercel/blob": "^1.1.1"
+  }
+}

@@ -57,3 +57,15 @@ def test_telemetry_records_and_surfaces_recent_runs(monkeypatch, tmp_path):
     payload = one.json()
     assert payload["job_id"] == job_id
     assert payload["success"] is True
+    assert payload["modality"] == "text"
+    assert payload["modality_effective"] == "text"
+
+    dashboard = client.get("/api/telemetry/dashboard")
+    assert dashboard.status_code == 200
+    dashboard_payload = dashboard.json()
+    assert dashboard_payload["aggregate"]["total_runs"] == 1
+    assert dashboard_payload["aggregate"]["success_count"] == 1
+    assert dashboard_payload["aggregate"]["modality_counts"]["text"] == 1
+    assert "per_modality" in dashboard_payload["aggregate"]
+    assert dashboard_payload["aggregate"]["per_modality"]["text"]["total"] == 1
+    assert "activity_by_day" in dashboard_payload["aggregate"]
