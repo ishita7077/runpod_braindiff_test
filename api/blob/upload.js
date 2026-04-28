@@ -1,6 +1,25 @@
 const { handleUpload } = require("@vercel/blob/client");
 const { methodNotAllowed, serverError } = require("../lib/http");
 
+function sanitizePathname(pathname) {
+  const raw = String(pathname || "").trim();
+  const cleaned = raw
+    .replace(/\\/g, "/")
+    .split("/")
+    .filter(Boolean)
+    .map((part) =>
+      part
+        .normalize("NFKD")
+        .replace(/[^\w.\-]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .toLowerCase()
+    )
+    .filter(Boolean)
+    .join("/");
+  return cleaned || `uploads/brain-diff-media-${Date.now()}.bin`;
+}
+
 module.exports = async function handler(req, res) {
   if (req.method !== "POST") return methodNotAllowed(res, ["POST"]);
   try {
@@ -20,7 +39,7 @@ module.exports = async function handler(req, res) {
         ],
         maximumSizeInBytes: 200 * 1024 * 1024,
         addRandomSuffix: true,
-        pathname: pathname || "braindiff-media"
+        pathname: sanitizePathname(pathname)
       }),
       onUploadCompleted: async () => {}
     });
