@@ -1,6 +1,6 @@
 # BrainDiff — Folders, Repos, and Source of Truth
 
-**Last updated:** 2026-04-27
+**Last updated:** 2026-04-28
 **Maintainer note:** This is the only doc that says "where is the latest." If you change folders or remotes, update this doc in the same commit.
 
 ---
@@ -21,7 +21,7 @@ That's where Cursor will run the audio/video implementation plan. The currently-
 
 | Folder | Status | Repo it tracks | Branch | Last commit | Role |
 |---|---|---|---|---|---|
-| **`Brain Diff - all in/braindiff_v2/`** | **ACTIVE — primary working copy** | `ishita7077/braindiff_v2` (origin), `ishita7077/runpod_braindiff_test` (runpod_test) | `cleanup/vibecode-cleanse` → `runpod_test/main` | `3b39703 feat: prepare deploy-ready Vercel + Runpod production stack` | Where the audio/video plan executes. Songbird removed. Plan file at `docs/plans/2026-04-24-audio-video-input.md`. New venv with `whisperx` installed and `torch==2.6.0` pinned. Bundled ffmpeg at `.tools/bin/ffmpeg`. |
+| **`Brain Diff - all in/braindiff_v2/`** | **ACTIVE — primary working copy** | **`ishita7077/runpod_braindiff_test` only** (`git remote` name: `origin` → that repo) | `cleanup/vibecode-cleanse` tracks **`origin/main`** | `1661a8f` (Turnstile optional + Vercel/Runpod tooling) | Vercel + Runpod stack, audio/video on `/launch`. `braindiff_v2` is **not** a remote on this clone anymore — add it only if you need a second upstream. |
 | `Brain Diff v2/` | Older working copy | `ishita7077/braindiff_v2` | `cleanup/vibecode-cleanse` | `c70abbf feat: complete cleanup pass and light-first BrainDiff refresh` | Predecessor to the "all in" copy. Has its own `.venv` from earlier setup. **10 dirty files** — pending changes that were never committed. Source of the bundled `.tools/bin/ffmpeg` we copied to the active copy. |
 | `braindiff_claude/` | Reference / former production copy | `ishita7077/braindiff_v1` (404 — repo gone from GitHub) | `main` | `44a5ce3 feat: landing + results + run redesign, real time-series dim graphs, deep scope` | The instance described in the operating primer. Was the previously-running backend before we cut over. Clean working tree. **Origin URL is dead — do not push.** |
 | `Brain Diff/` | Documentation snapshot (not git) | — | — | — | Loose `.md` and `.html` files: `BUILDER_LOG.md`, `CURSOR.md`, `a11y_review.md`, `handoff_results.md`, plus standalone `landing.html`, `results.html`, `run.html`. Treat as historical scratch. |
@@ -45,29 +45,17 @@ If disk gets tight, the safe-to-delete candidates are `Brain Diff/` (just `.md` 
 
 ## GitHub repos
 
-| Repo | Visibility | Default branch | Status | What's there |
-|---|---|---|---|---|
-| **`ishita7077/braindiff_v2`** | public | `cleanup/vibecode-cleanse` | **active push target** | Origin of the active clone. Latest commit is `3b39703 feat: prepare deploy-ready Vercel + Runpod production stack` (2026-04-24). Default branch is the cleanup branch, not `main`. |
-| `ishita7077/braindiff-all-in` | public | `main` | **EXISTS but unused locally** | The user said "code will live in this repo." Repo exists on GitHub (last updated 2026-04-24), but **the active local clone's `origin` still points at `braindiff_v2`, not `braindiff-all-in`**. Decision pending — see "Open question" below. |
-| `ishita7077/runpod_braindiff_test` | (assumed) | `main` | secondary remote | Configured as `runpod_test` remote on the active clone. The active branch tracks `runpod_test/main` upstream — meaning `git pull` / `git push` (without args) goes to runpod_test, not origin. Used for Runpod GPU worker testing. |
-| `ishita7077/braindiff_v1` | — | — | **404 — gone** | Was the remote of `braindiff_claude/`. Either deleted or made private. The local `braindiff_claude/` clone still references it but cannot fetch or push. |
+| Repo | Role for this project |
+|---|---|
+| **`https://github.com/ishita7077/runpod_braindiff_test`** | **Only push target** for the active folder. Local `origin` points here. **`main`** is what Vercel/GitHub Actions should track for deploy. |
+| `ishita7077/braindiff_v2` | Separate public repo — **not** wired as a remote in this clone (avoids pushing deploy work to the wrong place). Add with `git remote add upstream-braindiff https://github.com/ishita7077/braindiff_v2.git` only if you need it. |
+| `ishita7077/braindiff_v1` | **404 — gone.** Was the remote of `braindiff_claude/`. |
 
-### Open question — which GitHub repo is "the" repo?
+### Git in `Brain Diff - all in/braindiff_v2/` (this clone)
 
-The user has said two different things at different points:
-
-1. **Earlier this session:** "your code will live in this repo: `https://github.com/ishita7077/braindiff-all-in`"
-2. **Currently:** active clone's `origin` is `braindiff_v2`, branch `cleanup/vibecode-cleanse` tracking `runpod_test/main`
-
-Until reconciled, **before Cursor runs `git push` at the end of the implementation plan, retarget the remote**:
-
-```bash
-cd "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2"
-git remote set-url origin https://github.com/ishita7077/braindiff-all-in.git
-git push -u origin cleanup/vibecode-cleanse:main   # or whatever branch convention you want
-```
-
-If the user instead decides to keep pushing to `braindiff_v2`, leave `origin` as-is and skip the retarget.
+- **`git remote -v`** should show a single **`origin`** → `https://github.com/ishita7077/runpod_braindiff_test.git`.
+- Branch **`cleanup/vibecode-cleanse`** tracks **`origin/main`**. Publish work: **`git push origin HEAD:main`** (or `git push` when configured).
+- Do **not** point this clone’s `origin` at `braindiff_v2` for the Runpod/Vercel path unless you explicitly want that.
 
 ---
 
@@ -99,8 +87,8 @@ If the user instead decides to keep pushing to `braindiff_v2`, leave `origin` as
 ### Docs (`docs/plans/`)
 - `2026-04-24-audio-video-input.md` — the full Cursor implementation brief (11 tasks, full code, commit messages). **This is the next thing to execute.**
 
-### Untracked (visible in `git status`)
-- `node_modules/` and `package-lock.json` — likely from a frontend tooling experiment. Not in `.gitignore`. Decide whether to commit, gitignore, or delete before the next push.
+### `node_modules/`
+- Listed in `.gitignore`. `package-lock.json` is committed for the Vercel adapter.
 
 ---
 
@@ -137,8 +125,7 @@ Wait for `Application startup complete` in `logs/braindiff.log`, then visit `htt
 
 1. **Upload cleanup.** Once audio/video uploads are live, `cache/uploads/<job_id>/` accumulates forever. Add a reaper before public launch.
 2. **Verify 30s truncation branch.** Submit a >30s clip and confirm the result page renders the truncation warning correctly.
-3. **`node_modules/` decision.** Decide whether to commit, gitignore, or delete. Currently untracked.
-4. **Remote retargeting.** If `braindiff-all-in` is the canonical repo, `git remote set-url origin ...` before the next push.
+3. **`origin` remote.** Keep it on **`runpod_braindiff_test`** for this deploy path unless you deliberately add a second remote.
 
 ---
 
