@@ -20,8 +20,13 @@ function mapRunpodStatus(data, jobId) {
       }
     };
   }
+  // RunPod uses "IN_QUEUE" before a worker picks up the job. Normalize to
+  // "queued" so the frontend's STATUS_TO_STEP / applyStatus / DS_STEPS maps
+  // activate step 0 immediately instead of showing a blank UI.
+  const rawLower = data.status ? String(data.status).toLowerCase() : "running";
+  const normalized = rawLower === "in_queue" ? "queued" : rawLower;
   return {
-    status: data.status ? String(data.status).toLowerCase() : "running",
+    status: normalized,
     phase: data.executionTime ? "running" : "queued",
     progress: 0.5
   };
