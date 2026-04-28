@@ -2,7 +2,8 @@ const { methodNotAllowed } = require("./lib/http");
 
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
-  // The Vercel adapter does not currently ship the heavy fsaverage mesh payload.
-  // Frontend callers already fall back to the procedural placeholder when this returns non-OK.
-  res.status(204).end();
+  // Keep this endpoint non-failing so frontend mesh fetch never emits hard errors.
+  // The viewer already handles null by using the procedural placeholder.
+  res.setHeader("Cache-Control", "public, max-age=300, s-maxage=300");
+  res.status(200).json(null);
 };
