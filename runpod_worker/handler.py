@@ -8,6 +8,41 @@ import httpx
 import numpy as np
 import runpod
 
+
+def _hf_login_from_env() -> None:
+    """Authenticate with HuggingFace Hub before any model download.
+
+    The huggingface_hub library auto-detects HF_TOKEN / HUGGING_FACE_HUB_TOKEN /
+    HUGGINGFACE_HUB_TOKEN, but the priority order has changed across versions
+    and the env-var-only path silently sends unauthenticated requests when the
+    var name doesn't match. To make gated-model access (meta-llama/Llama-3.2-3B)
+    rock-solid we explicitly call huggingface_hub.login() with whichever token
+    env var is set, before any TribeModel.from_pretrained call.
+    """
+    token = (
+        os.getenv("HF_TOKEN")
+        or os.getenv("HUGGING_FACE_HUB_TOKEN")
+        or os.getenv("HUGGINGFACE_HUB_TOKEN")
+    )
+    if not token:
+        return
+    try:
+        from huggingface_hub import login as _hf_login
+        _hf_login(token=token, add_to_git_credential=False)
+        # Also normalise the env var name so transformers/huggingface_hub
+        # downstream code paths that read directly from os.environ all agree.
+        os.environ["HF_TOKEN"] = token
+        os.environ["HUGGING_FACE_HUB_TOKEN"] = token
+        os.environ["HUGGINGFACE_HUB_TOKEN"] = token
+    except Exception:
+        # Login failure is non-fatal here; subsequent gated downloads will
+        # still raise the original 401 with our HF_AUTH_REQUIRED wrapper.
+        pass
+
+
+_hf_login_from_env()
+
+
 from backend.atlas_peaks import describe_peak_abs_delta
 from backend.brain_regions import build_vertex_masks
 from backend.differ import compute_diff
