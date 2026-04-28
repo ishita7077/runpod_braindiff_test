@@ -20,6 +20,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Free disk space
+        run: |
+          # GitHub Actions Ubuntu runners ship with Android SDK (~12 GB),
+          # Haskell/GHCup (~4 GB), .NET (~2 GB), and CodeQL (~2 GB) that we
+          # never use. Removing them frees ~20 GB — enough for the full
+          # torch + tribev2 + whisperx Docker build.
+          sudo rm -rf /usr/local/lib/android
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/hostedtoolcache/CodeQL
+          sudo rm -rf /usr/share/dotnet
+          sudo apt-get clean
+          df -h
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

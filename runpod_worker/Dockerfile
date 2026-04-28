@@ -13,28 +13,32 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN pip install --upgrade pip
 
-# ── Step 1: tribev2 ────────────────────────────────────────────────────────────
-# Install from the exact commit captured in requirements_frozen.txt.
-# This transitively brings: neuralset 0.0.2, neuraltrain 0.0.2, torch 2.6,
-# numpy 2.2.6, torchvision 0.21, transformers, spacy, gtts, langdetect,
-# huggingface_hub, moviepy, soundfile, etc.
-RUN pip install \
-    "git+https://github.com/facebookresearch/tribev2.git@72399081ed3f1040c4d996cefb2864a4c46f5b8e#egg=tribev2"
+# ── Single combined pip install ────────────────────────────────────────────────
+# WHY one RUN command?
+#   If we split into separate RUN steps, pip installs torch once for whisperx
+#   (~3 GB), again for frozen requirements (~3 GB upgrade), and the GitHub
+#   Actions runner runs out of disk space (Errno 28).  By doing all installs in
+#   ONE step the pip resolver sees every constraint at once and only ever
+#   downloads each wheel once.
+#
+# Install order:
+#   1. whisperx — establishes its torch/torchaudio lower bounds first
+#   2. frozen requirements — pins everything (torch 2.6.0, numpy 2.2.6, etc.),
+#      overriding what whisperx just pulled; pip upgrades in-place so the wheel
+#      is only on disk once at the end.
+#   3. tribev2 git install — its deps are already satisfied by the frozen reqs
+#   4. runpod — small SDK, installed last so its version is never overridden
+#
+# The editable (-e) line for tribev2 is removed from frozen reqs with grep
+# because we install it properly via git+ in step 3.
 
-# ── Step 2: remaining backend packages ────────────────────────────────────────
-# Use the frozen requirements as the single source of truth for all version pins.
-# Drop the editable (-e) tribev2 line — it's already installed above.
 COPY backend/requirements_frozen.txt /app/requirements_frozen.txt
-RUN grep -v "^-e " /app/requirements_frozen.txt | pip install -r /dev/stdin
 
-# ── Step 3: whisperx ──────────────────────────────────────────────────────────
-# tribev2's eventstransforms.py transcribes audio by running:
-#   sys.executable -m whisperx <wav> ...
-# whisperx must therefore be pip-installed in the same Python environment.
-RUN pip install whisperx
-
-# ── Step 4: RunPod serverless SDK ─────────────────────────────────────────────
-RUN pip install runpod
+RUN pip install whisperx && \
+    grep -v "^-e " /app/requirements_frozen.txt | pip install --upgrade -r /dev/stdin && \
+    pip install \
+        "git+https://github.com/facebookresearch/tribev2.git@72399081ed3f1040c4d996cefb2864a4c46f5b8e#egg=tribev2" && \
+    pip install runpod
 
 # ── Application code ──────────────────────────────────────────────────────────
 COPY backend /app/backend
