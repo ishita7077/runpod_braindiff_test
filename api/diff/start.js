@@ -2,6 +2,7 @@ const { methodNotAllowed, badRequest, serverError, readIp, jsonOrEmpty } = requi
 const { verifyTurnstile, applyRateLimit } = require("../lib/security");
 const { submitJob } = require("../lib/runpod");
 const { saveJobMetadata } = require("../lib/jobs");
+const { runtimeConfig } = require("../lib/config");
 
 function normalizeInput(body) {
   const payload = jsonOrEmpty(body);
@@ -21,7 +22,8 @@ module.exports = async function handler(req, res) {
   try {
     const ip = readIp(req);
     const input = normalizeInput(req.body);
-    if (!input.turnstileToken) {
+    const cfg = runtimeConfig();
+    if (cfg.turnstileEnabled && !String(input.turnstileToken || "").trim()) {
       return badRequest(res, "Missing bot protection token", "TURNSTILE_MISSING");
     }
     if (input.modality === "text" && (!input.textA || !input.textB)) {

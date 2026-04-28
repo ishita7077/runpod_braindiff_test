@@ -1,4 +1,6 @@
 .DS_Store
+node_modules/
+
 .venv/
 .pytest_cache/
 __pycache__/
@@ -22,3 +24,4 @@ MISTAKES_AGENT.md
 
 # Local tooling binaries
 .tools/
+.vercel

@@ -3,8 +3,21 @@
   "private": true,
   "version": "1.0.0",
   "description": "Minimal Vercel adapter for BrainDiff",
+  "scripts": {
+    "vercel:login": "vercel login",
+    "vercel:link": "vercel link",
+    "vercel:deploy": "vercel deploy",
+    "vercel:deploy:prod": "vercel deploy --prod",
+    "smoke:runpod": "node scripts/runpod-smoke.mjs",
+    "smoke:preview": "node scripts/preview-smoke.mjs",
+    "env:vercel-checklist": "node scripts/vercel-env-checklist.mjs",
+    "check:launch-html": "node scripts/assert-launch-html.mjs"
+  },
   "dependencies": {
     "@upstash/redis": "^1.35.3",
     "@vercel/blob": "^1.1.1"
+  },
+  "devDependencies": {
+    "vercel": "^52.0.0"
   }
 }

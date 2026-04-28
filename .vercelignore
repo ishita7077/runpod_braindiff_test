@@ -1,0 +1,20 @@
+# Keep Vercel uploads small (Python venv / caches are huge).
+.venv
+.tools
+node_modules
+.git
+backend
+atlases
+runpod_worker
+tests
+cache
+logs
+tribev2
+tribev2_data
+tribev2_save
+.pytest_cache
+docs
+cleanup_reports
+__pycache__
+.ffmpeg-bin
+.pyinst

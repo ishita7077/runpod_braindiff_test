@@ -16,7 +16,12 @@ function redis() {
 
 async function verifyTurnstile({ token, ip }) {
   const cfg = runtimeConfig();
-  if (!token) return { ok: false, code: "TURNSTILE_MISSING" };
+  if (!cfg.turnstileEnabled) {
+    return { ok: true };
+  }
+  if (!token || !String(token).trim()) {
+    return { ok: false, code: "TURNSTILE_MISSING" };
+  }
   const params = new URLSearchParams();
   params.set("secret", cfg.turnstileSecretKey);
   params.set("response", token);

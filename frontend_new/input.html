@@ -6,7 +6,6 @@
 <meta name="theme-color" content="#f7f4ec" />
 <title>BrainDiff — new comparison</title>
 <meta name="description" content="Paste two versions of a text. BrainDiff compares how a population-average cortex responds to each." />
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -397,7 +396,7 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
         </button>
       </div>
     </div>
-    <div id="turnstileContainer" style="margin-top:8px;"></div>
+    <div id="turnstileContainer" style="margin-top:8px;display:none" aria-live="polite" aria-label="Bot check"></div>
   </form>
 </main>
 
@@ -430,6 +429,7 @@ function toggleTheme(){
   const btn = document.getElementById('submitBtn');
   const form = document.getElementById('compareForm');
   const toastLayer = document.getElementById('toastLayer');
+  const tsContainer = document.getElementById('turnstileContainer');
   const REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const modePills = Array.from(document.querySelectorAll('.mode-pill'));
   const examplesRow = document.querySelector('.examples-row');
@@ -441,6 +441,8 @@ function toggleTheme(){
   let mode = 'text';
   let turnstileWidgetId = null;
   let turnstileToken = '';
+  let turnstileRequired = false;
+  let publicConfigPromise;
 
   // ---------- Toast system — all warnings/errors appear here transiently.
   function showToast(html, opts){
@@ -691,8 +693,13 @@ function toggleTheme(){
   }
 
   async function start(){
-    if (!turnstileToken){
-      showError('Please complete the bot check first.', 'TURNSTILE_REQUIRED');
+    await publicConfigPromise;
+    if (turnstileRequired && !String(turnstileToken).trim()){
+      if (turnstileWidgetId === null){
+        showError('Bot check is not ready yet (or failed to load). Check the notice above or refresh the page.', 'TURNSTILE_NOT_READY');
+      } else {
+        showError('Finish the verification in the widget below, then try again.', 'TURNSTILE_REQUIRED');
+      }
       return;
     }
     if (mode !== 'text'){
@@ -723,7 +730,8 @@ function toggleTheme(){
     try{
       let res;
       if (mode === 'text'){
-        const payload = { text_a: a.value, text_b: b.value, modality: 'text', turnstileToken: turnstileToken };
+        const payload = { text_a: a.value, text_b: b.value, modality: 'text' };
+        if (turnstileRequired) payload.turnstileToken = turnstileToken;
         res = await fetch('/api/diff/start', {
           method:'POST',
           headers:{'content-type':'application/json'},
@@ -742,9 +750,9 @@ function toggleTheme(){
         const payload = {
           modality: mode,
           media_url_a: uploadA.url,
-          media_url_b: uploadB.url,
-          turnstileToken: turnstileToken
+          media_url_b: uploadB.url
         };
+        if (turnstileRequired) payload.turnstileToken = turnstileToken;
         res = await fetch('/api/diff/start', {
           method:'POST',
           headers:{'content-type':'application/json'},
@@ -760,8 +768,8 @@ function toggleTheme(){
         return;
       }
       job = await res.json();
-      if (window.turnstile && turnstileWidgetId !== null){
-        turnstile.reset(turnstileWidgetId);
+      if (turnstileRequired && window.turnstile && turnstileWidgetId !== null){
+        window.turnstile.reset(turnstileWidgetId);
         turnstileToken = '';
       }
     } catch (e){
@@ -817,19 +825,71 @@ function toggleTheme(){
   bindDropzone(dropA, fileA, 'a');
   bindDropzone(dropB, fileB, 'b');
 
-  (async function initTurnstile(){
+  function loadScript(src){
+    return new Promise(function(resolve, reject){
+      var s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = function(){ resolve(); };
+      s.onerror = function(){ reject(new Error('Failed to load script')); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function waitTurnstileGlobal(maxMs){
+    return new Promise(function(resolve, reject){
+      if (window.turnstile){ resolve(); return; }
+      var start = Date.now();
+      var id = setInterval(function(){
+        if (window.turnstile){ clearInterval(id); resolve(); return; }
+        if (Date.now() - start > maxMs){ clearInterval(id); reject(new Error('Turnstile script did not load')); }
+      }, 40);
+    });
+  }
+
+  publicConfigPromise = (async function initBotGate(){
     try{
       const cfgRes = await fetch('/api/config/public', { cache: 'no-store' });
-      if (!cfgRes.ok) return;
-      const cfg = await cfgRes.json();
-      if (!cfg.turnstileSiteKey || !window.turnstile) return;
-      turnstileWidgetId = turnstile.render('#turnstileContainer', {
+      var cfg = {};
+      try{ cfg = await cfgRes.json(); } catch(_){}
+      if (!cfgRes.ok){
+        showToast(
+          'Could not load site settings (HTTP ' + cfgRes.status + ').',
+          { kind: 'err', durationMs: 12000, key: 'public-config' }
+        );
+        return;
+      }
+      turnstileRequired = cfg.turnstileRequired === true ||
+        (cfg.turnstileRequired == null && !!cfg.turnstileSiteKey);
+      if (!turnstileRequired){
+        if (tsContainer) tsContainer.style.display = 'none';
+        return;
+      }
+      if (!cfg.turnstileSiteKey){
+        showToast(
+          'Turnstile is enabled but the site key is missing (check server env).',
+          { kind: 'err', durationMs: 14000, key: 'turnstile-config' }
+        );
+        return;
+      }
+      if (tsContainer) tsContainer.style.display = 'block';
+      await loadScript('https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit');
+      await waitTurnstileGlobal(25000);
+      turnstileWidgetId = window.turnstile.render('#turnstileContainer', {
         sitekey: cfg.turnstileSiteKey,
         callback: function(token){ turnstileToken = token; },
         'expired-callback': function(){ turnstileToken = ''; },
-        'error-callback': function(){ turnstileToken = ''; }
+        'error-callback': function(){
+          turnstileToken = '';
+          showToast('Bot check failed to load. Refresh the page or try another network.', { kind: 'err', durationMs: 9000, key: 'turnstile-widget-err' });
+        }
       });
-    } catch(_){}
+    } catch (err){
+      showToast(
+        (err && err.message) ? err.message : 'Bot check could not start.',
+        { kind: 'err', durationMs: 10000, key: 'turnstile-config' }
+      );
+    }
   })();
 
   // bfcache safety: if the browser restores this page with .ink-blot.on
