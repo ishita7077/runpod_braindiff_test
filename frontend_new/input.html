@@ -754,7 +754,7 @@ function toggleTheme(){
         });
       } else {
         // Keep browser SDK version aligned with server route SDK to avoid token/protocol mismatch.
-        const blobClient = await import('https://esm.sh/@vercel/blob@1.1.1/client');
+        const blobClient = await import('https://esm.sh/@vercel/blob@2.3.3/client');
         const uploadA = await blobClient.upload(safeUploadName(fileA.files[0], 'a'), fileA.files[0], {
           access: 'public',
           handleUploadUrl: '/api/blob/upload'
