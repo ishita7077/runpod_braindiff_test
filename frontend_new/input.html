@@ -674,6 +674,22 @@ function toggleTheme(){
     input.files = dt.files;
     refresh();
   }
+  // Derive a reliable MIME type for the blob upload.
+  // file.type is often empty ("") on macOS/Windows for .mp4/.mov/.m4a files
+  // depending on the browser/OS MIME registry. Vercel Blob requires a
+  // Content-Type header; passing an empty string causes a 400.
+  function safeContentType(file){
+    if (file && file.type && file.type !== '') return file.type;
+    var ext = ((file && file.name) || '').split('.').pop().toLowerCase();
+    var map = {
+      mp4:'video/mp4', mov:'video/quicktime', webm:'video/webm',
+      mkv:'video/x-matroska', avi:'video/x-msvideo',
+      mp3:'audio/mpeg', m4a:'audio/mp4', aac:'audio/aac',
+      wav:'audio/wav', flac:'audio/flac', ogg:'audio/ogg',
+      opus:'audio/ogg'
+    };
+    return map[ext] || 'application/octet-stream';
+  }
   function safeUploadName(file, side){
     var name = (file && file.name ? file.name : ('stimulus-' + side + '.bin'));
     var dot = name.lastIndexOf('.');
@@ -757,10 +773,12 @@ function toggleTheme(){
         const blobClient = await import('https://esm.sh/@vercel/blob@2.3.3/client');
         const uploadA = await blobClient.upload(safeUploadName(fileA.files[0], 'a'), fileA.files[0], {
           access: 'public',
+          contentType: safeContentType(fileA.files[0]),
           handleUploadUrl: '/api/blob/upload'
         });
         const uploadB = await blobClient.upload(safeUploadName(fileB.files[0], 'b'), fileB.files[0], {
           access: 'public',
+          contentType: safeContentType(fileB.files[0]),
           handleUploadUrl: '/api/blob/upload'
         });
         const payload = {

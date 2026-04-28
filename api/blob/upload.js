@@ -27,15 +27,17 @@ module.exports = async function handler(req, res) {
       body: req.body,
       request: req,
       onBeforeGenerateToken: async (pathname) => ({
+        // Do not restrict by content-type here — browsers report inconsistent
+        // MIME types for .mp4/.mov/.m4a (often empty string on macOS/Windows).
+        // The frontend derives a reliable type via safeContentType() and passes
+        // it explicitly. File-type validation is done client-side before upload.
         allowedContentTypes: [
-          "audio/mpeg",
-          "audio/mp4",
-          "audio/wav",
-          "audio/flac",
-          "audio/ogg",
-          "video/mp4",
-          "video/quicktime",
-          "video/webm"
+          "audio/mpeg", "audio/mp4", "audio/mp3", "audio/aac",
+          "audio/wav", "audio/flac", "audio/ogg", "audio/opus",
+          "audio/x-m4a", "audio/x-wav",
+          "video/mp4", "video/quicktime", "video/webm",
+          "video/x-m4v", "video/x-matroska", "video/x-msvideo",
+          "application/octet-stream"  // fallback for undetected MIME types
         ],
         maximumSizeInBytes: 200 * 1024 * 1024,
         addRandomSuffix: true,
