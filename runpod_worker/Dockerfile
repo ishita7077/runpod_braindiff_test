@@ -9,7 +9,15 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
     git \
+    curl \
     && rm -rf /var/lib/apt/lists/*
+
+# ── uv / uvx ──────────────────────────────────────────────────────────────────
+# tribev2's text pipeline calls `uvx` as a subprocess (eventstransforms.py).
+# Install uv via its official installer so both `uv` and `uvx` land at
+# /root/.local/bin and are available system-wide.
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:${PATH}"
 
 RUN pip install --upgrade pip
 
