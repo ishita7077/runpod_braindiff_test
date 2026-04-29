@@ -784,11 +784,11 @@ function toggleTheme(){
       if (h1 && !REDUCE){
         h1.classList.add('fade-out');
         setTimeout(function(){
-          h1.innerHTML = '<em>Done.</em> Two texts, one cortex.';
+          h1.innerHTML = '<em>Done.</em> ' + RUN_DONE_COPY;
           h1.classList.remove('fade-out');
         }, 520);
       } else if (h1){
-        h1.innerHTML = '<em>Done.</em> Two texts, one cortex.';
+        h1.innerHTML = '<em>Done.</em> ' + RUN_DONE_COPY;
       }
       document.body.classList.add('run-done');
     }, 1100);
@@ -797,9 +797,22 @@ function toggleTheme(){
   const params = new URLSearchParams(location.search);
   const JOB_ID = params.get('job');
   if (!JOB_ID){ window.location.replace('/launch'); return; }
+  const RUN_MODE = (function(){
+    try {
+      const stored = sessionStorage.getItem('braindiff:modality:' + JOB_ID);
+      if (stored) return stored;
+    } catch(_){}
+    return params.get('mode') || 'text';
+  })().toLowerCase();
+  const RUN_KIND = RUN_MODE === 'video' ? 'videos' : (RUN_MODE === 'audio' ? 'audio files' : 'texts');
+  const RUN_DONE_COPY = RUN_MODE === 'text' ? 'Two texts, one cortex.' : 'Two media samples, one cortex.';
 
   const jobLbl = document.getElementById('jobIdLabel');
   if (jobLbl) jobLbl.textContent = 'job · ' + JOB_ID.slice(0, 8);
+  const statusSub = document.getElementById('statusSub');
+  if (statusSub) {
+    statusSub.textContent = 'Your two ' + RUN_KIND + ' are being encoded and compared across seven cortical dimensions.';
+  }
 
   // ===== Deep Scope ======================================================
   // Self-contained module that owns the new live-progress UI in #deepScope.
@@ -808,7 +821,7 @@ function toggleTheme(){
   // so it can show avg ± stdev next to each step once the user has 20+ runs.
   // -----------------------------------------------------------------------
   const DS_STEPS = [
-    { id:'read',    label:'Reading both texts (WhisperX)',
+    { id:'read',    label: RUN_MODE === 'video' ? 'Reading both videos (WhisperX)' : (RUN_MODE === 'audio' ? 'Reading both audio files (WhisperX)' : 'Reading both texts (WhisperX)'),
       backend: ['queued','converting_text_to_speech','decoding_audio','decoding_video'],
       stageKeys: ['events_a_ms','events_b_ms'],
       expectedMs: 50_000 },

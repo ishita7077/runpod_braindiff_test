@@ -847,13 +847,14 @@ function toggleTheme(){
       return;
     }
     // Stash the two texts so the results page can render the A/B recall card
-    if (mode === 'text'){
-      try {
+    try {
+      sessionStorage.setItem('braindiff:modality:' + job.job_id, mode);
+      if (mode === 'text'){
         sessionStorage.setItem('braindiff:texts:' + job.job_id, JSON.stringify({
           a: a.value, b: b.value,
         }));
-      } catch(_){}
-    }
+      }
+    } catch(_){}
 
     const go = '/run.html?job=' + encodeURIComponent(job.job_id);
     if (REDUCE){ window.location.href = go; return; }
