@@ -1,4 +1,4 @@
-const crypto = require("node:crypto");
+const crypto = require("crypto");
 const { DAY_SECONDS } = require("./config");
 
 const BLOB_PROXY_TTL_SECONDS = 6 * 60 * 60;

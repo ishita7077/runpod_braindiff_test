@@ -1,4 +1,4 @@
-const { Readable } = require("node:stream");
+const { Readable } = require("stream");
 const { get } = require("@vercel/blob");
 const { methodNotAllowed, badRequest, serverError } = require("../lib/http");
 const { verifySignedBlobRead } = require("../lib/blob-proxy");
@@ -6,10 +6,11 @@ const { verifySignedBlobRead } = require("../lib/blob-proxy");
 module.exports = async function handler(req, res) {
   if (req.method !== "GET") return methodNotAllowed(res, ["GET"]);
   try {
+    const parsedUrl = new URL(req.url, "http://localhost");
     const verdict = verifySignedBlobRead(
-      req.query && req.query.path,
-      req.query && req.query.exp,
-      req.query && req.query.sig
+      parsedUrl.searchParams.get("path"),
+      parsedUrl.searchParams.get("exp"),
+      parsedUrl.searchParams.get("sig")
     );
     if (!verdict.ok) {
       return badRequest(res, "Invalid blob download link", verdict.code);
