@@ -705,14 +705,6 @@ function toggleTheme(){
     // Keep path simple for Blob token constraints and CORS preflight stability.
     return 'uploads/' + side + '-' + Date.now() + '-' + stem + ext;
   }
-  function blobStoreIdFromClientToken(clientToken){
-    var parts = String(clientToken || '').split('_');
-    if (parts.length < 5 || parts[0] !== 'vercel' || parts[1] !== 'blob' || parts[2] !== 'client') {
-      throw new Error('Unexpected Vercel Blob client token format.');
-    }
-    if (!parts[3]) throw new Error('Missing Blob store id in client token.');
-    return parts[3];
-  }
   async function fetchBlobClientToken(pathname){
     var res = await fetch('/api/blob/upload', {
       method: 'POST',
@@ -740,44 +732,22 @@ function toggleTheme(){
     }
     return json.clientToken;
   }
-  async function uploadBlobWithStoreHeader(file, side){
+  var blobClientModulePromise = null;
+  function getBlobClientModule(){
+    if (!blobClientModulePromise){
+      blobClientModulePromise = import('https://esm.sh/@vercel/blob@2.3.4-5d06fa0-20260428215217/client');
+    }
+    return blobClientModulePromise;
+  }
+  async function uploadBlobWithClientToken(file, side){
     var pathname = safeUploadName(file, side);
     var clientToken = await fetchBlobClientToken(pathname);
-    var storeId = blobStoreIdFromClientToken(clientToken);
-    var requestId = (window.crypto && typeof window.crypto.randomUUID === 'function')
-      ? window.crypto.randomUUID()
-      : ('blob-' + Date.now() + '-' + Math.random().toString(16).slice(2));
-    var contentType = safeContentType(file);
-    var url = 'https://vercel.com/api/blob/?pathname=' + encodeURIComponent(pathname);
-    var res = await fetch(url, {
-      method: 'PUT',
-      headers: {
-        authorization: 'Bearer ' + clientToken,
-        'x-vercel-blob-store-id': storeId,
-        'x-api-version': '12',
-        'x-api-blob-request-id': requestId,
-        'x-api-blob-request-attempt': '0',
-        'x-vercel-blob-access': 'public',
-        'x-content-type': contentType,
-        'x-content-length': String(file.size)
-      },
-      body: file
+    var blobClient = await getBlobClientModule();
+    return blobClient.put(pathname, file, {
+      access: 'public',
+      token: clientToken,
+      contentType: safeContentType(file)
     });
-    var json;
-    try { json = await res.json(); } catch(_){ json = null; }
-    if (!res.ok){
-      var detail = json && (json.error || json.message || json.code)
-        ? String(json.error || json.message || json.code)
-        : '';
-      if (!detail){
-        try { detail = await res.text(); } catch(_){}
-      }
-      throw new Error('Blob upload failed' + (detail ? ': ' + detail : '') + ' (HTTP ' + res.status + ')');
-    }
-    if (!json || typeof json.url !== 'string' || !json.url){
-      throw new Error('Blob upload response did not include a URL.');
-    }
-    return json;
   }
   function bindDropzone(zone, input, side){
     zone.addEventListener('click', function(){ input.click(); });
@@ -843,8 +813,8 @@ function toggleTheme(){
           body: JSON.stringify(payload),
         });
       } else {
-        const uploadA = await uploadBlobWithStoreHeader(fileA.files[0], 'a');
-        const uploadB = await uploadBlobWithStoreHeader(fileB.files[0], 'b');
+        const uploadA = await uploadBlobWithClientToken(fileA.files[0], 'a');
+        const uploadB = await uploadBlobWithClientToken(fileB.files[0], 'b');
         const payload = {
           modality: mode,
           media_url_a: uploadA.url,
