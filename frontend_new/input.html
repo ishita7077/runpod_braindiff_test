@@ -744,7 +744,7 @@ function toggleTheme(){
     var clientToken = await fetchBlobClientToken(pathname);
     var blobClient = await getBlobClientModule();
     return blobClient.put(pathname, file, {
-      access: 'public',
+      access: 'private',
       token: clientToken,
       contentType: safeContentType(file)
     });
@@ -817,8 +817,8 @@ function toggleTheme(){
         const uploadB = await uploadBlobWithClientToken(fileB.files[0], 'b');
         const payload = {
           modality: mode,
-          media_url_a: uploadA.url,
-          media_url_b: uploadB.url
+          media_path_a: uploadA.pathname,
+          media_path_b: uploadB.pathname
         };
         if (turnstileRequired) payload.turnstileToken = turnstileToken;
         res = await fetch('/api/diff/start', {
