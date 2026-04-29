@@ -13,6 +13,8 @@ function normalizeInput(body) {
     textB: typeof payload.text_b === "string" ? payload.text_b.trim() : "",
     mediaUrlA: typeof payload.media_url_a === "string" ? payload.media_url_a.trim() : "",
     mediaUrlB: typeof payload.media_url_b === "string" ? payload.media_url_b.trim() : "",
+    mediaNameA: typeof payload.media_name_a === "string" ? payload.media_name_a.trim() : "",
+    mediaNameB: typeof payload.media_name_b === "string" ? payload.media_name_b.trim() : "",
     turnstileToken: payload.turnstileToken || payload.turnstile_token || ""
   };
 }
@@ -73,6 +75,9 @@ module.exports = async function handler(req, res) {
       createdAt: new Date().toISOString(),
       ip,
       type: rateType,
+      modality: input.modality,
+      mediaNameA: input.mediaNameA || null,
+      mediaNameB: input.mediaNameB || null,
       blobUrlA: input.mediaUrlA || null,
       blobUrlB: input.mediaUrlB || null,
       blobDeleted: false

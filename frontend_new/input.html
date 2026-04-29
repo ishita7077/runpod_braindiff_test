@@ -818,7 +818,9 @@ function toggleTheme(){
         const payload = {
           modality: mode,
           media_url_a: uploadA.url,
-          media_url_b: uploadB.url
+          media_url_b: uploadB.url,
+          media_name_a: fileA.files[0].name,
+          media_name_b: fileB.files[0].name
         };
         if (turnstileRequired) payload.turnstileToken = turnstileToken;
         res = await fetch('/api/diff/start', {

@@ -2,6 +2,27 @@ const { methodNotAllowed, badRequest, serverError } = require("../../lib/http");
 const { getJobStatus } = require("../../lib/runpod");
 const { maybeDeleteBlobsForJob, getJobMetadata } = require("../../lib/jobs");
 
+function filenameFromUrl(value) {
+  try {
+    const pathname = new URL(value).pathname;
+    return decodeURIComponent(pathname.split("/").filter(Boolean).pop() || "");
+  } catch (_) {
+    return "";
+  }
+}
+
+function resultWithJobMetadata(result, jobMeta) {
+  if (!result || typeof result !== "object" || !jobMeta) return result;
+  const merged = { ...result };
+  const meta = { ...(result.meta || {}) };
+  const modality = jobMeta.modality || (jobMeta.type === "media" ? "media" : "");
+  if (modality && !meta.modality) meta.modality = modality;
+  if (!meta.media_name_a) meta.media_name_a = jobMeta.mediaNameA || filenameFromUrl(jobMeta.blobUrlA);
+  if (!meta.media_name_b) meta.media_name_b = jobMeta.mediaNameB || filenameFromUrl(jobMeta.blobUrlB);
+  merged.meta = meta;
+  return merged;
+}
+
 function mapRunpodStatus(data, jobId, jobMeta) {
   const raw = String(data.status || "").toUpperCase();
 
@@ -9,7 +30,7 @@ function mapRunpodStatus(data, jobId, jobMeta) {
     return {
       status: "done",
       job_id: jobId,
-      result: data.output || data
+      result: resultWithJobMetadata(data.output || data, jobMeta)
     };
   }
 

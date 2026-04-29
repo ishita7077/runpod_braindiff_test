@@ -870,7 +870,7 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
 
 <main>
 
-  <!-- A/B recall — collapsed by default; toggle to see full text. -->
+  <!-- A/B recall — text previews for text jobs, input filenames for media jobs. -->
   <div class="recall" id="recallCard">
     <div class="recall-col a">
       <span class="recall-tag">A</span>
@@ -890,8 +890,8 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
       <div class="brain-toolbar">
         <div class="view-group" role="tablist" id="brainViewGroup">
           <button class="active" data-view="diff" data-tip="Where B activates more (vermillion) or less (slate) than A.">B − A</button>
-          <button data-view="b"    data-tip="Version B's predicted cortical response, on its own.">Just B</button>
-          <button data-view="a"    data-tip="Version A's predicted cortical response, on its own.">Just A</button>
+          <button data-view="b"    data-tip="Sample B's predicted cortical response, on its own.">Just B</button>
+          <button data-view="a"    data-tip="Sample A's predicted cortical response, on its own.">Just A</button>
         </div>
         <div class="brain-extras">
           <button class="icon-btn" title="Rotate">⟳</button>
@@ -914,7 +914,7 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
     <div class="verdict">
       <div class="verdict-eyebrow" id="verdictEyebrow">Result</div>
       <h1 class="verdict-headline" id="verdictHeadline">Comparison complete</h1>
-      <p class="verdict-caption">Model interpretation · based on your run's cortical contrast pattern.</p>
+      <p class="verdict-caption">Model interpretation · based on this run's cortical contrast pattern.</p>
       <p class="verdict-sub" id="verdictSub"></p>
 
       <!-- Empty state — appears only when confidence == too_close_to_call -->
@@ -988,14 +988,14 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
     </p>
   </section>
 
-  <!-- DIMENSION GRAPHS — per-dimension time-series. Each text gets converted
-       to speech and run through TRIBE v2 timestep-by-timestep; the dimension
+  <!-- DIMENSION GRAPHS — per-dimension time-series. Each sample gets run
+       through TRIBE v2 timestep-by-timestep; the dimension
        series is that dimension's average activation at each timestep. Three
        views: B−A difference over time, B alone, A alone. -->
   <section class="dim-graphs">
     <div class="section-head">
       <h2>Dimension <em>graphs</em></h2>
-      <p>Each line is the activation of one cortical system <em>across the duration of the text</em>. TRIBE v2 predicts 20,484 vertex values per second; we average the ones in that system's mask.</p>
+      <p id="dimGraphIntro">Each line is the activation of one cortical system <em>across the duration of the sample</em>. TRIBE v2 predicts 20,484 vertex values per second; we average the ones in that system's mask.</p>
     </div>
     <div class="view-group" role="tablist" id="dimGraphViewGroup">
       <button class="active" data-view="diff">B − A</button>
@@ -1272,27 +1272,72 @@ if (job && job.status && job.status !== 'done'){
   window.location.replace('./run.html?job=' + encodeURIComponent(JOB_ID));
 }
 
-/* ---------- Populate recall card. Prefers sessionStorage stash (set by
-              input.html on submit), falls back to the authoritative copy
-              the backend now returns in meta.text_a / meta.text_b, and
-              finally degrades to char counts if the server is older. ---------- */
-try {
-  const stash = JSON.parse(sessionStorage.getItem('braindiff:texts:' + JOB_ID) || 'null');
-  const meta = (job && job.result && job.result.meta) || {};
-  const aEl = document.getElementById('recallA');
-  const bEl = document.getElementById('recallB');
-  const textA = (stash && stash.a) || meta.text_a || ('Text A · ' + (meta.text_a_length || 0) + ' chars');
-  const textB = (stash && stash.b) || meta.text_b || ('Text B · ' + (meta.text_b_length || 0) + ' chars');
-  if (aEl) aEl.textContent = textA;
-  if (bEl) bEl.textContent = textB;
-} catch(_){}
-
-/* ---------- Populate verdict / facts / axis / deep-card ---------- */
+/* ---------- Populate result copy. Media jobs produce cortical predictions
+              from audio/video samples, not text-copy advice. Keep that mode
+              visible even when the backend headline is legacy text wording. ---------- */
 const result = (job && job.result) || null;
 const meta = (result && result.meta) || {};
 const insights = (result && result.insights) || {};
 const dimensions = (result && result.dimensions) || [];
 
+function storedModality(){
+  try { return sessionStorage.getItem('braindiff:modality:' + JOB_ID) || ''; } catch(_) { return ''; }
+}
+const RUN_MODE = String(meta.modality || storedModality() || 'text').toLowerCase();
+const IS_VIDEO = RUN_MODE === 'video';
+const IS_AUDIO = RUN_MODE === 'audio';
+const IS_MEDIA = IS_VIDEO || IS_AUDIO || RUN_MODE === 'media';
+const SAMPLE_KIND = IS_VIDEO ? 'video' : IS_AUDIO ? 'audio file' : 'sample';
+const SAMPLE_KIND_PLURAL = IS_VIDEO ? 'videos' : IS_AUDIO ? 'audio files' : 'samples';
+const SIDE_WORD = IS_MEDIA ? 'Sample' : 'Version';
+
+function cleanMediaName(value, fallback){
+  const raw = String(value || '').trim();
+  if (!raw) return fallback;
+  let name;
+  try { name = decodeURIComponent(raw.split('/').pop()); } catch(_) { name = raw.split('/').pop(); }
+  return name
+    .replace(/^[ab]-\d+-/i, '')
+    .replace(/-[A-Za-z0-9]{16,}(?=\.[^.]+$)/, '');
+}
+function sideLabel(side){
+  return IS_MEDIA ? SAMPLE_KIND.charAt(0).toUpperCase() + SAMPLE_KIND.slice(1) + ' ' + side : 'Text ' + side;
+}
+function whoFromDelta(delta){
+  return delta > 0 ? SIDE_WORD + ' B' : SIDE_WORD + ' A';
+}
+function topDimension(){
+  if (!dimensions.length) return null;
+  return [...dimensions].sort((a,b) => Math.abs(b.delta || 0) - Math.abs(a.delta || 0))[0];
+}
+function mediaHeadline(){
+  const top = topDimension();
+  if (!top || Math.abs(top.delta || 0) < 0.005) return 'The two ' + SAMPLE_KIND_PLURAL + ' produce nearly identical predicted brain responses';
+  return whoFromDelta(top.delta) + ' drives stronger ' + String(top.label || 'cortical response').toLowerCase();
+}
+function mediaSubhead(){
+  const top = topDimension();
+  if (!top) return 'This result compares predicted cortical responses from the uploaded ' + SAMPLE_KIND_PLURAL + '.';
+  return 'Strongest shift: ' + String(top.label || 'cortical response').toLowerCase() + '. This is a media-response comparison, not a text-copy diagnosis.';
+}
+
+try {
+  const stash = JSON.parse(sessionStorage.getItem('braindiff:texts:' + JOB_ID) || 'null');
+  const aEl = document.getElementById('recallA');
+  const bEl = document.getElementById('recallB');
+  const toggle = document.getElementById('recallToggle');
+  const textA = IS_MEDIA
+    ? sideLabel('A') + ' · ' + cleanMediaName(meta.media_name_a, 'uploaded ' + SAMPLE_KIND)
+    : ((stash && stash.a) || meta.text_a || ('Text A · ' + (meta.text_a_length || 0) + ' chars'));
+  const textB = IS_MEDIA
+    ? sideLabel('B') + ' · ' + cleanMediaName(meta.media_name_b, 'uploaded ' + SAMPLE_KIND)
+    : ((stash && stash.b) || meta.text_b || ('Text B · ' + (meta.text_b_length || 0) + ' chars'));
+  if (aEl) aEl.textContent = textA;
+  if (bEl) bEl.textContent = textB;
+  if (toggle && IS_MEDIA) toggle.textContent = 'Input files';
+} catch(_){}
+
+/* ---------- Populate verdict / facts / axis / deep-card ---------- */
 const rawDelta = decodeFloat32B64(result && result.vertex_delta_b64);
 
 const atlasPeak = meta.atlas_peak || null;
@@ -1314,10 +1359,10 @@ let winnerLine = '—';
 let winnerEyebrow = 'Result';
 if (ws.b_wins > ws.a_wins){
   winnerLine = 'B — on ' + ws.b_wins + ' of ' + dimCount + ' dimensions';
-  winnerEyebrow = 'Version B lands harder';
+  winnerEyebrow = SIDE_WORD + ' B lands harder';
 } else if (ws.a_wins > ws.b_wins){
   winnerLine = 'A — on ' + ws.a_wins + ' of ' + dimCount + ' dimensions';
-  winnerEyebrow = 'Version A lands harder';
+  winnerEyebrow = SIDE_WORD + ' A lands harder';
 } else {
   winnerLine = 'Split — ' + (ws.tied || 0) + ' neutral';
   winnerEyebrow = 'A and B land close';
@@ -1325,9 +1370,16 @@ if (ws.b_wins > ws.a_wins){
 
 // Verdict block
 document.getElementById('verdictEyebrow').textContent = winnerEyebrow;
-document.getElementById('verdictHeadline').innerHTML = esc(insights.headline || meta.headline || 'Comparison complete');
+document.getElementById('verdictHeadline').innerHTML = esc(IS_MEDIA ? mediaHeadline() : (insights.headline || meta.headline || 'Comparison complete'));
 const subEl = document.getElementById('verdictSub');
-if (insights.subhead) subEl.textContent = insights.subhead; else subEl.style.display = 'none';
+if (IS_MEDIA) subEl.textContent = mediaSubhead();
+else if (insights.subhead) subEl.textContent = insights.subhead;
+else subEl.style.display = 'none';
+
+const dimGraphIntro = document.getElementById('dimGraphIntro');
+if (dimGraphIntro && IS_MEDIA) {
+  dimGraphIntro.innerHTML = "Each line is the activation of one cortical system <em>across the duration of the uploaded " + SAMPLE_KIND_PLURAL + "</em>. TRIBE v2 predicts 20,484 vertex values per second; we average the ones in that system's mask.";
+}
 
 // Biggest shift card
 // Expand HCP-MMP atlas codes (L_V2_ROI → "Left V2 (secondary visual)") so
@@ -1431,13 +1483,13 @@ sortedForAxis.forEach((row) => {
 
 // Trade-off takeaway line
 const tradeoffLineEl = document.getElementById('tradeoffLine');
-if (insights.subhead){
+if (insights.subhead && !IS_MEDIA){
   tradeoffLineEl.innerHTML = insights.subhead;
 } else if (dimensions.length){
   const sortedAbs = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
   const top = sortedAbs[0];
   tradeoffLineEl.textContent =
-    (top.direction === 'B_higher' ? 'Version B' : top.direction === 'A_higher' ? 'Version A' : 'Neither version') +
+    (top.direction === 'B_higher' ? SIDE_WORD + ' B' : top.direction === 'A_higher' ? SIDE_WORD + ' A' : 'Neither side') +
     ' leads on ' + top.label.toLowerCase() + '. Other dimensions are smaller contrasts.';
 } else {
   tradeoffLineEl.textContent = '—';
@@ -1599,10 +1651,10 @@ function buildDimViewSeries(row, mode){
 
 function legendCopy(mode){
   if (mode === 'diff'){
-    return 'Each line is one cortical system\'s <strong>B&nbsp;−&nbsp;A</strong> contrast at every timestep of the audio. <strong>Above&nbsp;0</strong> = B\'s signal is stronger there; <strong>below</strong> = A is. Toggle systems on or off to de-clutter.';
+    return 'Each line is one cortical system\'s <strong>B&nbsp;−&nbsp;A</strong> contrast at every timestep of the ' + (IS_MEDIA ? SAMPLE_KIND : 'sample') + '. <strong>Above&nbsp;0</strong> = B\'s signal is stronger there; <strong>below</strong> = A is. Toggle systems on or off to de-clutter.';
   }
-  if (mode === 'b') return 'Each line is one cortical system\'s predicted activation while <strong>Version&nbsp;B</strong> plays, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
-  return         'Each line is one cortical system\'s predicted activation while <strong>Version&nbsp;A</strong> plays, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
+  if (mode === 'b') return 'Each line is one cortical system\'s predicted activation while <strong>' + SIDE_WORD + '&nbsp;B</strong> plays, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
+  return         'Each line is one cortical system\'s predicted activation while <strong>' + SIDE_WORD + '&nbsp;A</strong> plays, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
 }
 
 function renderDimChips(){
@@ -1756,11 +1808,29 @@ if (dimGraphChips){
 
 const metricCardsEl = document.getElementById('metricCards');
 const sortedDims = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
+
+function mediaMeasured(row){
+  const label = String(row.label || 'this cortical system').toLowerCase();
+  return 'How strongly each ' + SAMPLE_KIND + ' engages ' + label + ' over time. This is computed from the uploaded media signal after transcription/audio-video feature extraction, not from typed text.';
+}
+function mediaInterpret(row){
+  const abs = Math.abs(row.delta || 0);
+  const who = whoFromDelta(row.delta || 0);
+  const mag = abs > 0.30 ? 'much stronger' : abs > 0.15 ? 'meaningfully stronger' : abs > 0.05 ? 'somewhat stronger' : 'similar';
+  return who + ' shows a ' + mag + ' predicted response on ' + String(row.label || 'this dimension').toLowerCase() + '. Treat this as a directional media contrast, not a claim that either file is objectively better.';
+}
+function mediaRealWorld(){
+  return 'Use this to compare two cuts, voiceovers, clips, or audio variants by their predicted cortical response pattern. The result says where they diverge; product judgment decides which divergence is useful.';
+}
+
 metricCardsEl.innerHTML = sortedDims.map(function(d){
   const detail = METRIC_DETAILS[d.key] || {};
   const isNeutral = d.low_confidence || Math.abs(d.delta) < 0.005;
   const sign = isNeutral ? 'neutral' : (d.delta > 0 ? 'b' : 'a');
   const region = detail.region || '';
+  const measured = IS_MEDIA ? mediaMeasured(d) : (detail.whatMeasured || '—');
+  const interpreted = IS_MEDIA ? mediaInterpret(d) : (detail.interpret ? detail.interpret(d.delta) : '—');
+  const realWorld = IS_MEDIA ? mediaRealWorld() : (detail.realWorld || '—');
   return '<details class="metric-card metric-card-' + sign + '">' +
     '<summary class="metric-summary">' +
       '<span class="metric-name">' + esc(d.label) + '</span>' +
@@ -1769,11 +1839,11 @@ metricCardsEl.innerHTML = sortedDims.map(function(d){
       '<span class="metric-chevron" aria-hidden="true">▾</span>' +
     '</summary>' +
     '<div class="metric-body">' +
-      '<div class="metric-row"><span class="metric-row-label">What we measured</span><span class="metric-row-text">' + esc(detail.whatMeasured || '—') + '</span></div>' +
+      '<div class="metric-row"><span class="metric-row-label">What we measured</span><span class="metric-row-text">' + esc(measured) + '</span></div>' +
       '<div class="metric-row"><span class="metric-row-label">Where</span><span class="metric-row-text">' + esc(detail.whereLong || '—') + '</span></div>' +
-      '<div class="metric-row"><span class="metric-row-label">What ' + esc(fmtDelta(d.delta)) + ' means</span><span class="metric-row-text">' + esc(detail.interpret ? detail.interpret(d.delta) : '—') + '</span></div>' +
+      '<div class="metric-row"><span class="metric-row-label">What ' + esc(fmtDelta(d.delta)) + ' means</span><span class="metric-row-text">' + esc(interpreted) + '</span></div>' +
       '<div class="metric-row"><span class="metric-row-label">Academic basis</span><span class="metric-row-text">' + esc(detail.labScience || '—') + '</span></div>' +
-      '<div class="metric-row"><span class="metric-row-label">Real world</span><span class="metric-row-text">' + esc(detail.realWorld || '—') + '</span></div>' +
+      '<div class="metric-row"><span class="metric-row-label">Real world</span><span class="metric-row-text">' + esc(realWorld) + '</span></div>' +
     '</div>' +
   '</details>';
 }).join('');
