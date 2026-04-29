@@ -14,7 +14,7 @@ const need = [
   "/api/config/public",
   "/api/diff/start",
   "/api/blob/upload",
-  "@vercel/blob",
+  "x-vercel-blob-store-id",
   "modality: 'text'",
   "modality: mode",
   'data-mode="audio"',
