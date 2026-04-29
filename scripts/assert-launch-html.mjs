@@ -16,7 +16,7 @@ const need = [
   "/api/blob/upload",
   "blob.generate-client-token",
   "access: 'private'",
-  "media_path_a",
+  "media_url_a",
   "modality: 'text'",
   "modality: mode",
   'data-mode="audio"',

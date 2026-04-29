@@ -817,8 +817,8 @@ function toggleTheme(){
         const uploadB = await uploadBlobWithClientToken(fileB.files[0], 'b');
         const payload = {
           modality: mode,
-          media_path_a: uploadA.pathname,
-          media_path_b: uploadB.pathname
+          media_url_a: uploadA.url,
+          media_url_b: uploadB.url
         };
         if (turnstileRequired) payload.turnstileToken = turnstileToken;
         res = await fetch('/api/diff/start', {

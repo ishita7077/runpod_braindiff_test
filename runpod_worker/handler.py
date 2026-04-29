@@ -68,12 +68,13 @@ def _warm_start() -> None:
     tribe_service.load()
 
 
-def _download_to_temp(url: str) -> str:
+def _download_to_temp(url: str, blob_token: str = "") -> str:
     suffix = os.path.splitext(url.split("?", 1)[0])[1] or ".bin"
     handle = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
     downloaded = 0
     try:
-        with httpx.stream("GET", url, timeout=60.0) as response:
+        headers = {"authorization": f"Bearer {blob_token}"} if blob_token else None
+        with httpx.stream("GET", url, headers=headers, timeout=60.0) as response:
             response.raise_for_status()
             for chunk in response.iter_bytes():
                 if not chunk:
@@ -212,10 +213,10 @@ def _run_text(text_a: str, text_b: str) -> dict[str, Any]:
     )
 
 
-def _run_media(modality: str, media_url_a: str, media_url_b: str) -> dict[str, Any]:
+def _run_media(modality: str, media_url_a: str, media_url_b: str, blob_token: str = "") -> dict[str, Any]:
     started = time.perf_counter()
-    path_a = _download_to_temp(media_url_a)
-    path_b = _download_to_temp(media_url_b)
+    path_a = _download_to_temp(media_url_a, blob_token=blob_token)
+    path_b = _download_to_temp(media_url_b, blob_token=blob_token)
     try:
         if modality == "audio":
             preds_a, _, timing_a = _coerce_prediction_output(tribe_service.audio_to_predictions(path_a))
@@ -274,9 +275,10 @@ def handler(event: dict[str, Any]) -> dict[str, Any]:
         raise ValueError("mode must be one of: text, audio, video")
     media_url_a = (payload.get("media_url_a") or "").strip()
     media_url_b = (payload.get("media_url_b") or "").strip()
+    blob_token = (payload.get("blob_token") or "").strip()
     if not media_url_a or not media_url_b:
         raise ValueError("media_url_a and media_url_b are required for audio/video mode")
-    return _run_media(mode, media_url_a=media_url_a, media_url_b=media_url_b)
+    return _run_media(mode, media_url_a=media_url_a, media_url_b=media_url_b, blob_token=blob_token)
 
 
 if os.getenv("BRAIN_DIFF_RUNPOD_SKIP_WARMUP", "0") != "1":

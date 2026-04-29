@@ -3,7 +3,6 @@ const { verifyTurnstile, applyRateLimit } = require("../lib/security");
 const { submitJob } = require("../lib/runpod");
 const { saveJobMetadata } = require("../lib/jobs");
 const { runtimeConfig } = require("../lib/config");
-const { createSignedBlobReadUrl } = require("../lib/blob-proxy");
 
 function normalizeInput(body) {
   const payload = jsonOrEmpty(body);
@@ -14,8 +13,6 @@ function normalizeInput(body) {
     textB: typeof payload.text_b === "string" ? payload.text_b.trim() : "",
     mediaUrlA: typeof payload.media_url_a === "string" ? payload.media_url_a.trim() : "",
     mediaUrlB: typeof payload.media_url_b === "string" ? payload.media_url_b.trim() : "",
-    mediaPathA: typeof payload.media_path_a === "string" ? payload.media_path_a.trim() : "",
-    mediaPathB: typeof payload.media_path_b === "string" ? payload.media_path_b.trim() : "",
     turnstileToken: payload.turnstileToken || payload.turnstile_token || ""
   };
 }
@@ -32,11 +29,10 @@ module.exports = async function handler(req, res) {
     if (input.modality === "text" && (!input.textA || !input.textB)) {
       return badRequest(res, "Both text_a and text_b are required for text jobs");
     }
-    const hasMediaRefs = (input.mediaPathA && input.mediaPathB) || (input.mediaUrlA && input.mediaUrlB);
-    if ((input.modality === "audio" || input.modality === "video") && !hasMediaRefs) {
+    if ((input.modality === "audio" || input.modality === "video") && (!input.mediaUrlA || !input.mediaUrlB)) {
       return badRequest(
         res,
-        "media_path_a and media_path_b are required for audio/video jobs"
+        "media_url_a and media_url_b are required for audio/video jobs"
       );
     }
 
@@ -59,14 +55,13 @@ module.exports = async function handler(req, res) {
       });
     }
 
-    const mediaUrlA = input.mediaPathA ? createSignedBlobReadUrl(req, input.mediaPathA) : input.mediaUrlA || undefined;
-    const mediaUrlB = input.mediaPathB ? createSignedBlobReadUrl(req, input.mediaPathB) : input.mediaUrlB || undefined;
     const runpodInput = {
       mode: input.modality,
       text_a: input.textA || undefined,
       text_b: input.textB || undefined,
-      media_url_a: mediaUrlA,
-      media_url_b: mediaUrlB
+      media_url_a: input.mediaUrlA || undefined,
+      media_url_b: input.mediaUrlB || undefined,
+      blob_token: input.modality === "audio" || input.modality === "video" ? cfg.blobReadWriteToken : undefined
     };
     const submitted = await submitJob(runpodInput);
     const jobId = submitted.id || submitted.jobId;
@@ -78,8 +73,8 @@ module.exports = async function handler(req, res) {
       createdAt: new Date().toISOString(),
       ip,
       type: rateType,
-      blobUrlA: input.mediaPathA || input.mediaUrlA || null,
-      blobUrlB: input.mediaPathB || input.mediaUrlB || null,
+      blobUrlA: input.mediaUrlA || null,
+      blobUrlB: input.mediaUrlB || null,
       blobDeleted: false
     });
 
