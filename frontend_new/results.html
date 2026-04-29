@@ -510,6 +510,144 @@ main { max-width: 1280px; margin: 0 auto; padding: 28px 36px 80px; }
   .dim-graph-canvas svg { height: 200px; }
 }
 
+/* ---------- Media results console ---------- */
+.media-results-only { display: none; }
+body.media-results .media-results-only { display: block; }
+.media-console {
+  position: relative; overflow: hidden;
+  background:
+    radial-gradient(900px 340px at 7% -10%, color-mix(in srgb, var(--good) 12%, transparent), transparent 60%),
+    radial-gradient(900px 360px at 100% 120%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 62%),
+    var(--panel);
+  border: 1px solid var(--line); border-radius: 18px;
+  padding: 30px 34px 34px; margin-bottom: 28px; box-shadow: var(--shadow-md);
+}
+.media-console::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.28;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--ink-mute) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ink-mute) 10%, transparent) 1px, transparent 1px);
+  background-size: 36px 36px;
+  mask-image: radial-gradient(circle at 22% 10%, black, transparent 58%);
+}
+.media-console > * { position: relative; z-index: 1; }
+.media-stage {
+  display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+  gap: 24px; align-items: stretch;
+}
+.media-screen {
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  border: 1px solid var(--line); border-radius: 16px; padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+.media-screen-head {
+  display:flex; justify-content:space-between; align-items:flex-start; gap:18px; margin-bottom:14px;
+}
+.media-kicker {
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.16em;
+  text-transform:uppercase; color:var(--accent); margin-bottom:8px;
+}
+.media-now-title {
+  font-family:var(--serif); font-size:clamp(28px, 4vw, 46px); line-height:1.02;
+  letter-spacing:-.025em; margin:0; font-weight:400; color:var(--ink);
+}
+.media-now-title em { color:var(--accent); font-style:italic; }
+.media-now-body { margin:12px 0 0; color:var(--ink-dim); max-width:680px; font-size:15px; line-height:1.62; }
+.media-readout {
+  min-width:150px; text-align:right; font-family:'JetBrains Mono',monospace;
+  color:var(--ink-mute); font-size:11px; letter-spacing:.07em; text-transform:uppercase;
+}
+.media-readout strong { display:block; color:var(--ink); font-size:28px; line-height:1; letter-spacing:-.04em; margin-bottom:7px; }
+.media-controls {
+  display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; margin:18px 0 14px;
+}
+.media-play {
+  width:42px; height:42px; border-radius:50%; border:1px solid var(--line-2);
+  background:var(--ink); color:var(--bg); display:grid; place-items:center;
+  font-family:'JetBrains Mono',monospace; cursor:pointer;
+}
+.media-scrubber {
+  width:100%; accent-color:var(--accent); cursor:pointer;
+}
+.media-scrubber-label {
+  font-family:'JetBrains Mono',monospace; color:var(--ink-mute); font-size:11px;
+  min-width:78px; text-align:right;
+}
+.media-timeline {
+  border:1px solid var(--line); border-radius:12px; background:var(--surface);
+  padding:14px 14px 8px; overflow:hidden;
+}
+.media-timeline svg { display:block; width:100%; height:220px; overflow:visible; }
+.media-legend {
+  display:flex; justify-content:space-between; gap:12px; margin-top:10px;
+  font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-mute); letter-spacing:.05em;
+}
+.media-side-stack { display:grid; grid-template-rows:auto 1fr auto; gap:14px; }
+.media-samples {
+  display:grid; grid-template-columns:1fr 1fr; gap:10px;
+}
+.media-sample-card {
+  border:1px solid var(--line); border-radius:12px; background:var(--surface);
+  padding:13px 14px; min-width:0;
+}
+.media-sample-card b {
+  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em;
+  display:block; margin-bottom:6px; text-transform:uppercase;
+}
+.media-sample-card.a b { color:var(--good); }
+.media-sample-card.b b { color:var(--accent); }
+.media-sample-card span {
+  display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  color:var(--ink); font-size:13px;
+}
+.media-moments {
+  display:grid; gap:10px;
+}
+.moment-card {
+  width:100%; text-align:left; border:1px solid var(--line); border-radius:13px;
+  background:var(--surface); padding:14px 15px; cursor:pointer;
+  display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center;
+  color:var(--ink); transition:border-color .15s, background .15s, transform .15s;
+}
+.moment-card:hover, .moment-card.active {
+  border-color:color-mix(in srgb, var(--accent) 55%, var(--line));
+  background:color-mix(in srgb, var(--accent-3) 72%, var(--surface));
+  transform:translateY(-1px);
+}
+.moment-time {
+  font-family:'JetBrains Mono',monospace; color:var(--ink-mute); font-size:11px;
+  min-width:42px;
+}
+.moment-main strong { display:block; font-size:14px; margin-bottom:2px; }
+.moment-main span { display:block; color:var(--ink-dim); font-size:12.5px; line-height:1.35; }
+.moment-delta {
+  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--accent);
+}
+.moment-delta.a { color:var(--good); }
+.media-action-grid {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px;
+}
+.media-action {
+  border:1px solid var(--line); border-radius:13px; background:var(--surface);
+  padding:15px 16px;
+}
+.media-action h4 {
+  margin:0 0 8px; font-family:'JetBrains Mono',monospace; font-size:10.5px;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--accent);
+}
+.media-action p { margin:0; color:var(--ink-dim); font-size:13.5px; line-height:1.55; }
+.media-evidence {
+  margin-top:14px; border-left:2px solid var(--accent); padding:11px 0 11px 14px;
+  color:var(--ink-dim); font-size:13px; line-height:1.55;
+}
+@media (max-width: 960px) {
+  .media-console { padding:24px 20px; }
+  .media-stage { grid-template-columns:1fr; }
+  .media-screen-head { flex-direction:column; }
+  .media-readout { text-align:left; }
+  .media-action-grid { grid-template-columns:1fr; }
+}
+
 /* ---------- Final sign-off line, sits below everything in small type ---------- */
 .report-signoff{
   text-align:center;margin:40px 0 60px;
@@ -963,6 +1101,50 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
     </div>
   </section>
 
+  <section class="media-console media-results-only" id="mediaConsole" hidden>
+    <div class="section-head">
+      <h2>Media <em>response console</em></h2>
+      <p>Scrub the run like a clip: which moment changed the predicted cortical response, which system moved, and which sample drove it.</p>
+    </div>
+
+    <div class="media-stage">
+      <div class="media-screen">
+        <div class="media-screen-head">
+          <div>
+            <div class="media-kicker">Current neural frame</div>
+            <h2 class="media-now-title" id="mediaMomentTitle">Finding the strongest moment…</h2>
+            <p class="media-now-body" id="mediaMomentBody">The timeline uses the seven TRIBE v2 system tracks from this run.</p>
+          </div>
+          <div class="media-readout">
+            <strong id="mediaFrameLabel">0s</strong>
+            <span id="mediaDominant">—</span>
+          </div>
+        </div>
+        <div class="media-controls">
+          <button class="media-play" id="mediaPlay" type="button" aria-label="Play neural timeline">▶</button>
+          <input class="media-scrubber" id="mediaScrubber" type="range" min="0" max="1" value="0" step="1" />
+          <div class="media-scrubber-label" id="mediaIntensity">Δ —</div>
+        </div>
+        <div class="media-timeline" id="mediaTimeline"></div>
+        <div class="media-legend">
+          <span>A stronger = slate</span>
+          <span>B stronger = vermillion</span>
+        </div>
+      </div>
+
+      <aside class="media-side-stack">
+        <div class="media-samples">
+          <div class="media-sample-card a"><b>Sample A</b><span id="mediaSampleA">—</span></div>
+          <div class="media-sample-card b"><b>Sample B</b><span id="mediaSampleB">—</span></div>
+        </div>
+        <div class="media-moments" id="mediaMomentCards"></div>
+        <div class="media-evidence" id="mediaEvidence">This console is generated from per-timestep cortical predictions. It is a response map, not a literal edit decision.</div>
+      </aside>
+    </div>
+
+    <div class="media-action-grid" id="mediaRecommendations"></div>
+  </section>
+
   <!-- CORE TRADE-OFF -->
   <section class="tradeoff">
     <div class="section-head">
@@ -1290,6 +1472,7 @@ const IS_MEDIA = IS_VIDEO || IS_AUDIO || RUN_MODE === 'media';
 const SAMPLE_KIND = IS_VIDEO ? 'video' : IS_AUDIO ? 'audio file' : 'sample';
 const SAMPLE_KIND_PLURAL = IS_VIDEO ? 'videos' : IS_AUDIO ? 'audio files' : 'samples';
 const SIDE_WORD = IS_MEDIA ? 'Sample' : 'Version';
+document.body.classList.toggle('media-results', IS_MEDIA);
 
 function cleanMediaName(value, fallback){
   const raw = String(value || '').trim();
@@ -1806,6 +1989,228 @@ if (dimGraphChips){
   });
 }
 
+/* ---------- Media response console. Uses the real per-timestep TRIBE tracks
+              already present in dimensions[].timeseries_a/b. ---------- */
+function setupMediaConsole(){
+  if (!IS_MEDIA) return;
+  const consoleEl = document.getElementById('mediaConsole');
+  if (!consoleEl) return;
+  consoleEl.hidden = false;
+
+  const sampleA = document.getElementById('mediaSampleA');
+  const sampleB = document.getElementById('mediaSampleB');
+  if (sampleA) sampleA.textContent = cleanMediaName(meta.media_name_a, 'uploaded ' + SAMPLE_KIND);
+  if (sampleB) sampleB.textContent = cleanMediaName(meta.media_name_b, 'uploaded ' + SAMPLE_KIND);
+
+  const byKey = {};
+  dimensions.forEach(function(d){ byKey[d.key] = d; });
+  let maxLen = 0;
+  const rawLines = {};
+  DIM_ORDER.forEach(function(k){
+    const row = byKey[k];
+    if (!row) return;
+    const s = buildDimViewSeries(row, 'diff');
+    if (s && s.length){
+      rawLines[k] = s;
+      if (s.length > maxLen) maxLen = s.length;
+    }
+  });
+  if (maxLen < 2){
+    consoleEl.hidden = true;
+    return;
+  }
+
+  const lines = {};
+  DIM_ORDER.forEach(function(k){
+    if (rawLines[k]) lines[k] = resampleSeries(rawLines[k], maxLen);
+  });
+
+  const frames = [];
+  let peakAbs = 0;
+  for (let i = 0; i < maxLen; i++){
+    let topKey = '', topVal = 0, totalAbs = 0;
+    DIM_ORDER.forEach(function(k){
+      const s = lines[k];
+      if (!s) return;
+      const v = Number(s[i] || 0);
+      const a = Math.abs(v);
+      totalAbs += a;
+      if (a > Math.abs(topVal)){ topVal = v; topKey = k; }
+    });
+    peakAbs = Math.max(peakAbs, Math.abs(topVal));
+    const row = byKey[topKey] || {};
+    frames.push({
+      index: i,
+      label: row.label || 'Cortical response',
+      key: topKey,
+      value: topVal,
+      totalAbs: totalAbs,
+      side: topVal >= 0 ? 'B' : 'A'
+    });
+  }
+  peakAbs = Math.max(peakAbs, 1e-6);
+
+  const sorted = frames
+    .filter(function(f){ return Math.abs(f.value) > 1e-6; })
+    .sort(function(a,b){ return Math.abs(b.value) - Math.abs(a.value); });
+  const minGap = Math.max(2, Math.round(maxLen / 7));
+  const moments = [];
+  sorted.forEach(function(f){
+    if (moments.length >= 4) return;
+    const tooClose = moments.some(function(m){ return Math.abs(m.index - f.index) < minGap; });
+    if (!tooClose) moments.push(f);
+  });
+  if (!moments.length) moments.push(frames[0]);
+  moments.sort(function(a,b){ return a.index - b.index; });
+
+  const timelineEl = document.getElementById('mediaTimeline');
+  const frameLabel = document.getElementById('mediaFrameLabel');
+  const dominantEl = document.getElementById('mediaDominant');
+  const titleEl = document.getElementById('mediaMomentTitle');
+  const bodyEl = document.getElementById('mediaMomentBody');
+  const intensityEl = document.getElementById('mediaIntensity');
+  const scrubber = document.getElementById('mediaScrubber');
+  const playBtn = document.getElementById('mediaPlay');
+  const cardsEl = document.getElementById('mediaMomentCards');
+  const recEl = document.getElementById('mediaRecommendations');
+  const evidenceEl = document.getElementById('mediaEvidence');
+
+  function secLabel(i){ return String(Math.max(0, i)) + 's'; }
+  function sideName(side){ return SIDE_WORD + ' ' + side; }
+  function momentSentence(f){
+    const magnitude = Math.abs(f.value) >= 0.22 ? 'strongly' : Math.abs(f.value) >= 0.08 ? 'clearly' : 'slightly';
+    return sideName(f.side) + ' ' + magnitude + ' leads on ' + String(f.label).toLowerCase() + ' at this point in the ' + SAMPLE_KIND + '.';
+  }
+  function momentTitle(f){
+    return sideName(f.side) + ' spikes on <em>' + esc(f.label) + '</em>';
+  }
+
+  function renderCards(activeIndex){
+    if (!cardsEl) return;
+    cardsEl.innerHTML = moments.map(function(m, idx){
+      const active = Math.abs(m.index - activeIndex) < Math.max(1, minGap / 2);
+      const deltaCls = m.side === 'A' ? ' a' : '';
+      return '<button class="moment-card' + (active ? ' active' : '') + '" type="button" data-index="' + m.index + '">' +
+        '<span class="moment-time">' + esc(secLabel(m.index)) + '</span>' +
+        '<span class="moment-main"><strong>' + esc(m.label) + '</strong><span>' + esc(sideName(m.side)) + ' leads here</span></span>' +
+        '<span class="moment-delta' + deltaCls + '">' + esc(fmtDelta(m.value)) + '</span>' +
+      '</button>';
+    }).join('');
+  }
+
+  function renderTimeline(activeIndex){
+    if (!timelineEl) return;
+    const W = 1000, H = 220;
+    const padL = 116, padR = 12, padT = 8, padB = 22;
+    const keys = DIM_ORDER.filter(function(k){ return lines[k]; });
+    const rowH = (H - padT - padB) / Math.max(1, keys.length);
+    const plotW = W - padL - padR;
+    const stepW = plotW / maxLen;
+    const cursorX = padL + (activeIndex / Math.max(1, maxLen - 1)) * plotW;
+    let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">';
+    keys.forEach(function(k, rowIndex){
+      const y = padT + rowIndex * rowH;
+      const row = byKey[k] || {};
+      svg += '<text x="0" y="' + (y + rowH * 0.62).toFixed(1) + '" fill="var(--ink-mute)" font-size="10" font-family="JetBrains Mono,monospace">' + esc(row.label || k) + '</text>';
+      for (let i = 0; i < maxLen; i++){
+        const v = lines[k][i] || 0;
+        const a = Math.min(1, Math.abs(v) / peakAbs);
+        const fill = v >= 0 ? 'var(--accent)' : 'var(--good)';
+        const opacity = (0.10 + a * 0.86).toFixed(3);
+        svg += '<rect x="' + (padL + i * stepW).toFixed(2) + '" y="' + (y + 2).toFixed(1) +
+          '" width="' + Math.max(1, stepW + 0.5).toFixed(2) + '" height="' + Math.max(2, rowH - 4).toFixed(1) +
+          '" rx="2" fill="' + fill + '" fill-opacity="' + opacity + '"/>';
+      }
+    });
+    moments.forEach(function(m){
+      const x = padL + (m.index / Math.max(1, maxLen - 1)) * plotW;
+      svg += '<line x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + padT + '" y2="' + (H - padB) +
+        '" stroke="var(--ink)" stroke-opacity=".22" stroke-dasharray="3 4"/>';
+    });
+    svg += '<line x1="' + cursorX.toFixed(1) + '" x2="' + cursorX.toFixed(1) + '" y1="' + (padT - 3) + '" y2="' + (H - padB + 3) +
+      '" stroke="var(--ink)" stroke-width="2"/>';
+    svg += '<text x="' + padL + '" y="' + (H - 3) + '" fill="var(--ink-mute)" font-size="10" font-family="JetBrains Mono,monospace">0s</text>';
+    svg += '<text x="' + (W - padR) + '" y="' + (H - 3) + '" text-anchor="end" fill="var(--ink-mute)" font-size="10" font-family="JetBrains Mono,monospace">' + esc(secLabel(maxLen - 1)) + '</text>';
+    svg += '</svg>';
+    timelineEl.innerHTML = svg;
+  }
+
+  function renderRecommendations(){
+    if (!recEl) return;
+    const top = sorted[0] || frames[0];
+    const second = sorted.find(function(f){ return f.side !== top.side; }) || moments[moments.length - 1] || top;
+    const stable = frames.slice().sort(function(a,b){ return a.totalAbs - b.totalAbs; })[0] || frames[0];
+    recEl.innerHTML = [
+      {
+        title: 'Edit decision',
+        body: 'Start by reviewing ' + secLabel(top.index) + '. That is where ' + sideName(top.side) + ' creates the sharpest neural divergence on ' + String(top.label).toLowerCase() + '.'
+      },
+      {
+        title: 'Counterbalance',
+        body: second && second.side !== top.side
+          ? sideName(second.side) + ' has its strongest counter-moment around ' + secLabel(second.index) + ' on ' + String(second.label).toLowerCase() + '. Keep that if it serves the brief.'
+          : 'One side dominates most of the major moments. If that was not intended, test a more different alternate cut.'
+      },
+      {
+        title: 'Do not over-read',
+        body: 'The calmest section is around ' + secLabel(stable.index) + '. Similar response there means the decision probably lives in the high-divergence moments, not the whole clip.'
+      }
+    ].map(function(card){
+      return '<article class="media-action"><h4>' + esc(card.title) + '</h4><p>' + esc(card.body) + '</p></article>';
+    }).join('');
+  }
+
+  function setFrame(index){
+    const i = Math.max(0, Math.min(maxLen - 1, Number(index) || 0));
+    const f = frames[i] || frames[0];
+    if (scrubber) scrubber.value = String(i);
+    if (frameLabel) frameLabel.textContent = secLabel(i);
+    if (dominantEl) dominantEl.textContent = f.label + ' · ' + sideName(f.side);
+    if (titleEl) titleEl.innerHTML = momentTitle(f);
+    if (bodyEl) bodyEl.textContent = momentSentence(f) + ' Use the heatstrip below to see whether this is a single spike or part of a sustained response.';
+    if (intensityEl) intensityEl.textContent = 'Δ ' + fmtDelta(f.value);
+    if (evidenceEl) evidenceEl.textContent = 'At ' + secLabel(i) + ', the dominant dimension is ' + f.label + '. The colour intensity is scaled against the strongest frame in this run, so a brighter bar means a larger A/B cortical split.';
+    window.__mediaMomentBoost = 0.72 + Math.min(1.85, Math.abs(f.value) / peakAbs * 1.45);
+    renderTimeline(i);
+    renderCards(i);
+    window.dispatchEvent(new Event('brain:repaint'));
+  }
+
+  if (scrubber){
+    scrubber.max = String(maxLen - 1);
+    scrubber.addEventListener('input', function(){ setFrame(scrubber.value); });
+  }
+  let timer = 0;
+  function stop(){
+    if (timer) clearInterval(timer);
+    timer = 0;
+    if (playBtn) playBtn.textContent = '▶';
+  }
+  function play(){
+    if (!scrubber) return;
+    if (timer){ stop(); return; }
+    if (playBtn) playBtn.textContent = 'Ⅱ';
+    timer = setInterval(function(){
+      const next = Math.min(maxLen - 1, (Number(scrubber.value) || 0) + 1);
+      setFrame(next);
+      if (next >= maxLen - 1) stop();
+    }, 700);
+  }
+  if (playBtn) playBtn.addEventListener('click', play);
+  if (cardsEl){
+    cardsEl.addEventListener('click', function(e){
+      const btn = e.target.closest('button[data-index]');
+      if (!btn) return;
+      stop();
+      setFrame(btn.dataset.index);
+    });
+  }
+
+  renderRecommendations();
+  setFrame((moments[0] && moments[0].index) || 0);
+}
+setupMediaConsole();
+
 const metricCardsEl = document.getElementById('metricCards');
 const sortedDims = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
 
@@ -1994,11 +2399,12 @@ function mountResultBrain(){
 
   const colors = new Float32Array(vertexCount * 3);
 
-  function repaint(){
-    const pattern = !!window.__patternMode;
-    const reveal = window.__revealProgress == null ? 1 : Math.max(0, Math.min(1, window.__revealProgress));
-    for (let i = 0; i < vertexCount; i++){
-      const s0 = intensity[i] * reveal;
+	  function repaint(){
+	    const pattern = !!window.__patternMode;
+	    const reveal = window.__revealProgress == null ? 1 : Math.max(0, Math.min(1, window.__revealProgress));
+	    const mediaBoost = IS_MEDIA ? (window.__mediaMomentBoost || 1) : 1;
+	    for (let i = 0; i < vertexCount; i++){
+	      const s0 = intensity[i] * reveal * mediaBoost;
       const s = Math.max(-1, Math.min(1, s0));
       const mag = Math.abs(s);
       let r = BASE_R, g = BASE_G, b = BASE_B;
