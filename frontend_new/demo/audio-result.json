@@ -1,0 +1,52 @@
+{
+  "kind": "audio",
+  "job_id": "demo-audio-mixdesk",
+  "headline": "The listener leans in when the voice stops performing.",
+  "dek": "BrainDiff treats each file as a listening path: phrase by phrase, pause by pause, with the neural shifts that matter for attention, trust, and recall.",
+  "samples": {
+    "a": {
+      "label": "A",
+      "name": "calm_read.wav",
+      "duration": 35,
+      "summary": "A steady read with even pacing and a softer close.",
+      "transcript": [
+        { "start": 0, "end": 7, "text": "Most teams know their message is not landing." },
+        { "start": 7, "end": 16, "text": "They test clicks, but they rarely test what the brain is actually doing." },
+        { "start": 16, "end": 26, "text": "BrainDiff compares two versions and shows the cortical response." },
+        { "start": 26, "end": 35, "text": "So you can choose the message people remember." }
+      ]
+    },
+    "b": {
+      "label": "B",
+      "name": "intimate_read.wav",
+      "duration": 39,
+      "summary": "A closer voice, stronger pauses, and a more direct final line.",
+      "transcript": [
+        { "start": 0, "end": 6, "text": "Your message might sound clear." },
+        { "start": 6, "end": 15, "text": "But the brain may be ignoring the part you care about." },
+        { "start": 15, "end": 28, "text": "BrainDiff shows where each version pulls attention, trust, and memory." },
+        { "start": 28, "end": 39, "text": "Then it tells you which version deserves to ship." }
+      ]
+    }
+  },
+  "waveforms": {
+    "a": [0.18, 0.26, 0.34, 0.29, 0.36, 0.41, 0.37, 0.31, 0.28, 0.33, 0.39, 0.42, 0.37, 0.3, 0.24, 0.31, 0.4, 0.43, 0.38, 0.34, 0.29, 0.27, 0.35, 0.42, 0.39, 0.31, 0.25, 0.21],
+    "b": [0.22, 0.35, 0.46, 0.39, 0.31, 0.27, 0.44, 0.58, 0.52, 0.41, 0.32, 0.29, 0.47, 0.63, 0.59, 0.48, 0.37, 0.28, 0.34, 0.51, 0.66, 0.6, 0.44, 0.33, 0.26, 0.39, 0.55, 0.49]
+  },
+  "tracks": [
+    { "key": "attention", "label": "Attention", "system": "Dorsal attention", "a": [0.31, 0.36, 0.4, 0.38, 0.42, 0.44, 0.41, 0.37, 0.33, 0.36, 0.39, 0.43], "b": [0.38, 0.45, 0.53, 0.49, 0.57, 0.66, 0.62, 0.54, 0.48, 0.56, 0.64, 0.69] },
+    { "key": "trust", "label": "Trust", "system": "mPFC", "a": [0.28, 0.32, 0.35, 0.37, 0.4, 0.42, 0.44, 0.41, 0.39, 0.37, 0.36, 0.38], "b": [0.35, 0.39, 0.46, 0.5, 0.55, 0.58, 0.61, 0.59, 0.54, 0.51, 0.49, 0.53] },
+    { "key": "effort", "label": "Listening effort", "system": "Auditory cortex", "a": [0.47, 0.51, 0.54, 0.52, 0.5, 0.48, 0.46, 0.45, 0.47, 0.5, 0.52, 0.49], "b": [0.42, 0.44, 0.48, 0.43, 0.41, 0.39, 0.37, 0.35, 0.36, 0.4, 0.44, 0.41] },
+    { "key": "memory", "label": "Memory", "system": "Hippocampal network", "a": [0.22, 0.27, 0.31, 0.33, 0.37, 0.4, 0.42, 0.39, 0.36, 0.41, 0.45, 0.47], "b": [0.3, 0.36, 0.44, 0.47, 0.52, 0.58, 0.62, 0.64, 0.59, 0.61, 0.68, 0.72] }
+  ],
+  "moments": [
+    { "time": 8, "sample": "B", "track": "attention", "title": "The pause does work", "detail": "B pauses before the problem statement. Attention rises because the listener gets a clean beat to anticipate the point.", "move": "Protect the pause before the warning line." },
+    { "time": 19, "sample": "B", "track": "trust", "title": "Specific promise beats generic clarity", "detail": "Trust climbs when B names attention, trust, and memory instead of saying cortical response.", "move": "Use concrete listener outcomes in the main claim." },
+    { "time": 31, "sample": "B", "track": "memory", "title": "The final line sticks", "detail": "The sharper shipping language creates the strongest memory lock in the run.", "move": "Keep the direct close, but trim the breath before it." }
+  ],
+  "recommendations": [
+    "Ship B's voice direction and final line.",
+    "Keep A's steadier opening volume if the channel is noisy.",
+    "The useful contrast is not loudness. It is pacing, specificity, and the last sentence."
+  ]
+}

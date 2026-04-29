@@ -806,6 +806,11 @@ function toggleTheme(){
   })().toLowerCase();
   const RUN_KIND = RUN_MODE === 'video' ? 'videos' : (RUN_MODE === 'audio' ? 'audio files' : 'texts');
   const RUN_DONE_COPY = RUN_MODE === 'text' ? 'Two texts, one cortex.' : 'Two media samples, one cortex.';
+  function resultsPageForMode(){
+    if (RUN_MODE === 'video') return './video-results.html';
+    if (RUN_MODE === 'audio') return './audio-results.html';
+    return './results.html';
+  }
 
   const jobLbl = document.getElementById('jobIdLabel');
   if (jobLbl) jobLbl.textContent = 'job · ' + JOB_ID.slice(0, 8);
@@ -1276,7 +1281,7 @@ function toggleTheme(){
   document.addEventListener('click', function(e){
     const btn = e.target.closest('#viewResultsBtn');
     if (!btn) return;
-    const go = './results.html?job=' + encodeURIComponent(JOB_ID) + '&reveal=1';
+    const go = resultsPageForMode() + '?job=' + encodeURIComponent(JOB_ID) + '&reveal=1';
     if (REDUCE){ window.location.href = go; return; }
     const r = btn.getBoundingClientRect();
     const cx = r.left + r.width / 2;

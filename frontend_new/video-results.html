@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f4ec" />
+<title>BrainDiff - Video results</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="./media-results.css" />
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.164.1/build/three.module.js"}}</script>
+</head>
+<body data-media-kind="video">
+<div class="theme-switcher"><button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme"><span class="tt-moon">●</span><span class="tt-sun">○</span></button></div>
+<header class="topbar">
+  <a class="brand" href="./index.html"><img src="./assets/braindiff-logo.png" alt="BrainDiff" class="brand-logo" /><span>BrainDiff</span></a>
+  <nav class="topbar-actions" aria-label="Result actions">
+    <a class="top-btn" href="./launch">New comparison</a>
+    <button class="top-btn" id="shareBtn" type="button">Share</button>
+  </nav>
+</header>
+<main id="mediaApp" class="media-shell" data-kind="video">
+  <section class="hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow">Video neural cutroom</p>
+      <h1 id="pageHeadline">Loading the cut.</h1>
+      <p id="pageDek" class="dek">Building the moment map.</p>
+      <div class="hero-stats" id="heroStats"></div>
+    </div>
+    <div class="decision-card">
+      <p class="micro">Ship decision</p>
+      <h2 id="decisionTitle">Find the useful cut, not the hotter cut.</h2>
+      <ol id="recommendations" class="recommendations"></ol>
+    </div>
+  </section>
+
+  <section class="theater" aria-label="Video analysis workspace">
+    <div class="sample-stack">
+      <article class="sample-card" id="sampleA"></article>
+      <article class="sample-card" id="sampleB"></article>
+    </div>
+    <section class="brain-card">
+      <div class="brain-topline">
+        <span class="micro">Cortex at playhead</span>
+        <button class="ghost-btn" id="resetBrain" type="button">Reset view</button>
+      </div>
+      <div class="brain-frame"><canvas id="brainCanvas" aria-label="Interactive 3D brain"></canvas></div>
+      <div class="brain-caption" id="brainCaption">Drag to inspect. Scrub the timeline to repaint the response.</div>
+    </section>
+    <aside class="moment-reader">
+      <p class="micro">Current beat</p>
+      <h2 id="activeMomentTitle">Choose a moment</h2>
+      <p id="activeMomentDetail"></p>
+      <p id="activeMomentMove" class="move-line"></p>
+    </aside>
+  </section>
+
+  <section class="timeline-console" aria-label="Video timeline">
+    <div class="timeline-head">
+      <div>
+        <p class="micro">Scrub by time</p>
+        <h2>Where the brain changes during the cut</h2>
+      </div>
+      <button id="playBtn" class="play-btn" type="button">Play scan</button>
+    </div>
+    <input id="scrubber" class="scrubber" type="range" min="0" max="100" value="0" />
+    <div class="time-readout"><span id="timeA">A 0:00</span><span id="timeB">B 0:00</span></div>
+    <div id="tracks" class="tracks"></div>
+  </section>
+
+  <section class="lower-grid">
+    <section class="panel">
+      <p class="micro">Moment board</p>
+      <h2>Beats worth recutting</h2>
+      <div id="moments" class="moment-grid"></div>
+    </section>
+    <section class="panel">
+      <p class="micro">Scene match</p>
+      <h2>Not every second has a twin</h2>
+      <div id="sceneMap" class="scene-map"></div>
+    </section>
+  </section>
+</main>
+<script type="module" src="./media-results.js"></script>
+</body>
+</html>

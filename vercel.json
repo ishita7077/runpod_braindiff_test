@@ -6,6 +6,8 @@
     { "src": "^/launch/?$", "dest": "/frontend_new/input.html" },
     { "src": "^/run/?$", "dest": "/frontend_new/run.html" },
     { "src": "^/results/?$", "dest": "/frontend_new/results.html" },
+    { "src": "^/video-results/?$", "dest": "/frontend_new/video-results.html" },
+    { "src": "^/audio-results/?$", "dest": "/frontend_new/audio-results.html" },
     { "src": "^/dashboard/?$", "dest": "/frontend_new/dashboard.html" },
     { "src": "^/$", "dest": "/frontend_new/index.html" },
     { "src": "^(.*)$", "dest": "/frontend_new/$1" }

@@ -1,0 +1,48 @@
+{
+  "kind": "video",
+  "job_id": "demo-video-cutroom",
+  "headline": "The response changes before the story changes.",
+  "dek": "BrainDiff reads the two videos as timelines, finds where attention and social meaning bend, and gives you the exact moments worth recutting.",
+  "samples": {
+    "a": {
+      "label": "A",
+      "name": "control_cut.mp4",
+      "duration": 42,
+      "summary": "A quieter opening, slower product reveal, and a measured closing frame.",
+      "scenes": [
+        { "start": 0, "end": 8, "title": "Cold open", "beat": "Hands enter frame before context lands.", "visual": "Soft beige desk, slow camera drift" },
+        { "start": 8, "end": 18, "title": "Proof", "beat": "The product appears after the setup has settled.", "visual": "Static close-up with light motion" },
+        { "start": 18, "end": 31, "title": "Human read", "beat": "A face reaction carries the middle section.", "visual": "Profile shot, low contrast background" },
+        { "start": 31, "end": 42, "title": "Resolve", "beat": "Logo and copy arrive late.", "visual": "Warm card, centered text" }
+      ]
+    },
+    "b": {
+      "label": "B",
+      "name": "active_cut.mp4",
+      "duration": 48,
+      "summary": "A faster first frame, earlier face cue, and a sharper end card.",
+      "scenes": [
+        { "start": 0, "end": 7, "title": "Instant hook", "beat": "Motion and face appear in the first second.", "visual": "Handheld push-in, bright edge light" },
+        { "start": 7, "end": 20, "title": "Tension", "beat": "The object and person alternate quickly.", "visual": "Jump cuts, red detail in frame" },
+        { "start": 20, "end": 35, "title": "Payoff", "beat": "The strongest social cue sits before the product claim.", "visual": "Face plus over-shoulder action" },
+        { "start": 35, "end": 48, "title": "Hard close", "beat": "The call-to-action lands with motion still active.", "visual": "Logo reveal with moving background" }
+      ]
+    }
+  },
+  "tracks": [
+    { "key": "attention", "label": "Attention", "system": "Frontal eye fields", "a": [0.24, 0.31, 0.36, 0.42, 0.39, 0.34, 0.38, 0.44, 0.48, 0.43, 0.36, 0.31], "b": [0.41, 0.64, 0.72, 0.66, 0.58, 0.63, 0.69, 0.77, 0.74, 0.68, 0.61, 0.55] },
+    { "key": "social", "label": "Social read", "system": "Right TPJ", "a": [0.18, 0.22, 0.25, 0.27, 0.39, 0.54, 0.59, 0.55, 0.49, 0.43, 0.35, 0.29], "b": [0.33, 0.48, 0.52, 0.56, 0.68, 0.79, 0.83, 0.75, 0.66, 0.58, 0.47, 0.39] },
+    { "key": "motion", "label": "Motion energy", "system": "MT complex", "a": [0.28, 0.34, 0.32, 0.29, 0.31, 0.37, 0.41, 0.39, 0.35, 0.33, 0.31, 0.28], "b": [0.55, 0.76, 0.69, 0.61, 0.67, 0.82, 0.88, 0.8, 0.71, 0.74, 0.69, 0.63] },
+    { "key": "memory", "label": "Memory lock", "system": "Medial temporal", "a": [0.21, 0.24, 0.29, 0.31, 0.35, 0.44, 0.47, 0.45, 0.42, 0.39, 0.41, 0.46], "b": [0.26, 0.31, 0.39, 0.44, 0.5, 0.57, 0.64, 0.69, 0.66, 0.61, 0.58, 0.62] }
+  ],
+  "moments": [
+    { "time": 3, "sample": "B", "track": "attention", "title": "First second earns the look", "detail": "The face plus camera push gives B an early attention lift before the claim appears.", "move": "Keep the human cue in the opening beat." },
+    { "time": 24, "sample": "B", "track": "social", "title": "Payoff carries the person, not the product", "detail": "The strongest social response happens when the viewer reads the reaction shot.", "move": "Place the product claim after this beat, not before it." },
+    { "time": 37, "sample": "A", "track": "memory", "title": "A closes cleaner", "detail": "The calmer end card gives A a small memory advantage even though it is less energetic.", "move": "Borrow A's quieter last two seconds for B's end card." }
+  ],
+  "recommendations": [
+    "Lead with B's first-frame motion and face cue.",
+    "Keep B's mid-video social payoff, then slow down the final card.",
+    "Do not optimize only for total heat. The best cut is B's opening with A's close."
+  ]
+}
