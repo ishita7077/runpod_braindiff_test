@@ -1,14 +1,14 @@
 {
   "kind": "audio",
   "job_id": "demo-audio-mixdesk",
-  "headline": "The listener leans in when the voice stops performing.",
-  "dek": "BrainDiff treats each file as a listening path: phrase by phrase, pause by pause, with the neural shifts that matter for attention, trust, and recall.",
+  "headline": "Audio comparison complete.",
+  "dek": "The two files are compared as A versus B cortical response estimates. Use the track deltas and brain view to inspect where the difference is concentrated.",
   "samples": {
     "a": {
       "label": "A",
       "name": "calm_read.wav",
       "duration": 35,
-      "summary": "A steady read with even pacing and a softer close.",
+      "summary": "Steadier pacing, lower attention contrast, and a softer close.",
       "transcript": [
         { "start": 0, "end": 7, "text": "Most teams know their message is not landing." },
         { "start": 7, "end": 16, "text": "They test clicks, but they rarely test what the brain is actually doing." },
@@ -20,7 +20,7 @@
       "label": "B",
       "name": "intimate_read.wav",
       "duration": 39,
-      "summary": "A closer voice, stronger pauses, and a more direct final line.",
+      "summary": "Higher attention and memory contrast through the middle and final windows.",
       "transcript": [
         { "start": 0, "end": 6, "text": "Your message might sound clear." },
         { "start": 6, "end": 15, "text": "But the brain may be ignoring the part you care about." },
@@ -40,13 +40,13 @@
     { "key": "memory", "label": "Memory", "system": "Hippocampal network", "a": [0.22, 0.27, 0.31, 0.33, 0.37, 0.4, 0.42, 0.39, 0.36, 0.41, 0.45, 0.47], "b": [0.3, 0.36, 0.44, 0.47, 0.52, 0.58, 0.62, 0.64, 0.59, 0.61, 0.68, 0.72] }
   ],
   "moments": [
-    { "time": 8, "sample": "B", "track": "attention", "title": "The pause does work", "detail": "B pauses before the problem statement. Attention rises because the listener gets a clean beat to anticipate the point.", "move": "Protect the pause before the warning line." },
-    { "time": 19, "sample": "B", "track": "trust", "title": "Specific promise beats generic clarity", "detail": "Trust climbs when B names attention, trust, and memory instead of saying cortical response.", "move": "Use concrete listener outcomes in the main claim." },
-    { "time": 31, "sample": "B", "track": "memory", "title": "The final line sticks", "detail": "The sharper shipping language creates the strongest memory lock in the run.", "move": "Keep the direct close, but trim the breath before it." }
+    { "time": 8, "sample": "B", "track": "attention", "title": "Early attention shift", "detail": "B is higher on the attention track in the first comparison window.", "move": "Treat this as a cortical contrast signal, not a quality score." },
+    { "time": 19, "sample": "B", "track": "trust", "title": "Midpoint trust shift", "detail": "B is higher on the trust track around the main-claim window.", "move": "Treat this as a cortical contrast signal, not a quality score." },
+    { "time": 31, "sample": "B", "track": "memory", "title": "Closing memory shift", "detail": "B is higher on the memory track near the final window.", "move": "Treat this as a cortical contrast signal, not a quality score." }
   ],
   "recommendations": [
-    "Ship B's voice direction and final line.",
-    "Keep A's steadier opening volume if the channel is noisy.",
-    "The useful contrast is not loudness. It is pacing, specificity, and the last sentence."
+    "Largest positive shift: B attention and memory.",
+    "Largest negative shift: B has lower listening effort than A.",
+    "Review the cortical surface and transcript windows before selecting a version."
   ]
 }

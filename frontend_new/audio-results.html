@@ -25,14 +25,14 @@
 <main id="mediaApp" class="media-shell" data-kind="audio">
   <section class="hero-grid">
     <div class="hero-copy">
-      <p class="eyebrow">Audio neural mixdesk</p>
-      <h1 id="pageHeadline">Loading the listen.</h1>
-      <p id="pageDek" class="dek">Building the phrase map.</p>
+      <p class="eyebrow">Audio result</p>
+      <h1 id="pageHeadline">Loading audio comparison.</h1>
+      <p id="pageDek" class="dek">Preparing the cortical contrast view.</p>
       <div class="hero-stats" id="heroStats"></div>
     </div>
     <div class="decision-card">
-      <p class="micro">Read direction</p>
-      <h2 id="decisionTitle">Optimize the voice path, not the waveform.</h2>
+      <p class="micro">Summary checks</p>
+      <h2 id="decisionTitle">What changed between A and B.</h2>
       <ol id="recommendations" class="recommendations"></ol>
     </div>
   </section>
@@ -44,15 +44,15 @@
     </div>
     <section class="brain-card">
       <div class="brain-topline">
-        <span class="micro">Cortex at playhead</span>
+        <span class="micro">Cortical surface</span>
         <button class="ghost-btn" id="resetBrain" type="button">Reset view</button>
       </div>
       <div class="brain-frame"><canvas id="brainCanvas" aria-label="Interactive 3D brain"></canvas></div>
-      <div class="brain-caption" id="brainCaption">Drag to inspect. Scrub the listen to repaint the response.</div>
+      <div class="brain-caption" id="brainCaption">Drag to inspect. Scrub the timeline to repaint the contrast.</div>
     </section>
     <aside class="moment-reader">
-      <p class="micro">Current phrase</p>
-      <h2 id="activeMomentTitle">Choose a phrase</h2>
+      <p class="micro">Current window</p>
+      <h2 id="activeMomentTitle">Choose a window</h2>
       <p id="activeMomentDetail"></p>
       <p id="activeMomentMove" class="move-line"></p>
     </aside>
@@ -61,10 +61,10 @@
   <section class="timeline-console" aria-label="Audio timeline">
     <div class="timeline-head">
       <div>
-        <p class="micro">Scrub by phrase</p>
-        <h2>Where the listen gets easier, sharper, or stickier</h2>
+        <p class="micro">Scrub by time</p>
+        <h2>Cortical contrast over the audio</h2>
       </div>
-      <button id="playBtn" class="play-btn" type="button">Play scan</button>
+      <button id="playBtn" class="play-btn" type="button">Play</button>
     </div>
     <input id="scrubber" class="scrubber" type="range" min="0" max="100" value="0" />
     <div class="time-readout"><span id="timeA">A 0:00</span><span id="timeB">B 0:00</span></div>
@@ -73,13 +73,13 @@
 
   <section class="lower-grid">
     <section class="panel">
-      <p class="micro">Phrase board</p>
-      <h2>Lines that change the listen</h2>
+      <p class="micro">Contrast windows</p>
+      <h2>Largest shifts</h2>
       <div id="moments" class="moment-grid"></div>
     </section>
     <section class="panel">
-      <p class="micro">Transcript lanes</p>
-      <h2>Same job, different voice path</h2>
+      <p class="micro">A/B timing</p>
+      <h2>Aligned transcript windows</h2>
       <div id="sceneMap" class="scene-map transcript-map"></div>
     </section>
   </section>

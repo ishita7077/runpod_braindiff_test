@@ -1,6 +1,9 @@
 {
   "routes": [
     { "src": "^/api/(.*)$", "dest": "/api/$1" },
+    { "src": "^/assets/(.*)$", "dest": "/frontend_new/assets/$1" },
+    { "src": "^/demo/(.*)$", "dest": "/frontend_new/demo/$1" },
+    { "src": "^/(.*\\.(?:css|js))$", "dest": "/frontend_new/$1" },
     { "src": "^/research/?$", "dest": "/frontend_new/research.html" },
     { "src": "^/methodology/?$", "dest": "/frontend_new/methodology.html" },
     { "src": "^/launch/?$", "dest": "/frontend_new/input.html" },
