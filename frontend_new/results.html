@@ -2399,12 +2399,12 @@ function mountResultBrain(){
 
   const colors = new Float32Array(vertexCount * 3);
 
-	  function repaint(){
-	    const pattern = !!window.__patternMode;
-	    const reveal = window.__revealProgress == null ? 1 : Math.max(0, Math.min(1, window.__revealProgress));
-	    const mediaBoost = IS_MEDIA ? (window.__mediaMomentBoost || 1) : 1;
-	    for (let i = 0; i < vertexCount; i++){
-	      const s0 = intensity[i] * reveal * mediaBoost;
+  function repaint(){
+    const pattern = !!window.__patternMode;
+    const reveal = window.__revealProgress == null ? 1 : Math.max(0, Math.min(1, window.__revealProgress));
+    const mediaBoost = IS_MEDIA ? (window.__mediaMomentBoost || 1) : 1;
+    for (let i = 0; i < vertexCount; i++){
+      const s0 = intensity[i] * reveal * mediaBoost;
       const s = Math.max(-1, Math.min(1, s0));
       const mag = Math.abs(s);
       let r = BASE_R, g = BASE_G, b = BASE_B;
