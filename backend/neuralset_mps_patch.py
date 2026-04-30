@@ -145,5 +145,68 @@ def apply_huggingface_text_mps_dtype_patch() -> None:
         return _orig(self, **kw)
 
     HuggingFaceText._load_model = _load_model  # type: ignore[method-assign]
+
+    # ── Video / image feature extractor MPS patch ────────────────────────────
+    # _HFVideoModel.__init__ loads the model to CPU. _get_data then does:
+    #   if model.model.device.type == "cpu": model.model.to(self.image.device)
+    # Since self.image.device is "cpu" (Pydantic Literal rejects "mps"), the model
+    # stays on CPU. Fix: patch _HFVideoModel.__init__ to auto-move to MPS after
+    # loading so the device.type check sees "mps" and skips the .to() call entirely.
+    try:
+        from neuralset.extractors.video import _HFVideoModel
+        _orig_hfvideo_init = _HFVideoModel.__init__
+
+        def _mps_hfvideo_init(
+            self: Any,
+            model_name: str,
+            pretrained: bool = True,
+            layer_type: str = "",
+            num_frames: int | None = None,
+        ) -> None:
+            _orig_hfvideo_init(
+                self,
+                model_name=model_name,
+                pretrained=pretrained,
+                layer_type=layer_type,
+                num_frames=num_frames,
+            )
+            import torch as th
+            _mps_ok = bool(getattr(th.backends, "mps", None)) and th.backends.mps.is_available()
+            if not _mps_ok:
+                return
+            try:
+                device_type = self.model.device.type
+            except Exception:
+                device_type = None
+            if device_type == "cpu":
+                logger.info(
+                    "neuralset_mps_patch: moving %s to MPS (was cpu)", model_name
+                )
+                self.model = self.model.to(th.device("mps"))
+
+        _HFVideoModel.__init__ = _mps_hfvideo_init  # type: ignore[method-assign]
+
+        # Wrap predict() with fp16 autocast so MPS runs matrix-ops in fp16
+        # (ViT-Giant in fp32 on MPS is ~3× slower than fp16 autocast path).
+        _orig_predict = _HFVideoModel.predict
+
+        def _mps_predict(self: Any, images: Any, audio: Any = None) -> Any:
+            import torch as th
+            try:
+                dev_type = next(self.model.parameters()).device.type
+            except Exception:
+                dev_type = None
+            if dev_type == "mps":
+                with th.amp.autocast(device_type="mps", dtype=th.float16):
+                    return _orig_predict(self, images, audio)
+            return _orig_predict(self, images, audio)
+
+        _HFVideoModel.predict = _mps_predict  # type: ignore[method-assign]
+        logger.info(
+            "neuralset_mps_patch: _HFVideoModel patched — vjepa2/DINOv2 will auto-move to MPS + fp16 autocast"
+        )
+    except Exception as err:
+        logger.warning("neuralset_mps_patch: _HFVideoModel patch skipped: %s", err)
+
     _PATCHED = True
     logger.info("neuralset_mps_patch: HuggingFaceText._load_model patched for Apple Silicon Llama loading")

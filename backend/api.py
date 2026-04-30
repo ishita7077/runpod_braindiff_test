@@ -41,7 +41,7 @@ from backend.vertex_codec import f32_b64
 logger = logging.getLogger("braindiff.api")
 
 SLOW_NOTICE_MS = 180_000
-HARD_TIMEOUT_MS = 1_200_000
+HARD_TIMEOUT_MS = 5_400_000  # 90 min — vjepa2-vitg on MPS is slow for long videos
 HEARTBEAT_INTERVAL_SEC = 10
 
 # Populated by _initialize_app for /api/ready diagnostics.
