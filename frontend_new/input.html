@@ -438,6 +438,7 @@ function toggleTheme(){
   const fileA = document.getElementById('fileA');
   const fileB = document.getElementById('fileB');
   const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+  const MAX_MEDIA_SECONDS = 30;
   const MEDIA_DURATION_TOLERANCE = 5;
   let mode = 'text';
   let turnstileWidgetId = null;
@@ -701,14 +702,25 @@ function toggleTheme(){
       );
       return durations;
     }
-    const delta = Math.abs(durations.a - durations.b);
-    if (delta <= MEDIA_DURATION_TOLERANCE) return durations;
+    const effectiveA = Math.min(durations.a, MAX_MEDIA_SECONDS);
+    const effectiveB = Math.min(durations.b, MAX_MEDIA_SECONDS);
+    const delta = Math.abs(effectiveA - effectiveB);
+    if (delta <= MEDIA_DURATION_TOLERANCE) {
+      if (durations.a > MAX_MEDIA_SECONDS || durations.b > MAX_MEDIA_SECONDS) {
+        showToast(
+          'BrainDiff will compare at most the first <strong>' + MAX_MEDIA_SECONDS + 's</strong> of each file.',
+          {kind:'info', durationMs:7000, key:'media-duration-cap'}
+        );
+      }
+      return durations;
+    }
 
-    const shortLen = Math.min(durations.a, durations.b);
+    const shortLen = Math.min(effectiveA, effectiveB);
     const longSide = durations.a > durations.b ? 'A' : 'B';
     const message =
       'These files are too different in length.\n\n' +
       'A is ' + fmtMediaSeconds(durations.a) + ' and B is ' + fmtMediaSeconds(durations.b) + '.\n' +
+      'BrainDiff compares at most the first ' + MAX_MEDIA_SECONDS + ' seconds of each file.\n' +
       'BrainDiff needs them within ' + MEDIA_DURATION_TOLERANCE + ' seconds.\n\n' +
       'Do you want BrainDiff to compare only the first ' + fmtMediaSeconds(shortLen) +
       ' of both files by trimming the longer file (' + longSide + ')?';
