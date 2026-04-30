@@ -1033,6 +1033,170 @@
           }
         ]
       }
+    },
+    "skeleton": {
+      "a": {
+        "text_events": [
+          {
+            "time": 8.0,
+            "type": "topic_shift",
+            "score": 0.233,
+            "distance": 0.805,
+            "before_summary": "A measured opening with the desk in frame and a slow product reveal.",
+            "after_summary": "Hands enter, the object settles, the line lands a beat late."
+          },
+          {
+            "time": 18.0,
+            "type": "topic_shift",
+            "score": 0.667,
+            "distance": 1.0,
+            "before_summary": "Hands enter, the object settles, the line lands a beat late.",
+            "after_summary": "Centred end card, gentle close."
+          }
+        ],
+        "visual_events": [
+          {
+            "time": 2.0,
+            "type": "scene_open",
+            "score": 0.5,
+            "magnitude": 0.5
+          },
+          {
+            "time": 9.0,
+            "type": "scene_cut",
+            "score": 0.143,
+            "magnitude": 0.143
+          },
+          {
+            "time": 18.0,
+            "type": "scene_cut",
+            "score": 0.111,
+            "magnitude": 0.111
+          },
+          {
+            "time": 25.0,
+            "type": "scene_cut",
+            "score": 0.143,
+            "magnitude": 0.143
+          }
+        ],
+        "audio_events": [],
+        "alignment": {
+          "cross_modal_alignment_score": 0.667,
+          "aligned_moments": [
+            {
+              "time": 8.0,
+              "modalities": [
+                "text",
+                "visual"
+              ]
+            },
+            {
+              "time": 18.0,
+              "modalities": [
+                "text",
+                "visual"
+              ]
+            }
+          ],
+          "misaligned_moments": [
+            {
+              "time": 2.0,
+              "leading_modality": "visual",
+              "lag_seconds": null
+            },
+            {
+              "time": 25.0,
+              "leading_modality": "visual",
+              "lag_seconds": null
+            }
+          ]
+        },
+        "summary_line": "2 topic shifts · 4 scene cuts · 0 audio transitions · alignment 0.67"
+      },
+      "b": {
+        "text_events": [
+          {
+            "time": 7.0,
+            "type": "topic_shift",
+            "score": 0.115,
+            "distance": 0.752,
+            "before_summary": "Faster opener — the face arrives in the first second.",
+            "after_summary": "Tight cuts; the object and the reaction shot alternate."
+          },
+          {
+            "time": 19.0,
+            "type": "topic_shift",
+            "score": 0.667,
+            "distance": 1.0,
+            "before_summary": "Tight cuts; the object and the reaction shot alternate.",
+            "after_summary": "End card with motion still active."
+          }
+        ],
+        "visual_events": [
+          {
+            "time": 1.0,
+            "type": "scene_open",
+            "score": 0.5,
+            "magnitude": 0.5
+          },
+          {
+            "time": 8.0,
+            "type": "scene_cut",
+            "score": 0.143,
+            "magnitude": 0.143
+          },
+          {
+            "time": 17.0,
+            "type": "scene_cut",
+            "score": 0.111,
+            "magnitude": 0.111
+          },
+          {
+            "time": 24.0,
+            "type": "scene_cut",
+            "score": 0.143,
+            "magnitude": 0.143
+          }
+        ],
+        "audio_events": [],
+        "alignment": {
+          "cross_modal_alignment_score": 0.333,
+          "aligned_moments": [
+            {
+              "time": 7.0,
+              "modalities": [
+                "text",
+                "visual"
+              ]
+            }
+          ],
+          "misaligned_moments": [
+            {
+              "time": 1.0,
+              "leading_modality": "visual",
+              "lag_seconds": null
+            },
+            {
+              "time": 17.0,
+              "leading_modality": "visual",
+              "lag_seconds": null
+            },
+            {
+              "time": 19.0,
+              "leading_modality": "text",
+              "lag_seconds": null
+            },
+            {
+              "time": 24.0,
+              "leading_modality": "visual",
+              "lag_seconds": null
+            }
+          ]
+        },
+        "summary_line": "2 topic shifts · 4 scene cuts · 0 audio transitions · alignment 0.33"
+      },
+      "structural_similarity": 1.0
     }
   }
 }

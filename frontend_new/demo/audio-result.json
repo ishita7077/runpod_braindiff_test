@@ -1070,6 +1070,113 @@
           }
         ]
       }
+    },
+    "skeleton": {
+      "a": {
+        "text_events": [
+          {
+            "time": 6.5,
+            "type": "topic_shift",
+            "score": 0.538,
+            "distance": 0.942,
+            "before_summary": "Most teams know their message is not landing.",
+            "after_summary": "They test clicks, but they rarely test what the brain is actually doing."
+          },
+          {
+            "time": 13.4,
+            "type": "topic_shift",
+            "score": 0.589,
+            "distance": 0.965,
+            "before_summary": "They test clicks, but they rarely test what the brain is actually doing.",
+            "after_summary": "BrainDiff compares two versions and shows the cortical response."
+          },
+          {
+            "time": 21.2,
+            "type": "topic_shift",
+            "score": 0.549,
+            "distance": 0.947,
+            "before_summary": "BrainDiff compares two versions and shows the cortical response.",
+            "after_summary": "So you can choose the message people remember."
+          }
+        ],
+        "visual_events": [],
+        "audio_events": [],
+        "alignment": {
+          "cross_modal_alignment_score": 0.0,
+          "aligned_moments": [],
+          "misaligned_moments": [
+            {
+              "time": 6.5,
+              "leading_modality": "text",
+              "lag_seconds": null
+            },
+            {
+              "time": 13.4,
+              "leading_modality": "text",
+              "lag_seconds": null
+            },
+            {
+              "time": 21.2,
+              "leading_modality": "text",
+              "lag_seconds": null
+            }
+          ]
+        },
+        "summary_line": "3 topic shifts · 0 scene cuts · 0 audio transitions · alignment 0.00"
+      },
+      "b": {
+        "text_events": [
+          {
+            "time": 5.8,
+            "type": "topic_shift",
+            "score": 0.667,
+            "distance": 1.0,
+            "before_summary": "Your message might sound clear.",
+            "after_summary": "But the brain may be ignoring the part you care about."
+          },
+          {
+            "time": 13.6,
+            "type": "topic_shift",
+            "score": 0.667,
+            "distance": 1.0,
+            "before_summary": "But the brain may be ignoring the part you care about.",
+            "after_summary": "BrainDiff shows where each version pulls attention, trust, and memory."
+          },
+          {
+            "time": 22.8,
+            "type": "topic_shift",
+            "score": 0.512,
+            "distance": 0.93,
+            "before_summary": "BrainDiff shows where each version pulls attention, trust, and memory.",
+            "after_summary": "Then it tells you which version deserves to ship."
+          }
+        ],
+        "visual_events": [],
+        "audio_events": [],
+        "alignment": {
+          "cross_modal_alignment_score": 0.0,
+          "aligned_moments": [],
+          "misaligned_moments": [
+            {
+              "time": 5.8,
+              "leading_modality": "text",
+              "lag_seconds": null
+            },
+            {
+              "time": 13.6,
+              "leading_modality": "text",
+              "lag_seconds": null
+            },
+            {
+              "time": 22.8,
+              "leading_modality": "text",
+              "lag_seconds": null
+            }
+          ]
+        },
+        "summary_line": "3 topic shifts · 0 scene cuts · 0 audio transitions · alignment 0.00"
+      },
+      "structural_similarity": 1.0
     }
   }
 }

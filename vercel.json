@@ -7,6 +7,7 @@
     { "src": "^/research/?$", "dest": "/frontend_new/research.html" },
     { "src": "^/methodology/patterns/?$", "dest": "/frontend_new/methodology-patterns.html" },
     { "src": "^/methodology/connectivity/?$", "dest": "/frontend_new/methodology-connectivity.html" },
+    { "src": "^/methodology/skeleton/?$", "dest": "/frontend_new/methodology-skeleton.html" },
     { "src": "^/methodology/?$", "dest": "/frontend_new/methodology.html" },
     { "src": "^/data/(.*)$", "dest": "/frontend_new/data/$1" },
     { "src": "^/launch/?$", "dest": "/frontend_new/input.html" },

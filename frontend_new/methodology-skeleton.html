@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f4ec" />
+<title>How Brain Diff detects content changes — Methodology</title>
+<meta name="description" content="The exact algorithms behind the Structural Skeleton: TF-IDF topic shifts, audio energy spikes, visual scene cuts, and cross-modal alignment." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f7f4ec; --surface:#ffffff; --panel:#ffffff; --panel-2:#f1ecde;
+  --line:#e2ddcf; --line-2:#cbc5b4;
+  --ink:#17171a; --ink-dim:#3d3d42; --ink-mute:#77736b;
+  --accent:#c1272d; --accent-3:#f8e9e6; --good:#2a5583;
+  --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0b0c0f; --surface:#15171c; --panel:rgba(20,22,28,0.72); --panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db; --ink-dim:#b6b1a6; --ink-mute:#7f7a70;
+  --accent:#e04a2e; --good:#6a97c9;
+}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{
+  background:radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),var(--bg);
+  color:var(--ink);font-family:'Inter Tight',system-ui,-apple-system,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased;
+}
+.shell{max-width:880px;margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;max-width:1200px;margin:0 auto;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;font-size:15px;color:var(--ink)}
+.brand-logo{height:24px;width:auto;border-radius:4px}
+.topbar-right{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);display:flex;gap:18px}
+.topbar-right a:hover{color:var(--ink)}
+
+.theme-switcher{position:fixed;top:14px;right:20px;z-index:60}
+.theme-toggle{width:34px;height:34px;border-radius:8px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-dim);cursor:pointer;font-size:14px;display:grid;place-items:center;box-shadow:var(--shadow-sm);font-family:inherit}
+.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.theme-toggle .tt-moon{display:inline}.theme-toggle .tt-sun{display:none}
+:root[data-theme="dark"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="dark"] .theme-toggle .tt-moon{display:none}
+
+.page-hero{padding:60px 0 40px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;display:inline-block;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb, var(--surface) 60%, transparent)}
+h1{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(36px,5vw,56px);line-height:1.05;letter-spacing:-0.02em;margin:0 0 18px}
+h1 em{font-style:italic;color:var(--accent)}
+.lede{font-size:17px;color:var(--ink-dim);max-width:62ch;line-height:1.7;margin:0 0 12px}
+.callout{margin:28px 0 0;padding:16px 18px;border-left:3px solid var(--accent);border-radius:6px;background:color-mix(in srgb, var(--accent) 6%, var(--surface));font-size:14.5px;line-height:1.6;color:var(--ink-dim)}
+.callout strong{color:var(--ink)}
+
+.section{padding:36px 0;border-top:1px solid var(--line)}
+h2{font-family:'Fraunces',serif;font-weight:400;font-size:30px;line-height:1.15;letter-spacing:-0.015em;margin:0 0 14px}
+h3{font-family:'Fraunces',serif;font-weight:500;font-size:20px;letter-spacing:-0.01em;margin:24px 0 10px}
+p{margin:0 0 14px;font-size:15.5px;line-height:1.7;color:var(--ink-dim)}
+ul,ol{margin:0 0 14px;padding-left:22px;color:var(--ink-dim);font-size:15.5px;line-height:1.7}
+.algo{background:var(--panel-2);border-radius:8px;padding:14px 18px;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;color:var(--ink-dim);white-space:pre-wrap}
+
+.lane-key{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0 8px}
+.lane-key div{padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);display:flex;align-items:center;gap:10px;font-size:13.5px}
+.lane-key span.dot{display:inline-block;width:14px;height:14px;border-radius:50%}
+.lane-key strong{color:var(--ink)}
+
+.deferred{
+  border:1px dashed var(--line-2);background:color-mix(in srgb, var(--ink-mute) 5%, var(--surface));
+  border-radius:10px;padding:18px 22px;margin:18px 0;color:var(--ink-dim);font-size:14.5px;line-height:1.65;
+}
+.deferred strong{color:var(--ink)}
+.deferred h4{margin:0 0 8px;font-family:'Fraunces',serif;font-weight:500;font-size:17px;color:var(--ink)}
+
+footer{padding:40px 0 60px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-mute)}
+footer a{color:var(--accent);border-bottom:1px solid currentColor}
+</style>
+</head>
+<body>
+
+<div class="theme-switcher">
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle light/dark"><span class="tt-sun">☀</span><span class="tt-moon">☾</span></button>
+</div>
+
+<header class="topbar">
+  <a class="brand" href="/"><img class="brand-logo" src="/assets/braindiff-logo.png" alt="BrainDiff" /><span>Brain<b>Diff</b></span></a>
+  <div class="topbar-right">
+    <a href="/methodology">Methodology</a>
+    <a href="/methodology/patterns">Patterns</a>
+    <a href="/methodology/connectivity">Connectivity</a>
+    <a href="/launch">New comparison</a>
+  </div>
+</header>
+
+<main class="shell">
+
+  <section class="page-hero">
+    <span class="eyebrow">Methodology · Skeleton</span>
+    <h1>How we detect <em>content changes</em>.</h1>
+    <p class="lede">
+      Every video has structural beats — moments where the topic shifts,
+      a scene cuts, the audio swells or drops. The Structural Skeleton
+      surfaces these as three lanes and asks one question: do they
+      coincide? When text + visual + audio change together, you have
+      tight pacing. When they're misaligned, your content's rhythm is
+      working against itself.
+    </p>
+    <div class="callout">
+      <strong>v1 scope.</strong> This page documents what's shipping today
+      and what's deferred. The current detector uses only data the worker
+      already produces (transcript segments, audio waveform, video
+      keyframes). The richer detection paths described in the original
+      product spec — foundation-model intermediate embeddings, a 4-class
+      audio classifier, per-shift LLM summaries — are deferred to v2 and
+      explicitly listed below. The bar for shipping is "real, not faked":
+      every event you see came from real signal in your upload.
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>The three lanes</h2>
+    <div class="lane-key">
+      <div><span class="dot" style="background:#C9A66B"></span> <strong>Text</strong> — topic shifts</div>
+      <div><span class="dot" style="background:#7FB3C6"></span> <strong>Visual</strong> — scene cuts</div>
+      <div><span class="dot" style="background:#E25B43"></span> <strong>Audio</strong> — energy + silence</div>
+    </div>
+
+    <h3>Text — TF-IDF topic shifts</h3>
+    <p>
+      The worker emits WhisperX-aligned phrase segments
+      (<code>meta.transcript_segments_a/b</code>). For each consecutive
+      pair of phrases we compute a TF-IDF vector and take the cosine
+      distance. A topic shift = distance ≥ 0.55 (English text;
+      conservative because phrases are short). Each event carries the
+      first sentence of the phrase before and after — what the user
+      actually heard, not an invented summary.
+    </p>
+    <div class="algo">for i in 1..len(transcript_segments) - 1:
+  v_prev = tfidf(tokens(segment[i-1]))
+  v_next = tfidf(tokens(segment[i]))
+  d      = 1 - cosine_similarity(v_prev, v_next)
+  if d >= 0.55:
+    emit topic_shift @ segment[i].start
+    before_summary = first sentence of segment[i-1]
+    after_summary  = first sentence of segment[i]</div>
+
+    <h3>Audio — energy spikes + long silences</h3>
+    <p>
+      The worker emits a 200-bin RMS amplitude envelope
+      (<code>meta.media_features.waveform_a/b</code>). We detect two
+      kinds of events: <strong>energy spikes</strong> (a bin's RMS is
+      ≥ 2.5 standard deviations above the local rolling mean, with
+      non-maximum suppression so a single loud moment doesn't fire
+      multiple adjacent events) and <strong>long silences</strong>
+      (runs of bins with RMS &lt; 0.05 lasting ≥ 1 second).
+    </p>
+    <div class="algo">for each bin i in waveform:
+  m, s = rolling_mean_std(waveform, around=i, window=8)
+  z    = (waveform[i] - m) / s
+  if z >= 2.5 and waveform[i] >= 0.10:
+    emit energy_spike @ i (with NMS over ±0.5s)
+
+walk runs of consecutive bins with RMS < 0.05:
+  if run_duration >= 1.0s:
+    emit silence_start @ run_start, with duration</div>
+
+    <h3>Visual — scene-detected keyframes</h3>
+    <p>
+      For video the worker already extracts keyframes at scene
+      boundaries via <code>ffmpeg scdet</code>, with uniform fallback
+      sampling when scdet returns nothing. We surface each keyframe
+      time as a visual event. Magnitude scales with the cadence
+      (1 / gap to the previous keyframe) — denser keyframes mean
+      faster cutting.
+    </p>
+    <div class="algo">for each keyframe in meta.media_features.keyframes_a/b:
+  emit scene_cut @ keyframe.time
+  magnitude = 1 / max(1, gap_to_previous_keyframe)</div>
+
+    <h3>Cross-modal alignment</h3>
+    <p>
+      Two events from different lanes within 1 second of each other
+      count as <em>aligned</em>. We collect every event across the
+      three lanes, mark coincidences, and compute:
+    </p>
+    <div class="algo">alignment_score = aligned_events / total_events</div>
+    <p>
+      Aligned moments render as vertical bars in the fourth lane.
+      Unmatched events become "misaligned moments" with a
+      <em>leading_modality</em> field — the lane that fired without
+      a companion. This is the simplest possible metric for whether
+      your content's rhythm is internally synchronised.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>Honest scope</h2>
+    <ul>
+      <li>The text detector runs on WhisperX phrases. WhisperX is
+        good but not perfect — for music or non-speech audio it may
+        return nothing, in which case the text lane will be empty.</li>
+      <li>The audio detector is a signal-processing heuristic, not
+        a classifier. It can't tell "spike caused by a door slamming"
+        from "spike caused by the speaker getting excited." Both
+        register as energy spikes.</li>
+      <li>The visual detector relies on ffmpeg scene detection.
+        Slow cross-fades may miss; hard cuts always register.</li>
+      <li>The 1-second alignment window is deliberately loose. Tighter
+        windows (0.3 s) would suppress real coincidences caused by
+        per-second TRIBE prediction granularity.</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>What's deferred to v2</h2>
+    <p>The original spec proposed a richer detection pipeline using
+    intermediate outputs from the foundation models inside TRIBE v2
+    (LLaMA 3.2-3B for text, V-JEPA2 for video, Wav2Vec-BERT for audio).
+    We deliberately did not ship those in v1.</p>
+
+    <div class="deferred">
+      <h4>Foundation-model intermediate embeddings (LLaMA / V-JEPA2 / Wav2Vec-BERT)</h4>
+      <p>TRIBE caches these on disk via the upstream
+      <code>neuralset.extractors</code> library during prediction, but
+      surfacing them through the worker requires plumbing into a
+      separate package's cache conventions. Reach: medium-rich event
+      detection from the actual encoder hidden states (deeper than
+      TF-IDF for text, smoother than scene detection for video).
+      Cost: ~1–2 days of careful library work.</p>
+    </div>
+
+    <div class="deferred">
+      <h4>4-class audio classifier (speech / music / silence / noise)</h4>
+      <p>The spec asked for a classifier head trained on AudioSet or
+      a fine-tuned ~30 minutes of labelled data. We don't have that
+      labelled data, and using a pretrained model without scope
+      validation would risk silently mislabeling content. The v1
+      energy-based detector covers the common case (loud → quiet,
+      speech → silence) without requiring a corpus we haven't
+      validated.</p>
+    </div>
+
+    <div class="deferred">
+      <h4>Per-topic-shift LLM summaries (6-word "before" / "after")</h4>
+      <p>The original spec wanted each topic shift annotated with a
+      6-word LLM-generated summary of the segments on either side.
+      That adds an extra LLM inference per topic shift, additional
+      prompt-engineering effort, and modest value over showing the
+      first sentence of each segment — which is what you actually
+      heard. v1 ships first-sentence pairs; v2 can layer summaries
+      on top if usage data shows the longer text is the bottleneck.</p>
+    </div>
+
+    <p style="margin-top:18px">
+      All three deferments are tracked in
+      <code>backend/structural_skeleton.py</code> docstring and will
+      ship as separate features when their respective pre-requisites
+      (corpus, embedding plumbing, LLM-call budget) land.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>Inspect the source</h2>
+    <p>
+      Implementation:
+      <code>backend/structural_skeleton.py</code> — pure Python, no
+      ML, no NumPy. Frontend:
+      <code>frontend_new/assets/structural-skeleton.js</code> — vanilla
+      SVG. Tests: <code>tests/test_structural_skeleton.py</code>.
+    </p>
+    <p>
+      <a href="https://github.com/ishita7077/runpod_braindiff_test/blob/main/backend/structural_skeleton.py">
+        Read on GitHub →
+      </a>
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <a href="/methodology">← Back to methodology overview</a>
+</footer>
+
+<script>
+function toggleTheme(){
+  var r=document.documentElement;
+  var next=r.getAttribute('data-theme')==='dark'?'light':'dark';
+  if(next==='dark') r.setAttribute('data-theme','dark'); else r.removeAttribute('data-theme');
+  try{localStorage.setItem('braindiff-theme', next);}catch(e){}
+}
+</script>
+
+</body>
+</html>

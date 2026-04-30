@@ -19,6 +19,7 @@ import { renderPatternStrip } from "./assets/patterns.js";
 import { renderConnectivity } from "./assets/connectivity-graph.js";
 import { renderSpectrogram } from "./assets/spectrogram.js";
 import { renderComparisonChart } from "./assets/comparison-chart.js";
+import { renderSkeleton } from "./assets/structural-skeleton.js";
 
 const params = new URLSearchParams(location.search);
 const jobId = params.get("job");
@@ -105,6 +106,7 @@ function adaptResult(job) {
     moments: Array.isArray(features.moments) ? features.moments : [],
     patterns: features.patterns && typeof features.patterns === "object" ? features.patterns : { a: [], b: [] },
     connectivity: features.connectivity && typeof features.connectivity === "object" ? features.connectivity : null,
+    skeleton: features.skeleton && typeof features.skeleton === "object" ? features.skeleton : null,
     insights: result.insights || {},
     warnings: Array.isArray(result.warnings) ? result.warnings : [],
     vertex_delta_b64: result.vertex_delta_b64 || "",
@@ -173,6 +175,18 @@ function renderPatterns(data) {
     });
   } else if (cmpRoot) {
     cmpRoot.hidden = true;
+  }
+  // Structural Skeleton — when content changes across text / visual / audio
+  const skelRoot = document.getElementById("skeletonSection");
+  if (skelRoot && data.skeleton) {
+    renderSkeleton(skelRoot, data.skeleton, {
+      durationA: totalA,
+      durationB: totalB,
+      labelA: data.samples.a.name || "Cut A",
+      labelB: data.samples.b.name || "Cut B",
+    });
+  } else if (skelRoot) {
+    skelRoot.hidden = true;
   }
 }
 

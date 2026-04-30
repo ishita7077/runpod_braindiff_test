@@ -1525,3 +1525,196 @@ body[data-media-kind="video"] .hero-copy {
   color: var(--ink-mute, #77736b);
 }
 .cmp-spark.is-active { color: var(--accent, #c1272d); }
+
+/* ============================================================
+   Structural Skeleton (4-lane content-change timeline)
+   Rendered by frontend_new/assets/structural-skeleton.js
+   ============================================================ */
+.skeleton-section { margin-top: 24px; position: relative; }
+.skeleton-head { margin-bottom: 14px; }
+.skeleton-sub {
+  margin-top: 6px; font-size: 13.5px;
+  color: var(--ink-mute, #77736b); line-height: 1.55; max-width: 70ch;
+}
+.skeleton-sub a {
+  color: var(--accent, #c1272d);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.skeleton-structsim {
+  margin-top: 8px; font-size: 13.5px;
+  color: var(--ink-dim, #3d3d42);
+}
+.skeleton-structsim strong { color: var(--ink, #17171a); }
+.skeleton-structsim .muted {
+  color: var(--ink-mute, #77736b);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  margin-left: 6px;
+}
+
+.skeleton-stack {
+  display: flex; flex-direction: column; gap: 22px;
+}
+.skeleton-side {
+  position: relative;
+  border: 1px solid var(--line, rgba(0,0,0,0.12));
+  border-radius: 10px;
+  padding: 14px 16px 16px;
+  background: color-mix(in srgb, var(--panel, #fff) 92%, transparent);
+}
+.skeleton-side-head {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--ink-mute, #77736b); margin-bottom: 12px;
+}
+.skeleton-side-head .badge {
+  display: inline-grid; place-items: center;
+  width: 18px; height: 18px; border-radius: 4px;
+  font-weight: 600; font-size: 11px; color: #fff;
+}
+.skeleton-side-head .badge.a { background: var(--good, #2a5583); }
+.skeleton-side-head .badge.b { background: var(--accent, #c1272d); }
+.skeleton-side-name {
+  font-family: 'Inter Tight', sans-serif;
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--ink, #17171a);
+}
+
+.skeleton-ruler {
+  position: relative;
+  height: 18px;
+  margin: 6px 0 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--ink-mute, #77736b);
+  border-bottom: 1px solid var(--line, rgba(0,0,0,0.06));
+}
+.skeleton-tick {
+  position: absolute;
+  top: 2px;
+  transform: translateX(-50%);
+}
+
+.skeleton-lane {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.skeleton-lane-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-align: right;
+}
+.skeleton-lane-track {
+  position: relative;
+  height: 28px;
+  background: color-mix(in srgb, var(--ink-mute, #77736b) 5%, transparent);
+  border-radius: 4px;
+}
+
+/* Each event marker is a vertical line + dot at top — like a music
+   measure line. Aria-labelled, hover-tooltipped, clickable. */
+.skeleton-marker {
+  position: absolute;
+  top: 0; bottom: 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  width: 16px;
+  margin-left: -8px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 0;
+}
+.skeleton-marker-stem {
+  position: absolute;
+  top: 6px; bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 1.5px;
+  background: var(--lane-color, var(--accent, #c1272d));
+  opacity: 0.65;
+}
+.skeleton-marker-dot {
+  position: relative;
+  z-index: 2;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--lane-color, var(--accent, #c1272d));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--lane-color, var(--accent)) 25%, transparent);
+}
+.skeleton-marker:hover .skeleton-marker-stem,
+.skeleton-marker:hover .skeleton-marker-dot {
+  opacity: 1;
+  filter: brightness(1.1);
+}
+.skeleton-marker:focus-visible {
+  outline: 2px solid var(--accent, #c1272d);
+  outline-offset: 1px;
+  border-radius: 2px;
+}
+
+.skeleton-lane-alignment .skeleton-lane-track {
+  background: color-mix(in srgb, var(--accent, #c1272d) 5%, transparent);
+}
+.skeleton-alignment-bar {
+  position: absolute;
+  top: 4px; bottom: 4px;
+  width: 4px;
+  margin-left: -2px;
+  background: var(--accent, #c1272d);
+  border: 0;
+  border-radius: 2px;
+  cursor: pointer;
+  opacity: 0.85;
+}
+.skeleton-alignment-bar:hover { opacity: 1; transform: scaleY(1.05); }
+
+.skeleton-empty-track {
+  display: flex; align-items: center; justify-content: center;
+}
+.skeleton-empty-text {
+  font-style: italic; font-size: 12px; color: var(--ink-mute, #77736b);
+}
+
+.skeleton-summary {
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line, rgba(0,0,0,0.06));
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--ink-dim, #3d3d42);
+}
+
+.skeleton-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line-2, rgba(0,0,0,0.18));
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--ink, #17171a);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+  z-index: 50;
+  max-width: 360px;
+  line-height: 1.45;
+}
+.skeleton-tooltip[hidden] { display: none; }
+
+.skeleton-empty-card {
+  font-style: italic; color: var(--ink-mute, #77736b);
+  padding: 18px; text-align: center;
+  border: 1px dashed var(--line, rgba(0,0,0,0.18));
+  border-radius: 8px;
+}

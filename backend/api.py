@@ -593,6 +593,26 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             media_features_payload["connectivity"] = connectivity_payload
         except Exception as err:
             warnings.append(f"Connectivity map failed: {err}")
+        # Structural Skeleton — text / visual / audio content-change
+        # events from data we already have. v1 uses TF-IDF, energy
+        # thresholds, and keyframe times; no new ML.
+        try:
+            from backend.structural_skeleton import build_skeleton_both_sides
+            mfp = media_features_payload or {}
+            skeleton_payload = build_skeleton_both_sides(
+                transcript_segments_a,
+                transcript_segments_b,
+                mfp.get("waveform_a") or [],
+                mfp.get("waveform_b") or [],
+                mfp.get("keyframes_a") or [],
+                mfp.get("keyframes_b") or [],
+                duration_a_s=(media_durations or {}).get("a"),
+                duration_b_s=(media_durations or {}).get("b"),
+            )
+            media_features_payload = dict(media_features_payload or {})
+            media_features_payload["skeleton"] = skeleton_payload
+        except Exception as err:
+            warnings.append(f"Structural skeleton failed: {err}")
         result = _build_diff_result(
             payload=payload,
             request_id=request_id,

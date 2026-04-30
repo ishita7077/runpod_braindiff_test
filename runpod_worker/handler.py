@@ -454,6 +454,29 @@ def _run_media(
         except Exception as err:
             warnings.append(f"Connectivity map failed: {err}")
 
+        # Structural Skeleton (Prompt 1, trimmed): when the *content*
+        # changes across text / visual / audio. Uses transcript segments,
+        # waveform RMS bins, and keyframe times we already extracted —
+        # no new ML, no LLM summaries, no audio classifier (deferred to
+        # v2 — see /methodology/skeleton).
+        try:
+            from backend.structural_skeleton import build_skeleton_both_sides
+            transcripts_a_for_skeleton = list(timing_a.get("transcript_segments") or [])
+            transcripts_b_for_skeleton = list(timing_b.get("transcript_segments") or [])
+            skeleton_payload = build_skeleton_both_sides(
+                transcripts_a_for_skeleton,
+                transcripts_b_for_skeleton,
+                media_features_payload.get("waveform_a") or [],
+                media_features_payload.get("waveform_b") or [],
+                media_features_payload.get("keyframes_a") or [],
+                media_features_payload.get("keyframes_b") or [],
+                duration_a_s=dur_a,
+                duration_b_s=dur_b,
+            )
+            media_features_payload["skeleton"] = skeleton_payload
+        except Exception as err:
+            warnings.append(f"Structural skeleton failed: {err}")
+
         processing_time_ms = int((time.perf_counter() - started) * 1000)
         return _build_response(
             transcript_a=str(timing_a.get("transcript_text", "") or ""),
