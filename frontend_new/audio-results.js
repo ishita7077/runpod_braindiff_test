@@ -15,6 +15,8 @@
 import { mountCortex } from "./assets/cortex-viewer.js";
 import { renderPatternStrip } from "./assets/patterns.js";
 import { renderConnectivity } from "./assets/connectivity-graph.js";
+import { renderSpectrogram } from "./assets/spectrogram.js";
+import { renderComparisonChart } from "./assets/comparison-chart.js";
 
 const params = new URLSearchParams(location.search);
 const jobId = params.get("job");
@@ -152,6 +154,31 @@ function renderPatterns(data) {
     });
   } else if (connRoot) {
     connRoot.hidden = true;
+  }
+  // Spectrogram (7 dims × time)
+  const spectroRoot = document.getElementById("spectrogramSection");
+  if (spectroRoot && data.dimensions && data.dimensions.length) {
+    renderSpectrogram(spectroRoot, {
+      dimensions: data.dimensions,
+      patterns: data.patterns,
+      durationA: totalA,
+      durationB: totalB,
+      labelA: data.samples.a.name || "Version A",
+      labelB: data.samples.b.name || "Version B",
+    });
+  } else if (spectroRoot) {
+    spectroRoot.hidden = true;
+  }
+  // TradingView-style Comparison Chart
+  const cmpRoot = document.getElementById("comparisonChartSection");
+  if (cmpRoot && data.dimensions && data.dimensions.length) {
+    renderComparisonChart(cmpRoot, {
+      dimensions: data.dimensions,
+      durationA: totalA,
+      durationB: totalB,
+    });
+  } else if (cmpRoot) {
+    cmpRoot.hidden = true;
   }
 }
 
