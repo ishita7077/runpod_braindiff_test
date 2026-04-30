@@ -30,10 +30,9 @@ def _profile_for_device(device: str) -> RuntimeProfile:
         return RuntimeProfile("cuda", "cuda", {}, ("cuda", "cpu"))
     if device == "mps":
         # neuralset video/image extractors call model.model.to(self.image.device) which
-        # PyTorch parses as a device string — "accelerate" is not a valid device string and
-        # raises a RuntimeError. Use "cpu" so the model stays on CPU for feature extraction
-        # while the TRIBE v2 brain encoder itself still runs on MPS. Text feature can keep
-        # "accelerate" since its code path uses device_map="auto" without a raw .to() call.
+        # PyTorch parses as a device string. "accelerate" is not a valid string and raises
+        # RuntimeError. Use "mps" directly so the HF model is moved to Apple Silicon's GPU;
+        # text feature keeps "accelerate" (uses device_map="auto", no raw .to() call).
         return RuntimeProfile(
             "mps",
             "mps",
@@ -42,9 +41,9 @@ def _profile_for_device(device: str) -> RuntimeProfile:
                 "data.audio_feature.infra.gpus_per_node": 0,
                 "data.text_feature.device": "accelerate",
                 "data.text_feature.infra.gpus_per_node": 0,
-                "data.image_feature.image.device": "cpu",
+                "data.image_feature.image.device": "mps",
                 "data.image_feature.infra.gpus_per_node": 0,
-                "data.video_feature.image.device": "cpu",
+                "data.video_feature.image.device": "mps",
                 "data.video_feature.infra.gpus_per_node": 0,
             },
             ("mps", "cpu"),
