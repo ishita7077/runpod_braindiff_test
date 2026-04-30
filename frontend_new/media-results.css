@@ -1793,7 +1793,7 @@ body[data-media-kind="video"] .hero-copy {
   font-size: 16px; line-height: 1.6; color: var(--ink-mute); margin: 0 0 40px; max-width: 680px;
 }
 .input-meta-row {
-  display: grid; grid-template-columns: 1fr 1fr;
+  display: grid; grid-template-columns: 1fr auto 1fr;
   gap: 20px; max-width: 760px;
 }
 .input-card {
@@ -1986,6 +1986,63 @@ body[data-media-kind="video"] .hero-copy {
 /* ─── TIMELINE SUB-LABEL ─── */
 .timeline-sub {
   font-size: 13px; color: var(--ink-mute); line-height: 1.4; margin: 0;
+}
+
+/* ─── RECOMMENDATION COUNTER OVERRIDE ─────────────────────────────────────
+   The original .recommendations li::before adds numbered circle badges.
+   Inside .decision-inline we use the border-left style instead — no circles. */
+.decision-inline .recommendations li::before { content: none; }
+.decision-inline .recommendations li {
+  position: static;
+  padding: 0 0 0 12px;
+  border: none;
+  border-left: 2px solid var(--b);
+  border-radius: 0;
+  background: transparent;
+}
+
+/* ─── WAVEFORM COLORS ─────────────────────────────────────────────────────
+   The Real-data extension section sets .waveform .wave-bar { background: var(--accent) }
+   which makes both A and B bars red. Scope by sample so A = blue, B = red. */
+#sampleA .waveform .wave-bar { background: var(--a); }
+#sampleB .waveform .wave-bar { background: var(--b); }
+
+/* ─── BRAIN CANVAS UNAVAILABLE STATE ──────────────────────────────────────
+   When /api/brain-mesh is unreachable (localhost, no backend), JS sets
+   data-state="unavailable" on .brain-canvas-wrap. Show a clear placeholder
+   instead of a pure black void. On production the API responds and the canvas
+   renders, so this state is never triggered. */
+.brain-canvas-wrap[data-state="unavailable"] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+.brain-canvas-wrap[data-state="unavailable"] canvas {
+  display: none;
+}
+.brain-canvas-wrap[data-state="unavailable"]::before {
+  content: "";
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 40%, color-mix(in srgb, var(--a) 30%, transparent) 0%, transparent 60%),
+    radial-gradient(circle at 65% 60%, color-mix(in srgb, var(--b) 20%, transparent) 0%, transparent 55%),
+    var(--bg-card, #0E0E1A);
+  border: 1px solid var(--line);
+  opacity: 0.6;
+}
+.brain-canvas-wrap[data-state="unavailable"]::after {
+  content: "Cortical surface renders on production";
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  text-align: center;
+  max-width: 28ch;
 }
 
 /* ─── RESPONSIVE ─── */

@@ -54,7 +54,8 @@ async function boot() {
     });
     if (state.cortex && !state.cortex.isReal) {
       $("#brainCaption").textContent =
-        "Approximate cortical surface — atlas-aligned activations not available on this build.";
+        "Cortical surface requires the production backend — vertex-level contrast unavailable here.";
+      document.querySelector(".brain-canvas-wrap")?.setAttribute("data-state", "unavailable");
     }
     $("#resetBrain")?.addEventListener("click", () => state.cortex?.reset());
     document.querySelectorAll(".brain-view-btn").forEach((btn) => {
@@ -155,6 +156,15 @@ function render(data) {
   renderScenePair(data);
   renderPatterns(data);
   wireTimeline(data);
+  // Update hardcoded legend + pattern-side labels to real sample names
+  const nameA = data.samples.a.name || "Cut A";
+  const nameB = data.samples.b.name || "Cut B";
+  const legendSpans = document.querySelectorAll(".brain-legend > span");
+  if (legendSpans[0]?.lastChild) legendSpans[0].lastChild.textContent = " " + nameA;
+  if (legendSpans[1]?.lastChild) legendSpans[1].lastChild.textContent = " " + nameB;
+  const patternHeads = document.querySelectorAll(".patterns-side-head");
+  if (patternHeads[0]) patternHeads[0].lastChild.textContent = " " + nameA;
+  if (patternHeads[1]) patternHeads[1].lastChild.textContent = " " + nameB;
 }
 
 function renderPatterns(data) {
