@@ -1,48 +1,372 @@
 {
   "kind": "video",
-  "job_id": "demo-video-cutroom",
+  "job_id": "demo-video",
   "headline": "Video comparison complete.",
-  "dek": "The two files are compared as A versus B cortical response estimates. Use the track deltas and brain view to inspect where the difference is concentrated.",
+  "sub": "Two cuts of the same beat — the second hits attention earlier and holds it longer.",
   "samples": {
     "a": {
       "label": "A",
       "name": "control_cut.mp4",
-      "duration": 42,
-      "summary": "Lower early attention, slower product reveal, and a steadier closing window.",
-      "scenes": [
-        { "start": 0, "end": 8, "title": "Cold open", "beat": "Hands enter frame before context lands.", "visual": "Soft beige desk, slow camera drift" },
-        { "start": 8, "end": 18, "title": "Proof", "beat": "The product appears after the setup has settled.", "visual": "Static close-up with light motion" },
-        { "start": 18, "end": 31, "title": "Human read", "beat": "A face reaction carries the middle section.", "visual": "Profile shot, low contrast background" },
-        { "start": 31, "end": 42, "title": "Resolve", "beat": "Logo and copy arrive late.", "visual": "Warm card, centered text" }
+      "duration": 28,
+      "transcript_segments": [
+        {
+          "start": 0.0,
+          "end": 8.0,
+          "text": "A measured opening with the desk in frame and a slow product reveal."
+        },
+        {
+          "start": 8.0,
+          "end": 18.0,
+          "text": "Hands enter, the object settles, the line lands a beat late."
+        },
+        {
+          "start": 18.0,
+          "end": 28.0,
+          "text": "Centred end card, gentle close."
+        }
+      ],
+      "keyframes": [
+        {
+          "time": 2,
+          "image_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5Ojf/2wBDAQoKCg0MDRoPDxo3JR8lNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzf/wAARCACHAPADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDjKKXFaGn6Z9ts7u487Y0K5jTbnzSAWYZzxhVY9+w711mRnUVdsLD7R5sk7tDbxQmZ3CbiV3BBtGRn5iB19fSrR0Xy7mcTXIFrDCJjKihmKEIVOzI5PmJ1OOTzwaLhYyKK2oNDik1H7FJfBXkaMW5Eed4kXcrMMjauCMnnGehrGxRcBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBa1dO1ubT47aGDzBDHK0lxGspAuAcAq2O20Y79T61l4oxSAuWN/9nMsc6PNbSwmFo/M2kLuDjacHHzAHp6+tWTq8T3M7y2rGKeEQPGsuMRKE2AHacEeWvPOfQVlYoxRYZsprNsZLuSWyl3zRpDG0VwFMUSqF2jKHOVABPHGR3NYtLijFAhKKXFGKYCUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQA7FGKWikMTFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAHUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFAC0UuKMUDEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigB1FLijFIYlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAOopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAFopcUYpAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFADqKKKQwooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKACiiigAooooAKKKKAP/2Q=="
+        },
+        {
+          "time": 9,
+          "image_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5Ojf/2wBDAQoKCg0MDRoPDxo3JR8lNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzf/wAARCACHAPADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDl6KXFX7DTftlndT+bsaFcom3PmEAswznjCqT37etdIjPoq7Y2P2jzXndoYIoTM7hNxK7go2jIz8xA6+tWTo+y4nEtwBbQxCYyqoZihCFTsyOvmJ1OOTzxRcDJoreTw9mWOM3LFriURWuyLIclFdS3Pygh19e/pWFii4CUUuKMUwEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBa1NP1mawjtoofMEKSM88aykC4BwCre2Bjv1NZuKMUgLdlfeQZUmR5reWEwtH5mCF3BxtODj5gD09fWrB1WN7id5LZjFPEIHjWXGI1CbADjqNg55z6CszFGKNANuHxE0MryxwOjhlMPlzlQAqhUDjHzgbQR05z61hU7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAHYoxS0UDExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBaKXFGKBiUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAtFOxRikA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQAtFOxRigY2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQAtFLijFIBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoAWinYoxQMbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAbRTsUYoAWiiikAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFAH/9k="
+        },
+        {
+          "time": 18,
+          "image_base64": "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"
+        },
+        {
+          "time": 25,
+          "image_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5Ojf/2wBDAQoKCg0MDRoPDxo3JR8lNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzf/wAARCACHAPADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDjqKXFaGn6Ybyzu7jztjQrmNNufMIBZhnPGFVj37DvXSIzqKvWFh9o8153aGCKEzO4TcSu4INoyM/MQOvrUs2mJb3vlXF0i25XesoALMpQOvyZzkhlxnjJ68Gi4GZRW9J4fWKO4kaW6kSPaVMFpvO0oHy/zDbgMAevOawsUXASilxRimAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAOrV0/W5rCO2ig8wQxytJPGspAuAcAq2O20Y79TWXijFIC5ZX32cyxzo81vLCYWj8zBC7g42nBx8wB6evrVganavqiXtzYtKqAKsQlAAVUVYxypzjbzng+g75eKMUAbFvrUUFybj7PcSSJcfaIjJdZ+fHO8bcMMjsFPUZrGpcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoAdijFLRQMTFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAFopcUYoGJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFADqKXFGKQCUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAtFOxRigY2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQA2inYoxQAtFLijFIBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoAdRS4oxQMSilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAFooopAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQB/9k="
+        }
       ]
     },
     "b": {
       "label": "B",
       "name": "active_cut.mp4",
-      "duration": 48,
-      "summary": "Higher early attention, earlier face cue, and a stronger closing contrast.",
-      "scenes": [
-        { "start": 0, "end": 7, "title": "Instant hook", "beat": "Motion and face appear in the first second.", "visual": "Handheld push-in, bright edge light" },
-        { "start": 7, "end": 20, "title": "Tension", "beat": "The object and person alternate quickly.", "visual": "Jump cuts, red detail in frame" },
-        { "start": 20, "end": 35, "title": "Payoff", "beat": "The strongest social cue sits before the product claim.", "visual": "Face plus over-shoulder action" },
-        { "start": 35, "end": 48, "title": "Hard close", "beat": "The call-to-action lands with motion still active.", "visual": "Logo reveal with moving background" }
+      "duration": 28,
+      "transcript_segments": [
+        {
+          "start": 0.0,
+          "end": 7.0,
+          "text": "Faster opener — the face arrives in the first second."
+        },
+        {
+          "start": 7.0,
+          "end": 19.0,
+          "text": "Tight cuts; the object and the reaction shot alternate."
+        },
+        {
+          "start": 19.0,
+          "end": 28.0,
+          "text": "End card with motion still active."
+        }
+      ],
+      "keyframes": [
+        {
+          "time": 1,
+          "image_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5Ojf/2wBDAQoKCg0MDRoPDxo3JR8lNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzf/wAARCACHAPADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDj8UYp2K1tO0m3urW2kmvHhe5uHgjHkhkUqEO5m3DA+cdjjBNcx6jdjHxRir1hY/aPNed2hgihMzuE3EruCjaMjPzEDr61aOjeXcTia4AtYYhMZUUMxQhCp2ZHJ8xOpxyeeDTFdGPijFbMeixteXVu96qmK2a4h/dkmZfKMo46L8o554yOtZGKQ00xuKMU7FGKBjcUYp2KMUANxRinYoxQA3FGKdijFADcUYp2KMUANxRinYoxQA3FGKdijFADcUYp2KMUANxRinYoxQA3FGKdijFADcUYp2KMUANxRinYoxQAtbujeIn0qzhhiW43w3DzAx3OxJNyoNrrtO4fJ6jqaxKKL2E0nuW7G++z+ZHOjzW8sJhaMSbSF3BxtODj5gD09fWrJ1aN7md5LVjFPEIHjWXGIlCbADjgjyxzzn0FZdFFw5UaP9q/8TKW88gbWt3t0j3fdUwmJecc4BH1x2rMp1FAJWG0U6ikMbRTqKAG0U6igBtFOooAbRTqKAG0U6igBtFOooAbRTqKAG0U6igBtFOooAbRTqKAG0U6igBcUYpaKBiYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBaKdRSGNop1FADaKdRQA2inUUANop1FADaKdRQA2inUUANop1FADaKdRQA2inUUANop1FADaKdRQA2inUUANop1FADaKdRQAuKMUtFAxMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooAXFGKdijFIBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAWinUUDG0U6igBtFOooAbRTqKAG0U6igBtFOooAbRTqKAG0U6igBtFOooAbRTqKAG0U6igBtFOooAbRTqKAG0U6igBtFOooAXFGKKKQBijFFFABijFFFABijFFFABijFFFABijFFFABijFFFABijFFFABijFFFABijFFFABijFFFABijFFFABijFFFABijFFFABijFFFAH/2Q=="
+        },
+        {
+          "time": 8,
+          "image_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5Ojf/2wBDAQoKCg0MDRoPDxo3JR8lNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzf/wAARCACHAPADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDnaKditSw0uC5traSa7eF7m4eCMeUGUFQhyzbhgfOOxxg1xJXPWbSMmirtlZfaPMed2hgiiMruE3EruCjAyM/MQOtWDpGy4nEtwBbQxCYyqoLFCEKnZnv5idTjk88UWYcyMqiuht/DTTMwWeRl3gK8cO5UVkDq8hz8ikN156N6VgYoaaBST2G0U7FGKQxtFOxRigBtFOxRigBtFOxRigBtFOxRigBtFOxRigBtFOxRigBtFOxRigBtFOxRigBtFOxRigBtFOxRigBtFOxRigBa2tI199MtIoY1uN8U7zAx3GxH3BRtddp3D5PUdTWNijFCbQNJ7lqyvfI8xJ1aaCSEwsgfaQu4MNpwcfMAenr61YOqRvcTvJbMYp4hA8ay4xGoTYAcdRsHPOfQVm4oxTuw5UbSa+okjd7QnyJRJbqsuAuEVAH4+YYRfTv61iUuKMUm2wUUthKKXFGKBiUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQA6ilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoAWinYoxSGNop2KMUANop2KMUANop2KMUANop2KMUANop2KMUANop2KMUANop2KMUANop2KMUANop2KMUANop2KMUANop2KMUANop2KMUANop2KMUANop2KMUALRS0UDEopaKAEopaKAEopaKAEopaKAEopaKAEopaKAEopaKAEopaKAEopaKAEopaKAEopaKAEopaKAEopaKAEopaKAFxRinYoxSAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAG4oxTsUYoAbijFOxRigBuKMU7FGKAFop2KMUDG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAG0U7FGKAFopaKQCUUtFACUUtFACUUtFACUUtFACUUtFACUUtFACUUtFACUUtFACUUtFACUUtFACUUtFACUUtFACUUtFACUUtFAC4oxRRQMMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooA/9k="
+        },
+        {
+          "time": 17,
+          "image_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5Ojf/2wBDAQoKCg0MDRoPDxo3JR8lNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzf/wAARCACHAPADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDncUYpa1NP0uC5traSa7eF7m4eCMeUGUFQhyzbhgfOOxxgmuBanuNpbmVijFXLGy+0eY87tDBFEZXcJuJXcFGBkZ+Ygdakn09be9WGa5RIGwwmxk7SocHaOeQw9s9+DRYLq9jPxRitlNJtRql3YT3kyNbSyqZEtwy7EzljlxjoeOe1Y9DVgTT2ExRilopDExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBcVt6Rr76ZaRQxrcb4p3mBjuNiPuCja67TuHyeo6msaimnbYUoqSsy1ZXvkeYk6vNBJCYWQPtIXcGG04OPmAPT1puoXS3kxlEZjPCgbsgIqqqjp1AHXv6Cq9FFx8qvcv3ep/aJtSlSHy3vpi5O7OxCxYr05528/7PvWdinUUm7gklsNxRinUUDG4oxTqKAG4oxTqKAG4oxTqKAG4oxTqKAG4oxTqKAG4oxTqKAG4oxTqKAG4oxTqKAG4oxTqKAG4oxTqKAG4oxTqKAFxRilopAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFADqKXFGKBiUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAlFLijFACUUuKMUAJRS4oxQAuKMU6ikA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQA3FGKdRQAuKMUtFAxMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooAdRS4oxQMSilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAEopcUYoASilxRigBKKXFGKAFxRinUUhjcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FAC4oxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQAYoxRRQB//Z"
+        },
+        {
+          "time": 24,
+          "image_base64": "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAkGBwgHBgkIBwgKCgkLDRYPDQwMDRsUFRAWIB0iIiAdHx8kKDQsJCYxJx8fLT0tMTU3Ojo6Iys/RD84QzQ5Ojf/2wBDAQoKCg0MDRoPDxo3JR8lNzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzc3Nzf/wAARCACHAPADASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAIRAxEAPwDjsUYpa1tO0m3urW2kmvHhkurh4Ix5IZFKhDuZtwwPnHY4wTXKek3YyMUYq7YWP2jzZJ3aG3ihMzuE3EruCDaMjPzEDr61LPpiW995VxdItuV3rKACzKUDr8mc5IZcZ4yevBosF0ZuKMVuWnh5rrXk01bkJE3llrhk+4JAu3K5+9lwMZ69+9YlFgTTExRilooGJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFAC4rd0bxE+lWcMMS3G+G4ecGO52JJuVBtddp3D5PUdTWJRQnYTSe5bsb77P5kdwrzW8sJhaMSbSF3BxtODj5gD09fWrI1O1fVEvbmxaVUAVYRKAAqoqxjlTnG3nPB9B3y6KLhZGvY6/NY6mLqFDJCblLiSO42SO7Kc/fKcHluQOM1kOxd2dsAsSTtUAfgBwKKKLjSSG4oxTqKQDcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FADcUYp1FAC4oxS0UDExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigB2KMUtFIYmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UALijFOooAbijFOooAbijFOooAbijFOooAbijFOooAbijFOooAbijFOooAbijFOooAbijFOooAbijFOooAbijFOooAbijFOooAbijFOooAbijFOooAbijFOooAXFGKWikMTFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAExRilooATFGKWigBMUYpaKAHYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFACYoxS0UAJijFLRQAmKMUtFAC4oxTqKQxuKMU6igBuKMU6igBuKMU6igBuKMU6igBuKMU6igBuKMU6igBuKMU6igBuKMU6igBuKMU6igBuKMU6igBuKMU6igBuKMU6igBuKMU6igBuKMU6igBcUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooAMUYoooA/9k="
+        }
       ]
     }
   },
-  "tracks": [
-    { "key": "attention", "label": "Attention", "system": "Frontal eye fields", "a": [0.24, 0.31, 0.36, 0.42, 0.39, 0.34, 0.38, 0.44, 0.48, 0.43, 0.36, 0.31], "b": [0.41, 0.64, 0.72, 0.66, 0.58, 0.63, 0.69, 0.77, 0.74, 0.68, 0.61, 0.55] },
-    { "key": "social", "label": "Social read", "system": "Right TPJ", "a": [0.18, 0.22, 0.25, 0.27, 0.39, 0.54, 0.59, 0.55, 0.49, 0.43, 0.35, 0.29], "b": [0.33, 0.48, 0.52, 0.56, 0.68, 0.79, 0.83, 0.75, 0.66, 0.58, 0.47, 0.39] },
-    { "key": "motion", "label": "Motion energy", "system": "MT complex", "a": [0.28, 0.34, 0.32, 0.29, 0.31, 0.37, 0.41, 0.39, 0.35, 0.33, 0.31, 0.28], "b": [0.55, 0.76, 0.69, 0.61, 0.67, 0.82, 0.88, 0.8, 0.71, 0.74, 0.69, 0.63] },
-    { "key": "memory", "label": "Memory lock", "system": "Medial temporal", "a": [0.21, 0.24, 0.29, 0.31, 0.35, 0.44, 0.47, 0.45, 0.42, 0.39, 0.41, 0.46], "b": [0.26, 0.31, 0.39, 0.44, 0.5, 0.57, 0.64, 0.69, 0.66, 0.61, 0.58, 0.62] }
+  "dimensions": [
+    {
+      "key": "attention_salience",
+      "label": "Attention",
+      "region": "Frontal eye fields",
+      "timeseries_a": [
+        0.24,
+        0.31,
+        0.36,
+        0.42,
+        0.39,
+        0.34,
+        0.38,
+        0.44,
+        0.48,
+        0.43,
+        0.36,
+        0.31
+      ],
+      "timeseries_b": [
+        0.41,
+        0.64,
+        0.72,
+        0.66,
+        0.58,
+        0.63,
+        0.69,
+        0.77,
+        0.74,
+        0.68,
+        0.61,
+        0.55
+      ]
+    },
+    {
+      "key": "social_thinking",
+      "label": "Social reasoning",
+      "region": "TPJ",
+      "timeseries_a": [
+        0.18,
+        0.22,
+        0.25,
+        0.27,
+        0.39,
+        0.54,
+        0.59,
+        0.55,
+        0.49,
+        0.43,
+        0.35,
+        0.29
+      ],
+      "timeseries_b": [
+        0.33,
+        0.48,
+        0.52,
+        0.56,
+        0.68,
+        0.79,
+        0.83,
+        0.75,
+        0.66,
+        0.58,
+        0.47,
+        0.39
+      ]
+    },
+    {
+      "key": "memory_encoding",
+      "label": "Memory",
+      "region": "Medial temporal",
+      "timeseries_a": [
+        0.21,
+        0.24,
+        0.29,
+        0.31,
+        0.35,
+        0.44,
+        0.47,
+        0.45,
+        0.42,
+        0.39,
+        0.41,
+        0.46
+      ],
+      "timeseries_b": [
+        0.26,
+        0.31,
+        0.39,
+        0.44,
+        0.5,
+        0.57,
+        0.64,
+        0.69,
+        0.66,
+        0.61,
+        0.58,
+        0.62
+      ]
+    },
+    {
+      "key": "personal_resonance",
+      "label": "Personal resonance",
+      "region": "Medial PFC",
+      "timeseries_a": [
+        0.22,
+        0.26,
+        0.3,
+        0.33,
+        0.36,
+        0.39,
+        0.41,
+        0.39,
+        0.36,
+        0.33,
+        0.31,
+        0.32
+      ],
+      "timeseries_b": [
+        0.29,
+        0.34,
+        0.4,
+        0.45,
+        0.5,
+        0.54,
+        0.57,
+        0.55,
+        0.51,
+        0.47,
+        0.44,
+        0.45
+      ]
+    },
+    {
+      "key": "language_depth",
+      "label": "Language depth",
+      "region": "Broca + Wernicke",
+      "timeseries_a": [
+        0.3,
+        0.33,
+        0.36,
+        0.38,
+        0.4,
+        0.39,
+        0.37,
+        0.35,
+        0.34,
+        0.33,
+        0.34,
+        0.36
+      ],
+      "timeseries_b": [
+        0.32,
+        0.36,
+        0.4,
+        0.43,
+        0.45,
+        0.46,
+        0.45,
+        0.42,
+        0.4,
+        0.39,
+        0.4,
+        0.42
+      ]
+    },
+    {
+      "key": "brain_effort",
+      "label": "Brain effort",
+      "region": "dlPFC",
+      "timeseries_a": [
+        0.42,
+        0.45,
+        0.47,
+        0.46,
+        0.45,
+        0.43,
+        0.41,
+        0.4,
+        0.42,
+        0.45,
+        0.46,
+        0.44
+      ],
+      "timeseries_b": [
+        0.39,
+        0.42,
+        0.45,
+        0.43,
+        0.41,
+        0.39,
+        0.37,
+        0.36,
+        0.37,
+        0.39,
+        0.41,
+        0.4
+      ]
+    },
+    {
+      "key": "gut_reaction",
+      "label": "Gut reaction",
+      "region": "Anterior insula",
+      "timeseries_a": [
+        0.18,
+        0.22,
+        0.27,
+        0.3,
+        0.33,
+        0.31,
+        0.29,
+        0.27,
+        0.25,
+        0.26,
+        0.29,
+        0.31
+      ],
+      "timeseries_b": [
+        0.27,
+        0.34,
+        0.42,
+        0.46,
+        0.5,
+        0.48,
+        0.45,
+        0.42,
+        0.39,
+        0.4,
+        0.44,
+        0.47
+      ]
+    }
   ],
   "moments": [
-    { "time": 3, "sample": "B", "track": "attention", "title": "Early attention shift", "detail": "B is higher on the attention track in the opening window.", "move": "Treat this as a cortical contrast signal, not a quality score." },
-    { "time": 24, "sample": "B", "track": "social", "title": "Midpoint social shift", "detail": "B is higher on the social track around the reaction-shot window.", "move": "Treat this as a cortical contrast signal, not a quality score." },
-    { "time": 37, "sample": "A", "track": "memory", "title": "Closing memory shift", "detail": "A is higher on the memory track near the closing window.", "move": "Treat this as a cortical contrast signal, not a quality score." }
+    {
+      "time": 1.5,
+      "timestep": 4,
+      "sample": "B",
+      "track": "attention_salience",
+      "delta": 0.32,
+      "magnitude": 0.32
+    },
+    {
+      "time": 12.0,
+      "timestep": 24,
+      "sample": "B",
+      "track": "social_thinking",
+      "delta": 0.24,
+      "magnitude": 0.24
+    },
+    {
+      "time": 20.0,
+      "timestep": 40,
+      "sample": "B",
+      "track": "memory_encoding",
+      "delta": 0.2,
+      "magnitude": 0.2
+    },
+    {
+      "time": 24.0,
+      "timestep": 48,
+      "sample": "A",
+      "track": "brain_effort",
+      "delta": -0.04,
+      "magnitude": 0.04
+    }
   ],
-  "recommendations": [
-    "Largest positive shift: B attention and motion in the opening windows.",
-    "Largest negative shift: A memory near the closing window.",
-    "Review the cortical surface and timing windows before selecting a version."
-  ]
+  "insights": {
+    "headline": "Demo data: B's active cut wins attention from frame one and pulls memory through the payoff.",
+    "actionables": [
+      {
+        "title": "Largest shift",
+        "body": "B's first second lifts attention by +0.32 over A — the human cue arrives early."
+      },
+      {
+        "title": "Stable dimension",
+        "body": "Brain effort barely moves between cuts; both are easy to follow."
+      }
+    ]
+  },
+  "warnings": [],
+  "vertex_delta_b64": "",
+  "vertex_a_b64": "",
+  "vertex_b_b64": ""
 }

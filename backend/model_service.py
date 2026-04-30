@@ -4,7 +4,7 @@ import shutil
 import sys
 import tempfile
 import time
-from typing import Any
+from typing import Any, Protocol
 
 import numpy as np
 
@@ -19,6 +19,79 @@ from backend.runtime import RuntimeProfile, _profile_for_device, detect_runtime_
 logger = logging.getLogger("braindiff.model_service")
 
 _GIB = 1024 ** 3
+
+
+class ProgressEmitter(Protocol):
+    """Anything that can publish a `(status, message)` event during prediction.
+
+    The runpod worker passes a Redis-backed emitter; the local FastAPI passes
+    a job-store emitter. Tests can pass `None` to disable.
+    """
+
+    def emit(self, status: str, message: str) -> None: ...
+
+
+def extract_transcript_segments(events: Any) -> list[dict[str, Any]]:
+    """Pull WhisperX-aligned word stream out of TRIBE v2's events DataFrame
+    and return per-segment rows of the form
+    `{"start": float, "end": float, "text": str}`.
+
+    The audio + video result pages render this directly. Returns [] if the
+    events frame doesn't contain Word rows yet (e.g. audio_only=True path).
+    """
+    if events is None or not hasattr(events, "type"):
+        return []
+    try:
+        words = events[events.type == "Word"]
+        if "start" in words.columns:
+            words = words.sort_values("start")
+        if "text" not in words.columns:
+            return []
+        # Group word rows into ~7-second phrases for readability — matches
+        # the cadence of natural speech and keeps the result page UI tight.
+        # Each segment carries the wall-clock start/end of the constituent
+        # words; consumers use those to drive the scrubber + click-to-jump.
+        segments: list[dict[str, Any]] = []
+        current_text: list[str] = []
+        current_start: float | None = None
+        current_end: float | None = None
+        target_chunk_s = 7.0
+        for row in words.itertuples():
+            text = str(getattr(row, "text", "")).strip()
+            if not text:
+                continue
+            start = float(getattr(row, "start", current_end or 0.0) or 0.0)
+            end = float(getattr(row, "end", start) or start)
+            if current_start is None:
+                current_start = start
+            current_end = end
+            current_text.append(text)
+            if (current_end - current_start) >= target_chunk_s:
+                segments.append({
+                    "start": round(current_start, 2),
+                    "end": round(current_end, 2),
+                    "text": " ".join(current_text),
+                })
+                current_text = []
+                current_start = None
+                current_end = None
+        if current_text and current_start is not None and current_end is not None:
+            segments.append({
+                "start": round(current_start, 2),
+                "end": round(current_end, 2),
+                "text": " ".join(current_text),
+            })
+        return segments
+    except Exception as err:
+        logger.warning("extract_transcript_segments failed: %s", err)
+        return []
+
+
+def transcript_text(segments: list[dict[str, Any]]) -> str:
+    """Flatten transcript segments back into one plain string for the
+    insight engine's content-quality detector and back-compat callers.
+    """
+    return " ".join(seg.get("text", "") for seg in segments).strip()
 
 
 def _resolve_text_backend_strategy(profile: RuntimeProfile) -> str:
@@ -213,16 +286,24 @@ class TribeService:
         path_entries = [shim_dir, ffmpeg_dir, os.environ.get("PATH", "")]
         os.environ["PATH"] = ":".join([p for p in path_entries if p])
 
-    def text_to_predictions(self, text: str) -> tuple[np.ndarray, Any, dict[str, int]]:
+    def text_to_predictions(
+        self,
+        text: str,
+        progress: "ProgressEmitter | None" = None,
+    ) -> tuple[np.ndarray, Any, dict[str, Any]]:
         if self.model is None:
             raise RuntimeError("TRIBEv2 model not loaded")
         with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as handle:
             handle.write(text)
             temp_path = handle.name
         try:
+            if progress is not None:
+                progress.emit("synthesizing_speech", "Synthesising speech for the text via gTTS...")
             t0 = time.perf_counter()
             events = self.model.get_events_dataframe(text_path=temp_path)
             events_ms = int((time.perf_counter() - t0) * 1000)
+            if progress is not None:
+                progress.emit("predicting", "Running TRIBE v2 forward pass (text + audio → cortex)...")
             t1 = time.perf_counter()
             preds, segments = self.model.predict(events=events)
             predict_ms = int((time.perf_counter() - t1) * 1000)
@@ -233,7 +314,15 @@ class TribeService:
             preds_np = np.array(preds, dtype=np.float32)
             if preds_np.ndim != 2:
                 raise ValueError(f"Unexpected predictions shape: {preds_np.shape}")
-            return preds_np, segments, {"events_ms": events_ms, "predict_ms": predict_ms}
+            # For text mode the transcript is just the input text. Audio + video
+            # paths return the WhisperX-aligned segments — keep the contract
+            # uniform so downstream callers can treat all three modalities the same.
+            return preds_np, segments, {
+                "events_ms": events_ms,
+                "predict_ms": predict_ms,
+                "transcript_text": text,
+                "transcript_segments": [],
+            }
         except Exception as err:
             msg = str(err)
             low = msg.lower()
@@ -269,18 +358,37 @@ class TribeService:
         finally:
             os.unlink(temp_path)
 
-    def audio_to_predictions(self, audio_path: str) -> tuple[np.ndarray, Any, dict[str, int]]:
-        return self._media_to_predictions(audio_path, kind="audio")
+    def audio_to_predictions(
+        self,
+        audio_path: str,
+        progress: "ProgressEmitter | None" = None,
+    ) -> tuple[np.ndarray, Any, dict[str, Any]]:
+        return self._media_to_predictions(audio_path, kind="audio", progress=progress)
 
-    def video_to_predictions(self, video_path: str) -> tuple[np.ndarray, Any, dict[str, int]]:
-        return self._media_to_predictions(video_path, kind="video")
+    def video_to_predictions(
+        self,
+        video_path: str,
+        progress: "ProgressEmitter | None" = None,
+    ) -> tuple[np.ndarray, Any, dict[str, Any]]:
+        return self._media_to_predictions(video_path, kind="video", progress=progress)
 
-    def _media_to_predictions(self, path: str, *, kind: str) -> tuple[np.ndarray, Any, dict[str, int]]:
+    def _media_to_predictions(
+        self,
+        path: str,
+        *,
+        kind: str,
+        progress: "ProgressEmitter | None" = None,
+    ) -> tuple[np.ndarray, Any, dict[str, Any]]:
         if self.model is None:
             raise RuntimeError("TRIBEv2 model not loaded")
         if not os.path.isfile(path):
             raise FileNotFoundError(path)
         kwargs = {"audio_path": path} if kind == "audio" else {"video_path": path}
+        if progress is not None:
+            if kind == "audio":
+                progress.emit("transcribing", "Aligning words in the audio (WhisperX)...")
+            else:
+                progress.emit("transcribing", "Extracting frames + audio, aligning words (WhisperX)...")
         t0 = time.perf_counter()
         try:
             events = self.model.get_events_dataframe(**kwargs)
@@ -292,6 +400,17 @@ class TribeService:
                 ) from err
             raise
         events_ms = int((time.perf_counter() - t0) * 1000)
+        # Pull the WhisperX-aligned word stream into ~7s phrase segments so
+        # the audio + video result pages can render real transcripts (with
+        # word-level timestamps) instead of inventing "Opening phrase…".
+        segments_list = extract_transcript_segments(events)
+        full_text = transcript_text(segments_list)
+        if progress is not None:
+            stim = "audio" if kind == "audio" else "video"
+            progress.emit(
+                "predicting",
+                f"Running TRIBE v2 forward pass ({stim} → cortex)...",
+            )
         t1 = time.perf_counter()
         preds, segments = self.model.predict(events=events)
         predict_ms = int((time.perf_counter() - t1) * 1000)
@@ -302,4 +421,9 @@ class TribeService:
         preds_np = np.array(preds, dtype=np.float32)
         if preds_np.ndim != 2:
             raise ValueError(f"Unexpected predictions shape: {preds_np.shape}")
-        return preds_np, segments, {"events_ms": events_ms, "predict_ms": predict_ms}
+        return preds_np, segments, {
+            "events_ms": events_ms,
+            "predict_ms": predict_ms,
+            "transcript_text": full_text,
+            "transcript_segments": segments_list,
+        }

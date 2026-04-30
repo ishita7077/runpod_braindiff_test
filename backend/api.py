@@ -255,6 +255,19 @@ def _narrative_tone() -> str:
     return tone or "sober"
 
 
+def _pipeline_label(modality: str) -> str:
+    """Mirror of the runpod worker's _pipeline_label.
+
+    Replaces the old `text_to_speech: True` flag, which was true for text but
+    silently set on audio/video too — those skip TTS entirely.
+    """
+    if modality == "text":
+        return "text_to_speech"
+    if modality == "audio":
+        return "audio_direct"
+    return "video_frames_audio"
+
+
 def _build_diff_result(
     *,
     payload: DiffRequest,
@@ -273,29 +286,44 @@ def _build_diff_result(
     text_b_timesteps: int,
     median_a: float,
     median_b: float,
+    transcript_a: str = "",
+    transcript_b: str = "",
+    transcript_segments_a: list[dict[str, Any]] | None = None,
+    transcript_segments_b: list[dict[str, Any]] | None = None,
+    media_durations: dict[str, float] | None = None,
+    media_features: dict[str, Any] | None = None,
     identical_short_circuit: bool = False,
 ) -> dict[str, Any]:
     """Assemble the shared /api/diff response body used by both the real
     and the identical-texts short-circuit paths."""
-    text_a = payload.text_a or ""
-    text_b = payload.text_b or ""
+    modality = payload.modality()
+    # For text mode the transcript is the original input. For audio/video the
+    # caller passes the WhisperX-aligned word stream so the insight engine and
+    # results recall card both have access to the actual content of the
+    # stimulus rather than empty fallbacks.
+    if modality == "text":
+        transcript_a = transcript_a or (payload.text_a or "")
+        transcript_b = transcript_b or (payload.text_b or "")
     insights = build_insight_payload(
         dimension_rows,
         warnings,
         narrative_tone=_narrative_tone(),
-        text_a=text_a,
-        text_b=text_b,
+        text_a=transcript_a,
+        text_b=transcript_b,
     )
     meta: dict[str, Any] = {
         "model_revision": tribe_service.model_revision,
         "atlas": "HCP_MMP1.0",
         "method_primary": "signed_roi_contrast",
         "normalization": "within_stimulus_median",
-        "text_to_speech": True,
-        "text_a": text_a,
-        "text_b": text_b,
-        "text_a_length": len(text_a),
-        "text_b_length": len(text_b),
+        "pipeline": _pipeline_label(modality),
+        "modality": modality,
+        "transcript_a": transcript_a,
+        "transcript_b": transcript_b,
+        "transcript_a_length": len(transcript_a),
+        "transcript_b_length": len(transcript_b),
+        "transcript_segments_a": list(transcript_segments_a or []),
+        "transcript_segments_b": list(transcript_segments_b or []),
         "text_a_timesteps": text_a_timesteps,
         "text_b_timesteps": text_b_timesteps,
         "processing_time_ms": processing_time_ms,
@@ -309,10 +337,21 @@ def _build_diff_result(
         "heatmap": heatmap,
         "atlas_peak": describe_peak_abs_delta(vertex_delta),
         "dimensions_count": len(diff),
-        "modality": payload.modality(),
         "stimulus_a_path": payload.audio_path_a or payload.video_path_a or "",
         "stimulus_b_path": payload.audio_path_b or payload.video_path_b or "",
     }
+    if modality == "text":
+        # Back-compat: text mode keeps text_a/text_b at the meta top level
+        # because the recall card and tests still read them.
+        meta["text_a"] = transcript_a
+        meta["text_b"] = transcript_b
+        meta["text_a_length"] = len(transcript_a)
+        meta["text_b_length"] = len(transcript_b)
+    if media_durations is not None:
+        meta["media_duration_a_s"] = float(media_durations.get("a", 0.0))
+        meta["media_duration_b_s"] = float(media_durations.get("b", 0.0))
+    if media_features is not None:
+        meta["media_features"] = media_features
     if identical_short_circuit:
         meta["identical_text_short_circuit"] = True
     return {
@@ -336,10 +375,12 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
     stage_times: dict[str, int] = {}
     route = "/api/diff/start" if modality == "text" else "/api/diff/upload"
 
+    media_durations: dict[str, float] | None = None
+    media_features_payload: dict[str, Any] | None = None
     try:
         if modality == "text":
             check_text_similarity(payload.text_a or "", payload.text_b or "")
-            job_store.update_status(job_id, "converting_text_to_speech", "Converting text to speech...")
+            job_store.update_status(job_id, "synthesizing_speech", "Synthesising speech for the text via gTTS...")
         elif modality == "audio":
             job_store.update_status(job_id, "decoding_audio", "Decoding audio features...")
             logger.info("diff_job:probe_media request_id=%s job_id=%s side=a modality=audio path=%s", request_id, job_id, payload.audio_path_a)
@@ -349,9 +390,19 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             path_b, dur_b, trimmed_b = ensure_within_max(payload.audio_path_b or "")
             logger.info("diff_job:probe_media_ok request_id=%s job_id=%s side=b duration_s=%.2f trimmed=%s", request_id, job_id, dur_b, trimmed_b)
             check_media_similarity(dur_a, dur_b)
+            media_durations = {"a": float(dur_a), "b": float(dur_b)}
             payload = DiffRequest(audio_path_a=path_a, audio_path_b=path_b)
             if trimmed_a or trimmed_b:
                 warnings.append("One or both stimuli were truncated to 30 seconds.")
+            # Real audio amplitude envelope (200 RMS bins per side).
+            try:
+                from backend.media_features import audio_envelope
+                media_features_payload = {
+                    "waveform_a": audio_envelope(path_a),
+                    "waveform_b": audio_envelope(path_b),
+                }
+            except Exception as err:
+                warnings.append(f"Audio waveform extraction failed: {err}")
         else:
             job_store.update_status(job_id, "decoding_video", "Decoding video + extracting frames...")
             logger.info("diff_job:probe_media request_id=%s job_id=%s side=a modality=video path=%s", request_id, job_id, payload.video_path_a)
@@ -361,9 +412,19 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             path_b, dur_b, trimmed_b = ensure_within_max(payload.video_path_b or "")
             logger.info("diff_job:probe_media_ok request_id=%s job_id=%s side=b duration_s=%.2f trimmed=%s", request_id, job_id, dur_b, trimmed_b)
             check_media_similarity(dur_a, dur_b)
+            media_durations = {"a": float(dur_a), "b": float(dur_b)}
             payload = DiffRequest(video_path_a=path_a, video_path_b=path_b)
             if trimmed_a or trimmed_b:
                 warnings.append("One or both stimuli were truncated to 30 seconds.")
+            # Real video keyframes (scene-detected, embedded as base64).
+            try:
+                from backend.media_features import video_keyframes
+                media_features_payload = {
+                    "keyframes_a": video_keyframes(path_a),
+                    "keyframes_b": video_keyframes(path_b),
+                }
+            except Exception as err:
+                warnings.append(f"Video keyframe extraction failed: {err}")
 
         if modality == "text" and (payload.text_a or "").strip() == (payload.text_b or "").strip():
             job_store.update_status(job_id, "predicting_version_a", "Predicting neural response for Version A...")
@@ -406,53 +467,67 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=0, text_b_timesteps=0, total_ms=processing_time_ms)
             return
 
-        # Split each side into two telemetry events so the client deep-scope
-        # log shows what's actually happening:
-        #   transcribing_*  → WhisperX text→audio (events_ms)
-        #   predicting_*    → TRIBE v2 forward pass on text+audio (predict_ms)
-        # The underlying tribe_service call is monolithic, so we still emit
-        # the second event right after the first; the timing reported back
-        # in stage_times comes from inside the call, not from our event gap.
+        # The local FastAPI path emits two events per side via job_store —
+        # transcribing_* (WhisperX) then predicting_* (TRIBE forward pass) —
+        # which run.html's progress UI reads. The model_service call itself
+        # is monolithic; we wrap it so the user sees real stage transitions,
+        # not invented ones. The runpod worker uses the equivalent Redis
+        # emitter for the same purpose.
+
+        class _StoreEmitter:
+            """Bridge model_service's ProgressEmitter Protocol onto job_store."""
+
+            def __init__(self, side: str) -> None:
+                self.side = side
+
+            def emit(self, status: str, message: str) -> None:
+                if status == "transcribing":
+                    job_store.update_status(job_id, f"transcribing_version_{self.side}", message)
+                elif status == "predicting":
+                    job_store.update_status(job_id, f"predicting_version_{self.side}", message)
+                elif status == "synthesizing_speech":
+                    job_store.update_status(job_id, "synthesizing_speech", message)
+
         if modality == "text":
-            job_store.update_status(job_id, "transcribing_version_a", "Transcribing Version A through WhisperX (text → audio)...")
-            job_store.update_status(job_id, "predicting_version_a", "Running TRIBE v2 forward pass on Version A (text + audio → cortex)...")
             logger.info("diff_job:predict_start request_id=%s job_id=%s side=a modality=text", request_id, job_id)
-            preds_a, _, timing_a = _coerce_prediction_output(tribe_service.text_to_predictions(payload.text_a or ""))
+            preds_a, _, timing_a = _coerce_prediction_output(
+                tribe_service.text_to_predictions(payload.text_a or "", progress=_StoreEmitter("a"))
+            )
         elif modality == "audio":
-            job_store.update_status(job_id, "transcribing_version_a", "Aligning words in Version A audio (WhisperX)...")
-            job_store.update_status(job_id, "predicting_version_a", "Running TRIBE v2 forward pass on Version A (audio → cortex)...")
             logger.info("diff_job:predict_start request_id=%s job_id=%s side=a modality=audio path=%s", request_id, job_id, payload.audio_path_a)
-            preds_a, _, timing_a = _coerce_prediction_output(tribe_service.audio_to_predictions(payload.audio_path_a or ""))
+            preds_a, _, timing_a = _coerce_prediction_output(
+                tribe_service.audio_to_predictions(payload.audio_path_a or "", progress=_StoreEmitter("a"))
+            )
         else:
-            job_store.update_status(job_id, "transcribing_version_a", "Extracting video frames + audio for Version A...")
-            job_store.update_status(job_id, "predicting_version_a", "Running TRIBE v2 forward pass on Version A (video + audio → cortex)...")
             logger.info("diff_job:predict_start request_id=%s job_id=%s side=a modality=video path=%s", request_id, job_id, payload.video_path_a)
-            preds_a, _, timing_a = _coerce_prediction_output(tribe_service.video_to_predictions(payload.video_path_a or ""))
+            preds_a, _, timing_a = _coerce_prediction_output(
+                tribe_service.video_to_predictions(payload.video_path_a or "", progress=_StoreEmitter("a"))
+            )
         logger.info("diff_job:predict_ok request_id=%s job_id=%s side=a events_ms=%s predict_ms=%s timesteps=%s", request_id, job_id, timing_a.get("events_ms", 0), timing_a.get("predict_ms", 0), int(preds_a.shape[0]))
-        stage_times["events_a_ms"] = timing_a.get("events_ms", 0)
-        stage_times["predict_a_ms"] = timing_a.get("predict_ms", 0)
+        stage_times["events_a_ms"] = int(timing_a.get("events_ms", 0) or 0)
+        stage_times["predict_a_ms"] = int(timing_a.get("predict_ms", 0) or 0)
 
         if (time.perf_counter() - started_at) * 1000 > 15000:
             job_store.update_status(job_id, "slow_processing", "Still processing - longer stimuli take more time")
 
         if modality == "text":
-            job_store.update_status(job_id, "transcribing_version_b", "Transcribing Version B through WhisperX (text → audio)...")
-            job_store.update_status(job_id, "predicting_version_b", "Running TRIBE v2 forward pass on Version B (text + audio → cortex)...")
             logger.info("diff_job:predict_start request_id=%s job_id=%s side=b modality=text", request_id, job_id)
-            preds_b, _, timing_b = _coerce_prediction_output(tribe_service.text_to_predictions(payload.text_b or ""))
+            preds_b, _, timing_b = _coerce_prediction_output(
+                tribe_service.text_to_predictions(payload.text_b or "", progress=_StoreEmitter("b"))
+            )
         elif modality == "audio":
-            job_store.update_status(job_id, "transcribing_version_b", "Aligning words in Version B audio (WhisperX)...")
-            job_store.update_status(job_id, "predicting_version_b", "Running TRIBE v2 forward pass on Version B (audio → cortex)...")
             logger.info("diff_job:predict_start request_id=%s job_id=%s side=b modality=audio path=%s", request_id, job_id, payload.audio_path_b)
-            preds_b, _, timing_b = _coerce_prediction_output(tribe_service.audio_to_predictions(payload.audio_path_b or ""))
+            preds_b, _, timing_b = _coerce_prediction_output(
+                tribe_service.audio_to_predictions(payload.audio_path_b or "", progress=_StoreEmitter("b"))
+            )
         else:
-            job_store.update_status(job_id, "transcribing_version_b", "Extracting video frames + audio for Version B...")
-            job_store.update_status(job_id, "predicting_version_b", "Running TRIBE v2 forward pass on Version B (video + audio → cortex)...")
             logger.info("diff_job:predict_start request_id=%s job_id=%s side=b modality=video path=%s", request_id, job_id, payload.video_path_b)
-            preds_b, _, timing_b = _coerce_prediction_output(tribe_service.video_to_predictions(payload.video_path_b or ""))
+            preds_b, _, timing_b = _coerce_prediction_output(
+                tribe_service.video_to_predictions(payload.video_path_b or "", progress=_StoreEmitter("b"))
+            )
         logger.info("diff_job:predict_ok request_id=%s job_id=%s side=b events_ms=%s predict_ms=%s timesteps=%s", request_id, job_id, timing_b.get("events_ms", 0), timing_b.get("predict_ms", 0), int(preds_b.shape[0]))
-        stage_times["events_b_ms"] = timing_b.get("events_ms", 0)
-        stage_times["predict_b_ms"] = timing_b.get("predict_ms", 0)
+        stage_times["events_b_ms"] = int(timing_b.get("events_ms", 0) or 0)
+        stage_times["predict_b_ms"] = int(timing_b.get("predict_ms", 0) or 0)
 
         job_store.update_status(job_id, "computing_brain_contrast", "Computing brain contrast...")
         t2 = time.perf_counter()
@@ -467,6 +542,28 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         stage_times["heatmap_ms"] = int((time.perf_counter() - t_heat) * 1000)
 
         processing_time_ms = int((time.perf_counter() - started_at) * 1000)
+        # Pull the WhisperX-aligned transcripts out of the model timing dicts
+        # so the insight engine and the audio/video result pages both have
+        # access to the actual content of the stimulus, not just zeros.
+        transcript_a = str(timing_a.get("transcript_text", "") or "")
+        transcript_b = str(timing_b.get("transcript_text", "") or "")
+        transcript_segments_a = list(timing_a.get("transcript_segments") or [])
+        transcript_segments_b = list(timing_b.get("transcript_segments") or [])
+        # Real per-timestep peak-Δ moment detection (top-4) for media results.
+        if modality != "text" and media_durations is not None:
+            try:
+                from backend.media_features import peak_moments
+                anchor_duration = max(media_durations.get("a", 0.0), media_durations.get("b", 0.0))
+                moments = peak_moments(
+                    preds_a, preds_b, masks,
+                    duration_seconds=anchor_duration,
+                    top_k=4,
+                )
+                if moments:
+                    media_features_payload = dict(media_features_payload or {})
+                    media_features_payload["moments"] = moments
+            except Exception as err:
+                warnings.append(f"Peak moment detection failed: {err}")
         result = _build_diff_result(
             payload=payload,
             request_id=request_id,
@@ -484,6 +581,12 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             text_b_timesteps=int(preds_b.shape[0]),
             median_a=median_a,
             median_b=median_b,
+            transcript_a=transcript_a,
+            transcript_b=transcript_b,
+            transcript_segments_a=transcript_segments_a,
+            transcript_segments_b=transcript_segments_b,
+            media_durations=media_durations,
+            media_features=media_features_payload,
         )
         job_store.set_result(job_id, result)
         job_store.update_status(job_id, "done", "Done")

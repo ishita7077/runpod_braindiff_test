@@ -101,7 +101,7 @@ def test_api_error_code_mapping(monkeypatch):
     class _FailingService:
         model_revision = "facebook/tribev2@test"
 
-        def text_to_predictions(self, text: str):
+        def text_to_predictions(self, text: str, progress=None):
             raise RuntimeError("HF_AUTH_REQUIRED: Access required")
 
     apply_api_test_stubs(

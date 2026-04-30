@@ -38,15 +38,18 @@ class DummyTribeService:
         )()
         self._timing = {"events_ms": events_ms, "predict_ms": predict_ms}
 
-    def text_to_predictions(self, text: str) -> tuple[Any, list[Any], dict[str, int]]:
+    def text_to_predictions(self, text: str, progress: Any = None) -> tuple[Any, list[Any], dict[str, Any]]:
         import numpy as np
 
+        if progress is not None:
+            progress.emit("synthesizing_speech", "Synthesising speech...")
+            progress.emit("predicting", "Encoding through TRIBE v2...")
         base = np.zeros((6, 20484), dtype=np.float32)
         if "B" in text:
             base[:, :100] = 0.05
         else:
             base[:, :100] = 0.01
-        return base, [], self._timing
+        return base, [], {**self._timing, "transcript_text": text, "transcript_segments": []}
 
 
 def dummy_masks(extra_keys: tuple[str, ...] = ()) -> dict[str, dict[str, Any]]:

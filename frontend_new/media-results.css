@@ -465,3 +465,157 @@ body[data-media-kind="video"] .hero-copy {
   .scene-pair { grid-template-columns: 1fr; }
   .scene-strip { grid-template-columns: 1fr 1fr; }
 }
+
+/* ============================================================
+   Real-data extensions (added when media-results.js was split into
+   audio-results.js + video-results.js with real backend wiring).
+   ============================================================ */
+
+/* Empty states — shown when the worker didn't return a piece (transcript,
+   waveform, keyframes, moments) instead of fake placeholders. Honest. */
+.empty-strip {
+  padding: 14px 16px;
+  border: 1px dashed var(--line, rgba(0,0,0,0.18));
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--ink-mute, #77736b);
+  font-style: italic;
+  text-align: center;
+}
+.empty-line {
+  font-style: italic;
+  color: var(--ink-mute, #77736b);
+}
+
+/* Audio-page waveform: real RMS bins from the worker. Bar heights come
+   from `--h` set inline, no JS animation tricks. */
+.waveform {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 64px;
+  padding: 8px 4px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink-mute, #77736b) 8%, transparent);
+}
+.waveform .wave-bar {
+  flex: 1;
+  min-width: 1px;
+  height: calc(8% + var(--h, 0) * 92%);
+  background: var(--accent, #c1272d);
+  opacity: 0.55;
+  border-radius: 1px;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.waveform .wave-bar.is-hot {
+  opacity: 1;
+  transform: scaleY(1.05);
+}
+
+/* Audio-page transcript timeline: clickable WhisperX phrases. */
+.transcript-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 12px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.transcript-line {
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 13px;
+  color: var(--ink-dim, #3d3d42);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.transcript-line:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.transcript-line.is-hot {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: var(--accent, #c1272d);
+  color: var(--ink, #17171a);
+}
+.transcript-details {
+  margin-top: 12px;
+  font-size: 13px;
+}
+.transcript-details > summary {
+  cursor: pointer;
+  color: var(--ink-mute, #77736b);
+  margin-bottom: 8px;
+}
+
+/* Video-page keyframe strip: real ffmpeg thumbnails embedded as base64. */
+.keyframe-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 6px;
+  margin-top: 8px;
+}
+.keyframe {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 1px solid var(--line, rgba(0,0,0,0.12));
+  border-radius: 6px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #000;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.keyframe img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.keyframe span {
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 3px;
+}
+.keyframe:hover { border-color: var(--accent, #c1272d); }
+.keyframe.is-hot {
+  border-color: var(--accent, #c1272d);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+}
+
+/* Real per-vertex contrast thumbnail in moment cards (video page only). */
+.moment-thumb {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+.moment-card.winner-a { border-left: 3px solid var(--good, #2a5583); }
+.moment-card.winner-b { border-left: 3px solid var(--accent, #c1272d); }
+
+/* Scene pair: video keyframes vs audio transcript phrases. */
+.scene-box img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 6px;
+}
+.scene-box.is-hot {
+  outline: 2px solid var(--accent, #c1272d);
+  outline-offset: -2px;
+}
