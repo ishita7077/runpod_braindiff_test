@@ -36,13 +36,21 @@ function decodeFloat32B64(b64) {
 }
 
 async function fetchMesh() {
-  const res = await fetch("/api/brain-mesh", { cache: "force-cache" });
-  if (!res.ok) throw new Error(`brain-mesh HTTP ${res.status}`);
-  const payload = await res.json();
-  if (!payload || !payload.lh_coord || !payload.rh_coord) {
-    throw new Error("brain-mesh payload missing hemispheres");
+  // Try the Vercel API function first (production), then fall back to the
+  // static asset which the Python dev-server exposes at /assets/brain-mesh.json.
+  // This means the real fsaverage5 mesh renders on localhost too — no black void.
+  const candidates = ["/api/brain-mesh", "/assets/brain-mesh.json"];
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url, { cache: "force-cache" });
+      if (!res.ok) continue;
+      const payload = await res.json();
+      if (payload && payload.lh_coord && payload.rh_coord) return payload;
+    } catch (_) {
+      // try next candidate
+    }
   }
-  return payload;
+  throw new Error("brain-mesh unavailable on all endpoints");
 }
 
 function buildGeometry(meshPayload) {

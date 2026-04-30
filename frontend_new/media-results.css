@@ -1988,6 +1988,25 @@ body[data-media-kind="video"] .hero-copy {
   font-size: 13px; color: var(--ink-mute); line-height: 1.4; margin: 0;
 }
 
+/* ─── JOB WARNINGS BANNER ─────────────────────────────────────────────────
+   Shown when the backend emits warnings (e.g. "truncated to 30s").
+   Non-blocking — result is still shown. */
+.job-warnings {
+  margin: 0 0 24px;
+  padding: 14px 18px;
+  border-left: 3px solid #d97a1b;
+  background: color-mix(in srgb, #d97a1b 8%, transparent);
+  border-radius: 0 6px 6px 0;
+}
+.job-warning-item {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: #d97a1b;
+  line-height: 1.6;
+}
+.job-warning-item + .job-warning-item { margin-top: 6px; }
+
 /* ─── RECOMMENDATION COUNTER OVERRIDE ─────────────────────────────────────
    The original .recommendations li::before adds numbered circle badges.
    Inside .decision-inline we use the border-left style instead — no circles. */

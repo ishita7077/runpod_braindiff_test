@@ -29,9 +29,11 @@ def _profile_for_device(device: str) -> RuntimeProfile:
     if device == "cuda":
         return RuntimeProfile("cuda", "cuda", {}, ("cuda", "cpu"))
     if device == "mps":
-        # TRIBEv2 / neuralset HuggingFace extractors only allow
-        # auto | cpu | cuda | accelerate — not the string "mps".
-        # Use accelerate + device_map="auto" so Transformers can place weights on MPS when supported.
+        # neuralset video/image extractors call model.model.to(self.image.device) which
+        # PyTorch parses as a device string — "accelerate" is not a valid device string and
+        # raises a RuntimeError. Use "cpu" so the model stays on CPU for feature extraction
+        # while the TRIBE v2 brain encoder itself still runs on MPS. Text feature can keep
+        # "accelerate" since its code path uses device_map="auto" without a raw .to() call.
         return RuntimeProfile(
             "mps",
             "mps",
@@ -40,9 +42,9 @@ def _profile_for_device(device: str) -> RuntimeProfile:
                 "data.audio_feature.infra.gpus_per_node": 0,
                 "data.text_feature.device": "accelerate",
                 "data.text_feature.infra.gpus_per_node": 0,
-                "data.image_feature.image.device": "accelerate",
+                "data.image_feature.image.device": "cpu",
                 "data.image_feature.infra.gpus_per_node": 0,
-                "data.video_feature.image.device": "accelerate",
+                "data.video_feature.image.device": "cpu",
                 "data.video_feature.infra.gpus_per_node": 0,
             },
             ("mps", "cpu"),

@@ -23,7 +23,11 @@ import { renderSkeleton } from "./assets/structural-skeleton.js";
 
 const params = new URLSearchParams(location.search);
 const jobId = params.get("job");
-const isDemo = params.get("demo") === "1" || !jobId;
+// On production (any non-localhost host) demo mode is disabled — no fixture
+// data reaches real users. Without a job ID redirect immediately to input.
+const isLocalhost = /^(localhost|127\.|0\.0\.0\.0)/.test(location.hostname);
+const isDemo = isLocalhost && (params.get("demo") === "1" || !jobId);
+if (!isLocalhost && !jobId) location.replace("/launch");
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -140,6 +144,7 @@ function render(data) {
   $("#pageHeadline").textContent = data.headline;
   $("#pageDek").textContent = data.sub;
   renderHeroStats(data);
+  renderWarnings(data);
   renderRecommendations(data);
   const na = document.getElementById("sampleNameA");
   if (na) na.textContent = data.samples.a.name || "Cut A";
@@ -221,6 +226,22 @@ function renderPatterns(data) {
   } else if (skelRoot) {
     skelRoot.hidden = true;
   }
+}
+
+function renderWarnings(data) {
+  if (!data.warnings || data.warnings.length === 0) return;
+  const existing = $("#jobWarnings");
+  if (existing) existing.remove();
+  const banner = document.createElement("div");
+  banner.id = "jobWarnings";
+  banner.className = "job-warnings";
+  banner.innerHTML = data.warnings
+    .map((w) => `<p class="job-warning-item">⚠ ${escapeHtml(String(w))}</p>`)
+    .join("");
+  // Insert after the hero stats row
+  const hero = $("#heroStats")?.closest(".hero-meta, .hero-row, header, .hero") || $("#heroStats");
+  if (hero && hero.parentNode) hero.parentNode.insertBefore(banner, hero.nextSibling);
+  else $("main")?.prepend(banner);
 }
 
 function renderHeroStats(data) {
