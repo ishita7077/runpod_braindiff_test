@@ -1,174 +1,5192 @@
 {
   "runs": [
     {
-      "job_id": "demo-video-001",
-      "request_id": "req-demo-video-001",
-      "created_at": "2026-04-30T08:10:00Z",
-      "modality": "video",
-      "modality_effective": "video",
+      "job_id": "demo-0000",
+      "request_id": "req-0000",
+      "created_at": "2026-04-11T09:33:23.457570+00:00",
       "status": "done",
       "success": true,
-      "text_a_length": 0,
-      "text_b_length": 0,
-      "text_a_hash": "",
-      "text_b_hash": "",
-      "text_a_timesteps": 0,
-      "text_b_timesteps": 0,
-      "total_ms": 98500,
-      "stage_times": { "events_a_ms": 16400, "predict_a_ms": 31200, "events_b_ms": 17100, "predict_b_ms": 29500, "score_diff_ms": 1300, "heatmap_ms": 3000 },
-      "warnings": [],
-      "runtime": { "device": "cuda", "backend": "cuda" },
-      "result_analytics": {
-        "top_pattern": "Attention + Memory",
-        "co_activation_patterns": [
-          { "pattern": "Attention + Memory", "integration_score": 0.172, "alignment_score": 0.91, "winner": "B" },
-          { "pattern": "Personal + Visceral", "integration_score": 0.108, "alignment_score": 0.84, "winner": "B" }
-        ],
-        "pipeline_mix": { "dominant": "predict", "shares": { "transcribe": 0.34, "predict": 0.62, "score": 0.01, "heatmap": 0.03 } },
-        "critical_state": { "state": "B_higher", "dimension": "attention_salience", "label": "Attention", "magnitude": 0.19 },
-        "hub_node": "L_IPS1_ROI"
+      "modality": "text",
+      "total_ms": 38215,
+      "stage_times": {
+        "predict_a_ms": 18283,
+        "predict_b_ms": 12128,
+        "score_diff_ms": 3821
       },
-      "error_code": null,
-      "error_message": null
-    },
-    {
-      "job_id": "demo-audio-002",
-      "request_id": "req-demo-audio-002",
-      "created_at": "2026-04-30T06:45:00Z",
-      "modality": "audio",
-      "modality_effective": "audio",
-      "status": "done",
-      "success": true,
-      "text_a_length": 0,
-      "text_b_length": 0,
-      "text_a_hash": "",
-      "text_b_hash": "",
-      "text_a_timesteps": 0,
-      "text_b_timesteps": 0,
-      "total_ms": 74200,
-      "stage_times": { "events_a_ms": 11800, "predict_a_ms": 23600, "events_b_ms": 12500, "predict_b_ms": 22400, "score_diff_ms": 900, "heatmap_ms": 3000 },
       "warnings": [],
-      "runtime": { "device": "cuda", "backend": "cuda" },
       "result_analytics": {
-        "top_pattern": "Personal + Visceral",
         "co_activation_patterns": [
-          { "pattern": "Personal + Visceral", "integration_score": 0.146, "alignment_score": 0.88, "winner": "B" },
-          { "pattern": "Attention + Memory", "integration_score": 0.132, "alignment_score": 0.86, "winner": "B" }
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.3158913397408918,
+            "alignment_score": 0.24684761993079624
+          }
         ],
-        "pipeline_mix": { "dominant": "predict", "shares": { "transcribe": 0.33, "predict": 0.62, "score": 0.01, "heatmap": 0.04 } },
-        "critical_state": { "state": "B_higher", "dimension": "memory_encoding", "label": "Memory Encoding", "magnitude": 0.16 },
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6697982680172219
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "tied"
+        },
         "hub_node": "L_45_ROI"
       },
-      "error_code": null,
-      "error_message": null
+      "failure_summary": {},
+      "error_code": null
     },
     {
-      "job_id": "demo-text-003",
-      "request_id": "req-demo-text-003",
-      "created_at": "2026-04-29T21:20:00Z",
-      "modality": "text",
-      "modality_effective": "text",
+      "job_id": "demo-0001",
+      "request_id": "req-0001",
+      "created_at": "2026-04-08T10:51:16.065197+00:00",
       "status": "done",
       "success": true,
-      "text_a_length": 184,
-      "text_b_length": 201,
-      "text_a_hash": "demoa003",
-      "text_b_hash": "demob003",
-      "text_a_timesteps": 54,
-      "text_b_timesteps": 58,
-      "total_ms": 34800,
-      "stage_times": { "events_a_ms": 5200, "predict_a_ms": 11100, "events_b_ms": 5600, "predict_b_ms": 11600, "score_diff_ms": 500, "heatmap_ms": 800 },
+      "modality": "audio",
+      "total_ms": 24714,
+      "stage_times": {
+        "predict_a_ms": 9503,
+        "predict_b_ms": 8787,
+        "score_diff_ms": 2471
+      },
       "warnings": [],
-      "runtime": { "device": "mps", "backend": "mps_split" },
       "result_analytics": {
-        "top_pattern": "Social + Language",
         "co_activation_patterns": [
-          { "pattern": "Social + Language", "integration_score": 0.119, "alignment_score": 0.82, "winner": "A" },
-          { "pattern": "Effort + Meaning", "integration_score": 0.097, "alignment_score": 0.9, "winner": "mixed" }
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.7786065361033906,
+            "alignment_score": 0.3682972725563134
+          }
         ],
-        "pipeline_mix": { "dominant": "predict", "shares": { "transcribe": 0.31, "predict": 0.65, "score": 0.01, "heatmap": 0.02 } },
-        "critical_state": { "state": "A_higher", "dimension": "social_thinking", "label": "Social Thinking", "magnitude": 0.13 },
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6278237530140444
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
         "hub_node": "R_TPOJ1_ROI"
       },
-      "error_code": null,
-      "error_message": null
+      "failure_summary": {},
+      "error_code": null
     },
     {
-      "job_id": "demo-video-004",
-      "request_id": "req-demo-video-004",
-      "created_at": "2026-04-28T16:02:00Z",
-      "modality": "video",
-      "modality_effective": "video",
+      "job_id": "demo-0002",
+      "request_id": "req-0002",
+      "created_at": "2026-04-11T17:16:20.515375+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 39408,
+      "stage_times": {
+        "predict_a_ms": 16173,
+        "predict_b_ms": 18359,
+        "score_diff_ms": 3940
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.5886760726283811,
+            "alignment_score": 0.5522859181074617
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6137473150966987
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "B_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0003",
+      "request_id": "req-0003",
+      "created_at": "2026-04-04T02:45:40.229226+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 27141,
+      "stage_times": {
+        "predict_a_ms": 10070,
+        "predict_b_ms": 11780,
+        "score_diff_ms": 2714
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.6045655028334941,
+            "alignment_score": 0.2855693240990485
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8187380393851047
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "B_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0004",
+      "request_id": "req-0004",
+      "created_at": "2026-04-21T14:52:21.453008+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 8245,
+      "stage_times": {
+        "predict_a_ms": 2565,
+        "predict_b_ms": 3828,
+        "score_diff_ms": 824
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.5005823935111644,
+            "alignment_score": 0.23309430260577363
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8739408372556635
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0005",
+      "request_id": "req-0005",
+      "created_at": "2026-04-14T18:43:29.419959+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 21093,
+      "stage_times": {
+        "predict_a_ms": 8135,
+        "predict_b_ms": 8789,
+        "score_diff_ms": 2109
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.40966037957864165,
+            "alignment_score": 0.6987688032475551
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7528578881029393
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "A_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0006",
+      "request_id": "req-0006",
+      "created_at": "2026-04-25T20:47:37.400212+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 13421,
+      "stage_times": {
+        "predict_a_ms": 5282,
+        "predict_b_ms": 4701,
+        "score_diff_ms": 1342
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.6401417051282592,
+            "alignment_score": 0.25727587149184333
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8654365350387327
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0007",
+      "request_id": "req-0007",
+      "created_at": "2026-04-26T20:12:06.812989+00:00",
       "status": "error",
       "success": false,
-      "text_a_length": 0,
-      "text_b_length": 0,
-      "text_a_hash": "",
-      "text_b_hash": "",
-      "text_a_timesteps": 0,
-      "text_b_timesteps": 0,
-      "total_ms": 180000,
-      "stage_times": { "events_a_ms": 42000, "predict_a_ms": 72000 },
-      "warnings": ["One or both stimuli were truncated to 30 seconds."],
-      "runtime": { "device": "cuda", "backend": "cuda" },
+      "modality": "audio",
+      "total_ms": 30434,
+      "stage_times": {},
+      "warnings": [],
       "result_analytics": {},
-      "error_code": "DIFF_TIMEOUT",
-      "error_message": "The run exceeded the hard timeout.",
       "failure_summary": {
-        "code": "DIFF_TIMEOUT",
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "RUNPOD_JOB_FAILED"
+      },
+      "error_code": "RUNPOD_JOB_FAILED"
+    },
+    {
+      "job_id": "demo-0008",
+      "request_id": "req-0008",
+      "created_at": "2026-04-15T06:32:26.893003+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "audio",
+      "total_ms": 18178,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "INPUT_REJECTED"
+      },
+      "error_code": "INPUT_REJECTED"
+    },
+    {
+      "job_id": "demo-0009",
+      "request_id": "req-0009",
+      "created_at": "2026-04-07T05:06:20.032216+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 14585,
+      "stage_times": {
+        "predict_a_ms": 6936,
+        "predict_b_ms": 7137,
+        "score_diff_ms": 1458
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.6659537974223139,
+            "alignment_score": 0.6080116267100442
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.8933953481032002
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0010",
+      "request_id": "req-0010",
+      "created_at": "2026-04-15T19:40:12.948132+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "text",
+      "total_ms": 16280,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "RUNPOD_JOB_FAILED"
+      },
+      "error_code": "RUNPOD_JOB_FAILED"
+    },
+    {
+      "job_id": "demo-0011",
+      "request_id": "req-0011",
+      "created_at": "2026-04-08T20:01:08.309718+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 38102,
+      "stage_times": {
+        "predict_a_ms": 13319,
+        "predict_b_ms": 11918,
+        "score_diff_ms": 3810
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.5941543592286167,
+            "alignment_score": 0.3150573662982885
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6660652153354678
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "tied"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0012",
+      "request_id": "req-0012",
+      "created_at": "2026-04-28T18:34:47.058794+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 18367,
+      "stage_times": {
+        "predict_a_ms": 7293,
+        "predict_b_ms": 7490,
+        "score_diff_ms": 1836
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.42149862119786224,
+            "alignment_score": 0.4364864714722968
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.722117988445781
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "A_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0013",
+      "request_id": "req-0013",
+      "created_at": "2026-04-17T06:25:11.634922+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 9010,
+      "stage_times": {
+        "predict_a_ms": 3314,
+        "predict_b_ms": 4255,
+        "score_diff_ms": 901
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.395795036070827,
+            "alignment_score": 0.46814287695517215
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6420546891284323
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "B_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0014",
+      "request_id": "req-0014",
+      "created_at": "2026-04-22T05:25:23.905175+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "audio",
+      "total_ms": 19009,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
         "reason": "The job took too long and was stopped.",
-        "stage": "It reached the first file's brain-model prediction step.",
-        "action": "Try shorter files/text, then check whether the RunPod worker has enough GPU time for media jobs.",
-        "raw_message": "The run exceeded the hard timeout."
-      }
+        "code": "DIFF_TIMEOUT"
+      },
+      "error_code": "DIFF_TIMEOUT"
+    },
+    {
+      "job_id": "demo-0015",
+      "request_id": "req-0015",
+      "created_at": "2026-03-31T15:32:07.124630+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 17664,
+      "stage_times": {
+        "predict_a_ms": 6715,
+        "predict_b_ms": 5506,
+        "score_diff_ms": 1766
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.3010776891757132,
+            "alignment_score": 0.3952108787939066
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.8779554220678001
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0016",
+      "request_id": "req-0016",
+      "created_at": "2026-04-09T00:10:17.592091+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 17697,
+      "stage_times": {
+        "predict_a_ms": 6079,
+        "predict_b_ms": 5516,
+        "score_diff_ms": 1769
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.673987780189532,
+            "alignment_score": 0.22858263645374155
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7752532783376913
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0017",
+      "request_id": "req-0017",
+      "created_at": "2026-04-28T00:33:53.385032+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 13206,
+      "stage_times": {
+        "predict_a_ms": 6313,
+        "predict_b_ms": 4612,
+        "score_diff_ms": 1320
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.6096907551660515,
+            "alignment_score": 0.4096124576679362
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7751016867873675
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "B_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0018",
+      "request_id": "req-0018",
+      "created_at": "2026-04-10T05:05:24.459262+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 23719,
+      "stage_times": {
+        "predict_a_ms": 11522,
+        "predict_b_ms": 11554,
+        "score_diff_ms": 2371
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.529142761309293,
+            "alignment_score": 0.6992272204272212
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8988289343565283
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "tied"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0019",
+      "request_id": "req-0019",
+      "created_at": "2026-04-15T07:14:08.078704+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 12456,
+      "stage_times": {
+        "predict_a_ms": 4828,
+        "predict_b_ms": 5090,
+        "score_diff_ms": 1245
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.605838882862975,
+            "alignment_score": 0.6936165318157521
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7961928953132198
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "tied"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0020",
+      "request_id": "req-0020",
+      "created_at": "2026-04-20T23:42:30.298403+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 19407,
+      "stage_times": {
+        "predict_a_ms": 8169,
+        "predict_b_ms": 8607,
+        "score_diff_ms": 1940
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.6437485644006653,
+            "alignment_score": 0.6264564076959487
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7516227174293961
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0021",
+      "request_id": "req-0021",
+      "created_at": "2026-04-10T18:45:33.300480+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 9643,
+      "stage_times": {
+        "predict_a_ms": 4253,
+        "predict_b_ms": 3974,
+        "score_diff_ms": 964
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.3376219300368835,
+            "alignment_score": 0.6415531966500714
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.871178571467968
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0022",
+      "request_id": "req-0022",
+      "created_at": "2026-04-13T14:48:57.219115+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 8609,
+      "stage_times": {
+        "predict_a_ms": 3757,
+        "predict_b_ms": 3731,
+        "score_diff_ms": 860
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.6900581209357213,
+            "alignment_score": 0.6420673507255044
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7219132169496351
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0023",
+      "request_id": "req-0023",
+      "created_at": "2026-03-31T13:00:10.673937+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 25919,
+      "stage_times": {
+        "predict_a_ms": 12600,
+        "predict_b_ms": 11934,
+        "score_diff_ms": 2591
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.433402854797236,
+            "alignment_score": 0.5936872545677355
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6324286879208871
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0024",
+      "request_id": "req-0024",
+      "created_at": "2026-04-23T17:42:08.016856+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "text",
+      "total_ms": 29436,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "RUNPOD_JOB_FAILED"
+      },
+      "error_code": "RUNPOD_JOB_FAILED"
+    },
+    {
+      "job_id": "demo-0025",
+      "request_id": "req-0025",
+      "created_at": "2026-04-18T09:12:56.459812+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 13171,
+      "stage_times": {
+        "predict_a_ms": 5741,
+        "predict_b_ms": 6173,
+        "score_diff_ms": 1317
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.7696185701623579,
+            "alignment_score": 0.2576708759257138
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8911201833066684
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0026",
+      "request_id": "req-0026",
+      "created_at": "2026-04-28T21:15:09.854252+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 15693,
+      "stage_times": {
+        "predict_a_ms": 7239,
+        "predict_b_ms": 6863,
+        "score_diff_ms": 1569
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.4821107358906321,
+            "alignment_score": 0.2349869055631551
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7992713054733818
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0027",
+      "request_id": "req-0027",
+      "created_at": "2026-04-10T14:00:49.295088+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 23227,
+      "stage_times": {
+        "predict_a_ms": 10206,
+        "predict_b_ms": 9543,
+        "score_diff_ms": 2322
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.5102231668864541,
+            "alignment_score": 0.6701818353650915
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.8031953835818199
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0028",
+      "request_id": "req-0028",
+      "created_at": "2026-04-21T01:13:57.333583+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 15158,
+      "stage_times": {
+        "predict_a_ms": 6532,
+        "predict_b_ms": 5957,
+        "score_diff_ms": 1515
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.6378136165950499,
+            "alignment_score": 0.4555869984372935
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8381206197318006
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0029",
+      "request_id": "req-0029",
+      "created_at": "2026-04-21T10:55:27.150317+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 33063,
+      "stage_times": {
+        "predict_a_ms": 11971,
+        "predict_b_ms": 15252,
+        "score_diff_ms": 3306
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.31221269386341316,
+            "alignment_score": 0.3224212720391751
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7425409032656416
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0030",
+      "request_id": "req-0030",
+      "created_at": "2026-04-03T11:15:36.190974+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 15945,
+      "stage_times": {
+        "predict_a_ms": 6976,
+        "predict_b_ms": 7630,
+        "score_diff_ms": 1594
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.6892102033836625,
+            "alignment_score": 0.3094205684061597
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8412329568519429
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "A_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0031",
+      "request_id": "req-0031",
+      "created_at": "2026-04-22T07:35:04.419266+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 128630,
+      "stage_times": {
+        "predict_a_ms": 61521,
+        "predict_b_ms": 54350,
+        "score_diff_ms": 12863
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.7152845848607075,
+            "alignment_score": 0.47393597530541415
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8691624309699787
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0032",
+      "request_id": "req-0032",
+      "created_at": "2026-04-07T05:55:22.531982+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 17628,
+      "stage_times": {
+        "predict_a_ms": 6839,
+        "predict_b_ms": 7804,
+        "score_diff_ms": 1762
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.4358575535410923,
+            "alignment_score": 0.3598547842093811
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7620456667555369
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0033",
+      "request_id": "req-0033",
+      "created_at": "2026-04-18T23:13:08.855650+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 12993,
+      "stage_times": {
+        "predict_a_ms": 4059,
+        "predict_b_ms": 6062,
+        "score_diff_ms": 1299
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.7524192391700885,
+            "alignment_score": 0.49203970710211253
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8086568959493905
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0034",
+      "request_id": "req-0034",
+      "created_at": "2026-04-02T00:52:37.106019+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "text",
+      "total_ms": 38043,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "RUNPOD_JOB_FAILED"
+      },
+      "error_code": "RUNPOD_JOB_FAILED"
+    },
+    {
+      "job_id": "demo-0035",
+      "request_id": "req-0035",
+      "created_at": "2026-04-15T16:42:58.760081+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 42584,
+      "stage_times": {
+        "predict_a_ms": 18942,
+        "predict_b_ms": 19933,
+        "score_diff_ms": 4258
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.7903609887594616,
+            "alignment_score": 0.46706181476625214
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8720786587760305
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "A_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0036",
+      "request_id": "req-0036",
+      "created_at": "2026-04-16T21:58:49.018500+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 12993,
+      "stage_times": {
+        "predict_a_ms": 4774,
+        "predict_b_ms": 6183,
+        "score_diff_ms": 1299
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.6760049117773924,
+            "alignment_score": 0.6159621425776363
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6756814595347141
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0037",
+      "request_id": "req-0037",
+      "created_at": "2026-04-08T02:01:25.036616+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 3569,
+      "stage_times": {
+        "predict_a_ms": 1514,
+        "predict_b_ms": 1240,
+        "score_diff_ms": 356
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.6347294223099553,
+            "alignment_score": 0.4819847909650095
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6653893622719511
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "B_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0038",
+      "request_id": "req-0038",
+      "created_at": "2026-04-11T12:06:37.513777+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 10892,
+      "stage_times": {
+        "predict_a_ms": 4528,
+        "predict_b_ms": 5291,
+        "score_diff_ms": 1089
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.49832722075831365,
+            "alignment_score": 0.5575073525247342
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.622798943352918
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0039",
+      "request_id": "req-0039",
+      "created_at": "2026-04-06T14:46:33.875715+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 13670,
+      "stage_times": {
+        "predict_a_ms": 5114,
+        "predict_b_ms": 5484,
+        "score_diff_ms": 1367
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.30632607508292653,
+            "alignment_score": 0.4100293704209138
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7470605114971225
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0040",
+      "request_id": "req-0040",
+      "created_at": "2026-04-03T10:00:39.753349+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 19190,
+      "stage_times": {
+        "predict_a_ms": 8120,
+        "predict_b_ms": 9286,
+        "score_diff_ms": 1919
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.5324368858172539,
+            "alignment_score": 0.6128672992103777
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7777423857191105
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0041",
+      "request_id": "req-0041",
+      "created_at": "2026-04-21T19:19:20.182182+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 23365,
+      "stage_times": {
+        "predict_a_ms": 9319,
+        "predict_b_ms": 8528,
+        "score_diff_ms": 2336
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.4060599250898695,
+            "alignment_score": 0.5989161784140482
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7021016529492851
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0042",
+      "request_id": "req-0042",
+      "created_at": "2026-04-14T22:09:11.301392+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 19397,
+      "stage_times": {
+        "predict_a_ms": 7666,
+        "predict_b_ms": 8580,
+        "score_diff_ms": 1939
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.6964664340661587,
+            "alignment_score": 0.24652667527733585
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.666478920141759
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "B_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0043",
+      "request_id": "req-0043",
+      "created_at": "2026-04-12T16:54:50.564054+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 26275,
+      "stage_times": {
+        "predict_a_ms": 11576,
+        "predict_b_ms": 9306,
+        "score_diff_ms": 2627
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.41526902064925386,
+            "alignment_score": 0.5606421656630347
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6946643832017959
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0044",
+      "request_id": "req-0044",
+      "created_at": "2026-04-08T04:21:51.178697+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 29279,
+      "stage_times": {
+        "predict_a_ms": 10896,
+        "predict_b_ms": 10553,
+        "score_diff_ms": 2927
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.43715566339163364,
+            "alignment_score": 0.687147465551369
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7660076900395825
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0045",
+      "request_id": "req-0045",
+      "created_at": "2026-04-27T12:22:25.853832+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 17642,
+      "stage_times": {
+        "predict_a_ms": 7714,
+        "predict_b_ms": 5827,
+        "score_diff_ms": 1764
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.342590454198115,
+            "alignment_score": 0.3240954776050581
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7674219103852885
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "tied"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0046",
+      "request_id": "req-0046",
+      "created_at": "2026-04-06T15:59:41.483802+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 11807,
+      "stage_times": {
+        "predict_a_ms": 5879,
+        "predict_b_ms": 4263,
+        "score_diff_ms": 1180
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.6048154561225652,
+            "alignment_score": 0.5700446527422725
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8842770600976134
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0047",
+      "request_id": "req-0047",
+      "created_at": "2026-04-22T14:06:23.530813+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 9901,
+      "stage_times": {
+        "predict_a_ms": 4335,
+        "predict_b_ms": 3900,
+        "score_diff_ms": 990
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.4157381172780129,
+            "alignment_score": 0.5534779149395166
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8108962674281152
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "A_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0048",
+      "request_id": "req-0048",
+      "created_at": "2026-04-23T08:22:08.981134+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 26584,
+      "stage_times": {
+        "predict_a_ms": 8585,
+        "predict_b_ms": 9170,
+        "score_diff_ms": 2658
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.754205722606303,
+            "alignment_score": 0.6133155798250298
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6214229510567443
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "B_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0049",
+      "request_id": "req-0049",
+      "created_at": "2026-04-07T14:10:39.850417+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 34369,
+      "stage_times": {
+        "predict_a_ms": 16790,
+        "predict_b_ms": 13750,
+        "score_diff_ms": 3436
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.518879431785799,
+            "alignment_score": 0.49901833102055176
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8668268667877361
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0050",
+      "request_id": "req-0050",
+      "created_at": "2026-04-29T14:37:51.867013+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "audio",
+      "total_ms": 19726,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "INPUT_REJECTED"
+      },
+      "error_code": "INPUT_REJECTED"
+    },
+    {
+      "job_id": "demo-0051",
+      "request_id": "req-0051",
+      "created_at": "2026-04-12T14:04:11.000069+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 16576,
+      "stage_times": {
+        "predict_a_ms": 8277,
+        "predict_b_ms": 6417,
+        "score_diff_ms": 1657
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.7845276180328518,
+            "alignment_score": 0.43500519748017585
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7225044280290046
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0052",
+      "request_id": "req-0052",
+      "created_at": "2026-04-04T13:21:56.685675+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 19785,
+      "stage_times": {
+        "predict_a_ms": 7180,
+        "predict_b_ms": 7214,
+        "score_diff_ms": 1978
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.7324552920259395,
+            "alignment_score": 0.6124636016343504
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6003453202344337
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0053",
+      "request_id": "req-0053",
+      "created_at": "2026-04-24T15:08:19.331473+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 25188,
+      "stage_times": {
+        "predict_a_ms": 10323,
+        "predict_b_ms": 12229,
+        "score_diff_ms": 2518
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.7404233086789027,
+            "alignment_score": 0.442355898474999
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6086608327324989
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0054",
+      "request_id": "req-0054",
+      "created_at": "2026-04-21T06:27:52.005332+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 26756,
+      "stage_times": {
+        "predict_a_ms": 13094,
+        "predict_b_ms": 11492,
+        "score_diff_ms": 2675
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.5491877523535976,
+            "alignment_score": 0.5583016629958955
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7526616045208535
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "B_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0055",
+      "request_id": "req-0055",
+      "created_at": "2026-03-31T23:08:13.602974+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 43527,
+      "stage_times": {
+        "predict_a_ms": 20712,
+        "predict_b_ms": 20579,
+        "score_diff_ms": 4352
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.6863375663385025,
+            "alignment_score": 0.6272061899861038
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7019625729342887
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0056",
+      "request_id": "req-0056",
+      "created_at": "2026-04-08T00:30:01.456379+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 35505,
+      "stage_times": {
+        "predict_a_ms": 14090,
+        "predict_b_ms": 13012,
+        "score_diff_ms": 3550
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.5276723084332505,
+            "alignment_score": 0.3608886751145187
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6565957121121316
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0057",
+      "request_id": "req-0057",
+      "created_at": "2026-04-22T20:30:59.666985+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 55173,
+      "stage_times": {
+        "predict_a_ms": 20812,
+        "predict_b_ms": 23875,
+        "score_diff_ms": 5517
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.5476643248082118,
+            "alignment_score": 0.2185098056727881
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7506873450398898
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0058",
+      "request_id": "req-0058",
+      "created_at": "2026-04-26T17:47:11.318245+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 9472,
+      "stage_times": {
+        "predict_a_ms": 3594,
+        "predict_b_ms": 2993,
+        "score_diff_ms": 947
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.7261706682829465,
+            "alignment_score": 0.6296710920841333
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7140028192567965
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0059",
+      "request_id": "req-0059",
+      "created_at": "2026-04-03T12:20:25.491814+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 7578,
+      "stage_times": {
+        "predict_a_ms": 2708,
+        "predict_b_ms": 2618,
+        "score_diff_ms": 757
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.5169857359615628,
+            "alignment_score": 0.249221563191599
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7901243486342374
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0060",
+      "request_id": "req-0060",
+      "created_at": "2026-04-08T22:03:34.083407+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 12809,
+      "stage_times": {
+        "predict_a_ms": 4215,
+        "predict_b_ms": 5203,
+        "score_diff_ms": 1280
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.3849918245340487,
+            "alignment_score": 0.23948417532999733
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8612518795934565
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "B_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0061",
+      "request_id": "req-0061",
+      "created_at": "2026-04-25T20:52:04.266306+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 9580,
+      "stage_times": {
+        "predict_a_ms": 3536,
+        "predict_b_ms": 3999,
+        "score_diff_ms": 958
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.6451567562300645,
+            "alignment_score": 0.4284179063338932
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6906365011614941
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0062",
+      "request_id": "req-0062",
+      "created_at": "2026-04-22T22:34:36.231382+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "audio",
+      "total_ms": 22530,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The job took too long and was stopped.",
+        "code": "DIFF_TIMEOUT"
+      },
+      "error_code": "DIFF_TIMEOUT"
+    },
+    {
+      "job_id": "demo-0063",
+      "request_id": "req-0063",
+      "created_at": "2026-04-02T13:44:09.211304+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "video",
+      "total_ms": 26024,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "INPUT_REJECTED"
+      },
+      "error_code": "INPUT_REJECTED"
+    },
+    {
+      "job_id": "demo-0064",
+      "request_id": "req-0064",
+      "created_at": "2026-04-23T20:27:45.916091+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 42650,
+      "stage_times": {
+        "predict_a_ms": 13961,
+        "predict_b_ms": 13623,
+        "score_diff_ms": 4265
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.454466441976318,
+            "alignment_score": 0.4204115950814058
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7738721416105209
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0065",
+      "request_id": "req-0065",
+      "created_at": "2026-04-20T09:43:28.979719+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 33162,
+      "stage_times": {
+        "predict_a_ms": 13276,
+        "predict_b_ms": 11756,
+        "score_diff_ms": 3316
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.42848504228163115,
+            "alignment_score": 0.6123449062712036
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7445543489621224
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0066",
+      "request_id": "req-0066",
+      "created_at": "2026-04-06T00:42:00.030645+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 7521,
+      "stage_times": {
+        "predict_a_ms": 3270,
+        "predict_b_ms": 2854,
+        "score_diff_ms": 752
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.34515143778429164,
+            "alignment_score": 0.397287280164356
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6793375735057271
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0067",
+      "request_id": "req-0067",
+      "created_at": "2026-04-09T18:37:07.625868+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "audio",
+      "total_ms": 44350,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "RUNPOD_JOB_FAILED"
+      },
+      "error_code": "RUNPOD_JOB_FAILED"
+    },
+    {
+      "job_id": "demo-0068",
+      "request_id": "req-0068",
+      "created_at": "2026-04-10T13:35:42.194315+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 21418,
+      "stage_times": {
+        "predict_a_ms": 6619,
+        "predict_b_ms": 6584,
+        "score_diff_ms": 2141
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.35806024036255474,
+            "alignment_score": 0.31740001621566455
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7612639817647577
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0069",
+      "request_id": "req-0069",
+      "created_at": "2026-04-09T18:40:36.328383+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 24175,
+      "stage_times": {
+        "predict_a_ms": 9258,
+        "predict_b_ms": 7731,
+        "score_diff_ms": 2417
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.6078261070255782,
+            "alignment_score": 0.6695265328568276
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6839220420257366
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0070",
+      "request_id": "req-0070",
+      "created_at": "2026-04-17T00:54:26.814712+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "text",
+      "total_ms": 4487,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "INPUT_REJECTED"
+      },
+      "error_code": "INPUT_REJECTED"
+    },
+    {
+      "job_id": "demo-0071",
+      "request_id": "req-0071",
+      "created_at": "2026-04-28T12:34:39.795282+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "video",
+      "total_ms": 25990,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "RUNPOD_JOB_FAILED"
+      },
+      "error_code": "RUNPOD_JOB_FAILED"
+    },
+    {
+      "job_id": "demo-0072",
+      "request_id": "req-0072",
+      "created_at": "2026-04-10T18:45:26.945188+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 13308,
+      "stage_times": {
+        "predict_a_ms": 5495,
+        "predict_b_ms": 4175,
+        "score_diff_ms": 1330
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.5931915417907809,
+            "alignment_score": 0.6065264905605294
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6698996037138094
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0073",
+      "request_id": "req-0073",
+      "created_at": "2026-04-21T08:14:54.679619+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 25421,
+      "stage_times": {
+        "predict_a_ms": 12031,
+        "predict_b_ms": 8296,
+        "score_diff_ms": 2542
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.694992332117377,
+            "alignment_score": 0.31896580304523153
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6971314385886067
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "B_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0074",
+      "request_id": "req-0074",
+      "created_at": "2026-04-26T09:34:14.930289+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 16558,
+      "stage_times": {
+        "predict_a_ms": 6933,
+        "predict_b_ms": 6464,
+        "score_diff_ms": 1655
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.7727078214850531,
+            "alignment_score": 0.22168251844958586
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8349680987941139
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "B_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0075",
+      "request_id": "req-0075",
+      "created_at": "2026-04-01T15:01:16.399312+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 26210,
+      "stage_times": {
+        "predict_a_ms": 12631,
+        "predict_b_ms": 8248,
+        "score_diff_ms": 2621
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.46105590987316303,
+            "alignment_score": 0.2741669128301823
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6378574764915168
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "B_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0076",
+      "request_id": "req-0076",
+      "created_at": "2026-04-14T06:04:57.650508+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 73793,
+      "stage_times": {
+        "predict_a_ms": 31744,
+        "predict_b_ms": 33486,
+        "score_diff_ms": 7379
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.5150349708331932,
+            "alignment_score": 0.6440455109942465
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.724144071353074
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0077",
+      "request_id": "req-0077",
+      "created_at": "2026-04-08T10:00:33.986537+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 17482,
+      "stage_times": {
+        "predict_a_ms": 5543,
+        "predict_b_ms": 6754,
+        "score_diff_ms": 1748
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.7058846426386962,
+            "alignment_score": 0.478185367807675
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.775939524821843
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0078",
+      "request_id": "req-0078",
+      "created_at": "2026-04-17T10:38:37.942750+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 13097,
+      "stage_times": {
+        "predict_a_ms": 4200,
+        "predict_b_ms": 5258,
+        "score_diff_ms": 1309
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.628368151494076,
+            "alignment_score": 0.3121224345537828
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.63246551457818
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0079",
+      "request_id": "req-0079",
+      "created_at": "2026-04-12T14:36:03.468946+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "video",
+      "total_ms": 42037,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The job took too long and was stopped.",
+        "code": "DIFF_TIMEOUT"
+      },
+      "error_code": "DIFF_TIMEOUT"
+    },
+    {
+      "job_id": "demo-0080",
+      "request_id": "req-0080",
+      "created_at": "2026-04-11T16:54:45.362913+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 6740,
+      "stage_times": {
+        "predict_a_ms": 3264,
+        "predict_b_ms": 2495,
+        "score_diff_ms": 674
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.7349313532682191,
+            "alignment_score": 0.4831605473806881
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7202353031998546
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0081",
+      "request_id": "req-0081",
+      "created_at": "2026-04-01T08:42:18.727327+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 17009,
+      "stage_times": {
+        "predict_a_ms": 6162,
+        "predict_b_ms": 6206,
+        "score_diff_ms": 1700
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.7416710922591716,
+            "alignment_score": 0.2777899517022442
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8263307637374957
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "tied"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0082",
+      "request_id": "req-0082",
+      "created_at": "2026-04-21T19:22:49.515469+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 6942,
+      "stage_times": {
+        "predict_a_ms": 2240,
+        "predict_b_ms": 2679,
+        "score_diff_ms": 694
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.6391089464667672,
+            "alignment_score": 0.49656712519613183
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7580802321444434
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0083",
+      "request_id": "req-0083",
+      "created_at": "2026-04-18T04:08:41.780611+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 12754,
+      "stage_times": {
+        "predict_a_ms": 4477,
+        "predict_b_ms": 4663,
+        "score_diff_ms": 1275
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.5486926643066634,
+            "alignment_score": 0.41532750567680143
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6387557105277645
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0084",
+      "request_id": "req-0084",
+      "created_at": "2026-04-04T19:57:41.141585+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "text",
+      "total_ms": 21610,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "BLOB_DOWNLOAD_FAILED"
+      },
+      "error_code": "BLOB_DOWNLOAD_FAILED"
+    },
+    {
+      "job_id": "demo-0085",
+      "request_id": "req-0085",
+      "created_at": "2026-04-21T12:45:08.521802+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 42255,
+      "stage_times": {
+        "predict_a_ms": 18504,
+        "predict_b_ms": 15734,
+        "score_diff_ms": 4225
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.7222421799073484,
+            "alignment_score": 0.32165823741136684
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7766613864908736
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0086",
+      "request_id": "req-0086",
+      "created_at": "2026-04-08T00:26:36.333032+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 24107,
+      "stage_times": {
+        "predict_a_ms": 8166,
+        "predict_b_ms": 10974,
+        "score_diff_ms": 2410
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.6636895528369522,
+            "alignment_score": 0.6094743007624259
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.8445111017250042
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0087",
+      "request_id": "req-0087",
+      "created_at": "2026-04-22T18:13:53.259218+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 23012,
+      "stage_times": {
+        "predict_a_ms": 9498,
+        "predict_b_ms": 9570,
+        "score_diff_ms": 2301
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.7321234374157081,
+            "alignment_score": 0.5136087034498859
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6452872204179231
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0088",
+      "request_id": "req-0088",
+      "created_at": "2026-04-10T21:36:22.281165+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 7973,
+      "stage_times": {
+        "predict_a_ms": 2451,
+        "predict_b_ms": 2979,
+        "score_diff_ms": 797
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.3383655005867275,
+            "alignment_score": 0.6321250169626196
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8565880114368272
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0089",
+      "request_id": "req-0089",
+      "created_at": "2026-04-13T05:11:58.061583+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 44984,
+      "stage_times": {
+        "predict_a_ms": 16387,
+        "predict_b_ms": 17774,
+        "score_diff_ms": 4498
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.7788611794332925,
+            "alignment_score": 0.42526155450754566
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.8432900433967863
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0090",
+      "request_id": "req-0090",
+      "created_at": "2026-04-15T07:16:29.719948+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 15795,
+      "stage_times": {
+        "predict_a_ms": 5239,
+        "predict_b_ms": 5916,
+        "score_diff_ms": 1579
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.49370827976155796,
+            "alignment_score": 0.5872323942868677
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8036693161678743
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "tied"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0091",
+      "request_id": "req-0091",
+      "created_at": "2026-04-20T05:59:19.107083+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 10200,
+      "stage_times": {
+        "predict_a_ms": 4410,
+        "predict_b_ms": 3323,
+        "score_diff_ms": 1020
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.45479094370798046,
+            "alignment_score": 0.3883396530281501
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.837498587359063
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0092",
+      "request_id": "req-0092",
+      "created_at": "2026-04-05T00:40:36.409110+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 23360,
+      "stage_times": {
+        "predict_a_ms": 8698,
+        "predict_b_ms": 8702,
+        "score_diff_ms": 2336
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.7755846567980671,
+            "alignment_score": 0.37086617256577403
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8298468623003459
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0093",
+      "request_id": "req-0093",
+      "created_at": "2026-04-25T16:09:19.135416+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 21052,
+      "stage_times": {
+        "predict_a_ms": 8532,
+        "predict_b_ms": 9102,
+        "score_diff_ms": 2105
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.5986232205358142,
+            "alignment_score": 0.2771263806605608
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6542537901506089
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0094",
+      "request_id": "req-0094",
+      "created_at": "2026-04-28T22:40:53.844957+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "audio",
+      "total_ms": 28506,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "BLOB_DOWNLOAD_FAILED"
+      },
+      "error_code": "BLOB_DOWNLOAD_FAILED"
+    },
+    {
+      "job_id": "demo-0095",
+      "request_id": "req-0095",
+      "created_at": "2026-04-23T08:32:09.826416+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 30153,
+      "stage_times": {
+        "predict_a_ms": 13136,
+        "predict_b_ms": 12485,
+        "score_diff_ms": 3015
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.5308399892204946,
+            "alignment_score": 0.34088586635188767
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7145617302572131
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "A_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0096",
+      "request_id": "req-0096",
+      "created_at": "2026-04-06T10:25:45.302039+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 42727,
+      "stage_times": {
+        "predict_a_ms": 13694,
+        "predict_b_ms": 20046,
+        "score_diff_ms": 4272
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.4425315070296642,
+            "alignment_score": 0.5815584151458454
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6818373898774069
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "B_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0097",
+      "request_id": "req-0097",
+      "created_at": "2026-04-01T23:59:40.685007+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 18048,
+      "stage_times": {
+        "predict_a_ms": 9004,
+        "predict_b_ms": 6767,
+        "score_diff_ms": 1804
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.4593424377248656,
+            "alignment_score": 0.249541562196524
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8144112817569689
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0098",
+      "request_id": "req-0098",
+      "created_at": "2026-04-28T13:50:26.335320+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "audio",
+      "total_ms": 29732,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The job took too long and was stopped.",
+        "code": "DIFF_TIMEOUT"
+      },
+      "error_code": "DIFF_TIMEOUT"
+    },
+    {
+      "job_id": "demo-0099",
+      "request_id": "req-0099",
+      "created_at": "2026-04-03T09:51:52.476279+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 57335,
+      "stage_times": {
+        "predict_a_ms": 22053,
+        "predict_b_ms": 26100,
+        "score_diff_ms": 5733
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.45057559729311,
+            "alignment_score": 0.22387472330942565
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7259476631260329
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "A_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0100",
+      "request_id": "req-0100",
+      "created_at": "2026-04-05T00:36:28.178295+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 23684,
+      "stage_times": {
+        "predict_a_ms": 8484,
+        "predict_b_ms": 7112,
+        "score_diff_ms": 2368
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.42028211940327176,
+            "alignment_score": 0.4082837976042699
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7993113905226027
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "tied"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0101",
+      "request_id": "req-0101",
+      "created_at": "2026-04-28T01:41:26.082653+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "audio",
+      "total_ms": 19723,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "BLOB_DOWNLOAD_FAILED"
+      },
+      "error_code": "BLOB_DOWNLOAD_FAILED"
+    },
+    {
+      "job_id": "demo-0102",
+      "request_id": "req-0102",
+      "created_at": "2026-04-28T22:16:33.606250+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 15373,
+      "stage_times": {
+        "predict_a_ms": 5353,
+        "predict_b_ms": 6632,
+        "score_diff_ms": 1537
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.6857506870549295,
+            "alignment_score": 0.5675934924061556
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6997555825115954
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0103",
+      "request_id": "req-0103",
+      "created_at": "2026-04-19T19:58:50.639482+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 46499,
+      "stage_times": {
+        "predict_a_ms": 15644,
+        "predict_b_ms": 15203,
+        "score_diff_ms": 4649
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.31849189509988785,
+            "alignment_score": 0.30079549641835046
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.8373327639687131
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0104",
+      "request_id": "req-0104",
+      "created_at": "2026-04-14T04:41:34.986607+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 24845,
+      "stage_times": {
+        "predict_a_ms": 9227,
+        "predict_b_ms": 11333,
+        "score_diff_ms": 2484
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.4366083030569367,
+            "alignment_score": 0.5996712057591198
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7310854149374809
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "tied"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0105",
+      "request_id": "req-0105",
+      "created_at": "2026-04-03T09:29:14.035970+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 17403,
+      "stage_times": {
+        "predict_a_ms": 7028,
+        "predict_b_ms": 8009,
+        "score_diff_ms": 1740
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.3394635030277339,
+            "alignment_score": 0.5012266494151136
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.8467023838619661
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "B_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0106",
+      "request_id": "req-0106",
+      "created_at": "2026-04-27T13:40:05.880662+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 14086,
+      "stage_times": {
+        "predict_a_ms": 5216,
+        "predict_b_ms": 4345,
+        "score_diff_ms": 1408
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.6074257410993822,
+            "alignment_score": 0.41747025204656774
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7918407931477441
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "A_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0107",
+      "request_id": "req-0107",
+      "created_at": "2026-04-11T03:09:13.949894+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 29865,
+      "stage_times": {
+        "predict_a_ms": 9167,
+        "predict_b_ms": 9361,
+        "score_diff_ms": 2986
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.48107529127171034,
+            "alignment_score": 0.6747335559399599
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6097155971939001
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0108",
+      "request_id": "req-0108",
+      "created_at": "2026-04-01T18:48:35.314111+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 18929,
+      "stage_times": {
+        "predict_a_ms": 8137,
+        "predict_b_ms": 6623,
+        "score_diff_ms": 1892
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.3129566704320716,
+            "alignment_score": 0.29302402473629996
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7553235822625176
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0109",
+      "request_id": "req-0109",
+      "created_at": "2026-04-09T06:40:36.171832+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 5555,
+      "stage_times": {
+        "predict_a_ms": 2774,
+        "predict_b_ms": 2566,
+        "score_diff_ms": 555
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.633919895244484,
+            "alignment_score": 0.5547702434097941
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7649991442460672
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "B_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0110",
+      "request_id": "req-0110",
+      "created_at": "2026-04-08T08:41:16.947102+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 18185,
+      "stage_times": {
+        "predict_a_ms": 6186,
+        "predict_b_ms": 5960,
+        "score_diff_ms": 1818
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.31314201340413284,
+            "alignment_score": 0.4770107186297975
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7106733496503662
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0111",
+      "request_id": "req-0111",
+      "created_at": "2026-04-28T06:01:21.874444+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 15408,
+      "stage_times": {
+        "predict_a_ms": 6394,
+        "predict_b_ms": 5008,
+        "score_diff_ms": 1540
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.6211692946931906,
+            "alignment_score": 0.424987247831498
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8040326971948744
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0112",
+      "request_id": "req-0112",
+      "created_at": "2026-04-11T05:40:56.197080+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 11400,
+      "stage_times": {
+        "predict_a_ms": 3795,
+        "predict_b_ms": 4155,
+        "score_diff_ms": 1140
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.4730115411709365,
+            "alignment_score": 0.6704520274657673
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.8684777750463373
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0113",
+      "request_id": "req-0113",
+      "created_at": "2026-04-11T00:36:30.959626+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 19291,
+      "stage_times": {
+        "predict_a_ms": 6437,
+        "predict_b_ms": 9420,
+        "score_diff_ms": 1929
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.38560031152789614,
+            "alignment_score": 0.5122395937168328
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.870600268107218
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0114",
+      "request_id": "req-0114",
+      "created_at": "2026-04-05T19:41:46.879996+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 22575,
+      "stage_times": {
+        "predict_a_ms": 10235,
+        "predict_b_ms": 8653,
+        "score_diff_ms": 2257
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.549019030068058,
+            "alignment_score": 0.5135820051490421
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6869014970404818
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "B_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0115",
+      "request_id": "req-0115",
+      "created_at": "2026-04-05T19:23:19.672327+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 8020,
+      "stage_times": {
+        "predict_a_ms": 3182,
+        "predict_b_ms": 2733,
+        "score_diff_ms": 802
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.4562912496234665,
+            "alignment_score": 0.5591814425562187
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.820259926441364
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "B_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0116",
+      "request_id": "req-0116",
+      "created_at": "2026-04-07T06:59:44.588094+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 8885,
+      "stage_times": {
+        "predict_a_ms": 2915,
+        "predict_b_ms": 2755,
+        "score_diff_ms": 888
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.7320819251812154,
+            "alignment_score": 0.40906737166743823
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.888805755671801
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "B_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0117",
+      "request_id": "req-0117",
+      "created_at": "2026-04-08T18:56:25.458617+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "text",
+      "total_ms": 13570,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "BLOB_DOWNLOAD_FAILED"
+      },
+      "error_code": "BLOB_DOWNLOAD_FAILED"
+    },
+    {
+      "job_id": "demo-0118",
+      "request_id": "req-0118",
+      "created_at": "2026-04-29T00:05:30.368551+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "audio",
+      "total_ms": 11441,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The job took too long and was stopped.",
+        "code": "DIFF_TIMEOUT"
+      },
+      "error_code": "DIFF_TIMEOUT"
+    },
+    {
+      "job_id": "demo-0119",
+      "request_id": "req-0119",
+      "created_at": "2026-04-21T14:11:58.426401+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 12281,
+      "stage_times": {
+        "predict_a_ms": 4674,
+        "predict_b_ms": 3795,
+        "score_diff_ms": 1228
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.5851408219405146,
+            "alignment_score": 0.29732765094385954
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7659668779863456
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0120",
+      "request_id": "req-0120",
+      "created_at": "2026-04-16T13:37:01.888073+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 20523,
+      "stage_times": {
+        "predict_a_ms": 6553,
+        "predict_b_ms": 7688,
+        "score_diff_ms": 2052
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.5789159191360643,
+            "alignment_score": 0.38280318660648605
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6432802078106803
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "tied"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0121",
+      "request_id": "req-0121",
+      "created_at": "2026-04-29T02:44:55.708379+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 16085,
+      "stage_times": {
+        "predict_a_ms": 6483,
+        "predict_b_ms": 5880,
+        "score_diff_ms": 1608
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.3812510229384697,
+            "alignment_score": 0.69530786878057
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8217958081720813
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0122",
+      "request_id": "req-0122",
+      "created_at": "2026-04-14T21:31:43.837929+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 17533,
+      "stage_times": {
+        "predict_a_ms": 6421,
+        "predict_b_ms": 5644,
+        "score_diff_ms": 1753
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.5918510709243932,
+            "alignment_score": 0.5983774069650736
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8175972637655566
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "tied"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0123",
+      "request_id": "req-0123",
+      "created_at": "2026-04-22T00:15:30.784542+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 17254,
+      "stage_times": {
+        "predict_a_ms": 7664,
+        "predict_b_ms": 7849,
+        "score_diff_ms": 1725
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.3738878541501659,
+            "alignment_score": 0.5403634475253394
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6094711540026297
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "A_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0124",
+      "request_id": "req-0124",
+      "created_at": "2026-04-16T23:20:21.637466+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 18086,
+      "stage_times": {
+        "predict_a_ms": 7131,
+        "predict_b_ms": 8494,
+        "score_diff_ms": 1808
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.6528876160758825,
+            "alignment_score": 0.45934160578005645
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7682660318725918
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "tied"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0125",
+      "request_id": "req-0125",
+      "created_at": "2026-04-21T00:38:02.369081+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 9323,
+      "stage_times": {
+        "predict_a_ms": 4141,
+        "predict_b_ms": 3996,
+        "score_diff_ms": 932
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.6050382900393758,
+            "alignment_score": 0.2961320845683567
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6739557406582081
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "A_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0126",
+      "request_id": "req-0126",
+      "created_at": "2026-04-06T19:03:39.106660+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 17168,
+      "stage_times": {
+        "predict_a_ms": 8359,
+        "predict_b_ms": 7628,
+        "score_diff_ms": 1716
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.3609370528663575,
+            "alignment_score": 0.5383111228912728
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.7139082556123147
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0127",
+      "request_id": "req-0127",
+      "created_at": "2026-04-21T14:46:39.543454+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 16619,
+      "stage_times": {
+        "predict_a_ms": 6578,
+        "predict_b_ms": 5657,
+        "score_diff_ms": 1661
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.7665119668916538,
+            "alignment_score": 0.5480856503234113
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6411818864402768
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0128",
+      "request_id": "req-0128",
+      "created_at": "2026-04-10T00:01:28.737352+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 13126,
+      "stage_times": {
+        "predict_a_ms": 4201,
+        "predict_b_ms": 5961,
+        "score_diff_ms": 1312
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.7822593836126944,
+            "alignment_score": 0.6889553559165436
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6473823228632825
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0129",
+      "request_id": "req-0129",
+      "created_at": "2026-04-23T16:44:26.640946+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 21211,
+      "stage_times": {
+        "predict_a_ms": 9430,
+        "predict_b_ms": 10336,
+        "score_diff_ms": 2121
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.5089424911225027,
+            "alignment_score": 0.6188024445466276
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8801767831734602
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "B_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0130",
+      "request_id": "req-0130",
+      "created_at": "2026-04-24T07:08:51.394683+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 9132,
+      "stage_times": {
+        "predict_a_ms": 3840,
+        "predict_b_ms": 4435,
+        "score_diff_ms": 913
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.4422808261750231,
+            "alignment_score": 0.6945497350443617
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7629901450670925
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "A_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0131",
+      "request_id": "req-0131",
+      "created_at": "2026-04-16T09:06:33.992664+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 17003,
+      "stage_times": {
+        "predict_a_ms": 5734,
+        "predict_b_ms": 7605,
+        "score_diff_ms": 1700
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.5838906112104696,
+            "alignment_score": 0.5786413751287806
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6526484741515394
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0132",
+      "request_id": "req-0132",
+      "created_at": "2026-04-20T09:11:33.717430+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "text",
+      "total_ms": 12537,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The job took too long and was stopped.",
+        "code": "DIFF_TIMEOUT"
+      },
+      "error_code": "DIFF_TIMEOUT"
+    },
+    {
+      "job_id": "demo-0133",
+      "request_id": "req-0133",
+      "created_at": "2026-04-22T13:20:12.011819+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "video",
+      "total_ms": 8625,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The job took too long and was stopped.",
+        "code": "DIFF_TIMEOUT"
+      },
+      "error_code": "DIFF_TIMEOUT"
+    },
+    {
+      "job_id": "demo-0134",
+      "request_id": "req-0134",
+      "created_at": "2026-04-22T09:55:51.929693+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 17252,
+      "stage_times": {
+        "predict_a_ms": 7542,
+        "predict_b_ms": 8360,
+        "score_diff_ms": 1725
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.6451451887094071,
+            "alignment_score": 0.5193556625996916
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8821906871237701
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0135",
+      "request_id": "req-0135",
+      "created_at": "2026-04-23T21:40:27.780915+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 21686,
+      "stage_times": {
+        "predict_a_ms": 8887,
+        "predict_b_ms": 8547,
+        "score_diff_ms": 2168
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.6809298099855535,
+            "alignment_score": 0.5401709599596989
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.7787443396593668
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "tied"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0136",
+      "request_id": "req-0136",
+      "created_at": "2026-04-14T09:54:48.084993+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 9287,
+      "stage_times": {
+        "predict_a_ms": 3091,
+        "predict_b_ms": 4373,
+        "score_diff_ms": 928
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.3581200110923321,
+            "alignment_score": 0.3027007427696808
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7749443035323053
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "tied"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0137",
+      "request_id": "req-0137",
+      "created_at": "2026-04-05T21:49:54.535655+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 7718,
+      "stage_times": {
+        "predict_a_ms": 3560,
+        "predict_b_ms": 3431,
+        "score_diff_ms": 771
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.4272286095338062,
+            "alignment_score": 0.20150773579554437
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.6653703926018877
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "A_higher"
+        },
+        "hub_node": "L_PH_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0138",
+      "request_id": "req-0138",
+      "created_at": "2026-04-20T04:59:30.466853+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "video",
+      "total_ms": 7964,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "RUNPOD_JOB_FAILED"
+      },
+      "error_code": "RUNPOD_JOB_FAILED"
+    },
+    {
+      "job_id": "demo-0139",
+      "request_id": "req-0139",
+      "created_at": "2026-04-06T16:37:17.259575+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 40931,
+      "stage_times": {
+        "predict_a_ms": 19398,
+        "predict_b_ms": 19702,
+        "score_diff_ms": 4093
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.34012499631468335,
+            "alignment_score": 0.6820721881903429
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8623661165072776
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0140",
+      "request_id": "req-0140",
+      "created_at": "2026-04-26T02:16:03.727042+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 15718,
+      "stage_times": {
+        "predict_a_ms": 6048,
+        "predict_b_ms": 5907,
+        "score_diff_ms": 1571
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.42375601925188777,
+            "alignment_score": 0.3730798674938134
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.6826949183385382
+          }
+        },
+        "critical_state": {
+          "label": "Attention",
+          "state": "A_higher"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0141",
+      "request_id": "req-0141",
+      "created_at": "2026-04-17T07:02:47.751304+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 12856,
+      "stage_times": {
+        "predict_a_ms": 3943,
+        "predict_b_ms": 5393,
+        "score_diff_ms": 1285
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.42236707560919623,
+            "alignment_score": 0.22211836502799892
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7316888434462382
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "A_higher"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0142",
+      "request_id": "req-0142",
+      "created_at": "2026-04-15T05:03:39.555478+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 11322,
+      "stage_times": {
+        "predict_a_ms": 4919,
+        "predict_b_ms": 4122,
+        "score_diff_ms": 1132
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.7381291610869036,
+            "alignment_score": 0.6928477803625628
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7563753162794771
+          }
+        },
+        "critical_state": {
+          "label": "Language Depth",
+          "state": "B_higher"
+        },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0143",
+      "request_id": "req-0143",
+      "created_at": "2026-04-27T20:48:48.937208+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "video",
+      "total_ms": 22573,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "BLOB_DOWNLOAD_FAILED"
+      },
+      "error_code": "BLOB_DOWNLOAD_FAILED"
+    },
+    {
+      "job_id": "demo-0144",
+      "request_id": "req-0144",
+      "created_at": "2026-04-28T20:50:27.482499+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "audio",
+      "total_ms": 19556,
+      "stage_times": {
+        "predict_a_ms": 7463,
+        "predict_b_ms": 7039,
+        "score_diff_ms": 1955
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Personal + Visceral",
+            "integration_score": 0.6772080486190626,
+            "alignment_score": 0.43675941020611
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "audio_direct",
+          "shares": {
+            "audio_direct": 0.8548022796780121
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "L_45_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0145",
+      "request_id": "req-0145",
+      "created_at": "2026-04-05T13:19:16.233962+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "audio",
+      "total_ms": 19268,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The pipeline raised an unexpected error.",
+        "code": "RUNPOD_JOB_FAILED"
+      },
+      "error_code": "RUNPOD_JOB_FAILED"
+    },
+    {
+      "job_id": "demo-0146",
+      "request_id": "req-0146",
+      "created_at": "2026-04-22T15:19:34.120418+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "text",
+      "total_ms": 13525,
+      "stage_times": {
+        "predict_a_ms": 6301,
+        "predict_b_ms": 4196,
+        "score_diff_ms": 1352
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Effort + Meaning",
+            "integration_score": 0.6368359603172893,
+            "alignment_score": 0.501461022494538
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "text_to_speech",
+          "shares": {
+            "text_to_speech": 0.8620861375468619
+          }
+        },
+        "critical_state": {
+          "label": "Memory Encoding",
+          "state": "tied"
+        },
+        "hub_node": "L_STSdp_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0147",
+      "request_id": "req-0147",
+      "created_at": "2026-04-10T06:04:59.888075+00:00",
+      "status": "error",
+      "success": false,
+      "modality": "text",
+      "total_ms": 12480,
+      "stage_times": {},
+      "warnings": [],
+      "result_analytics": {},
+      "failure_summary": {
+        "reason": "The job took too long and was stopped.",
+        "code": "DIFF_TIMEOUT"
+      },
+      "error_code": "DIFF_TIMEOUT"
+    },
+    {
+      "job_id": "demo-0148",
+      "request_id": "req-0148",
+      "created_at": "2026-04-07T11:24:59.066622+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 25482,
+      "stage_times": {
+        "predict_a_ms": 8864,
+        "predict_b_ms": 9283,
+        "score_diff_ms": 2548
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Social + Language",
+            "integration_score": 0.49033087218646126,
+            "alignment_score": 0.4668250637081315
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.7077778666654727
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "B_higher"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
+    },
+    {
+      "job_id": "demo-0149",
+      "request_id": "req-0149",
+      "created_at": "2026-04-03T16:10:34.892443+00:00",
+      "status": "done",
+      "success": true,
+      "modality": "video",
+      "total_ms": 26750,
+      "stage_times": {
+        "predict_a_ms": 9111,
+        "predict_b_ms": 9699,
+        "score_diff_ms": 2675
+      },
+      "warnings": [],
+      "result_analytics": {
+        "co_activation_patterns": [
+          {
+            "pattern": "Attention + Memory",
+            "integration_score": 0.5812623637321772,
+            "alignment_score": 0.31063704915811263
+          }
+        ],
+        "pipeline_mix": {
+          "dominant": "video_frames_audio",
+          "shares": {
+            "video_frames_audio": 0.6437768139307646
+          }
+        },
+        "critical_state": {
+          "label": "Social Thinking",
+          "state": "tied"
+        },
+        "hub_node": "R_STS1_ROI"
+      },
+      "failure_summary": {},
+      "error_code": null
     }
   ],
   "aggregate": {
-    "total_runs": 4,
-    "success_count": 3,
-    "failure_count": 1,
-    "success_rate": 75.0,
-    "avg_total_ms": 96875,
-    "p50_total_ms": 74200,
-    "p90_total_ms": 180000,
-    "p95_total_ms": 180000,
-    "p50_total_ms_success": 74200,
-    "p95_total_ms_success": 98500,
-    "warnings_rate": 25.0,
-    "modality_counts": { "video": 2, "audio": 1, "text": 1 },
-    "modality_effective_counts": { "video": 2, "audio": 1, "text": 1 },
-    "error_code_counts": { "DIFF_TIMEOUT": 1 },
-    "status_counts": { "done": 3, "error": 1 },
-    "runtime_backend_counts": { "cuda": 3, "mps_split": 1 },
-    "runs_last_24h": 3,
-    "runs_last_7d": 4,
-    "activity_by_day": [
-      { "date": "2026-04-24", "count": 0 },
-      { "date": "2026-04-25", "count": 0 },
-      { "date": "2026-04-26", "count": 0 },
-      { "date": "2026-04-27", "count": 0 },
-      { "date": "2026-04-28", "count": 1 },
-      { "date": "2026-04-29", "count": 1 },
-      { "date": "2026-04-30", "count": 2 }
-    ],
+    "total_runs": 150,
+    "success_count": 125,
+    "failure_count": 25,
+    "success_rate": 83.33,
+    "avg_total_ms": 21538,
+    "p50_total_ms": 18178,
+    "p90_total_ms": 39408,
+    "p95_total_ms": 43527,
+    "p50_total_ms_success": 17642,
+    "p95_total_ms_success": 43527,
+    "warnings_rate": 12.4,
+    "modality_counts": {
+      "text": 55,
+      "audio": 56,
+      "video": 39
+    },
+    "modality_effective_counts": {
+      "text": 55,
+      "audio": 56,
+      "video": 39
+    },
+    "error_code_counts": {
+      "RUNPOD_JOB_FAILED": 8,
+      "INPUT_REJECTED": 4,
+      "DIFF_TIMEOUT": 8,
+      "BLOB_DOWNLOAD_FAILED": 5
+    },
+    "status_counts": {
+      "done": 125,
+      "error": 25
+    },
+    "runtime_backend_counts": {
+      "runpod": 120,
+      "local": 30
+    },
+    "runs_last_24h": 1,
+    "runs_last_7d": 29,
+    "activity_by_day": {
+      "2026-04-16": 4,
+      "2026-04-17": 4,
+      "2026-04-18": 3,
+      "2026-04-19": 1,
+      "2026-04-20": 5,
+      "2026-04-21": 11,
+      "2026-04-22": 10,
+      "2026-04-23": 6,
+      "2026-04-24": 2,
+      "2026-04-25": 3,
+      "2026-04-26": 4,
+      "2026-04-27": 3,
+      "2026-04-28": 10,
+      "2026-04-29": 3
+    },
     "per_modality": {
-      "video": { "total": 2, "success": 1, "success_rate": 50.0, "p50_total_ms": 98500, "p95_total_ms": 98500 },
-      "audio": { "total": 1, "success": 1, "success_rate": 100.0, "p50_total_ms": 74200, "p95_total_ms": 74200 },
-      "text": { "total": 1, "success": 1, "success_rate": 100.0, "p50_total_ms": 34800, "p95_total_ms": 34800 }
+      "text": {
+        "count": 55,
+        "success_rate": 85.5,
+        "avg_ms": 19479
+      },
+      "audio": {
+        "count": 56,
+        "success_rate": 80.4,
+        "avg_ms": 23669
+      },
+      "video": {
+        "count": 39,
+        "success_rate": 84.6,
+        "avg_ms": 21383
+      }
     },
-    "stage_ms_avg": { "events_a_ms": 18800, "predict_a_ms": 34475, "events_b_ms": 8900, "predict_b_ms": 21166, "score_diff_ms": 900, "heatmap_ms": 2266 },
-    "co_activation_pattern_counts": { "Attention + Memory": 2, "Personal + Visceral": 2, "Social + Language": 1, "Effort + Meaning": 1 },
+    "stage_ms_avg": {
+      "predict_a_ms": 8654,
+      "predict_b_ms": 8607,
+      "score_diff_ms": 2148
+    },
+    "co_activation_pattern_counts": {
+      "Effort + Meaning": 31,
+      "Personal + Visceral": 31,
+      "Social + Language": 36,
+      "Attention + Memory": 27
+    },
     "co_activation_pattern_avg": {
-      "Attention + Memory": { "integration_score": 0.152, "alignment_score": 0.885 },
-      "Personal + Visceral": { "integration_score": 0.127, "alignment_score": 0.86 },
-      "Social + Language": { "integration_score": 0.119, "alignment_score": 0.82 },
-      "Effort + Meaning": { "integration_score": 0.097, "alignment_score": 0.9 }
+      "Effort + Meaning": {
+        "integration_score": 0.5326,
+        "alignment_score": 0.4497
+      },
+      "Personal + Visceral": {
+        "integration_score": 0.5593,
+        "alignment_score": 0.4618
+      },
+      "Social + Language": {
+        "integration_score": 0.559,
+        "alignment_score": 0.5214
+      },
+      "Attention + Memory": {
+        "integration_score": 0.5562,
+        "alignment_score": 0.4106
+      }
     },
-    "pipeline_mix_counts": { "predict": 3 },
-    "pipeline_share_avg": { "transcribe": 0.3267, "predict": 0.63, "score": 0.01, "heatmap": 0.03 },
-    "critical_state_counts": { "Attention · B_higher": 1, "Memory Encoding · B_higher": 1, "Social Thinking · A_higher": 1 },
-    "hub_node_counts": { "L_IPS1_ROI": 1, "L_45_ROI": 1, "R_TPOJ1_ROI": 1 },
-    "failure_reason_counts": { "The job took too long and was stopped.": 1 }
+    "pipeline_mix_counts": {
+      "text_to_speech": 47,
+      "audio_direct": 45,
+      "video_frames_audio": 33
+    },
+    "pipeline_share_avg": {
+      "text_to_speech": 0.72,
+      "audio_direct": 0.78,
+      "video_frames_audio": 0.65
+    },
+    "critical_state_counts": {
+      "Memory Encoding \u00b7 tied": 16,
+      "Attention \u00b7 B_higher": 15,
+      "Social Thinking \u00b7 tied": 14,
+      "Language Depth \u00b7 B_higher": 13,
+      "Social Thinking \u00b7 A_higher": 11,
+      "Memory Encoding \u00b7 A_higher": 11,
+      "Attention \u00b7 tied": 10,
+      "Social Thinking \u00b7 B_higher": 10
+    },
+    "hub_node_counts": {
+      "L_45_ROI": 24,
+      "R_TPOJ1_ROI": 20,
+      "L_IPS1_ROI": 24,
+      "L_PH_ROI": 20,
+      "L_STSdp_ROI": 18,
+      "R_STS1_ROI": 19
+    },
+    "failure_reason_counts": {
+      "The pipeline raised an unexpected error.": 17,
+      "The job took too long and was stopped.": 8
+    }
   },
-  "pagination": { "limit": 1000, "offset": 0 }
+  "pagination": {
+    "total": 150,
+    "limit": 150,
+    "offset": 0
+  }
 }
