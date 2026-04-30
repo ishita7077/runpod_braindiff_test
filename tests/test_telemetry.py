@@ -59,6 +59,8 @@ def test_telemetry_records_and_surfaces_recent_runs(monkeypatch, tmp_path):
     assert payload["success"] is True
     assert payload["modality"] == "text"
     assert payload["modality_effective"] == "text"
+    assert payload["result_analytics"]["critical_state"]["dimension"] == "personal_resonance"
+    assert payload["result_analytics"]["pipeline_mix"]["dominant"] in {"predict", "score"}
 
     dashboard = client.get("/api/telemetry/dashboard")
     assert dashboard.status_code == 200
@@ -69,3 +71,5 @@ def test_telemetry_records_and_surfaces_recent_runs(monkeypatch, tmp_path):
     assert "per_modality" in dashboard_payload["aggregate"]
     assert dashboard_payload["aggregate"]["per_modality"]["text"]["total"] == 1
     assert "activity_by_day" in dashboard_payload["aggregate"]
+    assert sum(dashboard_payload["aggregate"]["pipeline_mix_counts"].values()) == 1
+    assert "critical_state_counts" in dashboard_payload["aggregate"]

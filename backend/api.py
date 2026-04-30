@@ -35,7 +35,7 @@ from backend.schemas import DiffRequest, JobStartResponse, ReportRequest
 from backend.scorer import score_predictions
 from backend.startup_manifest import build_startup_manifest, write_startup_manifest
 from backend.status_store import JobStore
-from backend.telemetry_store import TelemetryStore
+from backend.telemetry_store import TelemetryStore, extract_result_analytics
 from backend.vertex_codec import f32_b64
 
 logger = logging.getLogger("braindiff.api")
@@ -206,6 +206,7 @@ def _hash_text(text: str) -> str:
 def _persist_run(*, job_id: str, request_id: str, created_at: str, status: str, success: bool,
                  payload: DiffRequest, stage_times: dict[str, int], warnings: list[str],
                  text_a_timesteps: int, text_b_timesteps: int, total_ms: int,
+                 result: dict[str, Any] | None = None,
                  error_code: str | None = None, error_message: str | None = None) -> None:
     runtime = _service_runtime_dict()
     text_a = payload.text_a or ""
@@ -227,6 +228,7 @@ def _persist_run(*, job_id: str, request_id: str, created_at: str, status: str, 
         'stage_times': stage_times,
         'warnings': warnings,
         'runtime': runtime,
+        'result_analytics': extract_result_analytics(result),
         'error_code': error_code,
         'error_message': error_message,
     })
@@ -464,7 +466,7 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
             )
             job_store.set_result(job_id, result)
             job_store.update_status(job_id, "done", "Done")
-            _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=0, text_b_timesteps=0, total_ms=processing_time_ms)
+            _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=0, text_b_timesteps=0, total_ms=processing_time_ms, result=result)
             return
 
         # The local FastAPI path emits two events per side via job_store —
@@ -639,7 +641,7 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
         )
         job_store.set_result(job_id, result)
         job_store.update_status(job_id, "done", "Done")
-        _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=int(preds_a.shape[0]), text_b_timesteps=int(preds_b.shape[0]), total_ms=processing_time_ms)
+        _persist_run(job_id=job_id, request_id=request_id, created_at=created_at, status="done", success=True, payload=payload, stage_times=stage_times, warnings=warnings, text_a_timesteps=int(preds_a.shape[0]), text_b_timesteps=int(preds_b.shape[0]), total_ms=processing_time_ms, result=result)
         logger.info(
             "diff_job:ok request_id=%s job_id=%s modality=%s a_len=%s b_len=%s total_ms=%s",
             request_id,
@@ -1063,4 +1065,3 @@ async def page_dashboard() -> FileResponse:
 
 
 app.mount("/", StaticFiles(directory="frontend_new", html=True), name="frontend")
-

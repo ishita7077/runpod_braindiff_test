@@ -19,6 +19,190 @@ def _effective_modality(row: dict[str, Any]) -> str:
     return "unknown"
 
 
+CO_ACTIVATION_PAIRS = (
+    ("attention_salience", "memory_encoding", "Attention + Memory"),
+    ("personal_resonance", "gut_reaction", "Personal + Visceral"),
+    ("social_thinking", "language_depth", "Social + Language"),
+    ("brain_effort", "language_depth", "Effort + Meaning"),
+)
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _stage_label(stage_times: dict[str, Any]) -> str:
+    if not stage_times:
+        return "The run stopped before BrainDiff recorded a processing step."
+    if any(k.startswith("predict_b") for k in stage_times):
+        return "It reached the second file's brain-model prediction step."
+    if any(k.startswith("events_b") for k in stage_times):
+        return "It reached the second file's transcript/alignment step."
+    if any(k.startswith("predict_a") for k in stage_times):
+        return "It reached the first file's brain-model prediction step."
+    if any(k.startswith("events_a") for k in stage_times):
+        return "It reached the first file's transcript/alignment step."
+    if "score_diff_ms" in stage_times or "heatmap_ms" in stage_times:
+        return "It reached final scoring and brain-map rendering."
+    return "It started processing, but did not record enough detail to identify the exact step."
+
+
+def explain_failure(
+    error_code: str | None,
+    error_message: str | None,
+    stage_times: dict[str, Any] | None = None,
+) -> dict[str, str]:
+    code = (error_code or "").strip() or "UNKNOWN_ERROR"
+    message = (error_message or "").strip()
+    text = f"{code} {message}".lower()
+    stage = _stage_label(stage_times or {})
+
+    if "timeout" in text or code in {"DIFF_TIMEOUT", "TIMED_OUT"}:
+        reason = "The job took too long and was stopped."
+        action = "Try shorter files/text, then check whether the RunPod worker has enough GPU time for media jobs."
+    elif "media_duration_mismatch" in text or ("durations differ" in text and "within 5s" in text):
+        reason = "The two files are too different in length."
+        action = "Upload files within 5 seconds of each other, or choose the trim option so BrainDiff compares the first part of both files."
+    elif "cuda" in text and "memory" in text or "out of memory" in text or "oom" in text:
+        reason = "The worker ran out of GPU memory."
+        action = "Use a smaller worker/GPU load, shorter media, or lower the model memory settings before retrying."
+    elif "hf_auth" in text or "hugging face" in text or "401" in text or "403" in text:
+        reason = "The worker could not access a required model."
+        action = "Check the Hugging Face token on the RunPod worker and confirm it has access to the gated model."
+    elif "ffmpeg" in text:
+        reason = "The worker could not read or convert the uploaded media."
+        action = "Install/verify ffmpeg in the worker image and retry with a standard mp3/wav/mp4 file."
+    elif "whisperx" in text or "transcrib" in text:
+        reason = "Audio transcription/alignment failed."
+        action = "Try a clearer or shorter audio track, and check WhisperX device/compute settings on the worker."
+    elif "duration" in text or "too different" in text or "input_rejected" in text:
+        reason = "The two inputs were rejected before analysis."
+        action = "Use two files/texts that are similar enough in length and format to compare fairly."
+    elif "blob" in text or "media_url" in text or "download" in text or "fetch" in text:
+        reason = "The worker could not download one of the uploaded files."
+        action = "Check the Vercel Blob token, file URL expiry, and whether both uploads are reachable from RunPod."
+    elif "atlas" in text:
+        reason = "The worker is missing required brain atlas files."
+        action = "Verify the atlas files exist in the worker image under the configured atlas directory."
+    elif "runpod" in text:
+        reason = "RunPod reported the job as failed, but did not provide a specific backend error."
+        action = "Open the RunPod job logs for the exact stack trace; the app should show that detail once the worker returns it."
+    else:
+        reason = "The BrainDiff pipeline raised an unexpected error."
+        action = "Check the worker logs for the stack trace, then retry with shorter, clearly supported inputs."
+
+    return {
+        "code": code,
+        "reason": reason,
+        "stage": stage,
+        "action": action,
+        "raw_message": message,
+    }
+
+
+def extract_result_analytics(result: dict[str, Any] | None) -> dict[str, Any]:
+    if not result:
+        return {}
+
+    dimensions = result.get("dimensions") if isinstance(result, dict) else None
+    if not isinstance(dimensions, list):
+        dimensions = []
+    by_key = {
+        str(row.get("key")): row
+        for row in dimensions
+        if isinstance(row, dict) and row.get("key")
+    }
+
+    co_patterns: list[dict[str, Any]] = []
+    for left, right, label in CO_ACTIVATION_PAIRS:
+        a = by_key.get(left)
+        b = by_key.get(right)
+        if not a or not b:
+            continue
+        left_delta = _safe_float(a.get("delta"))
+        right_delta = _safe_float(b.get("delta"))
+        left_mag = abs(_safe_float(a.get("magnitude"), abs(left_delta)))
+        right_mag = abs(_safe_float(b.get("magnitude"), abs(right_delta)))
+        integration = round((left_mag + right_mag) / 2.0, 6)
+        alignment = round(max(0.0, 1.0 - abs(left_delta - right_delta)), 6)
+        winner = "mixed"
+        if left_delta > 0 and right_delta > 0:
+            winner = "B"
+        elif left_delta < 0 and right_delta < 0:
+            winner = "A"
+        co_patterns.append(
+            {
+                "pattern": label,
+                "integration_score": integration,
+                "alignment_score": alignment,
+                "winner": winner,
+            }
+        )
+    co_patterns.sort(
+        key=lambda row: (
+            _safe_float(row.get("integration_score")),
+            _safe_float(row.get("alignment_score")),
+        ),
+        reverse=True,
+    )
+
+    strongest = None
+    if dimensions:
+        strongest = max(
+            (row for row in dimensions if isinstance(row, dict)),
+            key=lambda row: abs(_safe_float(row.get("magnitude"), _safe_float(row.get("delta")))),
+            default=None,
+        )
+    critical_state: dict[str, Any] = {}
+    if strongest:
+        direction = strongest.get("direction") or "neutral"
+        label = strongest.get("label") or strongest.get("key") or "unknown"
+        state = "balanced" if direction == "neutral" or strongest.get("low_confidence") else str(direction)
+        critical_state = {
+            "state": state,
+            "dimension": strongest.get("key") or "unknown",
+            "label": label,
+            "magnitude": round(abs(_safe_float(strongest.get("magnitude"), _safe_float(strongest.get("delta")))), 6),
+        }
+
+    meta = result.get("meta") if isinstance(result.get("meta"), dict) else {}
+    stage_times = meta.get("stage_times") if isinstance(meta.get("stage_times"), dict) else {}
+    groups = {"transcribe": 0, "predict": 0, "score": 0, "heatmap": 0, "other": 0}
+    for key, value in stage_times.items():
+        ms = int(_safe_float(value))
+        if key.startswith("events_"):
+            groups["transcribe"] += ms
+        elif key.startswith("predict_"):
+            groups["predict"] += ms
+        elif "score" in key:
+            groups["score"] += ms
+        elif "heatmap" in key:
+            groups["heatmap"] += ms
+        else:
+            groups["other"] += ms
+    total = sum(groups.values())
+    shares = {
+        key: round(value / total, 4)
+        for key, value in groups.items()
+        if total > 0 and value > 0
+    }
+    dominant = max(groups, key=groups.get) if total > 0 else "unknown"
+
+    atlas_peak = meta.get("atlas_peak") if isinstance(meta.get("atlas_peak"), dict) else {}
+    hub_node = str(atlas_peak.get("label") or critical_state.get("dimension") or "unknown")
+
+    return {
+        "top_pattern": co_patterns[0]["pattern"] if co_patterns else "",
+        "co_activation_patterns": co_patterns,
+        "pipeline_mix": {"dominant": dominant, "shares": shares},
+        "critical_state": critical_state,
+        "hub_node": hub_node,
+    }
+
+
 class TelemetryStore:
     def __init__(self, db_path: str) -> None:
         self.db_path = db_path
@@ -52,6 +236,7 @@ class TelemetryStore:
                     stage_times_json TEXT,
                     warnings_json TEXT,
                     runtime_json TEXT,
+                    result_analytics_json TEXT,
                     error_code TEXT,
                     error_message TEXT
                 )
@@ -63,6 +248,8 @@ class TelemetryStore:
             }
             if "modality" not in existing_columns:
                 conn.execute("ALTER TABLE runs ADD COLUMN modality TEXT")
+            if "result_analytics_json" not in existing_columns:
+                conn.execute("ALTER TABLE runs ADD COLUMN result_analytics_json TEXT")
             conn.commit()
 
     def upsert_run(self, payload: dict[str, Any]) -> None:
@@ -74,9 +261,9 @@ class TelemetryStore:
                         job_id, request_id, created_at, modality, status, success,
                         text_a_length, text_b_length, text_a_hash, text_b_hash,
                         text_a_timesteps, text_b_timesteps, total_ms,
-                        stage_times_json, warnings_json, runtime_json,
+                        stage_times_json, warnings_json, runtime_json, result_analytics_json,
                         error_code, error_message
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     ON CONFLICT(job_id) DO UPDATE SET
                         request_id=excluded.request_id,
                         created_at=excluded.created_at,
@@ -93,6 +280,7 @@ class TelemetryStore:
                         stage_times_json=excluded.stage_times_json,
                         warnings_json=excluded.warnings_json,
                         runtime_json=excluded.runtime_json,
+                        result_analytics_json=excluded.result_analytics_json,
                         error_code=excluded.error_code,
                         error_message=excluded.error_message
                     """,
@@ -102,7 +290,7 @@ class TelemetryStore:
                         1 if payload.get('success') else 0,
                         payload.get('text_a_length'), payload.get('text_b_length'), payload.get('text_a_hash'), payload.get('text_b_hash'),
                         payload.get('text_a_timesteps'), payload.get('text_b_timesteps'), payload.get('total_ms'),
-                        json.dumps(payload.get('stage_times', {})), json.dumps(payload.get('warnings', [])), json.dumps(payload.get('runtime', {})),
+                        json.dumps(payload.get('stage_times', {})), json.dumps(payload.get('warnings', [])), json.dumps(payload.get('runtime', {})), json.dumps(payload.get('result_analytics', {})),
                         payload.get('error_code'), payload.get('error_message')
                     ),
                 )
@@ -127,10 +315,16 @@ class TelemetryStore:
             'stage_times': json.loads(row['stage_times_json'] or '{}'),
             'warnings': json.loads(row['warnings_json'] or '[]'),
             'runtime': json.loads(row['runtime_json'] or '{}'),
+            'result_analytics': json.loads(row['result_analytics_json'] or '{}'),
             'error_code': row['error_code'],
             'error_message': row['error_message'],
         }
         d['modality_effective'] = _effective_modality(d)
+        d['failure_summary'] = (
+            explain_failure(d['error_code'], d['error_message'], d['stage_times'])
+            if not d['success']
+            else {}
+        )
         return d
 
     def get_recent(self, limit: int = 20) -> list[dict[str, Any]]:
@@ -174,6 +368,13 @@ class TelemetryStore:
                 'activity_by_day': [],
                 'per_modality': {},
                 'stage_ms_avg': {},
+                'co_activation_pattern_counts': {},
+                'co_activation_pattern_avg': {},
+                'pipeline_mix_counts': {},
+                'pipeline_share_avg': {},
+                'critical_state_counts': {},
+                'hub_node_counts': {},
+                'failure_reason_counts': {},
             }
 
         decoded = [self._row_to_dict(row) for row in rows]
@@ -276,6 +477,75 @@ class TelemetryStore:
             for k, total in stage_sums.items():
                 stage_ms_avg[k] = int(total / stage_n)
 
+        pattern_counts: Counter[str] = Counter()
+        pattern_scores: dict[str, dict[str, list[float]]] = defaultdict(
+            lambda: {"integration": [], "alignment": []}
+        )
+        pipeline_mix_counts: Counter[str] = Counter()
+        pipeline_share_sums: dict[str, float] = defaultdict(float)
+        pipeline_share_n: dict[str, int] = defaultdict(int)
+        critical_state_counts: Counter[str] = Counter()
+        hub_node_counts: Counter[str] = Counter()
+        failure_reason_counts: Counter[str] = Counter()
+        for row in decoded:
+            if not row.get('success'):
+                failure = row.get('failure_summary') or {}
+                reason = str(failure.get('reason') or row.get('error_code') or 'Unknown failure')
+                failure_reason_counts[reason] += 1
+            analytics = row.get('result_analytics') or {}
+            if not isinstance(analytics, dict):
+                continue
+            patterns = analytics.get('co_activation_patterns') or []
+            if isinstance(patterns, list):
+                for item in patterns:
+                    if not isinstance(item, dict):
+                        continue
+                    name = str(item.get('pattern') or '').strip()
+                    if not name:
+                        continue
+                    pattern_counts[name] += 1
+                    pattern_scores[name]["integration"].append(
+                        _safe_float(item.get('integration_score'))
+                    )
+                    pattern_scores[name]["alignment"].append(
+                        _safe_float(item.get('alignment_score'))
+                    )
+            pipeline_mix = analytics.get('pipeline_mix') or {}
+            if isinstance(pipeline_mix, dict):
+                dominant = str(pipeline_mix.get('dominant') or 'unknown')
+                pipeline_mix_counts[dominant] += 1
+                shares = pipeline_mix.get('shares') or {}
+                if isinstance(shares, dict):
+                    for key, value in shares.items():
+                        pipeline_share_sums[str(key)] += _safe_float(value)
+                        pipeline_share_n[str(key)] += 1
+            critical = analytics.get('critical_state') or {}
+            if isinstance(critical, dict):
+                label = str(critical.get('label') or critical.get('dimension') or '').strip()
+                state = str(critical.get('state') or '').strip()
+                if label:
+                    critical_state_counts[f"{label} · {state}" if state else label] += 1
+            hub = str(analytics.get('hub_node') or '').strip()
+            if hub:
+                hub_node_counts[hub] += 1
+
+        co_activation_pattern_avg = {
+            name: {
+                'integration_score': round(
+                    sum(vals['integration']) / len(vals['integration']), 4
+                ) if vals['integration'] else 0.0,
+                'alignment_score': round(
+                    sum(vals['alignment']) / len(vals['alignment']), 4
+                ) if vals['alignment'] else 0.0,
+            }
+            for name, vals in pattern_scores.items()
+        }
+        pipeline_share_avg = {
+            key: round(pipeline_share_sums[key] / pipeline_share_n[key], 4)
+            for key in pipeline_share_sums
+            if pipeline_share_n[key]
+        }
+
         avg_total_ms = int(sum(with_runtime) / len(with_runtime)) if with_runtime else 0
         return {
             'total_runs': total_runs,
@@ -299,6 +569,13 @@ class TelemetryStore:
             'activity_by_day': activity_by_day,
             'per_modality': per_modality,
             'stage_ms_avg': stage_ms_avg,
+            'co_activation_pattern_counts': dict(pattern_counts),
+            'co_activation_pattern_avg': co_activation_pattern_avg,
+            'pipeline_mix_counts': dict(pipeline_mix_counts),
+            'pipeline_share_avg': pipeline_share_avg,
+            'critical_state_counts': dict(critical_state_counts),
+            'hub_node_counts': dict(hub_node_counts),
+            'failure_reason_counts': dict(failure_reason_counts),
         }
 
     def get_run(self, job_id: str) -> dict[str, Any] | None:

@@ -49,6 +49,7 @@ from backend.duration_utils import (
     check_media_similarity,
     ensure_within_max,
     probe_duration_seconds,
+    trim_to_duration,
 )
 from backend.heatmap import compute_vertex_delta, generate_heatmap_artifact
 from backend.insight_engine import build_insight_payload
@@ -294,6 +295,7 @@ def _run_media(
     *,
     job_id: str | None = None,
     blob_token: str = "",
+    trim_to_shorter: bool = False,
 ) -> dict[str, Any]:
     started = time.perf_counter()
     warnings: list[str] = []
@@ -352,7 +354,21 @@ def _run_media(
         try:
             check_media_similarity(dur_a, dur_b)
         except DurationMismatch as err:
-            raise RuntimeError(f"MEDIA_DURATION_MISMATCH: {err}") from err
+            if not trim_to_shorter:
+                raise RuntimeError(f"MEDIA_DURATION_MISMATCH: {err}") from err
+            target = min(dur_a, dur_b)
+            if dur_a > target:
+                progress.emit("trimming_a", f"Trimming Version A to {target:.1f}s to match Version B...")
+                path_a = _track(trim_to_duration(path_a, target))
+                dur_a = target
+            if dur_b > target:
+                progress.emit("trimming_b", f"Trimming Version B to {target:.1f}s to match Version A...")
+                path_b = _track(trim_to_duration(path_b, target))
+                dur_b = target
+            media_durations = {"a": float(dur_a), "b": float(dur_b)}
+            warnings.append(
+                f"Duration mismatch fixed by comparing the first {target:.1f}s of both stimuli."
+            )
 
         # Pre-compute the modality-specific features the result page needs.
         # Done before prediction so they're cheap to skip on failure (they
@@ -524,6 +540,7 @@ def handler(event: dict[str, Any]) -> dict[str, Any]:
     else:
         job_id = ""
     blob_token = (payload.get("blob_token") or "").strip()
+    trim_to_shorter = bool(payload.get("trim_to_shorter"))
     progress = emitter_for(job_id)
     progress.emit("worker_started", "Worker booted, loading inputs...")
 
@@ -548,6 +565,7 @@ def handler(event: dict[str, Any]) -> dict[str, Any]:
         media_url_b=media_url_b,
         job_id=job_id,
         blob_token=blob_token,
+        trim_to_shorter=trim_to_shorter,
     )
     progress.emit("done", "Done")
     return result

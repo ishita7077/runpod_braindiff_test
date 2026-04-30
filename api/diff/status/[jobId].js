@@ -57,6 +57,50 @@ async function readProgressEvents(jobId) {
   }
 }
 
+function explainFailure(code, message, rawStatus) {
+  const normalizedCode = String(code || "RUNPOD_JOB_FAILED");
+  const raw = String(rawStatus || "");
+  const msg = String(message || "");
+  const text = `${normalizedCode} ${raw} ${msg}`.toLowerCase();
+  let reason = "RunPod reported that the job failed, but did not return a specific BrainDiff error.";
+  let action = "Open the RunPod job logs for the exact stack trace. If the worker returns that error, BrainDiff will show it here.";
+  if (text.includes("timeout") || text.includes("timed_out")) {
+    reason = "The job took too long and was stopped.";
+    action = "Try shorter files/text, then check whether the RunPod worker has enough GPU time for media jobs.";
+  } else if (text.includes("media_duration_mismatch") || (text.includes("durations differ") && text.includes("within 5s"))) {
+    reason = "The two files are too different in length.";
+    action = "Upload files within 5 seconds of each other, or choose the trim option so BrainDiff compares the first part of both files.";
+  } else if ((text.includes("cuda") && text.includes("memory")) || text.includes("out of memory") || text.includes("oom")) {
+    reason = "The worker ran out of GPU memory.";
+    action = "Use shorter media or a worker with more available GPU memory, then retry.";
+  } else if (text.includes("hf_auth") || text.includes("hugging face") || text.includes("401") || text.includes("403")) {
+    reason = "The worker could not access a required model.";
+    action = "Check the Hugging Face token on the RunPod worker and confirm it has access to the gated model.";
+  } else if (text.includes("ffmpeg")) {
+    reason = "The worker could not read or convert the uploaded media.";
+    action = "Verify ffmpeg exists in the worker image and retry with a standard mp3/wav/mp4 file.";
+  } else if (text.includes("whisperx") || text.includes("transcrib")) {
+    reason = "Audio transcription/alignment failed.";
+    action = "Try clearer or shorter audio, and check WhisperX device/compute settings on the worker.";
+  } else if (text.includes("blob") || text.includes("media_url") || text.includes("download") || text.includes("fetch")) {
+    reason = "The worker could not download one of the uploaded files.";
+    action = "Check the Vercel Blob token, file URL expiry, and whether both uploads are reachable from RunPod.";
+  } else if (text.includes("duration") || text.includes("input_rejected")) {
+    reason = "The two inputs were rejected before analysis.";
+    action = "Use two files/texts that are similar enough in length and format to compare fairly.";
+  } else if (text.includes("atlas")) {
+    reason = "The worker is missing required brain atlas files.";
+    action = "Verify the atlas files exist in the worker image under the configured atlas directory.";
+  }
+  return {
+    code: normalizedCode,
+    reason,
+    action,
+    raw_status: raw,
+    raw_message: msg
+  };
+}
+
 function mapRunpodStatus(data, jobId, jobMeta, events) {
   const raw = String(data.status || "").toUpperCase();
 
@@ -70,12 +114,21 @@ function mapRunpodStatus(data, jobId, jobMeta, events) {
   }
 
   if (raw === "FAILED" || raw === "CANCELLED" || raw === "TIMED_OUT") {
+    const message =
+      data.error ||
+      (data.output && (data.output.error_message || data.output.error)) ||
+      `Runpod status: ${raw}`;
+    const code =
+      (data.output && (data.output.error_code || data.output.code)) ||
+      (raw === "TIMED_OUT" ? "DIFF_TIMEOUT" : "RUNPOD_JOB_FAILED");
     return {
       status: "error",
       events,
       error: {
-        code: "RUNPOD_JOB_FAILED",
-        message: data.error || `Runpod status: ${raw}`
+        code,
+        message,
+        plain: explainFailure(code, message, raw),
+        runpod_status: raw
       }
     };
   }

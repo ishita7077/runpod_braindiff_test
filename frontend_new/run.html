@@ -1214,7 +1214,9 @@ function toggleTheme(){
   function showError(err){
     const msg = (err && err.message) || 'Something went wrong.';
     const code = (err && err.code) || 'DIFF_JOB_FAILED';
-    const tip = ERROR_TIPS[code] || 'Please try again with shorter or different inputs.';
+    const plain = err && err.plain;
+    const reason = plain && plain.reason ? plain.reason : msg;
+    const tip = plain && plain.action ? plain.action : (ERROR_TIPS[code] || 'Please try again with shorter or different inputs.');
     const eb = document.getElementById('statusEyebrow');
     const h1 = document.getElementById('statusHeadline');
     const sub = document.getElementById('statusSub');
@@ -1222,10 +1224,10 @@ function toggleTheme(){
     const banner = document.getElementById('stayBanner');
     const honest = document.querySelector('.honest-eta');
     if (eb) eb.textContent = 'Stopped';
-    if (h1) h1.innerHTML = 'Something went wrong.';
-    if (sub) sub.textContent = msg;
+    if (h1) h1.innerHTML = 'This run did not finish.';
+    if (sub) sub.textContent = reason;
     if (eta) eta.classList.add('hide');
-    if (banner) banner.innerHTML = '<strong>' + code + '</strong> — ' + tip;
+    if (banner) banner.innerHTML = '<strong>' + code + '</strong> — ' + tip + (plain && plain.raw_message ? '<br><span style="color:var(--ink-mute)">Raw detail: ' + String(plain.raw_message).replace(/[<>&]/g, function(c){ return ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]; }) + '</span>' : '');
     if (honest) honest.style.display = 'none';
   }
 

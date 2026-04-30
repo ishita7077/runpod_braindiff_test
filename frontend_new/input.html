@@ -438,11 +438,13 @@ function toggleTheme(){
   const fileA = document.getElementById('fileA');
   const fileB = document.getElementById('fileB');
   const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+  const MEDIA_DURATION_TOLERANCE = 5;
   let mode = 'text';
   let turnstileWidgetId = null;
   let turnstileToken = '';
   let turnstileRequired = false;
   let publicConfigPromise;
+  const mediaDurationCache = new WeakMap();
 
   // ---------- Toast system — all warnings/errors appear here transiently.
   function showToast(html, opts){
@@ -652,6 +654,78 @@ function toggleTheme(){
   function showError(msg, code){
     showToast(msg + (code ? ' <code style="font-family:\'JetBrains Mono\',monospace;font-size:11.5px;opacity:0.7">· ' + code + '</code>' : ''), {kind:'err', durationMs:8000, key:'api-error'});
   }
+  function fmtMediaSeconds(seconds){
+    seconds = Number(seconds || 0);
+    if (!Number.isFinite(seconds) || seconds <= 0) return 'unknown length';
+    return seconds.toFixed(1).replace(/\.0$/, '') + 's';
+  }
+  function probeMediaDuration(file){
+    if (mediaDurationCache.has(file)) return mediaDurationCache.get(file);
+    const promise = new Promise(function(resolve, reject){
+      const node = document.createElement(mode === 'video' ? 'video' : 'audio');
+      const url = URL.createObjectURL(file);
+      let settled = false;
+      function done(fn, value){
+        if (settled) return;
+        settled = true;
+        URL.revokeObjectURL(url);
+        node.removeAttribute('src');
+        node.load();
+        fn(value);
+      }
+      node.preload = 'metadata';
+      node.onloadedmetadata = function(){
+        const duration = Number(node.duration);
+        if (Number.isFinite(duration) && duration > 0) done(resolve, duration);
+        else done(reject, new Error('Could not read media duration.'));
+      };
+      node.onerror = function(){ done(reject, new Error('Could not read media duration.')); };
+      node.src = url;
+    });
+    mediaDurationCache.set(file, promise);
+    return promise;
+  }
+  async function inspectMediaBeforeUpload(fileAObj, fileBObj){
+    const durations = { a: null, b: null, trimToShorter: false };
+    try {
+      const values = await Promise.all([
+        probeMediaDuration(fileAObj),
+        probeMediaDuration(fileBObj)
+      ]);
+      durations.a = values[0];
+      durations.b = values[1];
+    } catch (err) {
+      showToast(
+        'I could not read the file lengths in the browser. BrainDiff will still check them before running.',
+        {kind:'warn', durationMs:7000, key:'media-duration-probe'}
+      );
+      return durations;
+    }
+    const delta = Math.abs(durations.a - durations.b);
+    if (delta <= MEDIA_DURATION_TOLERANCE) return durations;
+
+    const shortLen = Math.min(durations.a, durations.b);
+    const longSide = durations.a > durations.b ? 'A' : 'B';
+    const message =
+      'These files are too different in length.\n\n' +
+      'A is ' + fmtMediaSeconds(durations.a) + ' and B is ' + fmtMediaSeconds(durations.b) + '.\n' +
+      'BrainDiff needs them within ' + MEDIA_DURATION_TOLERANCE + ' seconds.\n\n' +
+      'Do you want BrainDiff to compare only the first ' + fmtMediaSeconds(shortLen) +
+      ' of both files by trimming the longer file (' + longSide + ')?';
+    if (!window.confirm(message)) {
+      showToast(
+        'Upload files within ' + MEDIA_DURATION_TOLERANCE + ' seconds of each other, or choose the trim option when prompted.',
+        {kind:'err', durationMs:9000, key:'media-duration-mismatch'}
+      );
+      throw new Error('MEDIA_DURATION_MISMATCH_CANCELLED');
+    }
+    durations.trimToShorter = true;
+    showToast(
+      'BrainDiff will compare the first <strong>' + fmtMediaSeconds(shortLen) + '</strong> of both files.',
+      {kind:'info', durationMs:7000, key:'media-duration-trim'}
+    );
+    return durations;
+  }
   function acceptForMode(){
     if (mode === 'audio') return 'audio/*';
     if (mode === 'video') return 'video/*';
@@ -813,14 +887,20 @@ function toggleTheme(){
           body: JSON.stringify(payload),
         });
       } else {
-        const uploadA = await uploadBlobWithClientToken(fileA.files[0], 'a');
-        const uploadB = await uploadBlobWithClientToken(fileB.files[0], 'b');
+        const fa = fileA.files[0];
+        const fb = fileB.files[0];
+        const mediaPlan = await inspectMediaBeforeUpload(fa, fb);
+        const uploadA = await uploadBlobWithClientToken(fa, 'a');
+        const uploadB = await uploadBlobWithClientToken(fb, 'b');
         const payload = {
           modality: mode,
           media_url_a: uploadA.url,
           media_url_b: uploadB.url,
-          media_name_a: fileA.files[0].name,
-          media_name_b: fileB.files[0].name
+          media_name_a: fa.name,
+          media_name_b: fb.name,
+          media_duration_a_s: mediaPlan.a,
+          media_duration_b_s: mediaPlan.b,
+          trim_to_shorter: mediaPlan.trimToShorter
         };
         if (turnstileRequired) payload.turnstileToken = turnstileToken;
         res = await fetch('/api/diff/start', {
@@ -843,6 +923,11 @@ function toggleTheme(){
         turnstileToken = '';
       }
     } catch (e){
+      if (String(e && e.message || e) === 'MEDIA_DURATION_MISMATCH_CANCELLED'){
+        btn.innerHTML = originalLabel;
+        btn.disabled = false;
+        return;
+      }
       showError('Network error reaching the BrainDiff API.', String(e && e.message || e));
       btn.innerHTML = originalLabel;
       btn.disabled = false;

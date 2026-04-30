@@ -81,8 +81,16 @@ def ensure_within_max(path: str, *, max_seconds: int = MAX_MEDIA_SECONDS) -> tup
     duration = probe_duration_seconds(path)
     if duration <= max_seconds:
         return path, duration, False
+    trimmed_path = trim_to_duration(path, max_seconds)
+    return trimmed_path, float(max_seconds), True
+
+
+def trim_to_duration(path: str, target_seconds: float) -> str:
+    if target_seconds <= 0:
+        raise ValueError("target_seconds must be positive")
     root, ext = os.path.splitext(path)
-    trimmed_path = f"{root}.trim{ext}"
+    safe_target = round(float(target_seconds), 3)
+    trimmed_path = f"{root}.trim-{safe_target:g}{ext}"
     copy_cmd = [
         "ffmpeg",
         "-y",
@@ -91,7 +99,7 @@ def ensure_within_max(path: str, *, max_seconds: int = MAX_MEDIA_SECONDS) -> tup
         "-i",
         path,
         "-t",
-        str(max_seconds),
+        str(safe_target),
         "-c",
         "copy",
         trimmed_path,
@@ -107,7 +115,7 @@ def ensure_within_max(path: str, *, max_seconds: int = MAX_MEDIA_SECONDS) -> tup
             "-i",
             path,
             "-t",
-            str(max_seconds),
+            str(safe_target),
             "-c:v",
             "libx264",
             "-c:a",
@@ -117,7 +125,7 @@ def ensure_within_max(path: str, *, max_seconds: int = MAX_MEDIA_SECONDS) -> tup
             trimmed_path,
         ]
         subprocess.check_call(recode_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    return trimmed_path, float(max_seconds), True
+    return trimmed_path
 
 
 def check_media_similarity(

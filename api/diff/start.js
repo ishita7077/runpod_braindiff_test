@@ -15,6 +15,9 @@ function normalizeInput(body) {
     mediaUrlB: typeof payload.media_url_b === "string" ? payload.media_url_b.trim() : "",
     mediaNameA: typeof payload.media_name_a === "string" ? payload.media_name_a.trim() : "",
     mediaNameB: typeof payload.media_name_b === "string" ? payload.media_name_b.trim() : "",
+    mediaDurationA: Number.isFinite(Number(payload.media_duration_a_s)) ? Number(payload.media_duration_a_s) : null,
+    mediaDurationB: Number.isFinite(Number(payload.media_duration_b_s)) ? Number(payload.media_duration_b_s) : null,
+    trimToShorter: payload.trim_to_shorter === true,
     turnstileToken: payload.turnstileToken || payload.turnstile_token || ""
   };
 }
@@ -63,6 +66,7 @@ module.exports = async function handler(req, res) {
       text_b: input.textB || undefined,
       media_url_a: input.mediaUrlA || undefined,
       media_url_b: input.mediaUrlB || undefined,
+      trim_to_shorter: input.trimToShorter || undefined,
       blob_token: input.modality === "audio" || input.modality === "video" ? cfg.blobReadWriteToken : undefined
     };
     const submitted = await submitJob(runpodInput);
@@ -78,6 +82,9 @@ module.exports = async function handler(req, res) {
       modality: input.modality,
       mediaNameA: input.mediaNameA || null,
       mediaNameB: input.mediaNameB || null,
+      mediaDurationA: input.mediaDurationA,
+      mediaDurationB: input.mediaDurationB,
+      trimToShorter: input.trimToShorter,
       blobUrlA: input.mediaUrlA || null,
       blobUrlB: input.mediaUrlB || null,
       blobDeleted: false

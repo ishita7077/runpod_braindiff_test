@@ -1,0 +1,174 @@
+{
+  "runs": [
+    {
+      "job_id": "demo-video-001",
+      "request_id": "req-demo-video-001",
+      "created_at": "2026-04-30T08:10:00Z",
+      "modality": "video",
+      "modality_effective": "video",
+      "status": "done",
+      "success": true,
+      "text_a_length": 0,
+      "text_b_length": 0,
+      "text_a_hash": "",
+      "text_b_hash": "",
+      "text_a_timesteps": 0,
+      "text_b_timesteps": 0,
+      "total_ms": 98500,
+      "stage_times": { "events_a_ms": 16400, "predict_a_ms": 31200, "events_b_ms": 17100, "predict_b_ms": 29500, "score_diff_ms": 1300, "heatmap_ms": 3000 },
+      "warnings": [],
+      "runtime": { "device": "cuda", "backend": "cuda" },
+      "result_analytics": {
+        "top_pattern": "Attention + Memory",
+        "co_activation_patterns": [
+          { "pattern": "Attention + Memory", "integration_score": 0.172, "alignment_score": 0.91, "winner": "B" },
+          { "pattern": "Personal + Visceral", "integration_score": 0.108, "alignment_score": 0.84, "winner": "B" }
+        ],
+        "pipeline_mix": { "dominant": "predict", "shares": { "transcribe": 0.34, "predict": 0.62, "score": 0.01, "heatmap": 0.03 } },
+        "critical_state": { "state": "B_higher", "dimension": "attention_salience", "label": "Attention", "magnitude": 0.19 },
+        "hub_node": "L_IPS1_ROI"
+      },
+      "error_code": null,
+      "error_message": null
+    },
+    {
+      "job_id": "demo-audio-002",
+      "request_id": "req-demo-audio-002",
+      "created_at": "2026-04-30T06:45:00Z",
+      "modality": "audio",
+      "modality_effective": "audio",
+      "status": "done",
+      "success": true,
+      "text_a_length": 0,
+      "text_b_length": 0,
+      "text_a_hash": "",
+      "text_b_hash": "",
+      "text_a_timesteps": 0,
+      "text_b_timesteps": 0,
+      "total_ms": 74200,
+      "stage_times": { "events_a_ms": 11800, "predict_a_ms": 23600, "events_b_ms": 12500, "predict_b_ms": 22400, "score_diff_ms": 900, "heatmap_ms": 3000 },
+      "warnings": [],
+      "runtime": { "device": "cuda", "backend": "cuda" },
+      "result_analytics": {
+        "top_pattern": "Personal + Visceral",
+        "co_activation_patterns": [
+          { "pattern": "Personal + Visceral", "integration_score": 0.146, "alignment_score": 0.88, "winner": "B" },
+          { "pattern": "Attention + Memory", "integration_score": 0.132, "alignment_score": 0.86, "winner": "B" }
+        ],
+        "pipeline_mix": { "dominant": "predict", "shares": { "transcribe": 0.33, "predict": 0.62, "score": 0.01, "heatmap": 0.04 } },
+        "critical_state": { "state": "B_higher", "dimension": "memory_encoding", "label": "Memory Encoding", "magnitude": 0.16 },
+        "hub_node": "L_45_ROI"
+      },
+      "error_code": null,
+      "error_message": null
+    },
+    {
+      "job_id": "demo-text-003",
+      "request_id": "req-demo-text-003",
+      "created_at": "2026-04-29T21:20:00Z",
+      "modality": "text",
+      "modality_effective": "text",
+      "status": "done",
+      "success": true,
+      "text_a_length": 184,
+      "text_b_length": 201,
+      "text_a_hash": "demoa003",
+      "text_b_hash": "demob003",
+      "text_a_timesteps": 54,
+      "text_b_timesteps": 58,
+      "total_ms": 34800,
+      "stage_times": { "events_a_ms": 5200, "predict_a_ms": 11100, "events_b_ms": 5600, "predict_b_ms": 11600, "score_diff_ms": 500, "heatmap_ms": 800 },
+      "warnings": [],
+      "runtime": { "device": "mps", "backend": "mps_split" },
+      "result_analytics": {
+        "top_pattern": "Social + Language",
+        "co_activation_patterns": [
+          { "pattern": "Social + Language", "integration_score": 0.119, "alignment_score": 0.82, "winner": "A" },
+          { "pattern": "Effort + Meaning", "integration_score": 0.097, "alignment_score": 0.9, "winner": "mixed" }
+        ],
+        "pipeline_mix": { "dominant": "predict", "shares": { "transcribe": 0.31, "predict": 0.65, "score": 0.01, "heatmap": 0.02 } },
+        "critical_state": { "state": "A_higher", "dimension": "social_thinking", "label": "Social Thinking", "magnitude": 0.13 },
+        "hub_node": "R_TPOJ1_ROI"
+      },
+      "error_code": null,
+      "error_message": null
+    },
+    {
+      "job_id": "demo-video-004",
+      "request_id": "req-demo-video-004",
+      "created_at": "2026-04-28T16:02:00Z",
+      "modality": "video",
+      "modality_effective": "video",
+      "status": "error",
+      "success": false,
+      "text_a_length": 0,
+      "text_b_length": 0,
+      "text_a_hash": "",
+      "text_b_hash": "",
+      "text_a_timesteps": 0,
+      "text_b_timesteps": 0,
+      "total_ms": 180000,
+      "stage_times": { "events_a_ms": 42000, "predict_a_ms": 72000 },
+      "warnings": ["One or both stimuli were truncated to 30 seconds."],
+      "runtime": { "device": "cuda", "backend": "cuda" },
+      "result_analytics": {},
+      "error_code": "DIFF_TIMEOUT",
+      "error_message": "The run exceeded the hard timeout.",
+      "failure_summary": {
+        "code": "DIFF_TIMEOUT",
+        "reason": "The job took too long and was stopped.",
+        "stage": "It reached the first file's brain-model prediction step.",
+        "action": "Try shorter files/text, then check whether the RunPod worker has enough GPU time for media jobs.",
+        "raw_message": "The run exceeded the hard timeout."
+      }
+    }
+  ],
+  "aggregate": {
+    "total_runs": 4,
+    "success_count": 3,
+    "failure_count": 1,
+    "success_rate": 75.0,
+    "avg_total_ms": 96875,
+    "p50_total_ms": 74200,
+    "p90_total_ms": 180000,
+    "p95_total_ms": 180000,
+    "p50_total_ms_success": 74200,
+    "p95_total_ms_success": 98500,
+    "warnings_rate": 25.0,
+    "modality_counts": { "video": 2, "audio": 1, "text": 1 },
+    "modality_effective_counts": { "video": 2, "audio": 1, "text": 1 },
+    "error_code_counts": { "DIFF_TIMEOUT": 1 },
+    "status_counts": { "done": 3, "error": 1 },
+    "runtime_backend_counts": { "cuda": 3, "mps_split": 1 },
+    "runs_last_24h": 3,
+    "runs_last_7d": 4,
+    "activity_by_day": [
+      { "date": "2026-04-24", "count": 0 },
+      { "date": "2026-04-25", "count": 0 },
+      { "date": "2026-04-26", "count": 0 },
+      { "date": "2026-04-27", "count": 0 },
+      { "date": "2026-04-28", "count": 1 },
+      { "date": "2026-04-29", "count": 1 },
+      { "date": "2026-04-30", "count": 2 }
+    ],
+    "per_modality": {
+      "video": { "total": 2, "success": 1, "success_rate": 50.0, "p50_total_ms": 98500, "p95_total_ms": 98500 },
+      "audio": { "total": 1, "success": 1, "success_rate": 100.0, "p50_total_ms": 74200, "p95_total_ms": 74200 },
+      "text": { "total": 1, "success": 1, "success_rate": 100.0, "p50_total_ms": 34800, "p95_total_ms": 34800 }
+    },
+    "stage_ms_avg": { "events_a_ms": 18800, "predict_a_ms": 34475, "events_b_ms": 8900, "predict_b_ms": 21166, "score_diff_ms": 900, "heatmap_ms": 2266 },
+    "co_activation_pattern_counts": { "Attention + Memory": 2, "Personal + Visceral": 2, "Social + Language": 1, "Effort + Meaning": 1 },
+    "co_activation_pattern_avg": {
+      "Attention + Memory": { "integration_score": 0.152, "alignment_score": 0.885 },
+      "Personal + Visceral": { "integration_score": 0.127, "alignment_score": 0.86 },
+      "Social + Language": { "integration_score": 0.119, "alignment_score": 0.82 },
+      "Effort + Meaning": { "integration_score": 0.097, "alignment_score": 0.9 }
+    },
+    "pipeline_mix_counts": { "predict": 3 },
+    "pipeline_share_avg": { "transcribe": 0.3267, "predict": 0.63, "score": 0.01, "heatmap": 0.03 },
+    "critical_state_counts": { "Attention · B_higher": 1, "Memory Encoding · B_higher": 1, "Social Thinking · A_higher": 1 },
+    "hub_node_counts": { "L_IPS1_ROI": 1, "L_45_ROI": 1, "R_TPOJ1_ROI": 1 },
+    "failure_reason_counts": { "The job took too long and was stopped.": 1 }
+  },
+  "pagination": { "limit": 1000, "offset": 0 }
+}

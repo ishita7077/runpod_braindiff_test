@@ -189,6 +189,25 @@ section{margin-bottom:20px}
   border:1px solid var(--line);background:var(--panel-2);color:var(--ink-dim);
 }
 .stage-chip b{color:var(--ink);font-weight:600}
+.content-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:1000px){.content-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.content-grid{grid-template-columns:1fr}}
+.content-panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;box-shadow:var(--shadow-sm)}
+.content-panel h3{margin:0 0 10px;font-size:13px;font-weight:600;color:var(--ink)}
+.mini-list{display:grid;gap:8px}
+.mini-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:baseline;font-size:12.5px}
+.mini-row span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink-dim)}
+.mini-row b{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--ink)}
+.score-pair{display:flex;gap:6px;flex-wrap:wrap}
+.score-pill{font-family:'JetBrains Mono',monospace;font-size:10px;border:1px solid var(--line);border-radius:6px;padding:2px 5px;color:var(--ink-mute);background:var(--panel-2)}
+.priority-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:12px;margin-bottom:20px}
+@media (max-width:900px){.priority-grid{grid-template-columns:1fr}}
+.issue-list{display:grid;gap:10px}
+.issue-card{border:1px solid var(--line);border-radius:10px;background:var(--panel-2);padding:11px 12px}
+.issue-card strong{display:block;font-size:13px;margin-bottom:3px;color:var(--ink)}
+.issue-card p{margin:0;color:var(--ink-dim);font-size:12.5px}
+.issue-card code{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--ink-mute)}
+.empty-state{color:var(--ink-mute);font-size:13px;margin:0}
 
 /* table */
 .table-wrap{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel);box-shadow:var(--shadow-sm)}
@@ -265,8 +284,8 @@ details.subrow .inner{padding:0 10px 10px 10px}
 
   <main class="shell">
     <div class="kicker">Operations</div>
-    <h1>Run <em>intelligence</em></h1>
-    <p class="sub">Every completed job in the local telemetry database: outcomes, rough latency, modality mix, and where time went. <strong>Legacy rows</strong> without a stored modality are labeled <em>text (legacy)</em> when text lengths are present.</p>
+    <h1>Run <em>health</em></h1>
+    <p class="sub">A plain-English view of whether BrainDiff jobs are finishing, why failed jobs stopped, and what to check next. Technical fields are kept in the row details for debugging.</p>
 
     <div class="dash-bar" role="toolbar" aria-label="Filters">
       <label>Search <input type="search" id="q" placeholder="job id, request id, error…" autocomplete="off" /></label>
@@ -298,25 +317,59 @@ details.subrow .inner{padding:0 10px 10px 10px}
 
     <div class="split-2">
       <div class="card">
-        <div class="sec-title">Runs per day (UTC, last 7 days)</div>
+      <div class="sec-title">Runs per day (UTC, last 7 days)</div>
         <div class="act-chart" id="actChart" aria-label="Activity by day"></div>
       </div>
       <div class="card">
-        <div class="sec-title">Runtime backend</div>
-        <div id="backBar"></div>
+      <div class="sec-title">Where jobs ran</div>
+      <div id="backBar"></div>
       </div>
     </div>
 
     <section>
-      <div class="sec-title">By modality (effective)</div>
+      <div class="sec-title">Input type</div>
       <div class="card" id="modBreakdown" style="margin-bottom:10px"></div>
       <div class="pgrid" id="perModCards"></div>
     </section>
 
     <section>
-      <div class="sec-title">Avg stage time (successful runs, ms). Rough composite across jobs.</div>
+      <div class="sec-title">Where time is spent</div>
       <div class="card">
         <div class="stage-grid" id="stageGrid"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-title">Failures and next steps</div>
+      <div class="priority-grid">
+        <div class="card">
+          <div class="issue-list" id="failureList"></div>
+        </div>
+        <div class="card">
+          <div class="mini-list" id="failureReasons"></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-title">Result insights from successful runs</div>
+      <div class="content-grid">
+        <div class="content-panel">
+          <h3>Strongest brain response</h3>
+          <div class="mini-list" id="criticalStates"></div>
+        </div>
+        <div class="content-panel">
+          <h3>Common response pattern</h3>
+          <div class="mini-list" id="coPatterns"></div>
+        </div>
+        <div class="content-panel">
+          <h3>Processing bottleneck</h3>
+          <div class="mini-list" id="pipelineMix"></div>
+        </div>
+        <div class="content-panel">
+          <h3>Technical brain region</h3>
+          <div class="mini-list" id="hubNodes"></div>
+        </div>
       </div>
     </section>
 
@@ -330,12 +383,10 @@ details.subrow .inner{padding:0 10px 10px 10px}
                 <th data-k="t">Created</th>
                 <th data-k="job">Job</th>
                 <th data-k="mod">Modality</th>
-                <th data-k="st">Status</th>
-                <th data-k="ok">OK</th>
+                <th data-k="ok">Result</th>
                 <th data-k="ms">Total</th>
-                <th data-k="tsp">T steps A/B</th>
-                <th data-k="wn">Wrn</th>
-                <th data-k="er">Error</th>
+                <th data-k="er">Plain reason</th>
+                <th data-k="wn">Warnings</th>
                 <th data-k=""></th>
               </tr>
             </thead>
@@ -391,14 +442,14 @@ details.subrow .inner{padding:0 10px 10px 10px}
 
   function renderKpis(a){
     var nodes = [
-      { k:'Database rows', v: a.total_runs, hint: 'all-time', cls:'' },
-      { k:'Success rate', v: (a.success_rate==null? '—' : a.success_rate.toFixed(1)+'%'), hint: a.success_count+' ok / '+a.failure_count+' fail', cls: a.success_rate >= 90 ? 'ok' : (a.success_rate < 70 ? 'warn' : '') },
-      { k:'P50 run time (success)', v: fmtMs(a.p50_total_ms_success), hint: 'median wall clock, successes only', cls:'' },
-      { k:'P95 run time (success)', v: fmtMs(a.p95_total_ms_success), hint: 'tail latency', cls:'' },
-      { k:'Last 24h', v: a.runs_last_24h, hint: 'jobs with parseable timestamp', cls:'' },
-      { k:'Last 7d', v: a.runs_last_7d, hint: 'rolling week', cls:'' },
-      { k:'Warning rate', v: (a.warnings_rate==null? '—' : a.warnings_rate.toFixed(0)+'%'), hint: 'runs with ≥1 warning', cls: a.warnings_rate > 40 ? 'warn' : '' },
-      { k:'P50 (all runs)', v: fmtMs(a.p50_total_ms), hint: 'includes failures + short-circuits', cls:'' }
+      { k:'Total jobs', v: a.total_runs, hint: 'all stored runs', cls:'' },
+      { k:'Finished successfully', v: (a.success_rate==null? '—' : a.success_rate.toFixed(1)+'%'), hint: a.success_count+' finished / '+a.failure_count+' failed', cls: a.success_rate >= 90 ? 'ok' : (a.success_rate < 70 ? 'warn' : '') },
+      { k:'Failed jobs', v: a.failure_count || 0, hint: 'needs attention', cls: (a.failure_count || 0) ? 'warn' : 'ok' },
+      { k:'Typical finished run', v: fmtMs(a.p50_total_ms_success), hint: 'median time for successful jobs', cls:'' },
+      { k:'Slow successful run', v: fmtMs(a.p95_total_ms_success), hint: '95th percentile', cls:'' },
+      { k:'Jobs today', v: a.runs_last_24h, hint: 'last 24 hours', cls:'' },
+      { k:'Warnings', v: (a.warnings_rate==null? '—' : a.warnings_rate.toFixed(0)+'%'), hint: 'finished but with caveats', cls: a.warnings_rate > 40 ? 'warn' : '' },
+      { k:'Input mix', v: Object.keys(a.modality_effective_counts || {}).length, hint: 'text / audio / video types seen', cls:'' }
     ];
     var host = document.getElementById('kpiRow');
     host.innerHTML = nodes.map(function(n){
@@ -428,10 +479,10 @@ details.subrow .inner{padding:0 10px 10px 10px}
     var box = document.getElementById('backBar');
     var c = a.runtime_backend_counts || {};
     var keys = Object.keys(c).sort(function(x,y){ return c[y]-c[x]; });
-    if (!keys.length){ box.innerHTML = '<p class="muted" style="margin:0">No runtime data.</p>'; return; }
+    if (!keys.length){ box.innerHTML = '<p class="muted" style="margin:0">No worker data yet.</p>'; return; }
     var max = Math.max.apply(null, keys.map(function(k){ return c[k]; }));
     box.innerHTML = keys.map(function(k){
-      return '<div class="hbar"><div class="hbar-top"><span class="hbar-name">'+esc(k)+'</span><span class="hbar-meta">'+c[k]+'</span></div>'+
+      return '<div class="hbar"><div class="hbar-top"><span class="hbar-name">'+esc(workerLabel(k))+'</span><span class="hbar-meta">'+esc(k)+' · '+c[k]+'</span></div>'+
         '<div class="track"><div class="fill" style="width:'+Math.round((c[k]/max)*100)+'%;background:var(--good-2)"></div></div></div>';
     }).join('');
   }
@@ -464,10 +515,121 @@ details.subrow .inner{padding:0 10px 10px 10px}
     var host = document.getElementById('stageGrid');
     var s = a.stage_ms_avg || {};
     var keys = Object.keys(s).sort();
-    if (!keys.length){ host.innerHTML = '<span class="muted">No stage timing yet.</span>'; return; }
+    if (!keys.length){ host.innerHTML = '<span class="muted">No timing detail yet.</span>'; return; }
     host.innerHTML = keys.map(function(k){
-      return '<div class="stage-chip"><span style="color:var(--ink-mute)">'+esc(k)+'</span> <b>'+s[k]+'ms</b></div>';
+      return '<div class="stage-chip"><span style="color:var(--ink-mute)">'+esc(stageLabel(k))+'</span> <b>'+fmtMs(s[k])+'</b></div>';
     }).join('');
+  }
+
+  function workerLabel(k){
+    if (k === 'cuda') return 'RunPod GPU worker';
+    if (k === 'mps_split' || k === 'mps') return 'Local Mac worker';
+    if (k === 'torch_cpu' || k === 'cpu') return 'CPU worker';
+    if (k === 'unknown') return 'Worker not recorded';
+    return k;
+  }
+
+  function stageLabel(k){
+    return {
+      events_a_ms: 'Read / transcribe A',
+      events_b_ms: 'Read / transcribe B',
+      predict_a_ms: 'Brain model A',
+      predict_b_ms: 'Brain model B',
+      score_diff_ms: 'Compare scores',
+      heatmap_ms: 'Build brain map'
+    }[k] || k;
+  }
+
+  function fallbackFailure(r){
+    if (r.failure_summary && r.failure_summary.reason) return r.failure_summary;
+    var code = r.error_code || 'UNKNOWN_ERROR';
+    var msg = r.error_message || '';
+    var text = (code + ' ' + msg).toLowerCase();
+    var out = { code: code, reason: 'The BrainDiff pipeline raised an unexpected error.', action: 'Check the worker logs for the stack trace, then retry with shorter supported inputs.', raw_message: msg };
+    if (text.indexOf('timeout') >= 0){ out.reason = 'The job took too long and was stopped.'; out.action = 'Try shorter files/text, then check worker timeout settings.'; }
+    else if (text.indexOf('media_duration_mismatch') >= 0 || (text.indexOf('durations differ') >= 0 && text.indexOf('within 5s') >= 0)){ out.reason = 'The two files are too different in length.'; out.action = 'Upload files within 5 seconds of each other, or choose the trim option so BrainDiff compares the first part of both files.'; }
+    else if (text.indexOf('memory') >= 0 || text.indexOf('oom') >= 0){ out.reason = 'The worker ran out of GPU memory.'; out.action = 'Use shorter media or a worker with more available GPU memory.'; }
+    else if (text.indexOf('download') >= 0 || text.indexOf('blob') >= 0 || text.indexOf('media_url') >= 0){ out.reason = 'The worker could not download one of the uploaded files.'; out.action = 'Check upload URLs and the Vercel Blob token.'; }
+    else if (text.indexOf('whisperx') >= 0 || text.indexOf('transcrib') >= 0){ out.reason = 'Audio transcription/alignment failed.'; out.action = 'Try clearer/shorter audio and check WhisperX settings.'; }
+    else if (text.indexOf('hugging') >= 0 || text.indexOf('hf_auth') >= 0 || text.indexOf('403') >= 0 || text.indexOf('401') >= 0){ out.reason = 'The worker could not access a required model.'; out.action = 'Check the Hugging Face token and model access.'; }
+    return out;
+  }
+
+  function topEntries(obj, n){
+    obj = obj || {};
+    return Object.keys(obj).sort(function(x,y){ return (obj[y]||0)-(obj[x]||0); }).slice(0,n);
+  }
+
+  function renderMiniCount(hostId, counts, empty){
+    var host = document.getElementById(hostId);
+    var keys = topEntries(counts, 6);
+    if (!keys.length){ host.innerHTML = '<span class="muted">'+empty+'</span>'; return; }
+    host.innerHTML = keys.map(function(k){
+      return '<div class="mini-row"><span title="'+esc(k)+'">'+esc(k)+'</span><b>'+esc(String(counts[k]))+'</b></div>';
+    }).join('');
+  }
+
+  function renderContentAnalytics(a){
+    var coCounts = a.co_activation_pattern_counts || {};
+    var coAvg = a.co_activation_pattern_avg || {};
+    var coHost = document.getElementById('coPatterns');
+    var coKeys = topEntries(coCounts, 6);
+    if (!coKeys.length){
+      coHost.innerHTML = '<span class="muted">No result-derived patterns yet.</span>';
+    } else {
+      coHost.innerHTML = coKeys.map(function(k){
+        var avg = coAvg[k] || {};
+        return '<div class="mini-row"><span title="'+esc(k)+'">'+esc(k)+'</span><div class="score-pair">'+
+          '<span class="score-pill">n '+esc(String(coCounts[k]))+'</span>'+
+          '<span class="score-pill">int '+esc(String(avg.integration_score || 0))+'</span>'+
+          '<span class="score-pill">align '+esc(String(avg.alignment_score || 0))+'</span>'+
+          '</div></div>';
+      }).join('');
+    }
+
+    var pCounts = a.pipeline_mix_counts || {};
+    var pShares = a.pipeline_share_avg || {};
+    var pHost = document.getElementById('pipelineMix');
+    var pKeys = topEntries(pCounts, 6);
+    if (!pKeys.length){
+      pHost.innerHTML = '<span class="muted">No stage mix yet.</span>';
+    } else {
+      var shareKeys = Object.keys(pShares).sort(function(x,y){ return (pShares[y]||0)-(pShares[x]||0); }).slice(0,4);
+      pHost.innerHTML = pKeys.map(function(k){
+        return '<div class="mini-row"><span>'+esc(k)+'</span><b>'+esc(String(pCounts[k]))+'</b></div>';
+      }).join('') + shareKeys.map(function(k){
+        return '<div class="mini-row"><span>avg '+esc(k)+' share</span><b>'+Math.round((pShares[k]||0)*100)+'%</b></div>';
+      }).join('');
+    }
+
+    renderMiniCount('criticalStates', a.critical_state_counts, 'No dominant cortical states yet.');
+    renderMiniCount('hubNodes', a.hub_node_counts, 'No hub nodes yet.');
+  }
+
+  function renderFailures(){
+    var failed = state.runs.filter(function(r){ return !r.success; });
+    var list = document.getElementById('failureList');
+    if (!failed.length){
+      list.innerHTML = '<p class="empty-state">No failed jobs in this telemetry window.</p>';
+    } else {
+      failed.sort(function(a,b){ return String(b.created_at||'').localeCompare(String(a.created_at||'')); });
+      list.innerHTML = failed.slice(0,8).map(function(r){
+        var f = fallbackFailure(r);
+        return '<div class="issue-card"><strong>'+esc(f.reason)+'</strong>'+
+          '<p>'+esc(f.action)+'</p>'+
+          '<p style="margin-top:6px"><code>'+esc(r.created_at || '')+' · '+esc(r.job_id || '')+' · '+esc(f.code || '')+'</code></p>'+
+          (f.raw_message ? '<p style="margin-top:4px"><code>'+esc(f.raw_message)+'</code></p>' : '')+
+          '</div>';
+      }).join('');
+    }
+    var reasons = state.aggregate.failure_reason_counts || {};
+    if (!Object.keys(reasons).length){
+      failed.forEach(function(r){
+        var f = fallbackFailure(r);
+        reasons[f.reason] = (reasons[f.reason] || 0) + 1;
+      });
+    }
+    renderMiniCount('failureReasons', reasons, 'No failure reasons yet.');
   }
 
   function getFilters(){
@@ -497,7 +659,7 @@ details.subrow .inner{padding:0 10px 10px 10px}
     if (k==='ms') return r.total_ms == null ? -1 : Number(r.total_ms);
     if (k==='tsp') return (r.text_a_timesteps||0) + (r.text_b_timesteps||0);
     if (k==='wn') return (r.warnings && r.warnings.length) || 0;
-    if (k==='er') return r.error_code || '';
+    if (k==='er') return fallbackFailure(r).reason || r.error_code || '';
     return 0;
   }
 
@@ -513,30 +675,29 @@ details.subrow .inner{padding:0 10px 10px 10px}
     });
     var tb = document.getElementById('tb');
     if (!rows.length){
-      tb.innerHTML = '<tr><td colspan="10" class="muted" style="padding:16px">No runs match these filters.</td></tr>';
+      tb.innerHTML = '<tr><td colspan="8" class="muted" style="padding:16px">No runs match these filters.</td></tr>';
       return;
     }
     tb.innerHTML = rows.map(function(r){
       var me = r.modality_effective || r.modality || 'unknown';
       var ok = r.success;
-      var detail = { stage_times: r.stage_times, runtime: r.runtime, warnings: r.warnings, error_message: r.error_message };
+      var failure = fallbackFailure(r);
+      var detail = { stage_times: r.stage_times, worker: r.runtime, warnings: r.warnings, failure: failure, result_analytics: r.result_analytics };
       var json = esc(JSON.stringify(detail, null, 2));
       return '<tr>'+
         '<td style="font-family:JetBrains Mono,monospace;font-size:11px;white-space:nowrap">'+esc(r.created_at||'—')+'</td>'+
         '<td class="jobmono">'+esc(r.job_id||'')+'</td>'+
         '<td><span class="mtag '+modClass(me)+'">'+esc(me)+'</span></td>'+
-        '<td><span class="badge">'+esc(r.status||'—')+'</span></td>'+
-        '<td><span class="badge '+(ok?'ok':'fail')+'">'+(ok?'yes':'no')+'</span></td>'+
+        '<td><span class="badge '+(ok?'ok':'fail')+'">'+(ok?'finished':'failed')+'</span></td>'+
         '<td style="font-variant-numeric:tabular-nums">'+fmtMs(r.total_ms)+'</td>'+
-        '<td style="font-family:JetBrains Mono,monospace;font-size:11px">'+ (r.text_a_timesteps|0) +' / '+ (r.text_b_timesteps|0) +'</td>'+
+        '<td style="max-width:320px">'+esc(ok ? 'Finished successfully' : failure.reason)+'</td>'+
         '<td>'+ ((r.warnings||[]).length) +'</td>'+
-        '<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis" title="'+(r.error_code||'')+'">'+esc(r.error_code||'—')+'</td>'+
         '<td><div class="row-actions">'+
           '<a href="/run.html?job='+encodeURIComponent(r.job_id)+'">Run</a>'+
           '<a href="/results.html?job='+encodeURIComponent(r.job_id)+'">Results</a>'+
         '</div></td>'+
         '</tr>'+
-        '<tr class="sub"><td colspan="10" style="padding:0"><details class="subrow"><summary>Stage JSON / runtime / warnings</summary><div class="inner"><pre class="raw">'+json+'</pre></div></details></td></tr>';
+        '<tr class="sub"><td colspan="8" style="padding:0"><details class="subrow"><summary>Technical detail for debugging</summary><div class="inner"><pre class="raw">'+json+'</pre></div></details></td></tr>';
     }).join('');
   }
 
@@ -582,7 +743,8 @@ details.subrow .inner{padding:0 10px 10px 10px}
   }
 
   async function load(){
-    var res = await fetch('/api/telemetry/dashboard?limit=1000&offset=0');
+    var demo = new URLSearchParams(location.search).get('demo') === '1';
+    var res = await fetch(demo ? '/demo/dashboard.json' : '/api/telemetry/dashboard?limit=1000&offset=0');
     if (!res.ok) throw new Error('HTTP '+res.status);
     var data = await res.json();
     state.runs = data.runs || [];
@@ -593,7 +755,9 @@ details.subrow .inner{padding:0 10px 10px 10px}
     renderModalityBars(state.aggregate);
     renderPerMod(state.aggregate);
     renderStages(state.aggregate);
-    document.getElementById('lastUpdated').textContent = 'OK · '+ new Date().toLocaleTimeString();
+    renderContentAnalytics(state.aggregate);
+    renderFailures();
+    document.getElementById('lastUpdated').textContent = (demo ? 'DEMO · ' : 'OK · ') + new Date().toLocaleTimeString();
     renderTable();
   }
 
