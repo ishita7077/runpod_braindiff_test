@@ -57,6 +57,13 @@ async function boot() {
         "Approximate cortical surface — atlas-aligned activations not available on this build.";
     }
     $("#resetBrain")?.addEventListener("click", () => state.cortex?.reset());
+    document.querySelectorAll(".brain-view-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".brain-view-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.cortex?.setView(btn.dataset.view || "diff");
+      });
+    });
   } catch (err) {
     renderError(err);
   }
@@ -65,7 +72,15 @@ async function boot() {
 async function fetchDemo() {
   const res = await fetch("./demo/video-result.json", { cache: "no-store" });
   if (!res.ok) throw new Error(`Demo data could not load (${res.status})`);
-  return res.json();
+  const data = await res.json();
+  // Demo fixtures nest patterns/connectivity/skeleton under media_features;
+  // promote them to the top level that render() expects.
+  if (data.media_features && !data.patterns) {
+    data.patterns = data.media_features.patterns || { a: [], b: [] };
+    data.connectivity = data.media_features.connectivity || null;
+    data.skeleton = data.media_features.skeleton || null;
+  }
+  return data;
 }
 
 async function fetchJob(id) {
@@ -125,6 +140,14 @@ function render(data) {
   $("#pageDek").textContent = data.sub;
   renderHeroStats(data);
   renderRecommendations(data);
+  const na = document.getElementById("sampleNameA");
+  if (na) na.textContent = data.samples.a.name || "Cut A";
+  const nb = document.getElementById("sampleNameB");
+  if (nb) nb.textContent = data.samples.b.name || "Cut B";
+  const sa = document.getElementById("sampleStatsA");
+  if (sa) sa.textContent = data.samples.a.duration ? fmtTime(data.samples.a.duration) : "—";
+  const sb = document.getElementById("sampleStatsB");
+  if (sb) sb.textContent = data.samples.b.duration ? fmtTime(data.samples.b.duration) : "—";
   renderSample("#sampleA", data.samples.a);
   renderSample("#sampleB", data.samples.b);
   renderTracks(data);

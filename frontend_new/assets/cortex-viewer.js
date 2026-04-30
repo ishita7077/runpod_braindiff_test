@@ -219,6 +219,19 @@ export async function mountCortex({
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
   camera.position.set(0, 0.16, 5.3);
+  // Set size immediately — don't wait for ResizeObserver which fires async
+  // and leaves a 300×150 default canvas for the first rendered frame.
+  {
+    const p = canvas.parentElement;
+    if (p) {
+      const r = p.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0) {
+        renderer.setSize(r.width, r.height, false);
+        camera.aspect = r.width / r.height;
+        camera.updateProjectionMatrix();
+      }
+    }
+  }
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
