@@ -53,10 +53,7 @@ body {
   color: var(--ink);
   font-family: "Inter Tight", system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background:
-    radial-gradient(1100px 620px at 82% -8%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 58%),
-    radial-gradient(900px 560px at 0% 100%, color-mix(in srgb, var(--blue) 10%, transparent), transparent 58%),
-    linear-gradient(180deg, var(--bg), var(--bg-2));
+  background: linear-gradient(180deg, var(--bg), var(--bg-2));
 }
 a { color: inherit; text-decoration: none; }
 button, input { font: inherit; }
@@ -111,7 +108,7 @@ button, input { font: inherit; }
   box-shadow: var(--shadow-md);
   backdrop-filter: blur(14px);
 }
-.hero-copy { border-radius: 24px; padding: 40px; min-height: 320px; }
+.hero-copy { border-radius: 8px; padding: 32px; min-height: 240px; }
 .eyebrow, .micro {
   margin: 0 0 12px;
   color: var(--accent);
@@ -125,20 +122,20 @@ h1 {
   max-width: 920px;
   margin-bottom: 18px;
   font-family: var(--serif);
-  font-size: clamp(46px, 6vw, 96px);
-  line-height: 0.96;
+  font-size: clamp(38px, 4.8vw, 68px);
+  line-height: 1;
   font-weight: 430;
-  letter-spacing: -0.055em;
+  letter-spacing: 0;
 }
 h2 {
   font-size: 24px;
   line-height: 1.08;
-  letter-spacing: -0.035em;
+  letter-spacing: 0;
   margin-bottom: 14px;
 }
 .dek {
   max-width: 760px;
-  font-size: 22px;
+  font-size: 19px;
   line-height: 1.38;
   color: var(--ink-dim);
   margin-bottom: 26px;
@@ -153,7 +150,7 @@ h2 {
   gap: 8px;
   align-items: baseline;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: 8px;
   padding: 9px 13px;
   background: color-mix(in srgb, var(--surface) 75%, transparent);
   font-family: var(--mono);
@@ -161,11 +158,11 @@ h2 {
   color: var(--ink-dim);
 }
 .stat-pill strong { color: var(--ink); font-family: "Inter Tight", sans-serif; font-size: 14px; }
-.decision-card { border-radius: 24px; padding: 28px; display: flex; flex-direction: column; }
+.decision-card { border-radius: 8px; padding: 24px; display: flex; flex-direction: column; }
 .recommendations { margin: auto 0 0; padding: 0; list-style: none; display: grid; gap: 10px; }
 .recommendations li {
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: 8px;
   padding: 12px 14px 12px 42px;
   position: relative;
   color: var(--ink-dim);
@@ -189,11 +186,11 @@ h2 {
   display: grid;
   grid-template-columns: minmax(280px, 0.78fr) minmax(420px, 1.25fr) minmax(270px, 0.72fr);
   gap: 18px;
-  align-items: stretch;
+  align-items: start;
   margin-bottom: 22px;
 }
 .sample-stack { display: grid; gap: 18px; }
-.sample-card { border-radius: 20px; overflow: hidden; min-height: 236px; }
+.sample-card { border-radius: 8px; overflow: hidden; min-height: 236px; }
 .sample-head {
   display: flex; justify-content: space-between; align-items: center;
   gap: 12px;
@@ -201,7 +198,7 @@ h2 {
   border-bottom: 1px solid var(--line);
 }
 .sample-badge {
-  width: 34px; height: 34px; border-radius: 10px;
+  width: 34px; height: 34px; border-radius: 8px;
   display: grid; place-items: center;
   font-family: var(--mono); font-weight: 700;
   border: 1px solid color-mix(in srgb, var(--blue) 32%, transparent);
@@ -218,26 +215,24 @@ h2 {
 .video-frame {
   margin: 16px;
   height: 92px;
-  border-radius: 18px;
+  border-radius: 8px;
   overflow: hidden;
   border: 1px solid var(--line);
   position: relative;
   background:
-    linear-gradient(135deg, color-mix(in srgb, var(--blue) 26%, transparent), transparent 38%),
-    radial-gradient(circle at 75% 28%, color-mix(in srgb, var(--accent) 38%, transparent), transparent 24%),
+    linear-gradient(135deg, color-mix(in srgb, var(--blue) 24%, transparent), transparent 38%),
     linear-gradient(180deg, var(--panel-2), var(--brain-stage));
 }
 #sampleB .video-frame {
   background:
-    radial-gradient(circle at 35% 28%, color-mix(in srgb, var(--accent) 48%, transparent), transparent 24%),
-    linear-gradient(135deg, color-mix(in srgb, var(--blue) 20%, transparent), transparent 45%),
+    linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, transparent), transparent 45%),
     linear-gradient(180deg, var(--panel-2), var(--brain-stage));
 }
 .video-frame::after {
   content: "";
   position: absolute;
   inset: 18px;
-  border-radius: 14px;
+  border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--surface) 60%, transparent);
   opacity: 0.7;
 }
@@ -252,7 +247,7 @@ h2 {
 .scene-chip {
   min-height: 48px;
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 9px;
   background: var(--surface);
   color: var(--ink-mute);
@@ -268,7 +263,7 @@ h2 {
   height: 104px;
   margin: 16px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 8px;
   background: linear-gradient(180deg, var(--surface), var(--panel-2));
   display: flex;
   align-items: center;
@@ -288,7 +283,7 @@ h2 {
 .transcript-lines { padding: 0 16px 16px; display: grid; gap: 8px; }
 .transcript-line {
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 10px 12px;
   background: var(--surface);
   color: var(--ink-dim);
@@ -296,17 +291,16 @@ h2 {
 }
 .transcript-line.is-hot { border-color: color-mix(in srgb, var(--accent) 42%, transparent); color: var(--ink); background: var(--accent-soft); }
 
-.brain-card { border-radius: 24px; padding: 18px; min-height: 520px; display: flex; flex-direction: column; }
+.brain-card { border-radius: 8px; padding: 18px; display: flex; flex-direction: column; }
 .brain-topline { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 12px; }
 .brain-frame {
-  flex: 1;
-  min-height: 390px;
+  flex: none;
+  height: clamp(390px, 42vw, 560px);
   border: 1px solid var(--line);
-  border-radius: 22px;
+  border-radius: 8px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 45% 35%, color-mix(in srgb, var(--accent) 11%, transparent), transparent 38%),
-    radial-gradient(circle at 64% 64%, color-mix(in srgb, var(--blue) 13%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--surface) 18%, transparent), transparent 48%),
     var(--brain-stage);
 }
 #brainCanvas { width: 100%; height: 100%; display: block; }
@@ -318,7 +312,7 @@ h2 {
   font-size: 11px;
 }
 .moment-reader {
-  border-radius: 24px;
+  border-radius: 8px;
   padding: 26px;
   display: flex;
   flex-direction: column;
@@ -329,7 +323,7 @@ h2 {
   font-size: 38px;
   font-weight: 420;
   line-height: 1.02;
-  letter-spacing: -0.045em;
+  letter-spacing: 0;
 }
 .moment-reader p { color: var(--ink-dim); font-size: 17px; line-height: 1.5; }
 .move-line {
@@ -342,7 +336,7 @@ h2 {
 }
 
 .timeline-console {
-  border-radius: 24px;
+  border-radius: 8px;
   padding: 24px;
   margin-bottom: 22px;
 }
@@ -368,7 +362,7 @@ h2 {
   gap: 14px;
   align-items: center;
   padding: 13px;
-  border-radius: 16px;
+  border-radius: 8px;
   background: var(--surface);
   border: 1px solid var(--line);
 }
@@ -406,12 +400,12 @@ h2 {
   grid-template-columns: 1fr 1fr;
   gap: 22px;
 }
-.panel { border-radius: 24px; padding: 26px; }
+.panel { border-radius: 8px; padding: 26px; }
 .panel h2 { font-family: var(--serif); font-size: 36px; font-weight: 420; }
 .moment-grid { display: grid; gap: 12px; }
 .moment-card {
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 16px;
   background: var(--surface);
   cursor: pointer;
@@ -429,7 +423,7 @@ h2 {
 }
 .scene-box {
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 8px;
   padding: 14px;
   background: var(--surface);
   min-height: 110px;
@@ -440,14 +434,10 @@ h2 {
 .scene-box.b { border-color: color-mix(in srgb, var(--accent) 22%, var(--line)); }
 
 body[data-media-kind="audio"] .hero-copy {
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--blue) 9%, transparent), transparent 42%),
-    var(--panel);
+  background: var(--panel);
 }
 body[data-media-kind="video"] .hero-copy {
-  background:
-    linear-gradient(135deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 42%),
-    var(--panel);
+  background: var(--panel);
 }
 
 .error-state {
@@ -455,7 +445,7 @@ body[data-media-kind="video"] .hero-copy {
   margin: 80px auto;
   padding: 32px;
   border: 1px solid var(--line);
-  border-radius: 22px;
+  border-radius: 8px;
   background: var(--panel);
 }
 
@@ -468,7 +458,7 @@ body[data-media-kind="video"] .hero-copy {
   .topbar { padding: 16px 18px; }
   .topbar-actions { padding-right: 38px; }
   .media-shell { padding: 24px 14px 64px; }
-  .hero-copy, .decision-card, .panel, .timeline-console { padding: 20px; border-radius: 18px; }
+  .hero-copy, .decision-card, .panel, .timeline-console { padding: 20px; border-radius: 8px; }
   h1 { font-size: 46px; }
   .dek { font-size: 18px; }
   .track-row { grid-template-columns: 1fr; }

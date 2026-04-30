@@ -15,10 +15,13 @@ async function boot() {
   wireTheme();
   wireShare();
   try {
-    const data = isDemo ? await fetchDemo(kind) : await fetchJob(kind, jobId);
+    const [data, meshPayload] = await Promise.all([
+      isDemo ? fetchDemo(kind) : fetchJob(kind, jobId),
+      fetchBrainMesh()
+    ]);
     state.data = data;
     render(data);
-    brain = createBrain($("#brainCanvas"), data);
+    brain = createBrain($("#brainCanvas"), data, meshPayload);
     updatePlayhead(0);
   } catch (error) {
     renderError(error);
@@ -38,6 +41,17 @@ async function fetchJob(mode, id) {
   if (job.status === "error") throw new Error(job.error?.message || "Runpod returned an error for this job.");
   if (job.status !== "done") throw new Error("This job is not finished yet. Open the run page and wait for completion.");
   return normalizeJob(mode, job);
+}
+
+async function fetchBrainMesh() {
+  try {
+    const res = await fetch("/api/brain-mesh", { cache: "force-cache" });
+    if (!res.ok) return null;
+    const payload = await res.json();
+    return payload && payload.lh_coord && payload.rh_coord ? payload : null;
+  } catch (_) {
+    return null;
+  }
 }
 
 function normalizeJob(mode, job) {
@@ -64,10 +78,10 @@ function normalizeJob(mode, job) {
   return {
     kind: mode,
     job_id: job.job_id || jobId || "media-job",
-    headline: mode === "video" ? "The run finished. Now inspect the cut." : "The run finished. Now inspect the listen.",
+    headline: mode === "video" ? "Video comparison complete." : "Audio comparison complete.",
     dek: mode === "video"
-      ? "This view maps the video over time so you can see which moments lifted attention, motion, memory, and social read."
-      : "This view maps the audio over time so you can see which phrases changed attention, effort, trust, and memory.",
+      ? "Review how the two video files differ across cortical systems. Positive values mean B is stronger; negative values mean A is stronger."
+      : "Review how the two audio files differ across cortical systems. Positive values mean B is stronger; negative values mean A is stronger.",
     samples: {
       a: buildSample(mode, "A", aName, durationA, tracks, "a"),
       b: buildSample(mode, "B", bName, durationB, tracks, "b")
@@ -84,8 +98,8 @@ function normalizeJob(mode, job) {
 
 function buildSample(mode, label, name, duration, tracks, side) {
   const summary = mode === "video"
-    ? `${name} is mapped into scene-length neural beats. Scrub to see where it earns or loses response.`
-    : `${name} is mapped into phrase-length neural beats. Scrub to see where the voice earns or loses response.`;
+    ? `${name} is represented as a sequence of comparison windows for visual review.`
+    : `${name} is represented as a sequence of comparison windows for listening review.`;
   if (mode === "audio") {
     return {
       label, name, duration, summary,
@@ -124,9 +138,9 @@ function buildMoments(mode, tracks) {
       time: Math.round(best * 4),
       sample: side,
       track: track.key,
-      title: mode === "video" ? `${track.label} changes at beat ${i + 1}` : `${track.label} changes at phrase ${i + 1}`,
-      detail: `${side} creates the stronger ${track.label.toLowerCase()} response around this point of the run.`,
-      move: mode === "video" ? "Use this as an edit decision, not a generic score." : "Use this as a read direction, not a volume note."
+      title: mode === "video" ? `${track.label} contrast, window ${i + 1}` : `${track.label} contrast, window ${i + 1}`,
+      detail: `${side} has the stronger ${track.label.toLowerCase()} estimate at this point in the comparison view.`,
+      move: "Treat this as a cortical contrast signal, not a quality score."
     };
   });
 }
@@ -134,14 +148,14 @@ function buildMoments(mode, tracks) {
 function buildRecommendations(mode, tracks) {
   const strongest = tracks.slice().sort((a, b) => Math.abs(mean(b.b) - mean(b.a)) - Math.abs(mean(a.b) - mean(a.a)))[0];
   return mode === "video"
-    ? [`Start with the cut that wins ${strongest?.label || "the strongest signal"}.`, "Inspect moments before making a winner call.", "Use the final card from the calmer sample if memory drops late."]
-    : [`Keep the read that wins ${strongest?.label || "the strongest signal"}.`, "Protect pauses where attention rises.", "Make the final sentence direct enough to lock memory."];
+    ? [`Largest aggregate shift: ${strongest?.label || "strongest signal"}.`, "Check whether that shift is concentrated in one window or repeated across the file.", "Compare the brain view with the sample timing before deciding between A and B."]
+    : [`Largest aggregate shift: ${strongest?.label || "strongest signal"}.`, "Check whether that shift follows phrasing or is spread across the file.", "Compare the brain view with the transcript windows before deciding between A and B."];
 }
 
 function render(data) {
   $("#pageHeadline").textContent = data.headline;
   $("#pageDek").textContent = data.dek;
-  $("#decisionTitle").textContent = kind === "video" ? "The edit decision is temporal." : "The voice decision is phrase-level.";
+  $("#decisionTitle").textContent = kind === "video" ? "What changed between A and B." : "What changed between A and B.";
   $("#heroStats").innerHTML = [
     pill("Mode", data.kind),
     pill("Job", isDemo ? "demo" : short(data.job_id || jobId)),
@@ -262,7 +276,7 @@ function togglePlay() {
   const button = $("#playBtn");
   state.playing = !state.playing;
   button.classList.toggle("is-playing", state.playing);
-  button.textContent = state.playing ? "Pause scan" : "Play scan";
+  button.textContent = state.playing ? "Pause" : "Play";
   clearInterval(state.timer);
   if (!state.playing) return;
   state.timer = setInterval(() => {
@@ -296,7 +310,7 @@ function showMoment(moment, data) {
   if (!moment) return;
   $("#activeMomentTitle").textContent = moment.title;
   $("#activeMomentDetail").textContent = moment.detail;
-  $("#activeMomentMove").textContent = `-> ${moment.move}`;
+  $("#activeMomentMove").textContent = moment.move;
   $("#brainCaption").textContent = `${moment.sample} stronger · ${labelForTrack(moment.track, data)} · ${formatTime(moment.time)}`;
   document.querySelectorAll(".moment-card").forEach((card, i) => card.classList.toggle("is-active", i === state.activeMoment));
 }
@@ -316,40 +330,37 @@ function markHotBars() {
   });
 }
 
-function createBrain(canvas, data) {
+function createBrain(canvas, data, meshPayload) {
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-  camera.position.set(0, 0.16, 5.3);
+  const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 100);
+  camera.position.set(0.2, 0.15, 7.4);
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enableDamping = true;
   controls.enablePan = false;
-  controls.minDistance = 2.5;
-  controls.maxDistance = 7;
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x40362e, 1.8));
-  const key = new THREE.DirectionalLight(0xffffff, 2.6);
+  controls.minDistance = 3.2;
+  controls.maxDistance = 11;
+  controls.rotateSpeed = 0.8;
+  controls.zoomSpeed = 1.6;
+  scene.add(new THREE.AmbientLight(0xffffff, 0.42));
+  const key = new THREE.DirectionalLight(0xffead2, 1.35);
   key.position.set(3, 4, 5);
   scene.add(key);
+  const rim = new THREE.DirectionalLight(0x6a97c9, 0.7);
+  rim.position.set(-4, 1.5, -2);
+  scene.add(rim);
 
-  const geometry = new THREE.SphereGeometry(1.02, 96, 64);
+  const { geometry, vertexCount } = meshPayload ? buildMeshGeometry(meshPayload) : buildFallbackCortexGeometry();
   const pos = geometry.attributes.position;
-  const colors = [];
-  for (let i = 0; i < pos.count; i++) colors.push(0.56, 0.52, 0.45);
-  geometry.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-    const fold = 1 + 0.055 * Math.sin(12 * x + 4 * z) + 0.035 * Math.sin(18 * y + 5 * x);
-    pos.setXYZ(i, x * fold * 1.1, y * fold * 0.86, z * fold * 0.72);
-  }
-  geometry.computeVertexNormals();
+  const colors = new Float32Array(vertexCount * 3);
+  geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
   const material = new THREE.MeshStandardMaterial({
     vertexColors: true,
-    roughness: 0.72,
-    metalness: 0.02
+    roughness: 0.64,
+    metalness: 0.04
   });
   const mesh = new THREE.Mesh(geometry, material);
-  mesh.rotation.set(-0.05, -0.85, 0.08);
-  mesh.position.y = 0.22;
+  mesh.rotation.set(0.06, -0.38, 0);
   scene.add(mesh);
 
   const resize = () => {
@@ -364,23 +375,26 @@ function createBrain(canvas, data) {
     const b = valueAt(track?.b || [0.4], Math.round(progress * ((track?.b?.length || 1) - 1)));
     const delta = b - a;
     const color = new THREE.Color();
-    const base = new THREE.Color(document.documentElement.dataset.theme === "dark" ? 0x6d675d : 0x9c9586);
+    const base = new THREE.Color(document.documentElement.dataset.theme === "dark" ? 0xd4cdbd : 0x8f887b);
     const blue = new THREE.Color(0x4a78ab);
     const red = new THREE.Color(0xe04a2e);
     const active = delta >= 0 ? red : blue;
     const strength = Math.min(1, Math.abs(delta) * 2.8 + 0.08);
     const colorAttr = geometry.attributes.color;
-    for (let i = 0; i < pos.count; i++) {
+    for (let i = 0; i < vertexCount; i++) {
       const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-      const region = 0.5 + 0.5 * Math.sin(x * 3.4 + y * 4.1 + z * 2.5 + progress * 6.28);
-      color.copy(base).lerp(active, strength * (0.18 + region * 0.72));
-      colorAttr.setXYZ(i, color.r, color.g, color.b);
+      const region = 0.5 + 0.5 * Math.sin(x * 2.2 + y * 3.8 + z * 2.7 + progress * 6.28);
+      const hemiBias = x >= 0 ? 0.08 : -0.02;
+      color.copy(base).lerp(active, strength * Math.max(0.08, 0.16 + region * 0.72 + hemiBias));
+      colors[i * 3] = color.r;
+      colors[i * 3 + 1] = color.g;
+      colors[i * 3 + 2] = color.b;
     }
     colorAttr.needsUpdate = true;
   };
   const animate = () => {
     controls.update();
-    mesh.rotation.y += state.playing ? 0.0025 : 0.0007;
+    mesh.rotation.y += state.playing ? 0.0018 : 0.00035;
     renderer.render(scene, camera);
     requestAnimationFrame(animate);
   };
@@ -391,13 +405,100 @@ function createBrain(canvas, data) {
   return {
     paint,
     reset() {
-      camera.position.set(0, 0.16, 5.3);
+      camera.position.set(0.2, 0.15, 7.4);
       controls.target.set(0, 0, 0);
-      mesh.rotation.set(-0.05, -0.85, 0.08);
-      mesh.position.y = 0.22;
+      mesh.rotation.set(0.06, -0.38, 0);
       controls.update();
     }
   };
+}
+
+function buildMeshGeometry(payload) {
+  const lh = Array.isArray(payload.lh_coord?.[0]) ? payload.lh_coord.flat() : payload.lh_coord;
+  const rh = Array.isArray(payload.rh_coord?.[0]) ? payload.rh_coord.flat() : payload.rh_coord;
+  const lhArr = Float32Array.from(lh || []);
+  const rhArr = Float32Array.from(rh || []);
+  const lhVerts = lhArr.length / 3;
+  const positions = new Float32Array(lhArr.length + rhArr.length);
+  positions.set(lhArr, 0);
+  positions.set(rhArr, lhArr.length);
+
+  const lhF = Array.isArray(payload.lh_faces?.[0]) ? payload.lh_faces.flat() : payload.lh_faces;
+  const rhF = Array.isArray(payload.rh_faces?.[0]) ? payload.rh_faces.flat() : payload.rh_faces;
+  const idx = new Uint32Array((lhF || []).length + (rhF || []).length);
+  idx.set(lhF || [], 0);
+  for (let i = 0; i < (rhF || []).length; i++) idx[(lhF || []).length + i] = rhF[i] + lhVerts;
+
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geometry.setIndex(new THREE.BufferAttribute(idx, 1));
+  normalizeGeometry(geometry, 1.75);
+  return { geometry, vertexCount: positions.length / 3 };
+}
+
+function buildFallbackCortexGeometry() {
+  const latSteps = 38;
+  const lonSteps = 56;
+  const positions = [];
+  const faces = [];
+  const addHemisphere = (side) => {
+    const start = positions.length / 3;
+    for (let i = 0; i <= latSteps; i++) {
+      const v = i / latSteps;
+      const theta = -Math.PI / 2 + v * Math.PI;
+      for (let j = 0; j <= lonSteps; j++) {
+        const u = j / lonSteps;
+        const phi = u * Math.PI * 2;
+        const fold =
+          1 +
+          0.07 * Math.sin(10 * phi + 2.2 * Math.sin(theta * 2)) +
+          0.04 * Math.sin(12 * theta + side * 1.7) +
+          0.025 * Math.cos(18 * (u + v));
+        let x = side * 0.48 + Math.cos(theta) * Math.cos(phi) * 0.58 * fold;
+        if (side * x < 0.1) x = side * (0.1 + 0.035 * Math.sin(theta * 7 + phi * 3));
+        const y = Math.sin(theta) * 0.78 * fold;
+        const z = Math.cos(theta) * Math.sin(phi) * 1.08 * fold;
+        positions.push(x, y, z);
+      }
+    }
+    for (let i = 0; i < latSteps; i++) {
+      for (let j = 0; j < lonSteps; j++) {
+        const a = start + i * (lonSteps + 1) + j;
+        const b = a + 1;
+        const c = a + (lonSteps + 1);
+        const d = c + 1;
+        if (side > 0) faces.push(a, c, b, b, c, d);
+        else faces.push(a, b, c, b, d, c);
+      }
+    }
+  };
+  addHemisphere(-1);
+  addHemisphere(1);
+  const geometry = new THREE.BufferGeometry();
+  geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+  geometry.setIndex(faces);
+  normalizeGeometry(geometry, 1.8);
+  return { geometry, vertexCount: positions.length / 3 };
+}
+
+function normalizeGeometry(geometry, targetRadius) {
+  geometry.computeBoundingSphere();
+  const sphere = geometry.boundingSphere;
+  if (sphere) {
+    const p = geometry.attributes.position;
+    const scale = targetRadius / Math.max(sphere.radius, 1e-6);
+    for (let i = 0; i < p.count; i++) {
+      p.setXYZ(
+        i,
+        (p.getX(i) - sphere.center.x) * scale,
+        (p.getY(i) - sphere.center.y) * scale,
+        (p.getZ(i) - sphere.center.z) * scale
+      );
+    }
+    p.needsUpdate = true;
+  }
+  geometry.computeVertexNormals();
+  geometry.computeBoundingSphere();
 }
 
 function wireTheme() {

@@ -1,14 +1,14 @@
 {
   "kind": "video",
   "job_id": "demo-video-cutroom",
-  "headline": "The response changes before the story changes.",
-  "dek": "BrainDiff reads the two videos as timelines, finds where attention and social meaning bend, and gives you the exact moments worth recutting.",
+  "headline": "Video comparison complete.",
+  "dek": "The two files are compared as A versus B cortical response estimates. Use the track deltas and brain view to inspect where the difference is concentrated.",
   "samples": {
     "a": {
       "label": "A",
       "name": "control_cut.mp4",
       "duration": 42,
-      "summary": "A quieter opening, slower product reveal, and a measured closing frame.",
+      "summary": "Lower early attention, slower product reveal, and a steadier closing window.",
       "scenes": [
         { "start": 0, "end": 8, "title": "Cold open", "beat": "Hands enter frame before context lands.", "visual": "Soft beige desk, slow camera drift" },
         { "start": 8, "end": 18, "title": "Proof", "beat": "The product appears after the setup has settled.", "visual": "Static close-up with light motion" },
@@ -20,7 +20,7 @@
       "label": "B",
       "name": "active_cut.mp4",
       "duration": 48,
-      "summary": "A faster first frame, earlier face cue, and a sharper end card.",
+      "summary": "Higher early attention, earlier face cue, and a stronger closing contrast.",
       "scenes": [
         { "start": 0, "end": 7, "title": "Instant hook", "beat": "Motion and face appear in the first second.", "visual": "Handheld push-in, bright edge light" },
         { "start": 7, "end": 20, "title": "Tension", "beat": "The object and person alternate quickly.", "visual": "Jump cuts, red detail in frame" },
@@ -36,13 +36,13 @@
     { "key": "memory", "label": "Memory lock", "system": "Medial temporal", "a": [0.21, 0.24, 0.29, 0.31, 0.35, 0.44, 0.47, 0.45, 0.42, 0.39, 0.41, 0.46], "b": [0.26, 0.31, 0.39, 0.44, 0.5, 0.57, 0.64, 0.69, 0.66, 0.61, 0.58, 0.62] }
   ],
   "moments": [
-    { "time": 3, "sample": "B", "track": "attention", "title": "First second earns the look", "detail": "The face plus camera push gives B an early attention lift before the claim appears.", "move": "Keep the human cue in the opening beat." },
-    { "time": 24, "sample": "B", "track": "social", "title": "Payoff carries the person, not the product", "detail": "The strongest social response happens when the viewer reads the reaction shot.", "move": "Place the product claim after this beat, not before it." },
-    { "time": 37, "sample": "A", "track": "memory", "title": "A closes cleaner", "detail": "The calmer end card gives A a small memory advantage even though it is less energetic.", "move": "Borrow A's quieter last two seconds for B's end card." }
+    { "time": 3, "sample": "B", "track": "attention", "title": "Early attention shift", "detail": "B is higher on the attention track in the opening window.", "move": "Treat this as a cortical contrast signal, not a quality score." },
+    { "time": 24, "sample": "B", "track": "social", "title": "Midpoint social shift", "detail": "B is higher on the social track around the reaction-shot window.", "move": "Treat this as a cortical contrast signal, not a quality score." },
+    { "time": 37, "sample": "A", "track": "memory", "title": "Closing memory shift", "detail": "A is higher on the memory track near the closing window.", "move": "Treat this as a cortical contrast signal, not a quality score." }
   ],
   "recommendations": [
-    "Lead with B's first-frame motion and face cue.",
-    "Keep B's mid-video social payoff, then slow down the final card.",
-    "Do not optimize only for total heat. The best cut is B's opening with A's close."
+    "Largest positive shift: B attention and motion in the opening windows.",
+    "Largest negative shift: A memory near the closing window.",
+    "Review the cortical surface and timing windows before selecting a version."
   ]
 }

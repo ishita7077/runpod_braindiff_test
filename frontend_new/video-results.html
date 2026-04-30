@@ -25,14 +25,14 @@
 <main id="mediaApp" class="media-shell" data-kind="video">
   <section class="hero-grid">
     <div class="hero-copy">
-      <p class="eyebrow">Video neural cutroom</p>
-      <h1 id="pageHeadline">Loading the cut.</h1>
-      <p id="pageDek" class="dek">Building the moment map.</p>
+      <p class="eyebrow">Video result</p>
+      <h1 id="pageHeadline">Loading video comparison.</h1>
+      <p id="pageDek" class="dek">Preparing the cortical contrast view.</p>
       <div class="hero-stats" id="heroStats"></div>
     </div>
     <div class="decision-card">
-      <p class="micro">Ship decision</p>
-      <h2 id="decisionTitle">Find the useful cut, not the hotter cut.</h2>
+      <p class="micro">Summary checks</p>
+      <h2 id="decisionTitle">What changed between A and B.</h2>
       <ol id="recommendations" class="recommendations"></ol>
     </div>
   </section>
@@ -44,15 +44,15 @@
     </div>
     <section class="brain-card">
       <div class="brain-topline">
-        <span class="micro">Cortex at playhead</span>
+        <span class="micro">Cortical surface</span>
         <button class="ghost-btn" id="resetBrain" type="button">Reset view</button>
       </div>
       <div class="brain-frame"><canvas id="brainCanvas" aria-label="Interactive 3D brain"></canvas></div>
-      <div class="brain-caption" id="brainCaption">Drag to inspect. Scrub the timeline to repaint the response.</div>
+      <div class="brain-caption" id="brainCaption">Drag to inspect. Scrub the timeline to repaint the contrast.</div>
     </section>
     <aside class="moment-reader">
-      <p class="micro">Current beat</p>
-      <h2 id="activeMomentTitle">Choose a moment</h2>
+      <p class="micro">Current window</p>
+      <h2 id="activeMomentTitle">Choose a window</h2>
       <p id="activeMomentDetail"></p>
       <p id="activeMomentMove" class="move-line"></p>
     </aside>
@@ -62,9 +62,9 @@
     <div class="timeline-head">
       <div>
         <p class="micro">Scrub by time</p>
-        <h2>Where the brain changes during the cut</h2>
+        <h2>Cortical contrast over the video</h2>
       </div>
-      <button id="playBtn" class="play-btn" type="button">Play scan</button>
+      <button id="playBtn" class="play-btn" type="button">Play</button>
     </div>
     <input id="scrubber" class="scrubber" type="range" min="0" max="100" value="0" />
     <div class="time-readout"><span id="timeA">A 0:00</span><span id="timeB">B 0:00</span></div>
@@ -73,13 +73,13 @@
 
   <section class="lower-grid">
     <section class="panel">
-      <p class="micro">Moment board</p>
-      <h2>Beats worth recutting</h2>
+      <p class="micro">Contrast windows</p>
+      <h2>Largest shifts</h2>
       <div id="moments" class="moment-grid"></div>
     </section>
     <section class="panel">
-      <p class="micro">Scene match</p>
-      <h2>Not every second has a twin</h2>
+      <p class="micro">A/B timing</p>
+      <h2>Aligned windows</h2>
       <div id="sceneMap" class="scene-map"></div>
     </section>
   </section>
