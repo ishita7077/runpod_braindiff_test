@@ -173,7 +173,25 @@
     width: 0%;
     transition: width .4s linear;
   }
-  .ds-step.is-done .ds-step-bar-fill { background: var(--good); width: 100% !important; }
+  /* Active step: indeterminate shimmer that travels left→right.
+     Honest because it reflects "we don't know what fraction is done"
+     rather than inventing a percentage from a made-up "expected" duration. */
+  .ds-step.is-active .ds-step-bar {
+    background: color-mix(in srgb, var(--ink-mute) 16%, transparent);
+  }
+  .ds-step.is-active .ds-step-bar-fill {
+    width: 35% !important;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    animation: dsShimmer 1.6s ease-in-out infinite;
+  }
+  @keyframes dsShimmer {
+    0%   { transform: translateX(-110%); }
+    100% { transform: translateX(310%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ds-step.is-active .ds-step-bar-fill { animation: none; transform: none; width: 100% !important; opacity: 0.6; }
+  }
+  .ds-step.is-done .ds-step-bar-fill { background: var(--good); width: 100% !important; transform: none; animation: none; }
   .ds-step.is-pending .ds-step-bar { opacity: 0.3; }
   .ds-step-time {
     font-size: 11px; color: var(--ink-dim);
@@ -372,33 +390,6 @@
     font-size: 14px; display: grid; place-items: center;
   }
   .edu-nav button:hover { border-color: var(--accent); color: var(--accent); }
-
-  /* Video block */
-  .video-block { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; box-shadow: var(--shadow-sm); backdrop-filter: blur(10px); }
-  .video-frame {
-    aspect-ratio: 16 / 9; background: #000 radial-gradient(ellipse at center, #1a1f28, #000 70%);
-    display: grid; place-items: center; position: relative; cursor: pointer;
-    border-bottom: 1px solid var(--line);
-  }
-  .video-play {
-    width: 60px; height: 60px; border-radius: 50%;
-    background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.3);
-    display: grid; place-items: center; backdrop-filter: blur(8px); transition: all 0.2s;
-  }
-  .video-frame:hover .video-play { background: color-mix(in srgb, var(--accent) 25%, transparent); border-color: var(--accent); transform: scale(1.05); }
-  .video-play::after {
-    content: ''; width: 0; height: 0; margin-left: 4px;
-    border-top: 10px solid transparent; border-bottom: 10px solid transparent;
-    border-left: 16px solid #ffffff;
-  }
-  .video-meta { padding: 18px 22px; }
-  .video-title { font-size: 14.5px; font-weight: 500; margin: 0 0 3px; color: var(--ink); letter-spacing: -0.005em; }
-  .video-sub { font-size: 12.5px; color: var(--ink-dim); margin: 0; }
-  .video-duration {
-    position: absolute; bottom: 10px; right: 12px;
-    font-family: 'JetBrains Mono', monospace; font-size: 11px;
-    background: rgba(0,0,0,0.7); color: #fff; padding: 2px 6px; border-radius: 3px;
-  }
 
   /* Resources */
   .resources { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; box-shadow: var(--shadow-sm); backdrop-filter: blur(10px); }
@@ -610,7 +601,7 @@
   <aside class="status-card">
     <div class="eyebrow" id="statusEyebrow">Analysis in progress</div>
     <h1 class="status-headline" id="statusHeadline">Running your brain-response <em>contrast.</em></h1>
-    <p class="status-sub" id="statusSub">Your two texts are being encoded and compared across seven cortical dimensions.</p>
+    <p class="status-sub" id="statusSub">Your two stimuli are being encoded and compared across seven cortical dimensions.</p>
 
     <div class="eta-pill hide" id="etaPill"><span class="dot"></span></div>
 
@@ -631,8 +622,8 @@
     </section>
 
     <p class="honest-eta" id="honestEta">
-      <strong>Most runs finish in 6 to 12 minutes.</strong>
-      Encoding through TRIBE v2 is the slowest step — that's expected. If anything goes sideways past 15 minutes, we'll say so right here.
+      <strong>Encoding through TRIBE v2 is the slow step.</strong>
+      Audio + video are typically faster than text (no TTS round-trip). The event log below ticks every time the worker emits a real status event — if it stops ticking past 15 minutes, we'll say so right here.
     </p>
 
     <div class="done-cta" id="doneCta" aria-hidden="true">
@@ -645,10 +636,11 @@
   <section class="education">
 
     <div class="watch-state" id="watchState">
+      <div class="edu-eyebrow" style="font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;color:var(--ink-mute);text-transform:uppercase;margin-bottom:10px;">While your run encodes · seven dimensions, explained</div>
       <div class="edu-hero">
         <div class="edu-brain-wrap">
           <canvas class="edu-brain-canvas" id="eduBrain"></canvas>
-          <div class="brain-caption" id="brainCaption">Highlighted region · medial prefrontal cortex</div>
+          <div class="brain-caption" id="brainCaption">Reference region · medial prefrontal cortex</div>
         </div>
         <div class="edu-card">
           <div class="edu-number" id="eduNum">Dimension 1 of 7</div>
@@ -708,11 +700,14 @@ function toggleTheme(){
   const REDUCE = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let fired = false;
 
-  // Per-step wall-clock tracking (real elapsed time derived from the backend event stream).
-  // stepStartedMs[i] = epoch ms when step i first became active (via applyStatus).
-  // stepElapsedMs[i] = frozen elapsed when step i transitioned to done.
-  const stepStartedMs = [null, null, null, null];
-  const stepElapsedMs = [null, null, null, null];
+  // Per-step wall-clock tracking. There are 3 honest steps:
+  //   0 = read/decode (queue → download → decode)
+  //   1 = encode through TRIBE v2 (transcribe + predict, both sides)
+  //   2 = map to brain surface + score
+  // stepStartedMs[i] = epoch ms when step i first became active (real event).
+  // stepElapsedMs[i] = frozen elapsed when step i+1 became active.
+  const stepStartedMs = [null, null, null];
+  const stepElapsedMs = [null, null, null];
 
   function fmtMs(ms){
     if (ms == null || ms < 0 || !isFinite(ms)) return '';
@@ -772,23 +767,28 @@ function toggleTheme(){
     if (fired) return;
     fired = true;
     stepTo(2, 'done');
-    setTimeout(function(){ stepTo(3, 'active'); }, 350);
     setTimeout(function(){
-      stepTo(3, 'done');
       const eta = document.getElementById('etaPill'); if (eta) eta.classList.add('hide');
       const stay = document.getElementById('stayBanner');
       if (stay) stay.innerHTML = '<strong>Your map is ready.</strong> — take a breath; the deep card unfolds in the next screen.';
       const h1 = document.getElementById('statusHeadline');
       const eyebrow = document.getElementById('statusEyebrow');
       if (eyebrow) eyebrow.textContent = 'Complete';
+      // The "stash" + MODALITY / pluralStimuli helpers are defined in the
+      // status-polling IIFE below; if we render before that script runs we
+      // fall back to a modality-neutral phrase rather than guessing.
+      const noun = (typeof window.__BD_pluralStimuli === 'function')
+        ? window.__BD_pluralStimuli()
+        : 'stimuli';
+      const headline = '<em>Done.</em> Two ' + noun + ', one cortex.';
       if (h1 && !REDUCE){
         h1.classList.add('fade-out');
         setTimeout(function(){
-          h1.innerHTML = '<em>Done.</em> Two texts, one cortex.';
+          h1.innerHTML = headline;
           h1.classList.remove('fade-out');
         }, 520);
       } else if (h1){
-        h1.innerHTML = '<em>Done.</em> Two texts, one cortex.';
+        h1.innerHTML = headline;
       }
       document.body.classList.add('run-done');
     }, 1100);
@@ -801,37 +801,71 @@ function toggleTheme(){
   const jobLbl = document.getElementById('jobIdLabel');
   if (jobLbl) jobLbl.textContent = 'job · ' + JOB_ID.slice(0, 8);
 
+  // Per-job stash from input.html so this page knows the modality + filenames
+  // before the worker meta arrives. Without this we'd render text-mode copy
+  // for an audio/video run during the entire 6-12 minute wait.
+  function readJobStash(){
+    try {
+      const raw = sessionStorage.getItem('braindiff:job:' + JOB_ID);
+      return raw ? JSON.parse(raw) : null;
+    } catch(_){ return null; }
+  }
+  const stash = readJobStash() || {};
+  const MODALITY = (stash.modality || 'text').toLowerCase();
+
+  function modeLabel(){
+    if (MODALITY === 'audio') return 'audio';
+    if (MODALITY === 'video') return 'video';
+    return 'text';
+  }
+  function pluralStimuli(){
+    if (MODALITY === 'text') return 'texts';
+    if (MODALITY === 'audio') return 'audio clips';
+    if (MODALITY === 'video') return 'video clips';
+    return 'stimuli';
+  }
+  // Expose so the completion sequence (defined above this script block) can
+  // render the modality-correct done headline without re-reading sessionStorage.
+  window.__BD_pluralStimuli = pluralStimuli;
+
   // ===== Deep Scope ======================================================
-  // Self-contained module that owns the new live-progress UI in #deepScope.
+  // Self-contained module that owns the live-progress UI in #deepScope.
   // Receives backend events via DS.update(events) + a final completion via
   // DS.complete(meta.stage_times). Persists per-run timing to localStorage
-  // so it can show avg ± stdev next to each step once the user has 20+ runs.
+  // so it can show real averages from the user's own history once n >= 5.
+  //
+  // Important: every event surfaced here comes from the worker's real
+  // emissions (Upstash Redis → /api/diff/status → here). Nothing is
+  // synthesised — no client-side heartbeat, no extrapolated fills.
   // -----------------------------------------------------------------------
+  const READ_LABEL = MODALITY === 'text'
+    ? 'Reading both texts (TTS + WhisperX)'
+    : (MODALITY === 'audio'
+        ? 'Reading both audio clips (WhisperX)'
+        : 'Reading both video clips (frames + WhisperX)');
+
   const DS_STEPS = [
-    { id:'read',    label:'Reading both texts (WhisperX)',
-      backend: ['queued','converting_text_to_speech','decoding_audio','decoding_video'],
-      stageKeys: ['events_a_ms','events_b_ms'],
-      expectedMs: 50_000 },
-    { id:'tribe',   label:'Encoding through TRIBE v2',
+    { id:'read', label: READ_LABEL,
+      backend: [
+        'queued','worker_booting','worker_started',
+        'downloading_a','downloading_b',
+        'synthesizing_speech','decoding_audio','decoding_video',
+      ],
+      stageKeys: ['events_a_ms','events_b_ms'] },
+    { id:'tribe', label:'Encoding through TRIBE v2',
       backend: [
         'transcribing_version_a','predicting_version_a',
         'transcribing_version_b','predicting_version_b',
         'slow_processing',
       ],
-      stageKeys: ['predict_a_ms','predict_b_ms','events_a_ms','events_b_ms'],
-      expectedMs: 600_000 },
+      stageKeys: ['predict_a_ms','predict_b_ms'] },
     { id:'surface', label:'Mapping to brain surface',
       backend: ['computing_brain_contrast'],
-      stageKeys: ['heatmap_ms'],
-      expectedMs: 12_000 },
-    { id:'score',   label:'Scoring the seven dimensions',
-      backend: [],
-      stageKeys: ['score_diff_ms'],
-      expectedMs: 800 },
+      stageKeys: ['heatmap_ms','score_diff_ms'] },
   ];
   const HISTORY_KEY = 'braindiff:run-history';
   const HISTORY_MAX = 50;
-  const HISTORY_SHOW_AT = 20;
+  const HISTORY_SHOW_AT = 5;          // start showing real averages at n=5
   const SLOW_AT_MS = 15 * 60 * 1000;
 
   function fmtMs(ms){
@@ -903,24 +937,21 @@ function toggleTheme(){
     let lastSeenLogIds = new Set();
     let slowWarned = false;
 
-    // Minute heartbeat — emits a "still running" log line every 60s so the
-    // log doesn't look frozen during the long predict phases (~6 min each).
-    const HEARTBEAT_MS = 60_000;
-    let nextHeartbeatAt = null;
-
-    // The real backend emits exactly these events (see backend/api.py
-    // update_status() calls). We don't fabricate finer-grain ones — the
-    // log mirrors reality, heartbeat keeps it from looking frozen.
+    // We do NOT emit a client-side heartbeat. The previous version printed
+    // "still on: <step>" every 60s so the log didn't look frozen — but if the
+    // worker has stalled, the log SHOULD look frozen. That's the signal.
 
     function init(){
       if (!stepsEl) return;
       stepsEl.innerHTML = '';
       DS_STEPS.forEach(function(s, i){
         const stat = stepStats[i];
-        const expectedDisplay = stat ? fmtMs(stat.avgMs) : fmtMs(s.expectedMs);
-        const avgLine = stat
-          ? 'avg ' + fmtMs(stat.avgMs) + ' · ' + fmtMs(stat.minMs) + '–' + fmtMs(stat.maxMs) + ' (n=' + stat.n + ')'
-          : 'expected ~' + fmtMs(s.expectedMs);
+        // No `expected` fallback. We only show a per-step time line if it
+        // comes from the user's own real history (n >= HISTORY_SHOW_AT).
+        // Otherwise we show nothing — better than inventing "expected ~50 s".
+        const avgLine = (stat && stat.n >= HISTORY_SHOW_AT)
+          ? 'your avg ' + fmtMs(stat.avgMs) + ' · ' + fmtMs(stat.minMs) + '–' + fmtMs(stat.maxMs) + ' (n=' + stat.n + ')'
+          : '';
         const row = document.createElement('div');
         row.className = 'ds-step is-pending';
         row.dataset.id = s.id;
@@ -932,19 +963,20 @@ function toggleTheme(){
           '</span>' +
           '<span class="ds-step-time">' +
             '<span data-elapsed>—</span>' +
-            '<span class="ds-step-time-avg">' + avgLine + '</span>' +
+            (avgLine ? '<span class="ds-step-time-avg">' + avgLine + '</span>' : '') +
           '</span>';
         stepsEl.appendChild(row);
       });
-      // Banner above the steps when history is rich enough.
-      if (noteEl && showHistory && totalStats){
+      // Banner above the steps — only when the user actually has runs to compare to.
+      if (noteEl && totalStats && totalStats.n >= HISTORY_SHOW_AT){
         noteEl.textContent =
-          'Across your last ' + totalStats.n + ' runs: average ' +
+          'Across your last ' + totalStats.n + ' runs: avg ' +
           fmtMs(totalStats.avgMs) + ' (range ' +
           fmtMs(totalStats.minMs) + '–' + fmtMs(totalStats.maxMs) + ').';
         noteEl.classList.remove('hide');
       }
-      // Honest-eta paragraph: replace static copy with measured median once enough data.
+      // Honest-eta paragraph: only show measured median once history is real.
+      // Otherwise we leave the static copy alone (it doesn't promise specifics).
       if (honestEta && totalStats && totalStats.n >= HISTORY_SHOW_AT){
         honestEta.innerHTML =
           '<strong>Your runs average ' + fmtMs(totalStats.avgMs) + '.</strong> ' +
@@ -998,19 +1030,16 @@ function toggleTheme(){
     }
     function update(events){
       if (!events || !events.length) return;
-      // Track first observed run start + start the heartbeat countdown.
       const first = events[0];
       if (first && first.timestamp){
         const t = Date.parse(first.timestamp);
         if (isFinite(t) && (runStartMs == null || t < runStartMs)){
           runStartMs = t;
-          nextHeartbeatAt = runStartMs + HEARTBEAT_MS;
         }
       }
-      // Map events to step transitions + log them. Only the 6 real backend
-      // statuses show up here: queued, converting_text_to_speech,
-      // predicting_version_a, slow_processing (warning), predicting_version_b,
-      // computing_brain_contrast, done.
+      // Map every event the worker actually emitted to a step transition +
+      // a log line. Statuses we do not recognise are still logged verbatim
+      // — better to surface unknown signals than to drop them silently.
       for (const ev of events){
         const ts = Date.parse(ev.timestamp);
         const stepIdx = stepIndexForBackend(ev.status);
@@ -1029,7 +1058,6 @@ function toggleTheme(){
     }
     function tick(){
       const now = Date.now();
-      // Total elapsed clock
       if (elapsedEl){
         const elapsed = runStartMs ? (now - runStartMs) : 0;
         elapsedEl.textContent = fmtClock(elapsed);
@@ -1043,23 +1071,16 @@ function toggleTheme(){
         }
       }
 
-      // Minute heartbeat — never let the log look frozen for more than 60s.
-      if (runStartMs && nextHeartbeatAt && now >= nextHeartbeatAt){
-        const activeIdx = state.findIndex(function(s){ return s.status === 'active'; });
-        const label = activeIdx >= 0 ? DS_STEPS[activeIdx].label : 'pipeline';
-        appendLog(now, 'heartbeat · T+' + fmtClock(now - runStartMs) + ' · still on: ' + label);
-        nextHeartbeatAt = now + HEARTBEAT_MS;
-      }
-
-      // (Removed the client-side micro-step extrapolation. Only real backend
-      //  events are surfaced — anything more would be theatre, not telemetry.)
-      // Per-step elapsed + progress
+      // Per-step elapsed + bar state. Done steps get a full bar. Active
+      // steps get the indeterminate "is-active" treatment (CSS-driven
+      // shimmer); we deliberately do NOT compute a percentage from "expected"
+      // duration because we have no honest expectation in seconds for any
+      // given input length, and the worker is the only authority.
       for (let i = 0; i < state.length; i++){
         const row = rowAt(i);
         if (!row) continue;
         const s = state[i];
         const elapsed = s.startMs == null ? null : (s.doneMs || now) - s.startMs;
-        const expected = (stepStats[i] && stepStats[i].avgMs) || DS_STEPS[i].expectedMs;
         const elEl = row.querySelector('[data-elapsed]');
         const fill = row.querySelector('[data-fill]');
         if (elEl){
@@ -1068,12 +1089,7 @@ function toggleTheme(){
         }
         if (fill){
           if (s.status === 'done') fill.style.width = '100%';
-          else if (s.status === 'active' && elapsed != null && expected){
-            const pct = Math.max(2, Math.min(95, (elapsed / expected) * 100));
-            fill.style.width = pct.toFixed(1) + '%';
-          } else {
-            fill.style.width = '0%';
-          }
+          else fill.style.width = '0%';
         }
       }
     }
@@ -1091,12 +1107,19 @@ function toggleTheme(){
         }
         setStatus(i, 'done');
       });
-      // Persist run for history.
-      RunHistory.push({
-        finished_at: new Date().toISOString(),
-        total_ms: totalMs,
-        stage_times: stageTimes || {},
-      });
+      // Persist run for history — but only when we got real numbers back.
+      // Pushing all-zero stage_times would silently skew "your avg" toward
+      // zero, which is exactly the kind of fake we're hunting.
+      const sumAll = stageTimes
+        ? Object.values(stageTimes).reduce(function(a,v){ return a + (typeof v === 'number' ? v : 0); }, 0)
+        : 0;
+      if (sumAll > 0 || (typeof totalMs === 'number' && totalMs > 0)){
+        RunHistory.push({
+          finished_at: new Date().toISOString(),
+          total_ms: totalMs,
+          stage_times: stageTimes || {},
+        });
+      }
       tick();
     }
     init();
@@ -1126,15 +1149,25 @@ function toggleTheme(){
     stepTo(index, state);
   }
 
-  // Backend status string → UI step index (4 steps: 0=read, 1=TRIBE, 2=surface, 3=score)
+  // Backend status string → UI step index. Must mirror DS_STEPS[i].backend
+  // in the Deep Scope module above. The two old steps "score" and the
+  // "converting_text_to_speech" alias have been retired in favour of real
+  // worker events: synthesizing_speech (text), decoding_audio/_video (media),
+  // downloading_a/b + worker_started/_booting (the queue→pickup window).
   const STATUS_TO_STEP = {
     queued: 0,
-    converting_text_to_speech: 0,
+    worker_booting: 0,
+    worker_started: 0,
+    downloading_a: 0,
+    downloading_b: 0,
+    synthesizing_speech: 0,
     decoding_audio: 0,
     decoding_video: 0,
+    transcribing_version_a: 1,
+    transcribing_version_b: 1,
     predicting_version_a: 1,
     predicting_version_b: 1,
-    slow_processing: 2,
+    slow_processing: 1,
     computing_brain_contrast: 2,
   };
 
@@ -1144,7 +1177,7 @@ function toggleTheme(){
   // stepStartedMs[index]. For completed steps we freeze elapsed = nextStep.start - this.start.
   function ingestBackendTiming(events){
     if (!events || !events.length) return;
-    const firstByStep = [null, null, null, null];
+    const firstByStep = [null, null, null];
     for (const ev of events){
       const idx = STATUS_TO_STEP[ev.status];
       if (idx == null) continue;
@@ -1158,7 +1191,7 @@ function toggleTheme(){
       }
     }
     // Freeze elapsed for any step that has a successor start timestamp.
-    for (let i = 0; i < 3; i++){
+    for (let i = 0; i < firstByStep.length - 1; i++){
       if (stepStartedMs[i] != null && firstByStep[i + 1] != null && stepElapsedMs[i] == null){
         stepElapsedMs[i] = firstByStep[i + 1] - stepStartedMs[i];
       }
@@ -1166,13 +1199,11 @@ function toggleTheme(){
   }
 
   function applyStatus(status){
-    if (status === 'queued' || status === 'converting_text_to_speech' || status === 'decoding_audio' || status === 'decoding_video'){
-      setStep(0, 'active');
-    } else if (status === 'predicting_version_a' || status === 'predicting_version_b'){
-      setStep(0, 'done'); setStep(1, 'active');
-    } else if (status === 'slow_processing' || status === 'computing_brain_contrast'){
-      setStep(0, 'done'); setStep(1, 'done'); setStep(2, 'active'); ensureBar(2);
-    }
+    const idx = STATUS_TO_STEP[status];
+    if (idx == null) return;
+    for (let i = 0; i < idx; i++) setStep(i, 'done');
+    setStep(idx, 'active');
+    if (idx >= 2) ensureBar(2);
   }
 
   const statusSubEl = document.getElementById('statusSub');
@@ -1224,7 +1255,7 @@ function toggleTheme(){
       const latest = job.events && job.events.length ? job.events[job.events.length - 1] : null;
       if (latest && latest.message) setProgressMessage(latest.message);
       if (job.status === 'done'){
-        stepTo(0, 'done'); stepTo(1, 'done');
+        stepTo(0, 'done'); stepTo(1, 'done'); stepTo(2, 'done');
         const meta = (job.result && job.result.meta) || {};
         const stageTimes = meta.stage_times || {};
         const totalMs = Object.values(stageTimes).reduce(function(a,b){ return a + (typeof b === 'number' ? b : 0); }, 0) || null;
@@ -1246,10 +1277,24 @@ function toggleTheme(){
         const metaRow = document.querySelector('.meta-row');
         if (metaRow && !metaRow.dataset.fromApi){
           metaRow.dataset.fromApi = '1';
+          // Mode-aware: text shows char counts, audio/video shows real
+          // duration + transcript length when present in the worker meta.
+          const mod = (m.modality || MODALITY || 'text');
+          let leftA = '', leftB = '';
+          if (mod === 'text'){
+            leftA = 'Text A · ' + (m.text_a_length || (m.transcript_a_length || 0)) + ' chars';
+            leftB = 'Text B · ' + (m.text_b_length || (m.transcript_b_length || 0)) + ' chars';
+          } else {
+            const da = (typeof m.media_duration_a_s === 'number') ? m.media_duration_a_s.toFixed(1) + ' s' : '—';
+            const db = (typeof m.media_duration_b_s === 'number') ? m.media_duration_b_s.toFixed(1) + ' s' : '—';
+            const noun = mod === 'audio' ? 'Audio' : 'Video';
+            leftA = noun + ' A · ' + da;
+            leftB = noun + ' B · ' + db;
+          }
           metaRow.innerHTML =
-            '<span>Text A · ' + (m.text_a_length || 0) + ' chars</span>' +
+            '<span>' + leftA + '</span>' +
             '<span>·</span>' +
-            '<span>Text B · ' + (m.text_b_length || 0) + ' chars</span>' +
+            '<span>' + leftB + '</span>' +
             '<span>·</span>' +
             '<span>fsaverage5 · 20,484 verts</span>';
         }
@@ -1560,7 +1605,7 @@ function mountEdu() {
     document.getElementById("eduTitle").innerHTML = d.title;
     document.getElementById("eduRegion").textContent = d.region;
     document.getElementById("eduBody").textContent = d.body;
-    document.getElementById("brainCaption").textContent = "Highlighted region · " + d.region.toLowerCase();
+    document.getElementById("brainCaption").textContent = "Reference region · " + d.region.toLowerCase();
     document.querySelectorAll(".edu-dot").forEach((el, idx) => el.classList.toggle("active", idx === currentIdx));
   }
 

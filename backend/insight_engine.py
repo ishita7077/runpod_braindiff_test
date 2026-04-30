@@ -312,7 +312,7 @@ def build_insight_payload(
 
     if punchy:
         cool_factor = (
-            "Two drafts, one cortical scoreboard — the fun part is watching *where* they diverge, not chasing a single number."
+            "Two takes, one cortical scoreboard — the fun part is watching *where* they diverge, not chasing a single number."
         )
     else:
         cool_factor = (

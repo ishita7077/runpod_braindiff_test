@@ -9,13 +9,16 @@ from backend import api
 class _DummyTribeService:
     model_revision = "facebook/tribev2@test"
 
-    def text_to_predictions(self, text: str):
+    def text_to_predictions(self, text: str, progress=None):
+        if progress is not None:
+            progress.emit("synthesizing_speech", "Synthesising speech...")
+            progress.emit("predicting", "Encoding through TRIBE v2...")
         base = np.zeros((6, 20484), dtype=np.float32)
         if "B" in text:
             base[:, :100] = 0.05
         else:
             base[:, :100] = 0.01
-        return base, [], {"events_ms": 1, "predict_ms": 2}
+        return base, [], {"events_ms": 1, "predict_ms": 2, "transcript": text}
 
 
 def _dummy_masks():
@@ -63,7 +66,7 @@ def test_async_status_progression(monkeypatch):
     assert last["status"] == "done"
     statuses = [event["status"] for event in last["events"]]
     required = [
-        "converting_text_to_speech",
+        "synthesizing_speech",
         "predicting_version_a",
         "predicting_version_b",
         "computing_brain_contrast",

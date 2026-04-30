@@ -217,6 +217,7 @@ main { max-width: 1280px; margin: 0 auto; padding: 28px 36px 80px; }
   transition: color .15s, border-color .15s;
 }
 .icon-btn:hover { color: #fff; border-color: var(--accent); }
+.icon-btn.active { color: #fff; background: color-mix(in srgb, var(--accent) 70%, transparent); border-color: var(--accent); }
 
 /* Accessibility toggle for color-independent channel */
 .a11y-toggle {
@@ -894,15 +895,15 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
           <button data-view="a"    data-tip="Version A's predicted cortical response, on its own.">Just A</button>
         </div>
         <div class="brain-extras">
-          <button class="icon-btn" title="Rotate">⟳</button>
-          <button class="icon-btn" title="Reset view">⌂</button>
-          <button class="icon-btn" title="Fullscreen">⛶</button>
+          <button class="icon-btn" title="Auto-rotate" aria-label="Toggle auto-rotate">⟳</button>
+          <button class="icon-btn" title="Reset view" aria-label="Reset camera view">⌂</button>
+          <button class="icon-btn" title="Fullscreen" aria-label="Toggle fullscreen">⛶</button>
         </div>
       </div>
 
       <canvas class="brain-canvas" id="resultBrain"></canvas>
 
-      <div class="brain-hint">hover regions · click to inspect</div>
+      <div class="brain-hint">drag to rotate · scroll to zoom</div>
 
       <div class="scale-legend">
         <b>A stronger</b>
@@ -988,14 +989,14 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
     </p>
   </section>
 
-  <!-- DIMENSION GRAPHS — per-dimension time-series. Each text gets converted
-       to speech and run through TRIBE v2 timestep-by-timestep; the dimension
-       series is that dimension's average activation at each timestep. Three
-       views: B−A difference over time, B alone, A alone. -->
+  <!-- DIMENSION GRAPHS — per-dimension time-series. Stimulus is run through
+       TRIBE v2 timestep-by-timestep (text via TTS, audio direct, video as
+       frames + audio); the dimension series is that dimension's average
+       activation at each timestep. Three views: B−A difference, B, A. -->
   <section class="dim-graphs">
     <div class="section-head">
       <h2>Dimension <em>graphs</em></h2>
-      <p>Each line is the activation of one cortical system <em>across the duration of the text</em>. TRIBE v2 predicts 20,484 vertex values per second; we average the ones in that system's mask.</p>
+      <p>Each line is the activation of one cortical system <em>across the duration of the stimulus</em>. TRIBE v2 predicts 20,484 vertex values per second; we average the ones in that system's mask.</p>
     </div>
     <div class="view-group" role="tablist" id="dimGraphViewGroup">
       <button class="active" data-view="diff">B − A</button>
@@ -1026,7 +1027,7 @@ body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
     <div class="report-cta-head">
       <h2 class="report-cta-title">Try <em>another</em> comparison.</h2>
       <p class="report-cta-sub">
-        The interesting pairs are ones that <em>say</em> the same thing but land differently. Pick a new A and B and re-run — or save this one.
+        The interesting pairs are ones that <em>carry</em> the same idea but land differently — same script read two ways, same scene cut two ways, same point made two ways. Pick a new A and B and re-run, or save this one.
       </p>
     </div>
     <div class="report-cta-actions">
@@ -1272,17 +1273,64 @@ if (job && job.status && job.status !== 'done'){
   window.location.replace('./run.html?job=' + encodeURIComponent(JOB_ID));
 }
 
-/* ---------- Populate recall card. Prefers sessionStorage stash (set by
-              input.html on submit), falls back to the authoritative copy
-              the backend now returns in meta.text_a / meta.text_b, and
-              finally degrades to char counts if the server is older. ---------- */
+/* ---------- Populate recall card. Source-of-truth order:
+   1. The authoritative content the backend returns:
+      - text mode  → meta.text_a / meta.text_b (the user's prose)
+      - audio/video → meta.transcript_a / meta.transcript_b (WhisperX-aligned
+                       words from the actual stimulus the worker analysed)
+   2. The fast-path stash set by input.html on submit, so the recall card
+      isn't blank during the tiny window between page load and meta arrival.
+   3. As a last resort, real metadata about the upload (filename + duration)
+      so audio/video runs never show "Text A · 0 chars" again. ---------- */
 try {
-  const stash = JSON.parse(sessionStorage.getItem('braindiff:texts:' + JOB_ID) || 'null');
   const meta = (job && job.result && job.result.meta) || {};
+  const stashTextRaw = sessionStorage.getItem('braindiff:texts:' + JOB_ID);
+  const stashTexts = stashTextRaw ? JSON.parse(stashTextRaw) : null;
+  const stashJobRaw = sessionStorage.getItem('braindiff:job:' + JOB_ID);
+  const stashJob = stashJobRaw ? JSON.parse(stashJobRaw) : null;
+
+  const modality = String(meta.modality || (stashJob && stashJob.modality) || 'text').toLowerCase();
   const aEl = document.getElementById('recallA');
   const bEl = document.getElementById('recallB');
-  const textA = (stash && stash.a) || meta.text_a || ('Text A · ' + (meta.text_a_length || 0) + ' chars');
-  const textB = (stash && stash.b) || meta.text_b || ('Text B · ' + (meta.text_b_length || 0) + ' chars');
+
+  function fileLine(side, sourceFile){
+    const f = sourceFile || (stashJob && stashJob['file_' + side]) || null;
+    const dur = (typeof meta['media_duration_' + side + '_s'] === 'number')
+      ? meta['media_duration_' + side + '_s']
+      : (f && typeof f.duration_s === 'number' ? f.duration_s : null);
+    const name = (meta['media_filename_' + side])
+      || (f && f.name)
+      || (modality === 'audio' ? 'audio file' : 'video file');
+    const bits = [name];
+    if (dur != null) bits.push(dur.toFixed(1) + ' s');
+    return bits.join(' · ');
+  }
+
+  let textA = '', textB = '';
+  if (modality === 'text'){
+    textA = (stashTexts && stashTexts.a)
+      || meta.text_a
+      || meta.transcript_a
+      || ('Text A · ' + (meta.text_a_length || meta.transcript_a_length || 0) + ' chars');
+    textB = (stashTexts && stashTexts.b)
+      || meta.text_b
+      || meta.transcript_b
+      || ('Text B · ' + (meta.text_b_length || meta.transcript_b_length || 0) + ' chars');
+  } else {
+    // Prefer the actual transcript when present (worker has finished and the
+    // recall card now shows what was heard); fall back to the file
+    // line so the user always sees something concrete about their upload.
+    textA = (meta.transcript_a && meta.transcript_a.trim()) || fileLine('a');
+    textB = (meta.transcript_b && meta.transcript_b.trim()) || fileLine('b');
+    // Update the recall tag eyebrow so the card doesn't claim "A — text"
+    // visually when the user actually uploaded video/audio.
+    const aTag = document.querySelector('.recall-col .recall-tag');
+    const bTag = document.querySelector('.recall-col.b .recall-tag');
+    const tagSuffix = modality === 'audio' ? 'A · audio' : 'A · video';
+    if (aTag) aTag.textContent = tagSuffix;
+    if (bTag) bTag.textContent = tagSuffix.replace('A', 'B');
+  }
+
   if (aEl) aEl.textContent = textA;
   if (bEl) bEl.textContent = textB;
 } catch(_){}
@@ -1449,31 +1497,31 @@ if (insights.subhead){
 const METRIC_DETAILS = {
   attention_salience: {
     region: 'Dorsal attention network',
-    whatMeasured: "How strongly each text commands and holds the reader's attention — the cortical signature of pulled focus.",
+    whatMeasured: "How strongly each version commands and holds the audience's attention — the cortical signature of pulled focus.",
     whereLong: 'Bilateral parietal cortex and frontal eye fields — the dorsal attention system, on both sides, toward the top-back of the brain.',
     interpret(delta){
       const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
       const mag = abs > 0.30 ? 'dramatically more' : abs > 0.15 ? 'meaningfully more' : abs > 0.05 ? 'modestly more' : 'about the same';
-      return who + ' commands ' + mag + ' attention. The contrast of ' + fmtDelta(delta) + ' corresponds to roughly a ' + Math.round(abs * 100) + '% difference in predicted dorsal-attention activation between the two texts.';
+      return who + ' commands ' + mag + ' attention. The contrast of ' + fmtDelta(delta) + ' corresponds to roughly a ' + Math.round(abs * 100) + '% difference in predicted dorsal-attention activation between A and B.';
     },
     labScience: 'Corbetta & Shulman (2002), "Control of goal-directed and stimulus-driven attention in the brain". Dorsal-attention activity tracks moment-by-moment engagement with narrative content.',
     realWorld: 'Super Bowl ad testing. Nielsen and Neuro-Insight measure attention this way before brands commit $8M per airing.'
   },
   memory_encoding: {
     region: 'Left ventrolateral prefrontal cortex (vlPFC)',
-    whatMeasured: 'How likely each text is to be remembered tomorrow — not just felt now.',
+    whatMeasured: 'How likely each version is to be remembered tomorrow — not just felt now.',
     whereLong: 'Left inferior frontal gyrus — front of the brain on the left side, roughly behind the temple.',
     interpret(delta){
       const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
       const mag = abs > 0.30 ? 'much more' : abs > 0.15 ? 'meaningfully more' : abs > 0.05 ? 'somewhat more' : 'similarly';
-      return who + ' is ' + mag + ' likely to stick. A ' + fmtDelta(delta) + ' contrast on this axis is the model\'s bet that a reader recalling either text in 24 hours would' + (abs > 0.15 ? ' clearly remember ' + who.toLowerCase() + '\'s wording better.' : ' show only a small preference.');
+      return who + ' is ' + mag + ' likely to stick. A ' + fmtDelta(delta) + ' contrast on this axis is the model\'s bet that someone recalling either version in 24 hours would' + (abs > 0.15 ? ' clearly remember ' + who.toLowerCase() + '\'s delivery better.' : ' show only a small preference.');
     },
     labScience: 'Paller & Wagner (2002), "Observing the transformation of experience into memory". Left-vlPFC activation during exposure predicts later recall.',
     realWorld: 'Mars, Mondelez, Coca-Cola test ads on this metric — it correlates with real sales 6 months out, far above self-reported "I liked it".'
   },
   personal_resonance: {
     region: 'Medial prefrontal cortex (mPFC)',
-    whatMeasured: "How strongly each text reads as 'about me' to the population-average reader.",
+    whatMeasured: "How strongly each version reads as 'about me' to the population-average audience.",
     whereLong: 'Medial prefrontal cortex — along the midline of the frontal lobe, just above the eyes.',
     interpret(delta){
       const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
@@ -1485,7 +1533,7 @@ const METRIC_DETAILS = {
   },
   gut_reaction: {
     region: 'Anterior insula',
-    whatMeasured: 'The visceral, bodily reaction a text provokes — the response that arrives before language catches up.',
+    whatMeasured: 'The visceral, bodily reaction a stimulus provokes — the response that arrives before language catches up.',
     whereLong: 'Anterior insula — tucked deep inside the lateral fold of the brain, on both sides. Tracks the felt, bodily edge of experience.',
     interpret(delta){
       const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
@@ -1497,7 +1545,7 @@ const METRIC_DETAILS = {
   },
   social_thinking: {
     region: 'Temporoparietal junction (TPJ)',
-    whatMeasured: "How much each text recruits the reader's social-reasoning circuitry — figuring out intent, relationship, what someone else is thinking.",
+    whatMeasured: "How much each version recruits the audience's social-reasoning circuitry — figuring out intent, relationship, what someone else is thinking.",
     whereLong: 'Temporoparietal junction — where the temporal and parietal lobes meet, on both sides of the brain behind the ears.',
     interpret(delta){
       const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
@@ -1509,7 +1557,7 @@ const METRIC_DETAILS = {
   },
   language_depth: {
     region: "Broca's + Wernicke's networks",
-    whatMeasured: 'How deeply meaning is being extracted from the text itself — structural and semantic richness, not word count.',
+    whatMeasured: 'How deeply meaning is being extracted from the language inside the stimulus — structural and semantic richness, not word count.',
     whereLong: "Broca's area (left frontal, behind the temple) and Wernicke's area (left temporal, behind the ear) — the brain's main language network.",
     interpret(delta){
       const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
@@ -1521,12 +1569,12 @@ const METRIC_DETAILS = {
   },
   brain_effort: {
     region: 'Dorsolateral prefrontal cortex (dlPFC)',
-    whatMeasured: "How much processing effort each text demands. Higher isn't always worse — depends on whether the payoff justifies it.",
+    whatMeasured: "How much processing effort each version demands. Higher isn't always worse — depends on whether the payoff justifies it.",
     whereLong: 'Dorsolateral prefrontal cortex — upper-outer surface of the frontal lobe, on both sides. The brain\'s cognitive-control workhorse.',
     interpret(delta){
       const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
       const mag = abs > 0.30 ? 'much harder' : abs > 0.15 ? 'noticeably harder' : abs > 0.05 ? 'somewhat harder' : 'about the same';
-      return who + ' is ' + mag + ' to process. A ' + fmtDelta(delta) + ' contrast means readers spend more cognitive effort on one side — costly when they can just leave, fine when the payoff is big.';
+      return who + ' is ' + mag + ' to process. A ' + fmtDelta(delta) + ' contrast means the audience spends more cognitive effort on one side — costly when they can just leave, fine when the payoff is big.';
     },
     labScience: 'Owen et al. (2005), "N-back working memory paradigm". dlPFC activation reliably tracks cognitive load.',
     realWorld: 'CFPB mortgage-form simplification · financial disclosure UX testing.'
@@ -1598,11 +1646,14 @@ function buildDimViewSeries(row, mode){
 }
 
 function legendCopy(mode){
+  // Honest framing: every modality is run at the same per-timestep cadence
+  // by TRIBE v2; it's just that text takes a TTS detour first. The old copy
+  // said "of the audio" which read as nonsense for video and weird for text.
   if (mode === 'diff'){
-    return 'Each line is one cortical system\'s <strong>B&nbsp;−&nbsp;A</strong> contrast at every timestep of the audio. <strong>Above&nbsp;0</strong> = B\'s signal is stronger there; <strong>below</strong> = A is. Toggle systems on or off to de-clutter.';
+    return 'Each line is one cortical system\'s <strong>B&nbsp;−&nbsp;A</strong> contrast at every timestep of the run. <strong>Above&nbsp;0</strong> = B\'s signal is stronger there; <strong>below</strong> = A is. Toggle systems on or off to de-clutter.';
   }
-  if (mode === 'b') return 'Each line is one cortical system\'s predicted activation while <strong>Version&nbsp;B</strong> plays, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
-  return         'Each line is one cortical system\'s predicted activation while <strong>Version&nbsp;A</strong> plays, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
+  if (mode === 'b') return 'Each line is one cortical system\'s predicted activation through <strong>Version&nbsp;B</strong>, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
+  return         'Each line is one cortical system\'s predicted activation through <strong>Version&nbsp;A</strong>, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
 }
 
 function renderDimChips(){
@@ -2033,6 +2084,62 @@ function mountResultBrain(){
       } else {
         targetY = -0.15; targetX = -0.1;
       }
+    });
+  }
+
+  // ---- Wire the previously-decorative brain toolbar buttons. ----
+  // Before this, the Rotate / Reset / Fullscreen buttons in the brain
+  // canvas had no handlers — users could click them and nothing would
+  // happen. Either build them or remove them; we built them.
+  const HOME = {
+    rotation: { x: 0.05, y: -0.35, z: 0 },
+    distance: 5.6,
+    target: { x: 0, y: 0, z: 0 },
+  };
+  // Initialise camera distance once we have a controls instance.
+  const cameraDir = new THREE.Vector3();
+  function setCameraDistance(d){
+    camera.getWorldDirection(cameraDir);
+    cameraDir.multiplyScalar(-d);
+    camera.position.copy(controls.target).add(cameraDir);
+  }
+  setCameraDistance(HOME.distance);
+
+  const toolbar = parent.querySelector('.brain-toolbar .brain-extras');
+  if (toolbar){
+    const buttons = toolbar.querySelectorAll('.icon-btn');
+    // Order in markup: Rotate ⟳, Reset ⌂, Fullscreen ⛶
+    if (buttons[0]) buttons[0].addEventListener('click', function(){
+      // Auto-rotate toggle — relies on OrbitControls' built-in auto-rotate.
+      // This is real motion driven by controls.update() inside the loop.
+      controls.autoRotate = !controls.autoRotate;
+      controls.autoRotateSpeed = 0.9;
+      buttons[0].classList.toggle('active', controls.autoRotate);
+    });
+    if (buttons[1]) buttons[1].addEventListener('click', function(){
+      // Reset to the home view — same pose the page mounts with.
+      controls.autoRotate = false;
+      buttons[0] && buttons[0].classList.remove('active');
+      mesh.rotation.set(HOME.rotation.x, HOME.rotation.y, HOME.rotation.z);
+      controls.target.set(HOME.target.x, HOME.target.y, HOME.target.z);
+      setCameraDistance(HOME.distance);
+      controls.update();
+    });
+    if (buttons[2]) buttons[2].addEventListener('click', function(){
+      const stage = parent;
+      const isFs = document.fullscreenElement === stage;
+      if (isFs && document.exitFullscreen){
+        document.exitFullscreen();
+      } else if (stage.requestFullscreen){
+        stage.requestFullscreen().catch(function(){});
+      }
+    });
+    document.addEventListener('fullscreenchange', function(){
+      if (buttons[2]) buttons[2].classList.toggle('active', document.fullscreenElement === parent);
+      // Force a resize sync so the brain re-fills the new canvas dimensions.
+      const W = parent.clientWidth, H = parent.clientHeight;
+      renderer.setSize(W, H, false);
+      camera.aspect = W/H; camera.updateProjectionMatrix();
     });
   }
 }

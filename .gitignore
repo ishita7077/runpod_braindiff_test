@@ -25,4 +25,7 @@ MISTAKES_AGENT.md
 # Local tooling binaries
 .tools/
 .vercel
+# Vercel pulls real production secrets into .env.production via `vercel env pull`.
+# Never commit it — contains live BLOB_READ_WRITE_TOKEN, UPSTASH_*, TURNSTILE_*.
+.env.production
 .env*.local

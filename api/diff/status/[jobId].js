@@ -1,14 +1,47 @@
 const { methodNotAllowed, badRequest, serverError } = require("../../lib/http");
 const { getJobStatus } = require("../../lib/runpod");
+const { redis } = require("../../lib/security");
 const { maybeDeleteBlobsForJob, getJobMetadata } = require("../../lib/jobs");
 
-function mapRunpodStatus(data, jobId, jobMeta) {
+// Real progress events: the RunPod worker pushes JSON-encoded `(ts, status,
+// message)` objects to `events:{jobId}` via Upstash Redis. We read the full
+// list on each poll and surface it to the frontend, which is responsible for
+// dedupe (it already keys log lines by ts+message). No synthesised events.
+async function readProgressEvents(jobId) {
+  try {
+    const store = redis();
+    const raw = await store.lrange(`events:${jobId}`, 0, -1);
+    if (!Array.isArray(raw) || raw.length === 0) return [];
+    const out = [];
+    for (const item of raw) {
+      // Upstash REST may return parsed objects (when value-as-JSON is detected)
+      // or raw strings. Handle both shapes without throwing on malformed entries.
+      if (item && typeof item === "object") {
+        out.push(item);
+        continue;
+      }
+      if (typeof item === "string") {
+        try {
+          out.push(JSON.parse(item));
+        } catch (_) {
+          // Drop unparseable entries silently — better than blowing up the poll.
+        }
+      }
+    }
+    return out;
+  } catch (_) {
+    return [];
+  }
+}
+
+function mapRunpodStatus(data, jobId, events) {
   const raw = String(data.status || "").toUpperCase();
 
   if (raw === "COMPLETED") {
     return {
       status: "done",
       job_id: jobId,
+      events,
       result: data.output || data
     };
   }
@@ -16,6 +49,7 @@ function mapRunpodStatus(data, jobId, jobMeta) {
   if (raw === "FAILED" || raw === "CANCELLED" || raw === "TIMED_OUT") {
     return {
       status: "error",
+      events,
       error: {
         code: "RUNPOD_JOB_FAILED",
         message: data.error || `Runpod status: ${raw}`
@@ -23,27 +57,18 @@ function mapRunpodStatus(data, jobId, jobMeta) {
     };
   }
 
-  // Both IN_QUEUE (waiting for a worker) and IN_PROGRESS (worker executing)
-  // map to "queued" so the frontend's STATUS_TO_STEP / applyStatus /
-  // DS_STEPS[0].backend keep step 0 active throughout. Without RunPod
-  // intermediate events we can't surface finer-grained progress.
-  const rawLower = data.status ? String(data.status).toLowerCase() : "running";
-  const normalized =
-    rawLower === "in_queue" || rawLower === "in_progress" ? "queued" : rawLower;
-
-  // Synthesize a single "queued" event using the job's creation timestamp
-  // (stored in Redis by /api/diff/start). DS.update() uses this to start the
-  // elapsed clock and log one "job accepted" entry. appendLog() deduplicates
-  // by (ts::msg), so re-polling every 1.5 s never floods the log.
-  const createdAt = jobMeta && jobMeta.createdAt;
-  const events = createdAt
-    ? [{ status: "queued", timestamp: createdAt, message: "job accepted" }]
-    : [];
-
+  // While the worker is in flight, derive the canonical status from the most
+  // recent event the worker actually emitted. If the queue hasn't picked up
+  // the job yet (no events at all), report "queued"; if RunPod says
+  // IN_PROGRESS but we have no events, the worker is booting — report
+  // "worker_booting" rather than pretending Step 1 is running.
+  const last = events.length ? events[events.length - 1] : null;
+  let status = last && typeof last.status === "string" ? last.status : null;
+  if (!status) {
+    status = raw === "IN_PROGRESS" ? "worker_booting" : "queued";
+  }
   return {
-    status: normalized,
-    phase: data.executionTime ? "running" : "queued",
-    progress: 0.5,
+    status,
     events
   };
 }
@@ -55,18 +80,17 @@ module.exports = async function handler(req, res) {
     return badRequest(res, "Missing jobId");
   }
   try {
-    // Fetch RunPod status and Redis job metadata in parallel.
-    // getJobMetadata failure (e.g. missing Redis env var) is non-fatal —
-    // the response still returns a valid status without the clock event.
-    const [data, jobMeta] = await Promise.all([
+    const [data, events] = await Promise.all([
       getJobStatus(jobId),
-      getJobMetadata(jobId).catch(() => null)
+      readProgressEvents(jobId)
     ]);
-    const mapped = mapRunpodStatus(data, jobId, jobMeta);
+    const mapped = mapRunpodStatus(data, jobId, events);
     if (mapped.status === "done") {
-      // Blob cleanup is best-effort — a Redis/Blob failure must not prevent
-      // the result payload from reaching the results page.
-      await maybeDeleteBlobsForJob(jobId).catch(() => {});
+      // Best-effort cleanup — never block the result on Blob/Redis hiccups.
+      await Promise.all([
+        maybeDeleteBlobsForJob(jobId).catch(() => {}),
+        redis().del(`events:${jobId}`).catch(() => {})
+      ]);
     }
     return res.status(200).json(mapped);
   } catch (err) {

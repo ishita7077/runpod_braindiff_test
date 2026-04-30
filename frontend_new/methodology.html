@@ -164,14 +164,14 @@ h2.section-title em{font-style:italic;color:var(--accent)}
     <div class="method-list">
       <div class="method-item">
         <div class="method-num">Stage 1</div>
-        <div class="method-title">Encode each text with TRIBE v2</div>
-        <p class="method-body">Meta FAIR's open brain-response model converts each piece of content into a predicted response pattern across the cortex. TRIBE v2 was trained on fMRI from 8 subjects watching hours of naturalistic video and listening to narrative audio.</p>
+        <div class="method-title">Encode each stimulus with TRIBE v2</div>
+        <p class="method-body">Meta FAIR's open brain-response model converts each piece of content into a predicted response pattern across the cortex. Text is run through TTS first; audio goes straight to WhisperX; video has its frames + audio extracted by FFmpeg. TRIBE v2 was trained on fMRI from 8 subjects watching hours of naturalistic video and listening to narrative audio.</p>
         <div class="method-cite">Tang et al., Meta FAIR · 2025</div>
       </div>
       <div class="method-item">
         <div class="method-num">Stage 2</div>
         <div class="method-title">Project onto the fsaverage5 surface</div>
-        <p class="method-body">Both predictions are mapped onto the standard 20,484-vertex cortical mesh, then contrasted vertex-by-vertex. Positive values mean text B evokes a stronger response at that vertex; negative values mean text A does.</p>
+        <p class="method-body">Both predictions are mapped onto the standard 20,484-vertex cortical mesh, then contrasted vertex-by-vertex. Positive values mean version B evokes a stronger response at that vertex; negative values mean version A does.</p>
         <div class="method-cite">HCP MMP1.0 atlas · Glasser et al., 2016</div>
       </div>
       <div class="method-item">
@@ -216,7 +216,7 @@ h2.section-title em{font-style:italic;color:var(--accent)}
       <div class="system-card">
         <h3>Language depth</h3>
         <div class="region">Broca's + Wernicke's network</div>
-        <p>Structural and semantic language processing. Deeper activation means more meaning is being extracted from the text itself (Fedorenko et al., 2010).</p>
+        <p>Structural and semantic language processing. Deeper activation means more meaning is being extracted from the language inside the stimulus (Fedorenko et al., 2010).</p>
       </div>
       <div class="system-card">
         <h3>Processing effort</h3>

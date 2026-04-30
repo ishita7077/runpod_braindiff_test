@@ -330,20 +330,7 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
     <button type="button" class="example-btn" data-example="click-inform">Clickbait vs. informative</button>
   </div>
 
-  <div class="tips">
-    <div class="tip">
-      <span class="tip-num">01</span>
-      <span class="tip-text"><strong>Same topic, different take.</strong> Best contrasts come from samples solving the same communication problem.</span>
-    </div>
-    <div class="tip">
-      <span class="tip-num">02</span>
-      <span class="tip-text"><strong>10 – 1,000 characters per side.</strong> Richer samples produce cleaner readings.</span>
-    </div>
-    <div class="tip">
-      <span class="tip-num">03</span>
-      <span class="tip-text"><strong>6 – 12 minutes per trial.</strong> Runs through a population-average cortex model.</span>
-    </div>
-  </div>
+  <div class="tips" id="tipsBlock"></div>
 
   <form id="compareForm" autocomplete="off">
     <div class="mode-row" role="tablist" aria-label="Select modality">
@@ -366,7 +353,7 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
         <input id="fileA" name="file_a" type="file" hidden />
         <div class="dropzone" id="dropA" tabindex="0" role="button" aria-label="Upload stimulus A file">
           <div><strong>Drop Stimulus A here</strong> or click to browse</div>
-          <div class="dropzone-meta">Max file size: 100MB</div>
+          <div class="dropzone-meta" id="dropMetaA">Max file size: 100MB</div>
         </div>
       </div>
       <div class="input-card">
@@ -382,7 +369,7 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
         <input id="fileB" name="file_b" type="file" hidden />
         <div class="dropzone" id="dropB" tabindex="0" role="button" aria-label="Upload stimulus B file">
           <div><strong>Drop Stimulus B here</strong> or click to browse</div>
-          <div class="dropzone-meta">Max file size: 100MB</div>
+          <div class="dropzone-meta" id="dropMetaB">Max file size: 100MB</div>
         </div>
       </div>
     </div>
@@ -613,6 +600,70 @@ function toggleTheme(){
     return !evaluate().some(function(h){ return h.sev === 'hard'; });
   }
 
+  // Per-side file metadata captured after the duration probe — used to
+  // (a) show real `name · 12.4s · 4.2 MB` in the dropzone post-pick,
+  // (b) refuse files that exceed the 30-s media cap before a slow upload starts,
+  // (c) refuse pairs whose durations differ by >5 s (the same rule the worker
+  //     enforces at the backend; surfaced here so the user fixes it pre-flight).
+  const MAX_MEDIA_SECONDS = 30;
+  const SIMILARITY_TOLERANCE_S = 5;
+  const fileMeta = { a: null, b: null };
+  const tipsBlock = document.getElementById('tipsBlock');
+  const dropMetaA = document.getElementById('dropMetaA');
+  const dropMetaB = document.getElementById('dropMetaB');
+
+  const TIPS = {
+    text: [
+      ['01', '<strong>Same topic, different take.</strong> Best contrasts come from samples solving the same communication problem.'],
+      ['02', '<strong>10 – 1,000 characters per side.</strong> Richer samples produce cleaner readings.'],
+      ['03', '<strong>Lengths within 20 characters.</strong> Big length gaps confound the contrast — keep A and B comparable.'],
+    ],
+    audio: [
+      ['01', '<strong>Same topic, different delivery.</strong> Two readings of the same script — calmer vs. punchier — produce the cleanest contrast.'],
+      ['02', '<strong>Up to 30 seconds, .mp3 / .m4a / .wav / .flac / .ogg / .aac / .opus.</strong> Anything longer is trimmed to the first 30 s before encoding.'],
+      ['03', '<strong>Durations within 5 seconds of each other.</strong> Larger gaps are rejected — the per-timestep contrast needs comparable lengths.'],
+    ],
+    video: [
+      ['01', '<strong>Same topic, different delivery.</strong> Two cuts of the same idea — different framing, pace, or speaker — produce the cleanest contrast.'],
+      ['02', '<strong>Up to 30 seconds, .mp4 / .mov / .webm / .mkv / .avi.</strong> Anything longer is trimmed to the first 30 s before encoding.'],
+      ['03', '<strong>Durations within 5 seconds of each other.</strong> Larger gaps are rejected — the per-timestep contrast needs comparable lengths.'],
+    ],
+  };
+
+  function renderTips(){
+    if (!tipsBlock) return;
+    const items = TIPS[mode] || TIPS.text;
+    tipsBlock.innerHTML = items.map(function(t){
+      return '<div class="tip"><span class="tip-num">' + t[0] + '</span><span class="tip-text">' + t[1] + '</span></div>';
+    }).join('');
+  }
+
+  function dropMetaCopy(){
+    if (mode === 'audio') return 'Up to 30 s · ≤ 100 MB · .mp3 .m4a .wav .flac .ogg .aac .opus';
+    if (mode === 'video') return 'Up to 30 s · ≤ 100 MB · .mp4 .mov .webm .mkv .avi';
+    return 'Max file size: 100MB';
+  }
+
+  function fmtSize(bytes){
+    if (!bytes && bytes !== 0) return '';
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+  }
+  function fmtSeconds(s){
+    if (s == null || !isFinite(s)) return '';
+    return s.toFixed(1) + ' s';
+  }
+
+  function dropFooterFor(side){
+    const meta = fileMeta[side];
+    if (!meta) return dropMetaCopy();
+    const bits = [];
+    if (meta.duration != null) bits.push(fmtSeconds(meta.duration));
+    if (meta.size != null) bits.push(fmtSize(meta.size));
+    return bits.join(' · ') || dropMetaCopy();
+  }
+
   function refresh(){
     updateCount(a, ca);
     updateCount(b, cb);
@@ -629,9 +680,15 @@ function toggleTheme(){
       const fb = fileB.files && fileB.files[0];
       dropA.querySelector('strong').textContent = fa ? fa.name : 'Drop Stimulus A here';
       dropB.querySelector('strong').textContent = fb ? fb.name : 'Drop Stimulus B here';
+      if (dropMetaA) dropMetaA.textContent = dropFooterFor('a');
+      if (dropMetaB) dropMetaB.textContent = dropFooterFor('b');
+    } else {
+      if (dropMetaA) dropMetaA.textContent = dropMetaCopy();
+      if (dropMetaB) dropMetaB.textContent = dropMetaCopy();
     }
     btn.disabled = !canSubmit();
   }
+  renderTips();
   a.addEventListener('input', refresh);
   b.addEventListener('input', refresh);
   a.addEventListener('blur', refresh);
@@ -657,6 +714,38 @@ function toggleTheme(){
     if (mode === 'video') return 'video/*';
     return '';
   }
+  // Probe an audio/video file's actual duration by loading it into a hidden
+  // media element. Resolves to seconds, or null if the browser can't decode
+  // the file (which is itself a useful signal — we can refuse it).
+  function probeMediaDuration(file){
+    return new Promise(function(resolve){
+      const isVideo = (file.type || '').startsWith('video/') ||
+        /\.(mp4|mov|webm|mkv|avi)$/i.test(file.name || '');
+      const el = document.createElement(isVideo ? 'video' : 'audio');
+      el.preload = 'metadata';
+      el.muted = true;
+      let url = '';
+      let done = false;
+      function finish(value){
+        if (done) return;
+        done = true;
+        try { if (url) URL.revokeObjectURL(url); } catch(_){}
+        resolve(value);
+      }
+      el.addEventListener('loadedmetadata', function(){
+        const d = Number(el.duration);
+        finish(isFinite(d) && d > 0 ? d : null);
+      });
+      el.addEventListener('error', function(){ finish(null); });
+      // Safety net for files the browser can't parse: don't hang the UI.
+      setTimeout(function(){ finish(null); }, 8000);
+      try {
+        url = URL.createObjectURL(file);
+        el.src = url;
+      } catch(_) { finish(null); }
+    });
+  }
+
   function assignFile(input, file, side){
     if (!file) return;
     if (file.size > MAX_UPLOAD_BYTES){
@@ -665,6 +754,7 @@ function toggleTheme(){
         {kind:'err', durationMs:7000, key:'upload-size-' + side}
       );
       input.value = '';
+      fileMeta[side] = null;
       refresh();
       return;
     }
@@ -672,7 +762,48 @@ function toggleTheme(){
     const dt = new DataTransfer();
     dt.items.add(file);
     input.files = dt.files;
+    // Clear pre-existing meta until the probe lands so the dropzone
+    // doesn't show stale numbers from the previous file.
+    fileMeta[side] = { name: file.name, size: file.size, duration: null };
     refresh();
+    if (mode === 'text') return;
+    probeMediaDuration(file).then(function(durationS){
+      if (input.files && input.files[0] !== file) return; // user swapped mid-probe
+      const meta = fileMeta[side] || {};
+      meta.duration = durationS;
+      fileMeta[side] = meta;
+      if (durationS == null){
+        showToast(
+          'Could not read the duration of ' + side.toUpperCase() + '. The browser may not support this codec — try .mp3 / .wav for audio or .mp4 / .webm for video.',
+          {kind:'warn', durationMs:8000, key:'duration-probe-' + side}
+        );
+      } else if (durationS > MAX_MEDIA_SECONDS){
+        showToast(
+          'File ' + side.toUpperCase() + ' is ' + durationS.toFixed(1) + ' s — only the first 30 s will be analysed. Trim before uploading for the cleanest contrast.',
+          {kind:'warn', durationMs:9000, key:'duration-trim-' + side}
+        );
+      } else {
+        clearToast('duration-trim-' + side);
+        clearToast('duration-probe-' + side);
+      }
+      // Cross-side similarity rule (≤5 s gap) — shown the moment both sides
+      // have a probed duration, so the user can swap a file before kicking
+      // off a 6-12 minute job that the worker would just reject.
+      const ma = fileMeta.a, mb = fileMeta.b;
+      if (ma && mb && ma.duration != null && mb.duration != null){
+        const eff = function(d){ return Math.min(d, MAX_MEDIA_SECONDS); };
+        const delta = Math.abs(eff(ma.duration) - eff(mb.duration));
+        if (delta > SIMILARITY_TOLERANCE_S){
+          showToast(
+            'A and B durations differ by ' + delta.toFixed(1) + ' s after trimming to 30 s. The worker rejects pairs with > ' + SIMILARITY_TOLERANCE_S + ' s gap — swap one stimulus before submitting.',
+            {kind:'err', durationMs:10000, key:'duration-similarity'}
+          );
+        } else {
+          clearToast('duration-similarity');
+        }
+      }
+      refresh();
+    });
   }
   // Derive a reliable MIME type for the blob upload.
   // file.type is often empty ("") on macOS/Windows for .mp4/.mov/.m4a files
@@ -741,6 +872,21 @@ function toggleTheme(){
         return;
       }
       clearToast('upload-missing');
+      // Hard-block submit when the duration probe says A vs B differs by
+      // more than 5 s after trimming — the worker rejects this pair anyway,
+      // so spending six minutes uploading + booting just to fail is hostile.
+      const ma = fileMeta.a, mb = fileMeta.b;
+      if (ma && mb && ma.duration != null && mb.duration != null){
+        const eff = function(d){ return Math.min(d, MAX_MEDIA_SECONDS); };
+        const delta = Math.abs(eff(ma.duration) - eff(mb.duration));
+        if (delta > SIMILARITY_TOLERANCE_S){
+          showToast(
+            'Stimulus durations differ by ' + delta.toFixed(1) + ' s after trimming to 30 s. Pairs must be within ' + SIMILARITY_TOLERANCE_S + ' s — swap one file before submitting.',
+            {kind:'err', durationMs:9000, key:'duration-similarity'}
+          );
+          return;
+        }
+      }
     }
     const hits = evaluate();
     const hard = hits.filter(function(h){ return h.sev === 'hard' && h.code !== 'EMPTY'; });
@@ -812,14 +958,29 @@ function toggleTheme(){
       btn.disabled = false;
       return;
     }
-    // Stash the two texts so the results page can render the A/B recall card
-    if (mode === 'text'){
-      try {
+    // Stash per-job context so run.html and results.html can render real
+    // recall (filename, duration, modality) the moment they load — without
+    // waiting for the worker meta to come back. The worker is the source of
+    // truth (transcripts, trimmed durations); this is the fast-path stash.
+    try {
+      const stash = { modality: mode };
+      if (mode === 'text'){
+        stash.text_a = a.value;
+        stash.text_b = b.value;
+      } else {
+        const fa = fileA.files && fileA.files[0];
+        const fb = fileB.files && fileB.files[0];
+        if (fa) stash.file_a = { name: fa.name, size: fa.size, duration_s: (fileMeta.a && fileMeta.a.duration) || null };
+        if (fb) stash.file_b = { name: fb.name, size: fb.size, duration_s: (fileMeta.b && fileMeta.b.duration) || null };
+      }
+      sessionStorage.setItem('braindiff:job:' + job.job_id, JSON.stringify(stash));
+      // Back-compat: results.html still reads `braindiff:texts:` for text.
+      if (mode === 'text'){
         sessionStorage.setItem('braindiff:texts:' + job.job_id, JSON.stringify({
           a: a.value, b: b.value,
         }));
-      } catch(_){}
-    }
+      }
+    } catch(_){}
 
     const go = '/run.html?job=' + encodeURIComponent(job.job_id);
     if (REDUCE){ window.location.href = go; return; }
@@ -853,6 +1014,18 @@ function toggleTheme(){
       clearToast('upload-size-a');
       clearToast('upload-size-b');
       clearToast('upload-missing');
+      clearToast('duration-trim-a');
+      clearToast('duration-trim-b');
+      clearToast('duration-probe-a');
+      clearToast('duration-probe-b');
+      clearToast('duration-similarity');
+      // Switching modality invalidates files picked under the old one — the
+      // accept filter changes, and a probed audio file is meaningless when
+      // the user swaps to video. Force a re-pick.
+      try { fileA.value = ''; fileB.value = ''; } catch(_){}
+      fileMeta.a = null;
+      fileMeta.b = null;
+      renderTips();
       refresh();
     });
   });
