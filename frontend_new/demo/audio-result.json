@@ -489,6 +489,587 @@
           "total_timesteps": 12
         }
       ]
+    },
+    "connectivity": {
+      "a": {
+        "dim_keys": [
+          "attention_salience",
+          "memory_encoding",
+          "personal_resonance",
+          "gut_reaction",
+          "social_thinking",
+          "language_depth",
+          "brain_effort"
+        ],
+        "labels": [
+          "Attention",
+          "Memory",
+          "Personal resonance",
+          "Gut reaction",
+          "Social reasoning",
+          "Language depth",
+          "Brain effort"
+        ],
+        "regions": [
+          "Dorsal attention",
+          "Left vlPFC",
+          "Medial PFC",
+          "Anterior insula",
+          "TPJ",
+          "Broca + Wernicke",
+          "dlPFC"
+        ],
+        "matrix": [
+          [
+            1.0,
+            0.6252,
+            0.6276,
+            0.8709,
+            0.6014,
+            0.8252,
+            0.193
+          ],
+          [
+            0.6252,
+            1.0,
+            0.7213,
+            0.7358,
+            0.7375,
+            0.3403,
+            -0.1221
+          ],
+          [
+            0.6276,
+            0.7213,
+            1.0,
+            0.7581,
+            0.9968,
+            0.6808,
+            -0.3722
+          ],
+          [
+            0.8709,
+            0.7358,
+            0.7581,
+            1.0,
+            0.7537,
+            0.8554,
+            0.166
+          ],
+          [
+            0.6014,
+            0.7375,
+            0.9968,
+            0.7537,
+            1.0,
+            0.6573,
+            -0.3962
+          ],
+          [
+            0.8252,
+            0.3403,
+            0.6808,
+            0.8554,
+            0.6573,
+            1.0,
+            0.1039
+          ],
+          [
+            0.193,
+            -0.1221,
+            -0.3722,
+            0.166,
+            -0.3962,
+            0.1039,
+            1.0
+          ]
+        ],
+        "edges": [
+          {
+            "source": "personal_resonance",
+            "target": "social_thinking",
+            "weight": 0.9968,
+            "correlation": 0.9968,
+            "type": "positive"
+          },
+          {
+            "source": "attention_salience",
+            "target": "gut_reaction",
+            "weight": 0.8709,
+            "correlation": 0.8709,
+            "type": "positive"
+          },
+          {
+            "source": "gut_reaction",
+            "target": "language_depth",
+            "weight": 0.8554,
+            "correlation": 0.8554,
+            "type": "positive"
+          },
+          {
+            "source": "attention_salience",
+            "target": "language_depth",
+            "weight": 0.8252,
+            "correlation": 0.8252,
+            "type": "positive"
+          },
+          {
+            "source": "personal_resonance",
+            "target": "gut_reaction",
+            "weight": 0.7581,
+            "correlation": 0.7581,
+            "type": "positive"
+          },
+          {
+            "source": "gut_reaction",
+            "target": "social_thinking",
+            "weight": 0.7537,
+            "correlation": 0.7537,
+            "type": "positive"
+          },
+          {
+            "source": "memory_encoding",
+            "target": "social_thinking",
+            "weight": 0.7375,
+            "correlation": 0.7375,
+            "type": "positive"
+          },
+          {
+            "source": "memory_encoding",
+            "target": "gut_reaction",
+            "weight": 0.7358,
+            "correlation": 0.7358,
+            "type": "positive"
+          },
+          {
+            "source": "memory_encoding",
+            "target": "personal_resonance",
+            "weight": 0.7213,
+            "correlation": 0.7213,
+            "type": "positive"
+          },
+          {
+            "source": "personal_resonance",
+            "target": "language_depth",
+            "weight": 0.6808,
+            "correlation": 0.6808,
+            "type": "positive"
+          },
+          {
+            "source": "social_thinking",
+            "target": "language_depth",
+            "weight": 0.6573,
+            "correlation": 0.6573,
+            "type": "positive"
+          },
+          {
+            "source": "attention_salience",
+            "target": "personal_resonance",
+            "weight": 0.6276,
+            "correlation": 0.6276,
+            "type": "positive"
+          },
+          {
+            "source": "attention_salience",
+            "target": "memory_encoding",
+            "weight": 0.6252,
+            "correlation": 0.6252,
+            "type": "positive"
+          },
+          {
+            "source": "attention_salience",
+            "target": "social_thinking",
+            "weight": 0.6014,
+            "correlation": 0.6014,
+            "type": "positive"
+          },
+          {
+            "source": "social_thinking",
+            "target": "brain_effort",
+            "weight": 0.3962,
+            "correlation": -0.3962,
+            "type": "negative"
+          },
+          {
+            "source": "personal_resonance",
+            "target": "brain_effort",
+            "weight": 0.3722,
+            "correlation": -0.3722,
+            "type": "negative"
+          },
+          {
+            "source": "memory_encoding",
+            "target": "language_depth",
+            "weight": 0.3403,
+            "correlation": 0.3403,
+            "type": "positive"
+          }
+        ],
+        "metrics": {
+          "integration_score": 0.5781,
+          "parallel_score": -0.2968,
+          "hub_node": "personal_resonance",
+          "isolated_node": "brain_effort",
+          "n_timesteps": 12,
+          "min_timesteps_for_reliability": 5,
+          "per_node_strength": {
+            "attention_salience": 3.7433,
+            "memory_encoding": 3.2822,
+            "personal_resonance": 4.1568,
+            "gut_reaction": 4.1399,
+            "social_thinking": 4.1429,
+            "language_depth": 3.4629,
+            "brain_effort": 1.3534
+          }
+        },
+        "warnings": []
+      },
+      "b": {
+        "dim_keys": [
+          "attention_salience",
+          "memory_encoding",
+          "personal_resonance",
+          "gut_reaction",
+          "social_thinking",
+          "language_depth",
+          "brain_effort"
+        ],
+        "labels": [
+          "Attention",
+          "Memory",
+          "Personal resonance",
+          "Gut reaction",
+          "Social reasoning",
+          "Language depth",
+          "Brain effort"
+        ],
+        "regions": [
+          "Dorsal attention",
+          "Left vlPFC",
+          "Medial PFC",
+          "Anterior insula",
+          "TPJ",
+          "Broca + Wernicke",
+          "dlPFC"
+        ],
+        "matrix": [
+          [
+            1.0,
+            0.8329,
+            0.6882,
+            0.7996,
+            0.668,
+            0.7031,
+            -0.1476
+          ],
+          [
+            0.8329,
+            1.0,
+            0.7775,
+            0.6544,
+            0.7115,
+            0.5678,
+            -0.4743
+          ],
+          [
+            0.6882,
+            0.7775,
+            1.0,
+            0.7824,
+            0.9893,
+            0.8999,
+            -0.6609
+          ],
+          [
+            0.7996,
+            0.6544,
+            0.7824,
+            1.0,
+            0.8211,
+            0.8803,
+            -0.1209
+          ],
+          [
+            0.668,
+            0.7115,
+            0.9893,
+            0.8211,
+            1.0,
+            0.9356,
+            -0.5921
+          ],
+          [
+            0.7031,
+            0.5678,
+            0.8999,
+            0.8803,
+            0.9356,
+            1.0,
+            -0.4371
+          ],
+          [
+            -0.1476,
+            -0.4743,
+            -0.6609,
+            -0.1209,
+            -0.5921,
+            -0.4371,
+            1.0
+          ]
+        ],
+        "edges": [
+          {
+            "source": "personal_resonance",
+            "target": "social_thinking",
+            "weight": 0.9893,
+            "correlation": 0.9893,
+            "type": "positive"
+          },
+          {
+            "source": "social_thinking",
+            "target": "language_depth",
+            "weight": 0.9356,
+            "correlation": 0.9356,
+            "type": "positive"
+          },
+          {
+            "source": "personal_resonance",
+            "target": "language_depth",
+            "weight": 0.8999,
+            "correlation": 0.8999,
+            "type": "positive"
+          },
+          {
+            "source": "gut_reaction",
+            "target": "language_depth",
+            "weight": 0.8803,
+            "correlation": 0.8803,
+            "type": "positive"
+          },
+          {
+            "source": "attention_salience",
+            "target": "memory_encoding",
+            "weight": 0.8329,
+            "correlation": 0.8329,
+            "type": "positive"
+          },
+          {
+            "source": "gut_reaction",
+            "target": "social_thinking",
+            "weight": 0.8211,
+            "correlation": 0.8211,
+            "type": "positive"
+          },
+          {
+            "source": "attention_salience",
+            "target": "gut_reaction",
+            "weight": 0.7996,
+            "correlation": 0.7996,
+            "type": "positive"
+          },
+          {
+            "source": "personal_resonance",
+            "target": "gut_reaction",
+            "weight": 0.7824,
+            "correlation": 0.7824,
+            "type": "positive"
+          },
+          {
+            "source": "memory_encoding",
+            "target": "personal_resonance",
+            "weight": 0.7775,
+            "correlation": 0.7775,
+            "type": "positive"
+          },
+          {
+            "source": "memory_encoding",
+            "target": "social_thinking",
+            "weight": 0.7115,
+            "correlation": 0.7115,
+            "type": "positive"
+          },
+          {
+            "source": "attention_salience",
+            "target": "language_depth",
+            "weight": 0.7031,
+            "correlation": 0.7031,
+            "type": "positive"
+          },
+          {
+            "source": "attention_salience",
+            "target": "personal_resonance",
+            "weight": 0.6882,
+            "correlation": 0.6882,
+            "type": "positive"
+          },
+          {
+            "source": "attention_salience",
+            "target": "social_thinking",
+            "weight": 0.668,
+            "correlation": 0.668,
+            "type": "positive"
+          },
+          {
+            "source": "personal_resonance",
+            "target": "brain_effort",
+            "weight": 0.6609,
+            "correlation": -0.6609,
+            "type": "negative"
+          },
+          {
+            "source": "memory_encoding",
+            "target": "gut_reaction",
+            "weight": 0.6544,
+            "correlation": 0.6544,
+            "type": "positive"
+          },
+          {
+            "source": "social_thinking",
+            "target": "brain_effort",
+            "weight": 0.5921,
+            "correlation": -0.5921,
+            "type": "negative"
+          },
+          {
+            "source": "memory_encoding",
+            "target": "language_depth",
+            "weight": 0.5678,
+            "correlation": 0.5678,
+            "type": "positive"
+          },
+          {
+            "source": "memory_encoding",
+            "target": "brain_effort",
+            "weight": 0.4743,
+            "correlation": -0.4743,
+            "type": "negative"
+          },
+          {
+            "source": "language_depth",
+            "target": "brain_effort",
+            "weight": 0.4371,
+            "correlation": -0.4371,
+            "type": "negative"
+          }
+        ],
+        "metrics": {
+          "integration_score": 0.6735,
+          "parallel_score": -0.4055,
+          "hub_node": "personal_resonance",
+          "isolated_node": "brain_effort",
+          "n_timesteps": 12,
+          "min_timesteps_for_reliability": 5,
+          "per_node_strength": {
+            "attention_salience": 3.8394,
+            "memory_encoding": 4.0184,
+            "personal_resonance": 4.7982,
+            "gut_reaction": 4.0587,
+            "social_thinking": 4.7176,
+            "language_depth": 4.4238,
+            "brain_effort": 2.4329
+          }
+        },
+        "warnings": []
+      },
+      "delta": {
+        "matrix": [
+          [
+            0.0,
+            0.2077,
+            0.0606,
+            -0.0713,
+            0.0666,
+            -0.1221,
+            -0.3406
+          ],
+          [
+            0.2077,
+            0.0,
+            0.0562,
+            -0.0814,
+            -0.026,
+            0.2275,
+            -0.3522
+          ],
+          [
+            0.0606,
+            0.0562,
+            0.0,
+            0.0243,
+            -0.0075,
+            0.2191,
+            -0.2887
+          ],
+          [
+            -0.0713,
+            -0.0814,
+            0.0243,
+            0.0,
+            0.0674,
+            0.0249,
+            -0.2869
+          ],
+          [
+            0.0666,
+            -0.026,
+            -0.0075,
+            0.0674,
+            0.0,
+            0.2783,
+            -0.1959
+          ],
+          [
+            -0.1221,
+            0.2275,
+            0.2191,
+            0.0249,
+            0.2783,
+            0.0,
+            -0.541
+          ],
+          [
+            -0.3406,
+            -0.3522,
+            -0.2887,
+            -0.2869,
+            -0.1959,
+            -0.541,
+            0.0
+          ]
+        ],
+        "top_changed": [
+          {
+            "source": "language_depth",
+            "target": "brain_effort",
+            "delta": -0.541,
+            "abs_delta": 0.541
+          },
+          {
+            "source": "memory_encoding",
+            "target": "brain_effort",
+            "delta": -0.3522,
+            "abs_delta": 0.3522
+          },
+          {
+            "source": "attention_salience",
+            "target": "brain_effort",
+            "delta": -0.3406,
+            "abs_delta": 0.3406
+          },
+          {
+            "source": "personal_resonance",
+            "target": "brain_effort",
+            "delta": -0.2887,
+            "abs_delta": 0.2887
+          },
+          {
+            "source": "gut_reaction",
+            "target": "brain_effort",
+            "delta": -0.2869,
+            "abs_delta": 0.2869
+          }
+        ]
+      }
     }
   }
 }

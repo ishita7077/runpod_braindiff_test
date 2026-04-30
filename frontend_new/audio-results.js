@@ -14,6 +14,7 @@
  */
 import { mountCortex } from "./assets/cortex-viewer.js";
 import { renderPatternStrip } from "./assets/patterns.js";
+import { renderConnectivity } from "./assets/connectivity-graph.js";
 
 const params = new URLSearchParams(location.search);
 const jobId = params.get("job");
@@ -106,6 +107,7 @@ function adaptResult(job) {
     dimensions: Array.isArray(result.dimensions) ? result.dimensions : [],
     moments: Array.isArray(features.moments) ? features.moments : [],
     patterns: features.patterns && typeof features.patterns === "object" ? features.patterns : { a: [], b: [] },
+    connectivity: features.connectivity && typeof features.connectivity === "object" ? features.connectivity : null,
     insights: result.insights || {},
     warnings: Array.isArray(result.warnings) ? result.warnings : [],
     vertex_delta_b64: result.vertex_delta_b64 || "",
@@ -141,6 +143,16 @@ function renderPatterns(data) {
   const stripB = document.getElementById("patternStripB");
   if (stripA) renderPatternStrip(stripA, data.patterns.a || [], totalA);
   if (stripB) renderPatternStrip(stripB, data.patterns.b || [], totalB);
+  // Connectivity map
+  const connRoot = document.getElementById("connectivitySection");
+  if (connRoot && data.connectivity) {
+    renderConnectivity(connRoot, data.connectivity, {
+      labelA: data.samples.a.name || "Version A",
+      labelB: data.samples.b.name || "Version B",
+    });
+  } else if (connRoot) {
+    connRoot.hidden = true;
+  }
 }
 
 function renderHeroStats(data) {

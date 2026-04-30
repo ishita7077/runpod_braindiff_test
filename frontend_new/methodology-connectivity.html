@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f4ec" />
+<title>How Brain Diff computes connectivity — Methodology</title>
+<meta name="description" content="The exact algorithm behind the connectivity map: Pearson correlation between predicted cortical-system activations, integration / parallel scores, hub + isolated nodes." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f7f4ec; --bg-2:#efeadf;
+  --surface:#ffffff; --panel:#ffffff; --panel-2:#f1ecde;
+  --line:#e2ddcf; --line-2:#cbc5b4;
+  --ink:#17171a; --ink-dim:#3d3d42; --ink-mute:#77736b;
+  --accent:#c1272d; --accent-2:#d94a4e; --accent-3:#f8e9e6;
+  --good:#2a5583; --good-2:#4a78ab;
+  --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0b0c0f; --surface:#15171c; --panel:rgba(20,22,28,0.72); --panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db; --ink-dim:#b6b1a6; --ink-mute:#7f7a70;
+  --accent:#e04a2e; --good:#6a97c9;
+}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{
+  background:radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),var(--bg);
+  color:var(--ink);font-family:'Inter Tight',system-ui,-apple-system,sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased;
+}
+.shell{max-width:880px;margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;max-width:1200px;margin:0 auto;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;font-size:15px;color:var(--ink)}
+.brand-logo{height:24px;width:auto;border-radius:4px}
+.topbar-right{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);display:flex;gap:18px}
+.topbar-right a:hover{color:var(--ink)}
+
+.theme-switcher{position:fixed;top:14px;right:20px;z-index:60}
+.theme-toggle{width:34px;height:34px;border-radius:8px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-dim);cursor:pointer;font-size:14px;display:grid;place-items:center;box-shadow:var(--shadow-sm);font-family:inherit;transition:color .15s ease, border-color .15s ease}
+.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.theme-toggle .tt-moon{display:inline}.theme-toggle .tt-sun{display:none}
+:root[data-theme="dark"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="dark"] .theme-toggle .tt-moon{display:none}
+
+.page-hero{padding:60px 0 40px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;display:inline-block;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb, var(--surface) 60%, transparent)}
+h1{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(36px,5vw,56px);line-height:1.05;letter-spacing:-0.02em;margin:0 0 18px}
+h1 em{font-style:italic;color:var(--accent)}
+.lede{font-size:17px;color:var(--ink-dim);max-width:62ch;line-height:1.7;margin:0 0 12px}
+.callout{margin:28px 0 0;padding:16px 18px;border-left:3px solid var(--accent);border-radius:6px;background:color-mix(in srgb, var(--accent) 6%, var(--surface));font-size:14.5px;line-height:1.6;color:var(--ink-dim)}
+.callout strong{color:var(--ink)}
+
+.section{padding:36px 0;border-top:1px solid var(--line)}
+h2{font-family:'Fraunces',serif;font-weight:400;font-size:30px;line-height:1.15;letter-spacing:-0.015em;margin:0 0 14px}
+h3{font-family:'Fraunces',serif;font-weight:500;font-size:20px;letter-spacing:-0.01em;margin:24px 0 10px}
+p{margin:0 0 14px;font-size:15.5px;line-height:1.7;color:var(--ink-dim)}
+ul,ol{margin:0 0 14px;padding-left:22px;color:var(--ink-dim);font-size:15.5px;line-height:1.7}
+.algo{background:var(--panel-2);border-radius:8px;padding:14px 18px;margin:16px 0;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;color:var(--ink-dim);white-space:pre-wrap}
+
+.cite-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px}
+.cite-list li{padding:14px 16px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:14.5px;line-height:1.55}
+.cite-list em{color:var(--ink-dim)}
+.cite-list a{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid currentColor;margin-left:6px}
+.cite-claim{margin-top:6px;color:var(--ink-mute);font-size:13px}
+
+footer{padding:40px 0 60px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-mute)}
+footer a{color:var(--accent);border-bottom:1px solid currentColor}
+</style>
+</head>
+<body>
+
+<div class="theme-switcher">
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle light/dark"><span class="tt-sun">☀</span><span class="tt-moon">☾</span></button>
+</div>
+
+<header class="topbar">
+  <a class="brand" href="/"><img class="brand-logo" src="/assets/braindiff-logo.png" alt="BrainDiff" /><span>Brain<b>Diff</b></span></a>
+  <div class="topbar-right">
+    <a href="/methodology">Methodology</a>
+    <a href="/methodology/patterns">Patterns</a>
+    <a href="/research">Research</a>
+    <a href="/launch">New comparison</a>
+  </div>
+</header>
+
+<main class="shell">
+
+  <section class="page-hero">
+    <span class="eyebrow">Methodology · Connectivity</span>
+    <h1>The <em>connectivity map</em>.</h1>
+    <p class="lede">
+      Each cortical system has a per-second activation timeseries from
+      TRIBE v2. The connectivity map asks a simple question: as the audience
+      moves through the run, which systems engage <em>together</em>, and
+      which engage <em>independently</em>?
+    </p>
+    <div class="callout">
+      <strong>Honest scope.</strong> We compute Pearson correlation on the
+      <em>predicted</em> per-system activations from TRIBE v2, not on raw
+      fMRI from your audience. Predicted timeseries inherit the structure of
+      the model's encoder and the population it was trained on, so this is
+      a population-average signal — informative for talking about how
+      content engages cortical systems together, but not a direct
+      measurement of any individual viewer's brain. It also does not
+      capture sub-second dynamics: TRIBE works at roughly one prediction
+      per second.
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>The algorithm</h2>
+    <p>
+      For each pair of cortical systems (21 pairs across 7 systems), we
+      compute the Pearson correlation between their per-second activation
+      timeseries over the full run. The 7×7 symmetric matrix becomes a
+      graph: nodes are systems, edges are correlations.
+    </p>
+    <div class="algo">for each pair (i, j) in the 7 cortical systems:
+  r = Pearson(timeseries_i, timeseries_j)
+  matrix[i][j] = r
+
+if abs(r) >= 0.30:
+  draw an edge between system i and system j
+  edge thickness = abs(r)
+  edge color = green if r > 0 (engaged together)
+             = vermillion if r < 0 (engaged in opposition)
+
+integration_score = mean of abs(off-diagonal correlations)
+parallel_score    = mean of negative correlations
+hub_node          = the system with the highest sum of |r| across edges
+isolated_node     = the system with the lowest</div>
+    <p>
+      <strong>What integration tells you.</strong> A high integration
+      score (≥0.45) means the seven systems engage together — when
+      attention rises, memory tends to rise with it; when language depth
+      rises, social thinking does too. Tightly-coupled cortical state.
+      A low integration score (&lt;0.25) means the systems engage
+      independently — emotion fires when reasoning is quiet, or vice
+      versa. Parallel processing.
+    </p>
+    <p>
+      <strong>What the parallel score tells you.</strong> The mean of the
+      negative correlations specifically. A more-negative parallel score
+      means more systems are engaging in opposition during the run.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>What we don't claim</h2>
+    <ul>
+      <li>This is not raw functional connectivity. We derive it from
+        TRIBE v2's predicted activations, which are population-average and
+        per-second.</li>
+      <li>It does not predict any individual viewer's behaviour. It
+        describes the structure of the cortical state that a typical
+        cortex would enter while consuming this content.</li>
+      <li>Correlation is symmetric and undirected — it cannot tell you
+        which system is driving which. Granger causality would; we
+        don't compute that here because TRIBE's per-second resolution
+        isn't fine enough to support it cleanly.</li>
+      <li>Edges below |r| = 0.30 are not drawn. The full matrix is
+        always available in the API response if you want to inspect
+        every value.</li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>Citations</h2>
+    <ul class="cite-list">
+      <li>
+        <strong>Power, Cohen, Nelson, Wig, Barnes, Church, Vogel, Laumann, Miezin, Schlaggar, Petersen</strong>
+        (2011), <em>Neuron</em>. “Functional network organization of the human brain.”
+        <a href="https://scholar.google.com/scholar?q=Power+Cohen+Nelson+2011+Functional+network+organization+human+brain" target="_blank" rel="noopener">scholar</a>
+        <div class="cite-claim">
+          Foundation paper for measuring functional integration and segregation
+          via cross-region correlations. Established the dorsal attention,
+          frontoparietal control, default-mode and other canonical networks
+          we name in our results.
+        </div>
+      </li>
+      <li>
+        <strong>Sporns</strong> (2013), <em>Current Opinion in Neurobiology</em>.
+        “Network attributes for segregation and integration in the human brain.”
+        <a href="https://scholar.google.com/scholar?q=Sporns+2013+Network+attributes+segregation+integration+human+brain" target="_blank" rel="noopener">scholar</a>
+        <div class="cite-claim">
+          Defines integration (positive cross-network correlations) and
+          segregation (within-network coupling) as the two-axis description
+          of cortical state. Our integration_score and parallel_score sit on
+          this same axis.
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section class="section">
+    <h2>Inspect the source</h2>
+    <p>
+      The full computation lives at
+      <code>backend/connectivity.py</code> and is ~150 lines of pure Python
+      — no NumPy dependency, just the formulas. Tests live at
+      <code>tests/test_connectivity.py</code> and verify the implementation
+      against synthetic timeseries with known correlations.
+    </p>
+    <p>
+      <a href="https://github.com/ishita7077/runpod_braindiff_test/blob/main/backend/connectivity.py">
+        Read the implementation on GitHub →
+      </a>
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <a href="/methodology">← Back to methodology overview</a>
+</footer>
+
+<script>
+function toggleTheme(){
+  var r=document.documentElement;
+  var next=r.getAttribute('data-theme')==='dark'?'light':'dark';
+  if(next==='dark') r.setAttribute('data-theme','dark'); else r.removeAttribute('data-theme');
+  try{localStorage.setItem('braindiff-theme', next);}catch(e){}
+}
+</script>
+
+</body>
+</html>

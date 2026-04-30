@@ -443,6 +443,17 @@ def _run_media(
         except Exception as err:
             warnings.append(f"Pattern detection failed: {err}")
 
+        # Connectivity map: pairwise Pearson correlation between the
+        # 7 cortical-system timeseries, integration / parallel scores,
+        # hub + isolated node, plus the B−A delta matrix.
+        # Cheap (21 correlations on ~30 floats); never blocks the result.
+        try:
+            from backend.connectivity import compute_connectivity_both_sides
+            connectivity_payload = compute_connectivity_both_sides(dimension_rows)
+            media_features_payload["connectivity"] = connectivity_payload
+        except Exception as err:
+            warnings.append(f"Connectivity map failed: {err}")
+
         processing_time_ms = int((time.perf_counter() - started) * 1000)
         return _build_response(
             transcript_a=str(timing_a.get("transcript_text", "") or ""),

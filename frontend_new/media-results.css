@@ -986,3 +986,257 @@ body[data-media-kind="video"] .hero-copy {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+
+/* ============================================================
+   Connectivity Map (7-system network graph)
+   Defined in backend/connectivity.py.
+   Rendered by frontend_new/assets/connectivity-graph.js.
+   ============================================================ */
+
+.connectivity-section {
+  margin-top: 24px;
+  position: relative;
+}
+.connectivity-head {
+  margin-bottom: 18px;
+}
+.connectivity-sub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: var(--ink-mute, #77736b);
+  line-height: 1.55;
+  max-width: 70ch;
+}
+.connectivity-sub a {
+  color: var(--accent, #c1272d);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.connectivity-mode-toggle {
+  display: inline-flex;
+  margin-top: 12px;
+  border: 1px solid var(--line, rgba(0,0,0,0.12));
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface, #fff);
+}
+.conn-mode-btn {
+  background: transparent;
+  border: 0;
+  font: inherit;
+  padding: 7px 14px;
+  font-size: 12.5px;
+  color: var(--ink-dim, #3d3d42);
+  cursor: pointer;
+  border-right: 1px solid var(--line, rgba(0,0,0,0.08));
+}
+.conn-mode-btn:last-child { border-right: 0; }
+.conn-mode-btn.is-active {
+  background: var(--accent, #c1272d);
+  color: #fff;
+}
+.connectivity-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 900px) {
+  .connectivity-pair { grid-template-columns: 1fr; }
+}
+.connectivity-card {
+  border: 1px solid var(--line, rgba(0,0,0,0.12));
+  border-radius: 10px;
+  padding: 16px 18px;
+  background: color-mix(in srgb, var(--panel, #fff) 92%, transparent);
+}
+.connectivity-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute, #77736b);
+  margin-bottom: 12px;
+}
+.connectivity-card-head .badge {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 11px;
+  color: #fff;
+}
+.connectivity-card-head .badge.a { background: var(--good, #2a5583); }
+.connectivity-card-head .badge.b { background: var(--accent, #c1272d); }
+.connectivity-card-head .badge.delta {
+  background: linear-gradient(90deg, var(--good, #2a5583), var(--accent, #c1272d));
+}
+
+.conn-svg {
+  width: 100%;
+  height: auto;
+  max-height: 380px;
+  display: block;
+  margin: 0 auto;
+}
+.conn-edge {
+  cursor: crosshair;
+  transition: opacity 0.12s, stroke-width 0.12s;
+}
+.conn-edge.is-hot {
+  opacity: 1 !important;
+}
+.conn-edge.is-fade {
+  opacity: 0.12 !important;
+}
+.conn-edge.is-incident {
+  opacity: 1 !important;
+  filter: drop-shadow(0 0 4px currentColor);
+}
+.conn-node circle {
+  fill: var(--surface, #fff);
+  stroke: var(--ink-mute, #77736b);
+  stroke-width: 1.6;
+  transition: stroke 0.12s, stroke-width 0.12s, fill 0.12s;
+}
+.conn-node:hover circle {
+  stroke: var(--accent, #c1272d);
+  stroke-width: 2.4;
+}
+.conn-node.is-hub circle {
+  fill: var(--accent, #c1272d);
+  stroke: var(--accent, #c1272d);
+}
+.conn-node.is-iso circle {
+  stroke-dasharray: 3 2;
+}
+.conn-node text {
+  font-family: 'Inter Tight', system-ui, sans-serif;
+  font-size: 11px;
+  fill: var(--ink, #17171a);
+  font-weight: 500;
+}
+.conn-node.is-hub text {
+  fill: var(--accent, #c1272d);
+  font-weight: 600;
+}
+
+.conn-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line, rgba(0,0,0,0.08));
+}
+.conn-metric {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.conn-metric .kicker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-mute, #77736b);
+}
+.conn-metric strong {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: 17px;
+  color: var(--ink, #17171a);
+}
+.conn-metric .muted {
+  font-size: 10.5px;
+  color: var(--ink-mute, #77736b);
+}
+.conn-interpretation {
+  margin-top: 12px;
+  font-size: 13.5px;
+  color: var(--ink-dim, #3d3d42);
+  line-height: 1.6;
+  font-style: italic;
+}
+.conn-warnings {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  font-size: 12.5px;
+  color: var(--accent, #c1272d);
+}
+.conn-warnings li::before {
+  content: "⚠ ";
+  margin-right: 4px;
+}
+
+.connectivity-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--surface, #fff);
+  border: 1px solid var(--line-2, rgba(0,0,0,0.18));
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  color: var(--ink, #17171a);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+  z-index: 50;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.connectivity-tooltip[hidden] { display: none; }
+.connectivity-tooltip strong {
+  font-weight: 600;
+}
+.connectivity-tooltip span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent, #c1272d);
+}
+
+.connectivity-empty {
+  font-size: 13.5px;
+  color: var(--ink-mute, #77736b);
+  font-style: italic;
+  padding: 18px;
+  text-align: center;
+  border: 1px dashed var(--line, rgba(0,0,0,0.18));
+  border-radius: 8px;
+}
+
+.conn-delta-list {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line, rgba(0,0,0,0.08));
+  font-size: 13.5px;
+}
+.conn-delta-list .kicker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-mute, #77736b);
+  margin-bottom: 6px;
+  display: block;
+}
+.conn-delta-list ol {
+  margin: 0;
+  padding-left: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.conn-delta-list li strong {
+  color: var(--ink, #17171a);
+}
+.conn-delta-list .muted {
+  color: var(--ink-mute, #77736b);
+  font-size: 12.5px;
+}
+

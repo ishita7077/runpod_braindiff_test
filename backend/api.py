@@ -583,6 +583,16 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                 media_features_payload["patterns"] = patterns_payload
         except Exception as err:
             warnings.append(f"Pattern detection failed: {err}")
+
+        # Connectivity map: pairwise Pearson correlation between the 7
+        # cortical-system timeseries (Power et al. 2011 / Sporns 2013).
+        try:
+            from backend.connectivity import compute_connectivity_both_sides
+            connectivity_payload = compute_connectivity_both_sides(dimension_rows)
+            media_features_payload = dict(media_features_payload or {})
+            media_features_payload["connectivity"] = connectivity_payload
+        except Exception as err:
+            warnings.append(f"Connectivity map failed: {err}")
         result = _build_diff_result(
             payload=payload,
             request_id=request_id,
