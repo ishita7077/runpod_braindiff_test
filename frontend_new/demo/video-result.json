@@ -368,5 +368,97 @@
   "warnings": [],
   "vertex_delta_b64": "",
   "vertex_a_b64": "",
-  "vertex_b_b64": ""
+  "vertex_b_b64": "",
+  "media_features": {
+    "patterns": {
+      "a": [],
+      "b": [
+        {
+          "pattern_id": "learning_moment",
+          "name": "Learning Moment",
+          "start_seconds": 10.18,
+          "end_seconds": 28.0,
+          "peak_seconds": 17.82,
+          "peak_intensity": 0.73,
+          "contributing_dim_values": {
+            "attention_salience": [
+              0.58,
+              0.63,
+              0.69,
+              0.77,
+              0.74,
+              0.68,
+              0.61,
+              0.55
+            ],
+            "memory_encoding": [
+              0.5,
+              0.57,
+              0.64,
+              0.69,
+              0.66,
+              0.61,
+              0.58,
+              0.62
+            ]
+          },
+          "timestep_range": [
+            4,
+            11
+          ],
+          "total_timesteps": 12
+        },
+        {
+          "pattern_id": "emotional_impact",
+          "name": "Emotional Impact",
+          "start_seconds": 10.18,
+          "end_seconds": 10.18,
+          "peak_seconds": 10.18,
+          "peak_intensity": 0.5,
+          "contributing_dim_values": {
+            "personal_resonance": [
+              0.5
+            ],
+            "gut_reaction": [
+              0.5
+            ]
+          },
+          "timestep_range": [
+            4,
+            4
+          ],
+          "total_timesteps": 12
+        },
+        {
+          "pattern_id": "social_resonance",
+          "name": "Social Resonance",
+          "start_seconds": 10.18,
+          "end_seconds": 20.36,
+          "peak_seconds": 15.27,
+          "peak_intensity": 0.7,
+          "contributing_dim_values": {
+            "social_thinking": [
+              0.68,
+              0.79,
+              0.83,
+              0.75,
+              0.66
+            ],
+            "personal_resonance": [
+              0.5,
+              0.54,
+              0.57,
+              0.55,
+              0.51
+            ]
+          },
+          "timestep_range": [
+            4,
+            8
+          ],
+          "total_timesteps": 12
+        }
+      ]
+    }
+  }
 }

@@ -564,6 +564,25 @@ def _run_diff_job(job_id: str, request_id: str, payload: DiffRequest) -> None:
                     media_features_payload["moments"] = moments
             except Exception as err:
                 warnings.append(f"Peak moment detection failed: {err}")
+        # Co-activation pattern detection (Learning Moment, Emotional Impact,
+        # Reasoning Beat, Social Resonance). Reads pattern definitions from
+        # frontend_new/data/pattern-definitions.json — same file the frontend
+        # Pattern Card UI fetches, so the science stays consistent across the
+        # whole stack.
+        try:
+            from backend.pattern_detector import detect_patterns_both_sides
+            dur_a_anchor = (media_durations or {}).get("a") if media_durations else None
+            dur_b_anchor = (media_durations or {}).get("b") if media_durations else None
+            patterns_payload = detect_patterns_both_sides(
+                dimension_rows,
+                duration_a_s=dur_a_anchor,
+                duration_b_s=dur_b_anchor,
+            )
+            if patterns_payload.get("a") or patterns_payload.get("b"):
+                media_features_payload = dict(media_features_payload or {})
+                media_features_payload["patterns"] = patterns_payload
+        except Exception as err:
+            warnings.append(f"Pattern detection failed: {err}")
         result = _build_diff_result(
             payload=payload,
             request_id=request_id,

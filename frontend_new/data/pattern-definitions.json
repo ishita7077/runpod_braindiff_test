@@ -1,0 +1,186 @@
+{
+  "$schema": "./pattern-definitions.schema.json",
+  "version": "v1.0.0",
+  "generated_at": "2026-04-30",
+  "calibration": {
+    "method": "v1_conservative_defaults",
+    "rationale": "Thresholds are set at the 60th–70th percentile of activation observed in our demo result corpus and the test stubs. They are deliberately conservative — high precision, lower recall — until we accumulate a real-world corpus and run scripts/calibrate_patterns.py to recalibrate.",
+    "recalibrate_with": "scripts/calibrate_patterns.py",
+    "min_block_seconds_default": 2
+  },
+  "dropped_patterns": [
+    {
+      "considered_id": "visceral_hit",
+      "reason": "The originally-proposed inverse pattern (high Gut Reaction + low Brain Effort = 'pure feeling, no thinking') has no published support for the dlPFC-suppression half. Critchley et al. 2004 establishes anterior insula as the cortical seat of interoceptive awareness, but does not show that high insula co-occurs with low dlPFC, nor that this combination indexes 'feeling without thinking.' If anything, the emotion-regulation literature (Ochsner & Gross 2005) suggests dlPFC up-regulates to dampen affect — the opposite anti-correlation. Dropped from v1 rather than ship a stretch."
+    }
+  ],
+  "patterns": [
+    {
+      "id": "learning_moment",
+      "name": "Learning Moment",
+      "short_desc": "The cortex is encoding this moment into long-term memory.",
+      "long_desc": "When the dorsal attention network (DAN) and left ventrolateral prefrontal cortex (vlPFC) co-activate, the cortex is doing the work that predicts later recall. This is the 'subsequent memory effect' — researchers showed in 1998 that brain activity *during* encoding predicts which moments a viewer will remember days later, while activity that's absent at this moment is forgotten. Attention orients the cortex to the moment; vlPFC binds it into memory.",
+      "dims": ["attention_salience", "memory_encoding"],
+      "logic": "AND_HIGH",
+      "thresholds": {
+        "attention_salience": 0.55,
+        "memory_encoding": 0.50
+      },
+      "min_duration_seconds": 2,
+      "color_token": "--accent",
+      "citations": [
+        {
+          "authors": "Wagner, Schacter, Rotte, Koutstaal, Maril, Dale, Rosen, Buckner",
+          "year": 1998,
+          "journal": "Science",
+          "title": "Building memories: remembering and forgetting of verbal experiences as predicted by brain activity",
+          "doi": "10.1126/science.281.5380.1188",
+          "scholar_url": "https://scholar.google.com/scholar?q=Wagner+1998+Building+memories+brain+activity",
+          "claim": "Foundational subsequent-memory-effect paper. Left vlPFC activity at encoding predicts later remembered vs forgotten words."
+        },
+        {
+          "authors": "Corbetta, Shulman",
+          "year": 2002,
+          "journal": "Nature Reviews Neuroscience",
+          "title": "Control of goal-directed and stimulus-driven attention in the brain",
+          "scholar_url": "https://scholar.google.com/scholar?q=Corbetta+Shulman+2002+Control+goal-directed+stimulus-driven+attention",
+          "claim": "Defines the dorsal attention network (DAN) as the system that orients attention to task-relevant content."
+        },
+        {
+          "authors": "Cabeza, Nyberg",
+          "year": 2000,
+          "journal": "Journal of Cognitive Neuroscience",
+          "title": "Imaging cognition II: An empirical review of 275 PET and fMRI studies",
+          "doi": "10.1162/08989290051137585",
+          "scholar_url": "https://scholar.google.com/scholar?q=Cabeza+Nyberg+2000+Imaging+cognition+II",
+          "claim": "Meta-analysis providing the broader functional-anatomy backdrop. Cite as background, not for SME specifically."
+        }
+      ],
+      "citation_summary": "The 'subsequent memory effect' — activity during encoding predicts which moments will later be remembered."
+    },
+    {
+      "id": "emotional_impact",
+      "name": "Emotional Impact",
+      "short_desc": "The viewer is feeling this moment as personally meaningful.",
+      "long_desc": "When medial prefrontal cortex (mPFC) and anterior insula co-activate, two systems engage at once. mPFC tracks self-relevance and subjective value — 'is this about me, do I care about it?'. The anterior insula tracks interoception — the felt, bodily edge of experience. Together they index a moment that lands as *personally felt*. Falk and colleagues showed in 2012 that mPFC activation during anti-smoking PSAs predicted real-world quit-line call volume at the population level, which makes this combination a documented predictor of real behaviour change in one specific domain.",
+      "dims": ["personal_resonance", "gut_reaction"],
+      "logic": "AND_HIGH",
+      "thresholds": {
+        "personal_resonance": 0.50,
+        "gut_reaction": 0.50
+      },
+      "min_duration_seconds": 2,
+      "color_token": "--accent-2",
+      "citations": [
+        {
+          "authors": "Northoff, Bermpohl",
+          "year": 2004,
+          "journal": "Trends in Cognitive Sciences",
+          "title": "Cortical midline structures and the self",
+          "scholar_url": "https://scholar.google.com/scholar?q=Northoff+Bermpohl+2004+Cortical+midline+structures+self",
+          "claim": "Establishes mPFC and adjacent midline regions as the cortical seat of self-referential processing."
+        },
+        {
+          "authors": "Craig",
+          "year": 2009,
+          "journal": "Nature Reviews Neuroscience",
+          "title": "How do you feel — now? The anterior insula and human awareness",
+          "scholar_url": "https://scholar.google.com/scholar?q=Craig+2009+How+do+you+feel+anterior+insula",
+          "claim": "Anterior insula as the cortical hub for interoceptive awareness — the felt, bodily edge of emotion."
+        },
+        {
+          "authors": "Bartra, McGuire, Kable",
+          "year": 2013,
+          "journal": "NeuroImage",
+          "title": "The valuation system: A coordinate-based meta-analysis of BOLD fMRI experiments examining neural correlates of subjective value",
+          "scholar_url": "https://scholar.google.com/scholar?q=Bartra+McGuire+Kable+2013+valuation+system+meta-analysis",
+          "claim": "Meta-analysis (~200 studies) showing ventromedial PFC tracks subjective value — formalises the 'is it worth caring about' computation that anchors this pattern."
+        },
+        {
+          "authors": "Falk, Berkman, Lieberman",
+          "year": 2012,
+          "journal": "Psychological Science",
+          "title": "From neural responses to population behavior: neural focus group predicts population-level media effects",
+          "scholar_url": "https://scholar.google.com/scholar?q=Falk+Berkman+Lieberman+2012+neural+focus+group",
+          "claim": "mPFC response to anti-smoking PSAs predicted population-level call-volume changes. Documented behavioural prediction in one specific domain (health PSAs).",
+          "scope_caveat": "Small sample (~30), one domain (health PSAs). Don't overgeneralise to all emotional content."
+        }
+      ],
+      "citation_summary": "mPFC tracks self-relevance + subjective value; anterior insula tracks felt bodily response. Together: the moment lands personally and viscerally."
+    },
+    {
+      "id": "reasoning_beat",
+      "name": "Reasoning Beat",
+      "short_desc": "The viewer is actively working through what the content means.",
+      "long_desc": "When dorsolateral prefrontal cortex (dlPFC) and the language-selective network (Broca's area + Wernicke's area) co-activate, the viewer is doing effortful semantic processing — pulling structure and meaning out of the content rather than just letting it wash over them. dlPFC scales reliably with cognitive load (Owen et al.'s n-back meta-analysis); the language network scales with linguistic complexity (Fedorenko et al.). Co-activation = both load and language are high, which characterises moments where the audience is actually thinking.",
+      "dims": ["brain_effort", "language_depth"],
+      "logic": "AND_HIGH",
+      "thresholds": {
+        "brain_effort": 0.50,
+        "language_depth": 0.50
+      },
+      "min_duration_seconds": 2,
+      "color_token": "--good",
+      "citations": [
+        {
+          "authors": "Owen, McMillan, Laird, Bullmore",
+          "year": 2005,
+          "journal": "Human Brain Mapping",
+          "title": "N-back working memory paradigm: a meta-analysis of normative functional neuroimaging studies",
+          "scholar_url": "https://scholar.google.com/scholar?q=Owen+McMillan+Laird+Bullmore+2005+N-back+meta-analysis",
+          "claim": "ALE meta-analysis establishing that dlPFC activation reliably tracks working-memory load."
+        },
+        {
+          "authors": "Fedorenko, Behr, Kanwisher",
+          "year": 2011,
+          "journal": "Proceedings of the National Academy of Sciences",
+          "title": "Functional specificity for high-level linguistic processing in the human brain",
+          "scholar_url": "https://scholar.google.com/scholar?q=Fedorenko+Behr+Kanwisher+2011+Functional+specificity+linguistic",
+          "claim": "Language-selective network (Broca + Wernicke) responds selectively to sentence structure and scales with linguistic complexity."
+        },
+        {
+          "authors": "Fedorenko, Hsieh, Nieto-Castañón, Whitfield-Gabrieli, Kanwisher",
+          "year": 2010,
+          "journal": "Journal of Neurophysiology",
+          "title": "New method for fMRI investigations of language: defining ROIs functionally in individual subjects",
+          "scholar_url": "https://scholar.google.com/scholar?q=Fedorenko+Hsieh+2010+New+method+fMRI+language",
+          "claim": "Methodological foundation: how the language network is identified per-subject. Cited for the ROI definition itself."
+        }
+      ],
+      "citation_summary": "dlPFC scales with effort; the language network scales with linguistic richness. Co-activation = active reasoning, not passive consumption."
+    },
+    {
+      "id": "social_resonance",
+      "name": "Social Resonance",
+      "short_desc": "The viewer is reading the people on screen as relatable, not abstract.",
+      "long_desc": "When the right temporoparietal junction (rTPJ) and medial prefrontal cortex (mPFC) co-activate, the viewer is doing two things at once: inferring mental states of others (rTPJ) and routing those inferences through self-relevant evaluation (mPFC). Saxe & Kanwisher (2003) established rTPJ as selective for theory-of-mind. Mitchell, Macrae & Banaji (2006) showed mPFC engages differently when judging others perceived as similar to the self vs dissimilar — wiring self-processing to social cognition through the same region. Co-activation here = the audience is treating the people on screen as relatable, not abstract.",
+      "dims": ["social_thinking", "personal_resonance"],
+      "logic": "AND_HIGH",
+      "thresholds": {
+        "social_thinking": 0.50,
+        "personal_resonance": 0.50
+      },
+      "min_duration_seconds": 2,
+      "color_token": "--accent-3-strong",
+      "citations": [
+        {
+          "authors": "Saxe, Kanwisher",
+          "year": 2003,
+          "journal": "NeuroImage",
+          "title": "People thinking about thinking people: the role of the temporo-parietal junction in 'theory of mind'",
+          "scholar_url": "https://scholar.google.com/scholar?q=Saxe+Kanwisher+2003+People+thinking+about+thinking+people",
+          "claim": "Right TPJ activates selectively when attributing mental states to others, beyond general social/biological-motion processing."
+        },
+        {
+          "authors": "Mitchell, Macrae, Banaji",
+          "year": 2006,
+          "journal": "Neuron",
+          "title": "Dissociable medial prefrontal contributions to judgments of similar and dissimilar others",
+          "scholar_url": "https://scholar.google.com/scholar?q=Mitchell+Macrae+Banaji+2006+Dissociable+medial+prefrontal",
+          "claim": "Ventral mPFC engages for similar others, dorsal mPFC for dissimilar others — links self-processing to social cognition through the same region."
+        }
+      ],
+      "citation_summary": "TPJ for inferring others' minds; mPFC for routing those inferences through self-relevance. Together: the audience is connecting, not observing."
+    }
+  ]
+}

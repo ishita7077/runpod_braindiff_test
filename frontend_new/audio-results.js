@@ -13,6 +13,7 @@
  *  - Auditory-cortex emphasis on the cortex viewer (approximate STG/Heschl)
  */
 import { mountCortex } from "./assets/cortex-viewer.js";
+import { renderPatternStrip } from "./assets/patterns.js";
 
 const params = new URLSearchParams(location.search);
 const jobId = params.get("job");
@@ -104,6 +105,7 @@ function adaptResult(job) {
     },
     dimensions: Array.isArray(result.dimensions) ? result.dimensions : [],
     moments: Array.isArray(features.moments) ? features.moments : [],
+    patterns: features.patterns && typeof features.patterns === "object" ? features.patterns : { a: [], b: [] },
     insights: result.insights || {},
     warnings: Array.isArray(result.warnings) ? result.warnings : [],
     vertex_delta_b64: result.vertex_delta_b64 || "",
@@ -128,7 +130,17 @@ function render(data) {
   renderTracks(data);
   renderMoments(data);
   renderTranscriptPair(data);
+  renderPatterns(data);
   wireTimeline(data);
+}
+
+function renderPatterns(data) {
+  const totalA = data.samples.a.duration || 30;
+  const totalB = data.samples.b.duration || 30;
+  const stripA = document.getElementById("patternStripA");
+  const stripB = document.getElementById("patternStripB");
+  if (stripA) renderPatternStrip(stripA, data.patterns.a || [], totalA);
+  if (stripB) renderPatternStrip(stripB, data.patterns.b || [], totalB);
 }
 
 function renderHeroStats(data) {

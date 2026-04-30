@@ -619,3 +619,370 @@ body[data-media-kind="video"] .hero-copy {
   outline: 2px solid var(--accent, #c1272d);
   outline-offset: -2px;
 }
+
+/* ============================================================
+   Co-activation Patterns (Pattern Strip + Pattern Card)
+   Defined in frontend_new/data/pattern-definitions.json.
+   Detected by backend/pattern_detector.py.
+   Rendered by frontend_new/assets/patterns.js.
+   ============================================================ */
+
+.patterns-section {
+  margin-top: 24px;
+}
+.patterns-head {
+  margin-bottom: 16px;
+}
+.patterns-sub {
+  margin-top: 6px;
+  font-size: 13.5px;
+  color: var(--ink-mute, #77736b);
+  line-height: 1.55;
+  max-width: 70ch;
+}
+.patterns-sub a {
+  color: var(--accent, #c1272d);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.patterns-pair {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.patterns-side {
+  border: 1px solid var(--line, rgba(0,0,0,0.12));
+  border-radius: 8px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--panel, #fff) 92%, transparent);
+}
+.patterns-side-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute, #77736b);
+  margin-bottom: 10px;
+}
+.patterns-side-head .badge {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  font-weight: 600;
+  font-size: 11px;
+  color: #fff;
+}
+.patterns-side-head .badge.a { background: var(--good, #2a5583); }
+.patterns-side-head .badge.b { background: var(--accent, #c1272d); }
+
+.pattern-strip {
+  position: relative;
+  min-height: 30px;
+  width: 100%;
+}
+.pattern-strip-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.pattern-strip-row {
+  position: relative;
+  height: 30px;
+  background: color-mix(in srgb, var(--ink-mute, #77736b) 7%, transparent);
+  border-radius: 4px;
+}
+.pattern-strip-empty {
+  font-size: 12.5px;
+  color: var(--ink-mute, #77736b);
+  font-style: italic;
+  padding: 8px 10px;
+  border: 1px dashed var(--line, rgba(0,0,0,0.18));
+  border-radius: 6px;
+  text-align: center;
+}
+
+.pattern-block {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  color: #fff;
+  font: inherit;
+  padding: 0 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  text-align: left;
+  transition: transform 0.12s, box-shadow 0.12s, filter 0.12s;
+}
+.pattern-block:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+.pattern-block:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+.pattern-block-name {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pattern-block-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9.5px;
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pattern Card overlay (modal). Click outside or hit Esc to close. */
+.pattern-card-overlay {
+  position: fixed;
+  inset: 0;
+  background: color-mix(in srgb, #000 55%, transparent);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  animation: pcOverlayIn 0.12s ease-out;
+}
+@keyframes pcOverlayIn { from { opacity: 0; } to { opacity: 1; } }
+.pattern-card-shell {
+  background: var(--surface, #ffffff);
+  color: var(--ink, #17171a);
+  border: 1px solid var(--line, rgba(0,0,0,0.12));
+  border-radius: 14px;
+  width: min(720px, 100%);
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+}
+:root[data-theme="dark"] .pattern-card-shell {
+  background: var(--bg-2, #101116);
+}
+.pattern-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 22px 24px 14px;
+  border-bottom: 1px solid var(--line, rgba(0,0,0,0.1));
+}
+.pattern-card-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent, #c1272d);
+  margin-bottom: 6px;
+}
+.pattern-card-title {
+  font-family: 'Fraunces', 'Source Serif 4', Georgia, serif;
+  font-weight: 400;
+  font-size: 28px;
+  letter-spacing: -0.015em;
+  line-height: 1.1;
+  margin: 0 0 6px;
+}
+.pattern-card-short {
+  font-size: 14.5px;
+  color: var(--ink-dim, #3d3d42);
+  margin: 0;
+  max-width: 56ch;
+}
+.pattern-card-close {
+  background: none;
+  border: 1px solid var(--line, rgba(0,0,0,0.12));
+  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink-mute, #77736b);
+}
+.pattern-card-close:hover { color: var(--accent, #c1272d); border-color: var(--accent, #c1272d); }
+
+.pattern-card-body {
+  padding: 18px 24px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.pattern-card-long {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--ink-dim, #3d3d42);
+  margin: 0;
+}
+.pattern-card-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  border-top: 1px solid var(--line, rgba(0,0,0,0.08));
+  border-bottom: 1px solid var(--line, rgba(0,0,0,0.08));
+  padding: 12px 0;
+}
+.pattern-card-meta > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.pattern-card-meta .kicker {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-mute, #77736b);
+}
+.pattern-card-meta strong {
+  font-weight: 600;
+  color: var(--ink, #17171a);
+  font-size: 14px;
+}
+.pattern-card-meta .muted {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--ink-mute, #77736b);
+}
+
+.pattern-card-dims {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pattern-dim {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.pattern-dim-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+}
+.pattern-mini-chart {
+  width: 100%;
+  height: 36px;
+  color: var(--accent, #c1272d);
+}
+.pattern-mini-empty {
+  font-style: italic;
+  color: var(--ink-mute, #77736b);
+  font-size: 12px;
+}
+
+.pattern-card-howto {
+  background: color-mix(in srgb, var(--ink-mute, #77736b) 7%, transparent);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+}
+.pattern-card-howto > summary {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent, #c1272d);
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+.pattern-card-howto ol {
+  margin: 0 0 0 18px;
+  padding: 0;
+  line-height: 1.6;
+}
+.pattern-card-howto code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  background: color-mix(in srgb, var(--accent, #c1272d) 10%, transparent);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.pattern-card-howto .muted {
+  color: var(--ink-mute, #77736b);
+  margin-top: 8px;
+  font-size: 12.5px;
+}
+
+.pattern-card-cites h3 {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-size: 18px;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+}
+.pattern-card-cites ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pattern-card-cites li {
+  font-size: 13.5px;
+  line-height: 1.55;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed var(--line, rgba(0,0,0,0.08));
+}
+.pattern-card-cites li:last-child { border-bottom: 0; padding-bottom: 0; }
+.cite-authors { font-weight: 500; }
+.cite-year { color: var(--ink-mute, #77736b); }
+.cite-title { font-style: italic; color: var(--ink-dim, #3d3d42); }
+.cite-link {
+  display: inline-block;
+  margin-left: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--accent, #c1272d);
+  border-bottom: 1px solid currentColor;
+}
+.cite-claim {
+  margin-top: 4px;
+  color: var(--ink-mute, #77736b);
+  font-size: 12.5px;
+}
+.cite-caveat {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--accent, #c1272d);
+}
+.cite-summary {
+  margin-top: 10px;
+  font-style: italic;
+  color: var(--ink-dim, #3d3d42);
+  font-size: 13.5px;
+}
+.pattern-card-disclaimer {
+  font-size: 12.5px;
+  color: var(--ink-mute, #77736b);
+  border-top: 1px solid var(--line, rgba(0,0,0,0.08));
+  padding-top: 14px;
+  line-height: 1.55;
+}
+.pattern-card-disclaimer a {
+  color: var(--accent, #c1272d);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

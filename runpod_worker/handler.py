@@ -427,6 +427,22 @@ def _run_media(
         if moments:
             media_features_payload["moments"] = moments
 
+        # Co-activation pattern detection. Reads the published-evidence
+        # pattern definitions from frontend_new/data/pattern-definitions.json
+        # (single source of truth — same file the frontend's Pattern Card
+        # UI reads) and returns per-side instances with start/end/peak.
+        try:
+            from backend.pattern_detector import detect_patterns_both_sides
+            patterns_payload = detect_patterns_both_sides(
+                dimension_rows,
+                duration_a_s=dur_a,
+                duration_b_s=dur_b,
+            )
+            if patterns_payload.get("a") or patterns_payload.get("b"):
+                media_features_payload["patterns"] = patterns_payload
+        except Exception as err:
+            warnings.append(f"Pattern detection failed: {err}")
+
         processing_time_ms = int((time.perf_counter() - started) * 1000)
         return _build_response(
             transcript_a=str(timing_a.get("transcript_text", "") or ""),

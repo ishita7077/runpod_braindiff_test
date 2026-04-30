@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#f7f4ec" />
+<title>How Brain Diff detects patterns — Methodology</title>
+<meta name="description" content="The exact algorithm, thresholds, and citations behind every co-activation pattern Brain Diff detects." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f7f4ec; --bg-2:#efeadf; --bg-3:#e7e2d4;
+  --surface:#ffffff; --panel:#ffffff; --panel-2:#f1ecde;
+  --line:#e2ddcf; --line-2:#cbc5b4;
+  --ink:#17171a; --ink-dim:#3d3d42; --ink-mute:#77736b;
+  --accent:#c1272d; --accent-2:#d94a4e; --accent-3:#f8e9e6;
+  --good:#2a5583; --good-2:#4a78ab; --good-3:#e6edf6;
+  --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
+  --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0b0c0f; --bg-2:#101116; --bg-3:#15171c;
+  --surface:#15171c; --panel:rgba(20,22,28,0.72); --panel-2:rgba(28,31,38,0.58);
+  --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
+  --ink:#e8e4db; --ink-dim:#b6b1a6; --ink-mute:#7f7a70;
+  --accent:#e04a2e; --accent-2:#f27455; --accent-3:rgba(224,74,46,0.12);
+  --good:#6a97c9; --good-2:#8db2d4; --good-3:rgba(106,151,201,0.12);
+}
+
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{
+  background:
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
+    var(--bg);
+  color:var(--ink);
+  font-family:'Inter Tight',system-ui,-apple-system,sans-serif;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+
+.shell{max-width:880px;margin:0 auto;padding:0 28px}
+a{color:inherit;text-decoration:none}
+
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px 28px;max-width:1200px;margin:0 auto;border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;font-weight:500;font-size:15px;color:var(--ink)}
+.brand-logo{height:24px;width:auto;border-radius:4px}
+.topbar-right{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--ink-dim);display:flex;gap:18px}
+.topbar-right a{transition:color .15s ease}
+.topbar-right a:hover{color:var(--ink)}
+
+.theme-switcher{position:fixed;top:14px;right:20px;z-index:60}
+.theme-toggle{width:34px;height:34px;border-radius:8px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-dim);cursor:pointer;font-size:14px;display:grid;place-items:center;box-shadow:var(--shadow-sm);font-family:inherit;transition:color .15s ease, border-color .15s ease}
+.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
+.theme-toggle .tt-moon{display:inline}.theme-toggle .tt-sun{display:none}
+:root[data-theme="dark"] .theme-toggle .tt-sun{display:inline}
+:root[data-theme="dark"] .theme-toggle .tt-moon{display:none}
+
+.page-hero{padding:60px 0 40px}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:18px;display:inline-block;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb, var(--surface) 60%, transparent)}
+h1{font-family:'Fraunces','Source Serif 4',Georgia,serif;font-weight:400;font-size:clamp(36px,5vw,56px);line-height:1.05;letter-spacing:-0.02em;margin:0 0 18px}
+h1 em{font-style:italic;color:var(--accent)}
+.lede{font-size:17px;color:var(--ink-dim);max-width:60ch;line-height:1.7;margin:0 0 12px}
+.callout{
+  margin:28px 0 0;padding:16px 18px;border-left:3px solid var(--accent);border-radius:6px;
+  background:color-mix(in srgb, var(--accent) 6%, var(--surface));font-size:14.5px;line-height:1.6;color:var(--ink-dim);
+}
+.callout strong{color:var(--ink)}
+
+.section{padding:36px 0;border-top:1px solid var(--line)}
+h2{font-family:'Fraunces',serif;font-weight:400;font-size:30px;line-height:1.15;letter-spacing:-0.015em;margin:0 0 14px}
+h3{font-family:'Fraunces',serif;font-weight:500;font-size:20px;letter-spacing:-0.01em;margin:24px 0 10px}
+p{margin:0 0 14px;font-size:15.5px;line-height:1.7;color:var(--ink-dim)}
+ul,ol{margin:0 0 14px;padding-left:22px;color:var(--ink-dim);font-size:15.5px;line-height:1.7}
+
+.algo{
+  background:var(--panel-2);border-radius:8px;padding:14px 18px;margin:16px 0;
+  font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.7;color:var(--ink-dim);
+  white-space:pre-wrap;
+}
+
+.pattern-block{
+  border:1px solid var(--line);border-radius:10px;padding:24px;margin:18px 0;background:var(--panel);box-shadow:var(--shadow-sm);
+}
+.pattern-block h3{margin:0 0 6px;font-family:'Fraunces',serif;font-weight:400;font-size:24px;letter-spacing:-0.01em;color:var(--ink)}
+.pattern-meta-row{display:flex;flex-wrap:wrap;gap:14px;margin:10px 0 14px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-mute);text-transform:uppercase;letter-spacing:0.08em}
+.pattern-meta-row strong{color:var(--accent);font-weight:500}
+.pattern-block .desc{margin:0 0 14px;color:var(--ink-dim);font-size:15px;line-height:1.7}
+.pattern-block .thresholds{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:8px;margin:6px 0 14px;
+  font-family:'JetBrains Mono',monospace;font-size:12.5px;
+}
+.pattern-block .thresholds li{list-style:none;padding:8px 12px;background:var(--panel-2);border-radius:6px;color:var(--ink)}
+.pattern-block .thresholds .dim{color:var(--ink-mute);margin-right:8px}
+.pattern-block .cites{margin:6px 0 0;padding:0;list-style:none;font-size:13.5px}
+.pattern-block .cites li{margin:6px 0;padding-bottom:6px;border-bottom:1px dashed var(--line);line-height:1.55}
+.pattern-block .cites li:last-child{border-bottom:0}
+.pattern-block .cites em{color:var(--ink-dim)}
+.pattern-block .cites a{color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;border-bottom:1px solid currentColor;margin-left:6px}
+.pattern-block .summary{margin-top:10px;font-style:italic;color:var(--ink-dim);font-size:14px}
+
+.dropped{
+  border:1px dashed var(--line-2);background:color-mix(in srgb, var(--ink-mute) 5%, var(--surface));
+  border-radius:10px;padding:18px 22px;margin:18px 0;color:var(--ink-dim);font-size:14.5px;line-height:1.65;
+}
+.dropped strong{color:var(--ink)}
+
+footer{padding:40px 0 60px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--ink-mute)}
+footer a{color:var(--accent);border-bottom:1px solid currentColor}
+</style>
+</head>
+<body>
+
+<div class="theme-switcher">
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle light/dark">
+    <span class="tt-sun">☀</span><span class="tt-moon">☾</span>
+  </button>
+</div>
+
+<header class="topbar">
+  <a class="brand" href="/"><img class="brand-logo" src="/assets/braindiff-logo.png" alt="BrainDiff" /><span>Brain<b>Diff</b></span></a>
+  <div class="topbar-right">
+    <a href="/methodology">Methodology</a>
+    <a href="/research">Research</a>
+    <a href="/launch">New comparison</a>
+  </div>
+</header>
+
+<main class="shell">
+
+  <section class="page-hero">
+    <span class="eyebrow">Methodology · Patterns</span>
+    <h1>How Brain Diff <em>detects patterns</em>.</h1>
+    <p class="lede">
+      Each named pattern in your result is a co-activation rule grounded in
+      published cognitive neuroscience. This page is the inspectable record:
+      the exact algorithm, the threshold values, and the papers behind every
+      pattern. If anything here looks wrong, the source-of-truth file lives at
+      <a href="/data/pattern-definitions.json"><code>data/pattern-definitions.json</code></a>
+      — open it, copy it, audit it.
+    </p>
+    <div class="callout">
+      <strong>Honest limits.</strong> These are population-average predictions
+      from TRIBE v2 — a model trained on fMRI data from many subjects watching
+      naturalistic media. They are a vocabulary for talking about what your
+      content does to a typical cortex, not a diagnosis of any individual viewer.
+      They do not capture sub-second dynamics. They are correlations and
+      published findings, not lab-replicated measurements of your audience.
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>The algorithm</h2>
+    <p>
+      Pattern detection is deterministic. No machine learning. Same input,
+      same output, every time.
+    </p>
+    <div class="algo">for each pattern in pattern-definitions.json:
+  for each second t in the run:
+    if every contributing dimension at t is ≥ its threshold:
+      mark t as "in pattern"
+  group runs of consecutive in-pattern seconds into blocks
+  drop blocks shorter than min_duration_seconds
+  for each remaining block, find the second with the highest
+    mean activation across contributing dimensions and call it the peak</div>
+    <p>
+      The full implementation is at
+      <code>backend/pattern_detector.py</code> and is ~150 lines of pure Python.
+      It reads pattern-definitions.json directly, so the science cannot drift
+      between backend and frontend.
+    </p>
+    <h3>How thresholds were chosen</h3>
+    <p>
+      The v1 thresholds (typically 0.50–0.55) sit at roughly the 60th–70th
+      percentile of activation observed across our demo result corpus. They
+      are deliberately conservative — high precision, lower recall — so we
+      under-call patterns rather than over-claim them. We ship a recalibration
+      script at <code>scripts/calibrate_patterns.py</code> that re-derives
+      thresholds from any new result corpus, and the JSON's
+      <code>calibration</code> block documents the procedure.
+    </p>
+  </section>
+
+  <section class="section">
+    <h2>The patterns we ship</h2>
+    <p>Ordered by published-evidence strength, strongest first.</p>
+    <div id="patternList"></div>
+  </section>
+
+  <section class="section">
+    <h2>What we considered and dropped</h2>
+    <div id="droppedList"></div>
+  </section>
+
+  <section class="section">
+    <h2>Open invitation</h2>
+    <p>
+      The pattern definitions live in a single JSON file at
+      <a href="/data/pattern-definitions.json"><code>frontend_new/data/pattern-definitions.json</code></a>
+      and on the public repo. If you're a neuroscientist with a stronger
+      citation, a stricter threshold, or a pattern we missed — the schema
+      welcomes contributions. The whole point is that the science is
+      inspectable, not a black box.
+    </p>
+    <p>
+      <a href="https://github.com/ishita7077/runpod_braindiff_test/blob/main/frontend_new/data/pattern-definitions.json">
+        Inspect on GitHub →
+      </a>
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  <a href="/methodology">← Back to methodology overview</a>
+</footer>
+
+<script>
+function toggleTheme(){
+  var r=document.documentElement;
+  var next=r.getAttribute('data-theme')==='dark'?'light':'dark';
+  if(next==='dark') r.setAttribute('data-theme','dark'); else r.removeAttribute('data-theme');
+  try{localStorage.setItem('braindiff-theme', next);}catch(e){}
+}
+
+(async function(){
+  const list = document.getElementById('patternList');
+  const dropped = document.getElementById('droppedList');
+  let defs;
+  try {
+    const res = await fetch('/data/pattern-definitions.json');
+    if (!res.ok) throw new Error('definitions HTTP ' + res.status);
+    defs = await res.json();
+  } catch (err) {
+    list.innerHTML = '<p class="dropped">Could not load pattern definitions: ' + err + '</p>';
+    return;
+  }
+  const fmt = (n) => Number(n).toFixed(2);
+  const escape = (s) => String(s ?? '').replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
+  list.innerHTML = (defs.patterns || []).map(p => `
+    <article class="pattern-block">
+      <h3>${escape(p.name)}</h3>
+      <div class="pattern-meta-row">
+        <span>Logic <strong>${escape(p.logic)}</strong></span>
+        <span>Min duration <strong>${p.min_duration_seconds}s</strong></span>
+        <span>Dims <strong>${(p.dims || []).join(' · ')}</strong></span>
+      </div>
+      <p class="desc">${escape(p.long_desc)}</p>
+      <ul class="thresholds">
+        ${Object.entries(p.thresholds || {}).map(([dim, val]) => `
+          <li><span class="dim">${escape(dim)}</span>≥ ${fmt(val)}</li>
+        `).join('')}
+      </ul>
+      <h4 style="font-family:'Fraunces',serif;font-weight:500;font-size:15px;margin:12px 0 6px;">Citations</h4>
+      <ul class="cites">
+        ${(p.citations || []).map(c => `
+          <li>
+            ${escape(c.authors)} (${c.year}), <em>${escape(c.journal)}</em>.
+            ${c.title ? `“${escape(c.title)}.”` : ''}
+            ${c.doi ? `<a href="https://doi.org/${encodeURIComponent(c.doi)}" target="_blank" rel="noopener">doi</a>` : ''}
+            ${c.scholar_url ? `<a href="${escape(c.scholar_url)}" target="_blank" rel="noopener">scholar</a>` : ''}
+            ${c.claim ? `<div style="color:var(--ink-mute);font-size:13px;margin-top:3px;">${escape(c.claim)}</div>` : ''}
+            ${c.scope_caveat ? `<div style="color:var(--accent);font-size:13px;margin-top:3px;">⚠ ${escape(c.scope_caveat)}</div>` : ''}
+          </li>
+        `).join('')}
+      </ul>
+      <p class="summary">${escape(p.citation_summary || '')}</p>
+    </article>
+  `).join('');
+  dropped.innerHTML = (defs.dropped_patterns || []).map(d => `
+    <div class="dropped">
+      <strong>Considered: ${escape(d.considered_id)}</strong> — ${escape(d.reason)}
+    </div>
+  `).join('');
+})();
+</script>
+
+</body>
+</html>
