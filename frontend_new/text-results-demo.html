@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#08080F" />
+<title>BrainDiff – Text results (demo)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='light')r.removeAttribute('data-theme');else r.setAttribute('data-theme','dark');}catch(e){r.setAttribute('data-theme','dark');}})();</script>
+<link rel="icon" href="data:," />
+<link rel="stylesheet" href="./media-results.css" />
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.164.1/build/three.module.js"}}</script>
+
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   Text results — additions on top of media-results.css
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Dim color palette — CSS custom properties so JS can read them */
+:root {
+  --dim-personal-resonance: #F59E0B;
+  --dim-social-thinking:    #8B5CF6;
+  --dim-brain-effort:       #14B8A6;
+  --dim-language-depth:     #10B981;
+  --dim-gut-reaction:       #F43F5E;
+  --dim-memory-encoding:    #3B82F6;
+  --dim-attention-salience: #EAB308;
+}
+
+/* ─── DIM LEGEND ─── */
+.dim-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 32px;
+}
+.dim-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid var(--rule);
+  background: var(--bg-card, var(--surface));
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  cursor: default;
+  transition: border-color 0.12s;
+}
+.dim-badge:hover { border-color: var(--dim-color, var(--line-2)); color: var(--ink); }
+.dim-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: var(--dim-color, var(--ink-mute));
+  box-shadow: 0 0 6px var(--dim-color, transparent);
+}
+
+/* ─── ANNOTATED TEXT ─── */
+.text-compare-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.text-panel {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--bg-card, var(--surface));
+  overflow: hidden;
+}
+.text-panel-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--rule);
+}
+.text-panel-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 24px; height: 24px; border-radius: 3px;
+  font-family: var(--mono); font-weight: 700; font-size: 11px;
+}
+.text-panel.a .text-panel-badge { background: var(--a-soft); color: var(--a); border: 1px solid color-mix(in srgb, var(--a) 30%, transparent); }
+.text-panel.b .text-panel-badge { background: var(--b-soft); color: var(--b); border: 1px solid color-mix(in srgb, var(--b) 30%, transparent); }
+.text-panel-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-mute); }
+.text-panel-chars { margin-left: auto; font-family: var(--mono); font-size: 10px; color: var(--ink-mute); }
+.text-body {
+  padding: 24px 24px 28px;
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.78;
+  color: var(--ink);
+}
+.txt-seg {
+  border-radius: 2px;
+  padding: 0 1px;
+  transition: background 0.12s;
+}
+.txt-seg:hover { filter: brightness(1.1); }
+
+/* ─── SIGNAL GRID (7 dimensions) ─── */
+.signal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+}
+.signal-card {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--bg-card, var(--surface));
+  padding: 18px 20px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.signal-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+.signal-dim-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 5px;
+}
+.signal-name {
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  flex: 1;
+}
+.signal-delta {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+}
+.signal-delta.positive { color: var(--a); }
+.signal-delta.negative { color: var(--b); }
+.signal-sparkline {
+  width: 100%;
+  height: 44px;
+  display: block;
+  overflow: visible;
+}
+.signal-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-mute);
+  letter-spacing: 0.08em;
+}
+.signal-winner {
+  padding: 3px 7px;
+  border-radius: 2px;
+  font-weight: 600;
+  font-size: 10px;
+}
+.signal-winner.a { background: var(--a-soft); color: var(--a); }
+.signal-winner.b { background: var(--b-soft); color: var(--b); }
+.signal-winner.tie { background: color-mix(in srgb, var(--ink-mute) 10%, transparent); color: var(--ink-mute); }
+
+/* ─── HEATMAP SECTION ─── */
+.heatmap-wrap {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--bg-card, var(--surface));
+  overflow: hidden;
+}
+.heatmap-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.heatmap-caption {
+  padding: 14px 20px;
+  border-top: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--ink-mute);
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+.heatmap-peak {
+  display: flex; align-items: center; gap: 6px;
+}
+.heatmap-peak strong { color: var(--ink); }
+
+/* ─── PHRASE DIVERGENCE ─── */
+.phrase-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  gap: 16px;
+}
+.phrase-card {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--bg-card, var(--surface));
+  overflow: hidden;
+}
+.phrase-card-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--rule);
+}
+.phrase-dim-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.phrase-dim-name { font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-mute); }
+.phrase-delta-badge {
+  margin-left: auto;
+  font-family: var(--mono); font-size: 10px;
+  padding: 3px 8px; border-radius: 2px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+}
+.phrase-quotes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+.phrase-quote {
+  padding: 14px 16px 18px;
+  position: relative;
+}
+.phrase-quote + .phrase-quote { border-left: 1px solid var(--rule); }
+.phrase-quote-label {
+  font-family: var(--mono); font-size: 9px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.phrase-quote-label.a { color: var(--a); }
+.phrase-quote-label.b { color: var(--b); }
+.phrase-quote-text {
+  font-family: 'Newsreader', Georgia, serif;
+  font-style: italic;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--ink-dim);
+}
+.phrase-quote-text strong { color: var(--ink); font-style: normal; }
+
+/* ─── ACTIONABLES ─── */
+.actionables-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+.action-card {
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  background: var(--bg-card, var(--surface));
+  padding: 20px 22px;
+  position: relative;
+}
+.action-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--b);
+  border-radius: 3px 0 0 3px;
+}
+.action-num {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.2em; color: var(--ink-mute);
+  margin-bottom: 8px;
+}
+.action-title {
+  font-family: var(--serif);
+  font-size: 17px; font-weight: 400;
+  line-height: 1.25; letter-spacing: -0.01em;
+  margin: 0 0 8px;
+}
+.action-body {
+  font-size: 13px; line-height: 1.58;
+  color: var(--ink-mute); margin: 0;
+}
+
+/* ─── INSIGHTS SIDEBAR (cool factor, scientific note) ─── */
+.insights-aside {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 28px;
+}
+.insight-box {
+  border: 1px solid var(--rule); border-radius: 3px;
+  background: var(--bg-card, var(--surface));
+  padding: 20px;
+}
+.insight-box-label {
+  font-family: var(--mono); font-size: 10px;
+  letter-spacing: 0.2em; text-transform: uppercase;
+  color: var(--ink-mute); margin-bottom: 10px;
+}
+.insight-box-text {
+  font-size: 14px; line-height: 1.6; color: var(--ink-dim);
+  font-style: italic;
+}
+
+/* ─── LOADING / ERROR ─── */
+.load-state {
+  text-align: center;
+  padding: 80px 40px;
+  color: var(--ink-mute);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.load-spinner {
+  display: inline-block;
+  width: 20px; height: 20px;
+  border: 2px solid var(--rule);
+  border-top-color: var(--b);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin-bottom: 14px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  .text-compare-grid { grid-template-columns: 1fr; }
+  .phrase-quotes { grid-template-columns: 1fr; }
+  .phrase-quote + .phrase-quote { border-left: none; border-top: 1px solid var(--rule); }
+  .insights-aside { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body data-media-kind="text">
+
+<div class="theme-switcher">
+  <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle theme">
+    <span class="tt-moon">●</span><span class="tt-sun">○</span>
+  </button>
+</div>
+
+<header class="topbar">
+  <a class="brand" href="./index.html">
+    <img src="./assets/braindiff-logo.png" alt="BrainDiff" class="brand-logo" />
+    <span>Brain<em>Diff</em></span>
+  </a>
+  <div id="heroStats" class="topbar-meta"></div>
+  <nav class="topbar-actions" aria-label="Result actions">
+    <a class="top-btn" href="./launch">New comparison</a>
+    <button class="top-btn" id="shareBtn" type="button">Share</button>
+  </nav>
+</header>
+
+<div class="headline-section">
+  <p class="eyebrow">Text comparison</p>
+  <h1 id="pageHeadline" class="headline">Loading text comparison.</h1>
+  <p id="pageDek" class="headline-dek">Preparing the cortical contrast view.</p>
+  <div class="input-meta-row">
+    <div class="input-card a">
+      <span class="input-card-badge">A</span>
+      <div class="input-card-info">
+        <span class="input-card-name" id="sampleNameA">Version A</span>
+        <span class="input-card-stats" id="sampleStatsA">—</span>
+      </div>
+    </div>
+    <div class="input-card-vs">vs</div>
+    <div class="input-card b">
+      <span class="input-card-badge">B</span>
+      <div class="input-card-info">
+        <span class="input-card-name" id="sampleNameB">Version B</span>
+        <span class="input-card-stats" id="sampleStatsB">—</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main id="mediaApp" class="media-shell" data-kind="text">
+
+  <!-- 01 / BRAIN -->
+  <section class="section" aria-labelledby="sec01-title">
+    <div class="section-header">
+      <div class="section-num"><strong>01</strong> / BRAIN</div>
+      <h2 id="sec01-title" class="section-title">Cortical <em>surface</em></h2>
+    </div>
+    <div class="brain-stage">
+      <div class="brain-canvas-side">
+        <div class="brain-canvas-wrap">
+          <canvas id="brainCanvas" aria-label="Interactive 3D cortical surface"></canvas>
+        </div>
+        <div class="brain-controls">
+          <div class="brain-view-btns">
+            <button class="brain-view-btn active" type="button" data-view="diff">A vs B</button>
+            <button class="brain-view-btn" type="button" data-view="a">A only</button>
+            <button class="brain-view-btn" type="button" data-view="b">B only</button>
+          </div>
+          <div class="brain-legend">
+            <span><span class="legend-dot a"></span>Version A</span>
+            <span><span class="legend-dot b"></span>Version B</span>
+          </div>
+          <button class="ghost-btn" id="resetBrain" type="button">Reset view</button>
+        </div>
+        <p class="brain-caption" id="brainCaption">Drag to rotate · scroll to zoom · colors show cortical activation difference A minus B</p>
+      </div>
+      <div class="decision-inline">
+        <p class="micro">Summary</p>
+        <h3 id="decisionTitle">What changed between A and B.</h3>
+        <ol id="recommendations" class="recommendations"></ol>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 / READ -->
+  <section class="section" aria-labelledby="sec02-title">
+    <div class="section-header">
+      <div class="section-num"><strong>02</strong> / READ</div>
+      <div>
+        <h2 id="sec02-title" class="section-title">Annotated <em>text</em></h2>
+        <p class="section-desc">Each phrase is colored by the brain system most active at that point in the narrative. Same color = same system engaged — divergence reveals where the texts differ in how they work on a reader's brain.</p>
+      </div>
+    </div>
+    <div id="dimLegend" class="dim-legend"></div>
+    <div class="text-compare-grid">
+      <div class="text-panel a" id="textPanelA">
+        <div class="text-panel-head">
+          <span class="text-panel-badge">A</span>
+          <span class="text-panel-label" id="textLabelA">Version A</span>
+          <span class="text-panel-chars" id="textCharsA"></span>
+        </div>
+        <div class="text-body" id="textBodyA">
+          <div class="load-state"><div class="load-spinner"></div><br>Loading text…</div>
+        </div>
+      </div>
+      <div class="text-panel b" id="textPanelB">
+        <div class="text-panel-head">
+          <span class="text-panel-badge">B</span>
+          <span class="text-panel-label" id="textLabelB">Version B</span>
+          <span class="text-panel-chars" id="textCharsB"></span>
+        </div>
+        <div class="text-body" id="textBodyB">
+          <div class="load-state"><div class="load-spinner"></div><br>Loading text…</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 / THE SIGNAL -->
+  <section class="section" aria-labelledby="sec03-title">
+    <div class="section-header">
+      <div class="section-num"><strong>03</strong> / THE SIGNAL</div>
+      <div>
+        <h2 id="sec03-title" class="section-title">Dimension <em>comparison</em></h2>
+        <p class="section-desc">Seven cortical dimensions, each as a timeseries across the text. Blue line = Version A. Red line = Version B. Area between the lines is where the two texts diverge in neural response.</p>
+      </div>
+    </div>
+    <div id="signalGrid" class="signal-grid"></div>
+  </section>
+
+  <!-- 04 / FLOW -->
+  <section class="section" aria-labelledby="sec04-title">
+    <div class="section-header">
+      <div class="section-num"><strong>04</strong> / FLOW</div>
+      <div>
+        <h2 id="sec04-title" class="section-title">Activation <em>map</em></h2>
+        <p class="section-desc">All seven dimensions across the full stimulus window, shown as a heatmap. Each row is a cortical system; each column is a timepoint. Warm colors = higher activation.</p>
+      </div>
+    </div>
+    <div id="flowSection"></div>
+  </section>
+
+  <!-- 05 / PHRASES -->
+  <section class="section" aria-labelledby="sec05-title">
+    <div class="section-header">
+      <div class="section-num"><strong>05</strong> / PHRASES</div>
+      <div>
+        <h2 id="sec05-title" class="section-title">Peak <em>divergence</em></h2>
+        <p class="section-desc">The exact text chunks where Version A and Version B diverged most, for each cortical system. These are the moments where your word choice had measurably different effects on the brain.</p>
+      </div>
+    </div>
+    <div id="phraseGrid" class="phrase-grid"></div>
+  </section>
+
+  <!-- 06 / WHAT TO WRITE -->
+  <section class="section" aria-labelledby="sec06-title">
+    <div class="section-header">
+      <div class="section-num"><strong>06</strong> / WHAT TO WRITE</div>
+      <div>
+        <h2 id="sec06-title" class="section-title">Actionable <em>guidance</em></h2>
+        <p class="section-desc">Specific, brain-grounded suggestions derived from the cortical contrast. Use these to decide which version to choose, or how to iterate on either.</p>
+      </div>
+    </div>
+    <div id="actionablesGrid" class="actionables-grid"></div>
+    <div id="insightsAside" class="insights-aside"></div>
+  </section>
+
+</main>
+<script type="module" src="./text-results-demo.js"></script>
+</body>
+</html>

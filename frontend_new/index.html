@@ -1213,11 +1213,22 @@ let _brainMeshPromise = null;
 function fetchBrainMesh(){
   if (_brainMeshPromise) return _brainMeshPromise;
   _brainMeshPromise = (async () => {
-    try {
-      const res = await fetch('/api/brain-mesh', { cache: 'force-cache' });
-      if (!res.ok) return null;
-      return await res.json();
-    } catch(_err) { return null; }
+    // Try static asset first (CDN-served, no cold-start), fall back to API function.
+    for (const url of ['/assets/brain-mesh.json', '/api/brain-mesh']) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          console.warn('[BrainDiff] fetch', url, 'returned', res.status);
+          continue;
+        }
+        const data = await res.json();
+        if (data && data.lh_coord && data.rh_coord) return data;
+        console.warn('[BrainDiff] fetch', url, 'payload missing lh_coord/rh_coord');
+      } catch(err) {
+        console.warn('[BrainDiff] fetch', url, 'error:', err.message);
+      }
+    }
+    return null;
   })();
   return _brainMeshPromise;
 }
