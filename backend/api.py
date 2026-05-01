@@ -10,6 +10,7 @@ from typing import Any
 
 import numpy as np
 from fastapi import Body, FastAPI, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -194,7 +195,14 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="Brain Diff API", version="0.1.0", lifespan=lifespan)
 
-
+# Allow the admin dashboard (any localhost port) and Vercel preview URLs
+# to call the local backend without CORS preflight failures.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 
@@ -911,7 +919,7 @@ async def url_start_diff(body: dict = Body(...)) -> JSONResponse:
                                     status_code=413, detail=f"URL {slot} exceeds 100 MB cap."
                                 )
                             fh.write(chunk)
-                kind = _classify_ext(ext)
+                kind = _classify_ext("file" + ext)
                 if kind != modality:
                     raise HTTPException(
                         status_code=400,

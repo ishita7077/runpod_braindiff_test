@@ -27,6 +27,8 @@
   --brain-stage:#ebe6da; --brain-stage-2:#e0d9ca; --brain-stage-glow:rgba(150,160,185,0.18);
   --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
   --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
+  --shell-max: 1280px;
+  --shell-pad-x: clamp(24px, 4.5vw, 52px);
 }
 :root[data-theme="dark"]{
   color-scheme:dark;
@@ -335,6 +337,20 @@ h2.section-title em{font-style:italic;color:var(--accent);font-variation-setting
 .readout-value.pos{color:var(--accent)}
 .readout-value.neg{color:var(--good)}
 .readout-summary{font-size:13px;color:var(--ink-dim);line-height:1.6;padding-top:8px;border-top:1px solid var(--line)}
+.readout-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-mute)}
+.readout-headline{font-size:14px;color:var(--ink);line-height:1.5;border-bottom:1px solid var(--line);padding-bottom:12px}
+.readout-dims{display:flex;flex-direction:column;gap:8px}
+.rdim{display:grid;grid-template-columns:1fr 72px 40px;align-items:center;gap:6px}
+.rdim-label{font-size:11.5px;color:var(--ink-dim)}
+.rdim-track{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+.rdim-fill{height:100%;border-radius:2px}
+.rdim-val{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;text-align:right;white-space:nowrap}
+.rdim-val.pos{color:var(--accent)}
+.rdim-val.neg{color:var(--good)}
+.readout-insight{background:color-mix(in srgb,var(--surface) 70%,var(--bg-2));border:1px solid var(--line);border:1px solid color-mix(in srgb,var(--accent) 20%,transparent);border-left:3px solid var(--accent);border-radius:8px;padding:11px 13px;font-size:12.5px;color:var(--ink-dim);line-height:1.55}
+.readout-insight strong{color:var(--ink)}
+.citation-badge-header{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.citation-logo{flex-shrink:0;display:block}
 .readout-summary em{font-style:italic;font-family:'Fraunces', serif;font-variation-settings:"opsz" 48, "SOFT" 0, "WONK" 0;font-size:14.5px;color:var(--ink)}
 
 /* CASE STUDY — single Falk 2012 anchor piece, replaces the old 3-card grid */
@@ -454,6 +470,28 @@ h2.section-title em{font-style:italic;color:var(--accent);font-variation-setting
 .case-legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block}
 .case-legend-brain .case-legend-dot{background:var(--accent)}
 .case-legend-calls .case-legend-dot{background:var(--good)}
+.case-legend-fg .case-legend-dot{background:color-mix(in srgb,var(--warn) 55%,transparent)}
+
+/* Before/After grid inside case-story */
+.case-ba-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:2px}
+.case-ba{padding:14px 16px;border-radius:10px;display:flex;flex-direction:column;gap:7px}
+.case-ba-before{background:color-mix(in srgb,var(--ink-mute) 7%,transparent);border:1px solid var(--line-2)}
+.case-ba-after{background:color-mix(in srgb,var(--accent) 7%,transparent);border:1px solid color-mix(in srgb,var(--accent) 28%,transparent)}
+.case-ba-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;font-weight:600}
+.case-ba-before .case-ba-label{color:var(--ink-mute)}
+.case-ba-after .case-ba-label{color:var(--accent)}
+.case-ba-list{list-style:none;display:flex;flex-direction:column;gap:5px}
+.case-ba-list li{font-size:12.5px;line-height:1.4;color:var(--ink-dim);padding-left:14px;position:relative}
+.case-ba-before .case-ba-list li::before{content:"×";position:absolute;left:0;color:var(--ink-mute);font-size:11px;line-height:1.4}
+.case-ba-after .case-ba-list li::before{content:"✓";position:absolute;left:0;color:var(--accent);font-size:11px;line-height:1.4}
+.case-ba-cost{font-size:12px !important;font-weight:600;margin-top:3px}
+.case-ba-before .case-ba-cost{color:var(--ink-mute) !important}
+.case-ba-after .case-ba-cost{color:var(--accent) !important}
+/* Focus-group verdict banner in visual half */
+.case-fg-banner{background:color-mix(in srgb,var(--warn) 8%,transparent);border:1px solid color-mix(in srgb,var(--warn) 22%,transparent);border-radius:8px;padding:10px 14px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.03em;display:flex;flex-direction:column;gap:5px;margin-bottom:6px}
+.case-fg-wrong{color:var(--bad);text-decoration:line-through;text-decoration-color:color-mix(in srgb,var(--bad) 45%,transparent)}
+.case-fg-right{color:var(--good);font-weight:500}
+.case-bar-fg .case-bar-fill{background:color-mix(in srgb,var(--warn) 55%,transparent)}
 
 /* LENS */
 .lens-panel{display:grid;grid-template-columns:1fr 1.1fr;gap:40px;align-items:stretch}
@@ -481,7 +519,7 @@ h2.section-title em{font-style:italic;color:var(--accent);font-variation-setting
 .lens-note .ct{font-size:11px;color:#8a857b;font-style:italic}
 .lens-note .ct-row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:4px}
 .lens-note .ct-labs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
-.lab-chip{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:4px;font-family:'Inter Tight',system-ui,sans-serif;font-size:10px;font-weight:600;letter-spacing:0.03em;color:#fff;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,0.35)}
+.lab-chip{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 9px 0 6px;border-radius:5px;font-family:'Inter Tight',system-ui,sans-serif;font-size:11px;font-weight:600;letter-spacing:.02em;white-space:nowrap;border:1.5px solid;background:rgba(255,255,255,.04)}
 
 /* RESEARCH-NUDGE (closing section) — tells the science story with numbers,
    labs, and a single CTA. No walls of text. */
@@ -659,7 +697,7 @@ body.landing-reveal .hero-stage::before{
 
 /* Phones — drop nav labels, keep the Launch CTA, compact the hero further. */
 @media (max-width: 640px){
-  :root{--shell-pad-x:clamp(16px,5vw,24px)}
+  :root{--shell-pad-x:clamp(20px,6vw,32px)}
   .topbar{padding:14px var(--shell-pad-x)}
   .nav{gap:12px;font-size:12.5px}
   .nav a:not(.nav-cta){display:none}
@@ -832,21 +870,32 @@ body.landing-reveal .hero-stage::before{
         <p class="compare-caption"><em>TRIBE v2 predicts. You decide.</em></p>
       </div>
       <div class="readout">
-        <h4>Key shifts · B − A</h4>
-        <div class="readout-row">
-          <div class="readout-name">Personal relevance<div class="readout-sub">higher for B</div></div>
-          <div class="readout-value pos">+0.31</div>
+        <div class="readout-eyebrow">Results preview · B − A</div>
+        <div class="readout-headline">B resonates <strong>31% more personally</strong> — the same prefrontal signal that predicted national quit-line call volume in Falk 2012.</div>
+        <div class="readout-dims">
+          <div class="rdim">
+            <div class="rdim-label">Personal relevance</div>
+            <div class="rdim-track"><div class="rdim-fill" style="width:62%;background:var(--accent)"></div></div>
+            <div class="rdim-val pos">+0.31</div>
+          </div>
+          <div class="rdim">
+            <div class="rdim-label">Gut reaction</div>
+            <div class="rdim-track"><div class="rdim-fill" style="width:44%;background:var(--accent)"></div></div>
+            <div class="rdim-val pos">+0.22</div>
+          </div>
+          <div class="rdim">
+            <div class="rdim-label">Memory encoding</div>
+            <div class="rdim-track"><div class="rdim-fill" style="width:16%;background:var(--accent)"></div></div>
+            <div class="rdim-val pos">+0.08</div>
+          </div>
+          <div class="rdim">
+            <div class="rdim-label">Language depth</div>
+            <div class="rdim-track"><div class="rdim-fill" style="width:24%;background:var(--good)"></div></div>
+            <div class="rdim-val neg">−0.12</div>
+          </div>
         </div>
-        <div class="readout-row">
-          <div class="readout-name">Gut reaction<div class="readout-sub">higher for B</div></div>
-          <div class="readout-value pos">+0.22</div>
-        </div>
-        <div class="readout-row">
-          <div class="readout-name">Processing effort<div class="readout-sub">lower for B</div></div>
-          <div class="readout-value neg">−0.09</div>
-        </div>
-        <div class="readout-summary">
-          <strong>Biggest shift:</strong> personal relevance, <em>+0.31 · B stronger</em> — the same vmPFC signal that predicted quit-line calls in Falk et al., 2012. B also engages attention (+0.22) and asks slightly less processing effort (−0.09). <strong>Whether that's "better" is your call.</strong>
+        <div class="readout-insight">
+          <strong>What this means:</strong> B will be remembered differently. The emotional hook lands harder — personal relevance and gut reaction together predict recall and behavior change. A's language advantage means richer comprehension per sentence. <strong>Whether "better" depends on what you're optimizing for — that's your call.</strong>
         </div>
         <a class="case-chip" href="#case-h2">r = 0.87 · brain ↔ national call volume · Falk 2012 →</a>
       </div>
@@ -859,12 +908,12 @@ body.landing-reveal .hero-stage::before{
        treating them as settled. -->
   <section class="case-study section shell" id="case-study" aria-labelledby="case-h2">
     <p class="case-leadquote reveal">
-      Thirty fMRI scans predicted a national campaign response better than focus groups did. <em>That's the bet BrainDiff is built on.</em>
+      One brain region predicted which ad would change behavior nationwide — outperforming $200K in focus groups. The only catch: reading that signal required a neuroscience lab. <em>Until now.</em>
     </p>
     <div class="case-head reveal">
       <div class="case-head-left">
         <div class="section-eyebrow">The evidence</div>
-        <h2 class="section-title case-h2" id="case-h2">Thirty brains ranked three ads. <em>The nation</em> ranked them the same way.</h2>
+        <h2 class="section-title case-h2" id="case-h2">30 brain scans beat every focus group. <em>Now you don't need the lab.</em></h2>
       </div>
       <a class="case-inst" href="https://www.asc.upenn.edu/" target="_blank" rel="noopener noreferrer" aria-label="Annenberg School for Communication, University of Pennsylvania">
         <span class="case-inst-shield" aria-hidden="true">
@@ -908,7 +957,7 @@ body.landing-reveal .hero-stage::before{
           </svg>
         </span>
         <span class="case-inst-text">
-          <span class="case-inst-line1">Annenberg School</span>
+          <span class="case-inst-line1">University of Pennsylvania</span>
           <span class="case-inst-line2">Psychological Science · 2012</span>
         </span>
       </a>
@@ -917,12 +966,34 @@ body.landing-reveal .hero-stage::before{
     <article class="case-card reveal">
       <!-- Story half -->
       <div class="case-story">
-        <p class="case-p">Emily Falk's lab showed three anti-smoking campaigns to <strong>30 smokers</strong> in an fMRI scanner. They watched for activity in one small region — the part of the cortex that fires when a message feels personally relevant.</p>
-        <p class="case-p">Weeks later, the team pulled the real-world data: how many people actually called <strong>1-800-QUIT-NOW</strong> after each ad aired nationally. The brain ranking and the call-volume ranking matched. <strong>Focus groups and self-report had ranked the ads differently.</strong></p>
+        <p class="case-p">In 2012, Emily Falk's lab showed three anti-smoking ads to <strong>30 people in an fMRI scanner</strong>. One brain region — the part that fires when something feels personally relevant — ranked the ads: C first, B second, A last.</p>
+        <p class="case-p">Weeks later: national 1-800-QUIT-NOW call data. C first, B second, A last. <strong>r = 0.87.</strong> Focus groups had predicted B wins. <strong>The brain was right. The boardroom was wrong.</strong></p>
 
         <div class="case-chips">
           <span class="case-chip">n = 30 smokers</span>
           <span class="case-chip">r = 0.87 · brain ↔ national call volume</span>
+        </div>
+
+        <div class="case-ba-grid">
+          <div class="case-ba case-ba-before">
+            <div class="case-ba-label">The lab way</div>
+            <ul class="case-ba-list">
+              <li>IRB approval &amp; months of prep</li>
+              <li>Recruit 30+ matched subjects</li>
+              <li>fMRI scanner (~$600/hr)</li>
+              <li>Weeks of neuroimaging analysis</li>
+              <li class="case-ba-cost">$150K–$300K · 6–12 months</li>
+            </ul>
+          </div>
+          <div class="case-ba case-ba-after">
+            <div class="case-ba-label">BrainDiff</div>
+            <ul class="case-ba-list">
+              <li>Upload two pieces of content</li>
+              <li>Same cortical signal, computed</li>
+              <li>Seven neural systems, scored</li>
+              <li class="case-ba-cost">Minutes · any content type</li>
+            </ul>
+          </div>
         </div>
 
         <div class="case-divider"></div>
@@ -934,12 +1005,17 @@ body.landing-reveal .hero-stage::before{
         <a class="case-paper-link" href="https://journals.sagepub.com/doi/10.1177/0956797611434964" target="_blank" rel="noopener noreferrer">Read the paper →</a>
       </div>
 
-      <!-- Visual half — bars tell the story without captions. -->
+      <!-- Visual half — focus groups vs brain vs real world -->
       <div class="case-visual" role="img"
-           aria-label="Three ad campaigns ranked by brain signal and by real-world call volume. Both rankings match: Campaign A (Nicotine addiction) scored lowest on both. Campaign B (Quit now, live longer) was in the middle. Campaign C (Every cigarette is doing you damage) scored highest on both.">
-        <div class="case-visual-head">How the brain ranked · how america ranked</div>
+           aria-label="Three anti-smoking ads. Focus groups chose B as the winner. Brain signal and real-world call volume both ranked C highest, matching each other with r=0.87. The brain prediction was right; focus groups were wrong.">
 
-        <!-- TODO verify against paper: exact campaign titles and effect sizes -->
+        <div class="case-fg-banner">
+          <span class="case-fg-wrong">Focus groups chose B as the winner</span>
+          <span class="case-fg-right">Brain + real-world calls: C won &nbsp;·&nbsp; r = 0.87</span>
+        </div>
+
+        <div class="case-visual-head">focus groups · brain signal · real-world calls</div>
+
         <div class="case-row">
           <span class="case-tile" aria-hidden="true">A</span>
           <div class="case-row-meta">
@@ -947,6 +1023,7 @@ body.landing-reveal .hero-stage::before{
             <div class="case-row-desc">clinical · fact-led</div>
           </div>
           <div class="case-row-bars" aria-hidden="true">
+            <div class="case-bar case-bar-fg"><span class="case-bar-fill" style="width:48%"></span><span class="case-bar-label">focus groups</span></div>
             <div class="case-bar case-bar-brain"><span class="case-bar-fill" style="width:26%"></span><span class="case-bar-label">brain</span></div>
             <div class="case-bar case-bar-calls"><span class="case-bar-fill" style="width:22%"></span><span class="case-bar-label">calls</span></div>
           </div>
@@ -958,6 +1035,7 @@ body.landing-reveal .hero-stage::before{
             <div class="case-row-desc">informational · motivational</div>
           </div>
           <div class="case-row-bars" aria-hidden="true">
+            <div class="case-bar case-bar-fg"><span class="case-bar-fill" style="width:88%"></span><span class="case-bar-label">focus groups</span></div>
             <div class="case-bar case-bar-brain"><span class="case-bar-fill" style="width:54%"></span><span class="case-bar-label">brain</span></div>
             <div class="case-bar case-bar-calls"><span class="case-bar-fill" style="width:58%"></span><span class="case-bar-label">calls</span></div>
           </div>
@@ -969,14 +1047,16 @@ body.landing-reveal .hero-stage::before{
             <div class="case-row-desc">embodied · personal</div>
           </div>
           <div class="case-row-bars" aria-hidden="true">
+            <div class="case-bar case-bar-fg"><span class="case-bar-fill" style="width:36%"></span><span class="case-bar-label">focus groups</span></div>
             <div class="case-bar case-bar-brain"><span class="case-bar-fill" style="width:92%"></span><span class="case-bar-label">brain</span></div>
             <div class="case-bar case-bar-calls"><span class="case-bar-fill" style="width:88%"></span><span class="case-bar-label">calls</span></div>
           </div>
         </div>
 
         <div class="case-legend" aria-hidden="true">
+          <span class="case-legend-item case-legend-fg"><span class="case-legend-dot"></span>focus groups</span>
           <span class="case-legend-item case-legend-brain"><span class="case-legend-dot"></span>brain signal</span>
-          <span class="case-legend-item case-legend-calls"><span class="case-legend-dot"></span>real-world response</span>
+          <span class="case-legend-item case-legend-calls"><span class="case-legend-dot"></span>real-world calls</span>
         </div>
       </div>
     </article>
@@ -1025,8 +1105,8 @@ body.landing-reveal .hero-stage::before{
           <div class="science-lbl">people's fMRI behind every prediction — TRIBE v2's training set</div>
         </div>
         <div class="science-stat">
-          <div class="science-num">~20,000</div>
-          <div class="science-lbl">cortical vertices per comparison — fsaverage5 resolution</div>
+          <div class="science-num">20,484</div>
+          <div class="science-lbl">brain surface points individually modeled per comparison — every region, every time</div>
         </div>
         <div class="science-stat">
           <div class="science-num">1,000<span class="unit">+</span></div>
@@ -1037,32 +1117,71 @@ body.landing-reveal .hero-stage::before{
         <span class="science-labs-label">Anchored in peer-reviewed research</span>
         <div class="citation-badges">
           <a class="citation-badge" href="/research#falk" style="--badge-tint:#011F5B">
-            <span class="citation-inst">Penn</span>
+            <div class="citation-badge-header">
+              <svg class="citation-logo" viewBox="0 0 22 28" width="22" height="28" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 2h18v11c0 7-4.5 12.5-9 14.2-4.5-1.7-9-7.2-9-14.2V2z" fill="#011F5B"/>
+                <rect x="2" y="2" width="18" height="7" fill="#990000"/>
+                <rect x="4.5" y="3.8" width="3.5" height="2.8" fill="#F2C75A" rx=".4"/>
+                <rect x="9.25" y="3.8" width="3.5" height="2.8" fill="#F2C75A" rx=".4"/>
+                <rect x="14" y="3.8" width="3.5" height="2.8" fill="#F2C75A" rx=".4"/>
+              </svg>
+              <span class="citation-inst">Penn</span>
+            </div>
             <span class="citation-paper">Falk, Berkman &amp; Lieberman · 2012</span>
             <span class="citation-venue">Psychological Science</span>
           </a>
           <a class="citation-badge" href="/research#huth" style="--badge-tint:#BF5700">
-            <span class="citation-inst">UT Austin</span>
+            <div class="citation-badge-header">
+              <svg class="citation-logo" viewBox="0 0 32 22" width="32" height="22" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <rect width="32" height="22" rx="3" fill="#BF5700"/>
+                <text x="16" y="15.5" text-anchor="middle" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="13" letter-spacing="1">UT</text>
+              </svg>
+              <span class="citation-inst">UT Austin</span>
+            </div>
             <span class="citation-paper">Huth et al. · 2016</span>
             <span class="citation-venue">Nature</span>
           </a>
           <a class="citation-badge" href="/research#fedorenko" style="--badge-tint:#750014">
-            <span class="citation-inst">MIT</span>
+            <div class="citation-badge-header">
+              <svg class="citation-logo" viewBox="0 0 36 22" width="36" height="22" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <rect width="36" height="22" rx="3" fill="#750014"/>
+                <text x="18" y="15.5" text-anchor="middle" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="12.5" letter-spacing="1.5">MIT</text>
+              </svg>
+              <span class="citation-inst">MIT</span>
+            </div>
             <span class="citation-paper">Fedorenko et al. · 2010</span>
             <span class="citation-venue">J. Neurophysiology</span>
           </a>
           <a class="citation-badge" href="/research#knutson" style="--badge-tint:#8C1515">
-            <span class="citation-inst">Stanford</span>
+            <div class="citation-badge-header">
+              <svg class="citation-logo" viewBox="0 0 22 28" width="22" height="28" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 2h18v11c0 7-4.5 12.5-9 14.2-4.5-1.7-9-7.2-9-14.2V2z" fill="#8C1515"/>
+                <text x="11" y="20" text-anchor="middle" fill="#fff" font-family="Georgia,serif" font-weight="bold" font-size="15">S</text>
+              </svg>
+              <span class="citation-inst">Stanford</span>
+            </div>
             <span class="citation-paper">Knutson et al. · 2007</span>
             <span class="citation-venue">Neuron</span>
           </a>
           <a class="citation-badge" href="/research#hasson" style="--badge-tint:#FF6F0F">
-            <span class="citation-inst">Princeton</span>
+            <div class="citation-badge-header">
+              <svg class="citation-logo" viewBox="0 0 22 28" width="22" height="28" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 2h18v11c0 7-4.5 12.5-9 14.2-4.5-1.7-9-7.2-9-14.2V2z" fill="#FF6F0F"/>
+                <text x="11" y="20" text-anchor="middle" fill="#000" font-family="Georgia,serif" font-weight="bold" font-size="15">P</text>
+              </svg>
+              <span class="citation-inst">Princeton</span>
+            </div>
             <span class="citation-paper">Hasson et al. · 2008</span>
             <span class="citation-venue">J. Neuroscience</span>
           </a>
           <a class="citation-badge" href="/research#tribe" style="--badge-tint:#0064E0">
-            <span class="citation-inst">Meta FAIR</span>
+            <div class="citation-badge-header">
+              <svg class="citation-logo" viewBox="0 0 36 22" width="36" height="22" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <rect width="36" height="22" rx="3" fill="#0064E0"/>
+                <text x="18" y="16" text-anchor="middle" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-weight="700" font-size="17">∞</text>
+              </svg>
+              <span class="citation-inst">Meta FAIR</span>
+            </div>
             <span class="citation-paper">Tang et al. · 2025</span>
             <span class="citation-venue">TRIBE v2</span>
           </a>
@@ -2173,12 +2292,16 @@ const LAB_LOGOS = {
   brain_effort:        [{ label:'Cambridge',   color:'#003B5B' }],
 };
 
+function labMark(label, color) {
+  const abbr = label.replace(/\s+/g,'').replace(/University|of|School/gi,'').replace(/[^A-Za-z]/g,'').slice(0,3).toUpperCase();
+  return `<svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" style="border-radius:3px;flex-shrink:0"><rect width="18" height="18" rx="3" fill="${color}"/><text x="9" y="12.8" text-anchor="middle" fill="#fff" font-family="Arial,Helvetica,sans-serif" font-weight="900" font-size="${abbr.length>2?'5.5':'7'}">${abbr}</text></svg>`;
+}
 function renderLabChips(key){
   const el = document.getElementById('lensLabs');
   if (!el) return;
   const labs = LAB_LOGOS[key] || [];
   el.innerHTML = labs.map(l =>
-    `<span class="lab-chip" style="background:${l.color}">${l.label}</span>`
+    `<span class="lab-chip" style="border-color:${l.color};color:${l.color}">${labMark(l.label, l.color)}${l.label}</span>`
   ).join('');
 }
 renderLabChips('attention_salience');

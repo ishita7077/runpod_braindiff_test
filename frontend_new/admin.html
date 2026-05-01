@@ -420,9 +420,31 @@ async function processQueue() {
   }
 }
 
+async function apiFetch(url, opts) {
+  let res;
+  try {
+    res = await fetch(url, opts);
+  } catch (netErr) {
+    // Network-level failure: backend not running, wrong port, or CORS blocked
+    const isCorsProbable = !url.startsWith(location.origin);
+    const hint = isCorsProbable
+      ? `\nLikely causes:\n• Backend not running at ${backendUrl()}\n• CORS not enabled on backend (add CORSMiddleware)\n• Wrong backend URL`
+      : `\nBackend unreachable at: ${url}`;
+    throw new Error(`Network error — ${netErr.message}${hint}`);
+  }
+  if (!res.ok) {
+    let detail = '';
+    try { const j = await res.json(); detail = JSON.stringify(j.detail || j, null, 2); }
+    catch(_) { try { detail = await res.text(); } catch(_){} }
+    throw new Error(`HTTP ${res.status} from ${url}\n${detail}`);
+  }
+  return res.json();
+}
+
 async function processRun(run) {
   run.status = 'running';
   run.startedAt = Date.now();
+  run.error = null;
   saveQueue();
   renderQueue();
 
@@ -431,36 +453,37 @@ async function processRun(run) {
     let jobId;
 
     if (run.mod === 'text') {
-      const res = await fetch(`${base}/api/diff/start`, {
+      const data = await apiFetch(`${base}/api/diff/start`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ text_a: run.textA, text_b: run.textB }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-      const data = await res.json();
       jobId = data.job_id;
 
     } else if (run.urlA) {
       // URL-based audio/video — use local /api/diff/url-start
-      const res = await fetch(`${base}/api/diff/url-start`, {
+      const data = await apiFetch(`${base}/api/diff/url-start`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ url_a: run.urlA, url_b: run.urlB, modality: run.mod }),
       });
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-      const data = await res.json();
       jobId = data.job_id;
 
     } else {
       // File-based audio/video — use multipart /api/diff/upload
+      if (!run.fileData_a || !run.fileData_b) {
+        throw new Error(
+          'File data was not preserved across page reload.\n' +
+          'File uploads are stored in memory only — reload the page and re-add this run.\n' +
+          'Tip: use URL mode for large files to avoid this.'
+        );
+      }
       const form = new FormData();
       const blobA = base64ToBlob(run.fileData_a, run.fileName_a);
       const blobB = base64ToBlob(run.fileData_b, run.fileName_b);
       form.append('file_a', blobA, run.fileName_a);
       form.append('file_b', blobB, run.fileName_b);
-      const res = await fetch(`${base}/api/diff/upload`, { method: 'POST', body: form });
-      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
-      const data = await res.json();
+      const data = await apiFetch(`${base}/api/diff/upload`, { method: 'POST', body: form });
       jobId = data.job_id;
     }
 
