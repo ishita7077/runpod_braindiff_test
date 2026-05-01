@@ -146,10 +146,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
     BrainDiff <span class="brand-badge">admin</span>
   </div>
   <div class="topbar-right">
-    <label style="display:flex;align-items:center;gap:6px;font-size:12px">
-      Backend
-      <input type="url" class="backend-url" id="backendUrl" value="http://localhost:8000" placeholder="http://localhost:8000"/>
-    </label>
+    <span id="connStatus" style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-mute)">
+      <span id="connDot" style="width:8px;height:8px;border-radius:50%;background:var(--ink-mute);display:inline-block"></span>
+      <span id="connText">untested</span>
+    </span>
+    <button class="btn btn-sm" id="testConnBtn" title="Hit /api/config/public to verify backend is reachable">Test connection</button>
     <button class="btn btn-sm" id="lockBtn" title="Lock dashboard">🔒</button>
     <button class="theme-toggle" id="themeToggle"><span class="tt-moon">☾</span><span class="tt-sun">☀</span></button>
   </div>
@@ -157,7 +158,17 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
 
 <main>
   <h1>Bulk runs</h1>
-  <p class="sub">Queue runs sequentially — text, audio, or video. Each starts when the previous finishes.</p>
+  <p class="sub">Queue runs sequentially — text, audio, or video. Each starts when the previous finishes. Hits production endpoints from this same origin (no local backend needed).</p>
+
+  <!-- Diagnostics panel -->
+  <details id="diagPanel" style="margin:12px 0 24px;border:1px solid var(--line-2);border-radius:10px;background:var(--panel-2);padding:0">
+    <summary style="cursor:pointer;padding:10px 14px;font-size:12px;color:var(--ink-dim);user-select:none;display:flex;align-items:center;gap:8px">
+      <span>Diagnostics</span>
+      <span id="diagCount" style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-mute)">0 events</span>
+      <button id="diagClearBtn" type="button" style="margin-left:auto;background:none;border:none;color:var(--ink-mute);font-size:11px;cursor:pointer;text-decoration:underline">clear</button>
+    </summary>
+    <pre id="diagLog" style="margin:0;padding:12px 14px;border-top:1px solid var(--line-2);font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;color:var(--ink-dim);white-space:pre-wrap;word-break:break-all;max-height:280px;overflow-y:auto;background:var(--surface)">No requests yet. Click "Test connection" to verify the backend is reachable.</pre>
+  </details>
 
   <!-- Add run form -->
   <div class="form-card">
@@ -324,10 +335,73 @@ document.getElementById('useUrlToggle').addEventListener('change', e => {
   document.getElementById('urlMode').style.display = e.target.checked ? '' : 'none';
 });
 
-// ── Backend URL ────────────────────────────────────────────────────────────
-function backendUrl() {
-  return document.getElementById('backendUrl').value.replace(/\/$/, '');
+// ── Diagnostics ────────────────────────────────────────────────────────────
+// Every fetch is logged to (1) browser console with full detail and
+// (2) the on-page Diagnostics panel so the user can see exactly what failed.
+let _diagEvents = [];
+function diag(level, msg, data) {
+  const ts = new Date().toISOString().split('T')[1].slice(0, 12);
+  const entry = { ts, level, msg, data: data || null };
+  _diagEvents.push(entry);
+  if (_diagEvents.length > 200) _diagEvents.shift();
+  // Console
+  const consoleFn = level === 'error' ? console.error : level === 'warn' ? console.warn : console.log;
+  consoleFn(`[admin ${ts}] ${msg}`, data || '');
+  // On-page log
+  const log = document.getElementById('diagLog');
+  if (log) {
+    const dataStr = data ? '\n  ' + JSON.stringify(data, null, 2).split('\n').join('\n  ') : '';
+    const colour = level === 'error' ? 'var(--bad)' : level === 'warn' ? 'var(--warn)' : 'var(--ink-dim)';
+    const prevText = log.textContent === 'No requests yet. Click "Test connection" to verify the backend is reachable.' ? '' : log.innerHTML;
+    log.innerHTML = prevText + `<div style="color:${colour};margin-bottom:6px"><span style="color:var(--ink-mute)">${ts}</span> ${level.toUpperCase()} — ${esc(msg)}${dataStr ? `<span style="color:var(--ink-mute)">${esc(dataStr)}</span>` : ''}</div>`;
+    log.scrollTop = log.scrollHeight;
+  }
+  const count = document.getElementById('diagCount');
+  if (count) count.textContent = `${_diagEvents.length} event${_diagEvents.length !== 1 ? 's' : ''}`;
 }
+document.getElementById('diagClearBtn')?.addEventListener('click', e => {
+  e.preventDefault();
+  e.stopPropagation();
+  _diagEvents = [];
+  document.getElementById('diagLog').innerHTML = 'Cleared.';
+  document.getElementById('diagCount').textContent = '0 events';
+});
+
+// ── Connection test ────────────────────────────────────────────────────────
+function setConnStatus(state, text) {
+  const colours = { ok: 'var(--good)', err: 'var(--bad)', testing: 'var(--warn)', unknown: 'var(--ink-mute)' };
+  document.getElementById('connDot').style.background = colours[state] || colours.unknown;
+  document.getElementById('connText').textContent = text;
+  document.getElementById('connText').style.color = state === 'err' ? 'var(--bad)' : 'var(--ink-mute)';
+}
+async function testConnection() {
+  setConnStatus('testing', 'testing…');
+  diag('info', `GET ${location.origin}/api/config/public`);
+  try {
+    const t0 = performance.now();
+    const res = await fetch('/api/config/public', { cache: 'no-store' });
+    const dt = Math.round(performance.now() - t0);
+    if (!res.ok) {
+      const txt = await res.text().catch(() => '');
+      diag('error', `Connection test failed: HTTP ${res.status} (${dt}ms)`, { body: txt.slice(0, 300) });
+      setConnStatus('err', `HTTP ${res.status}`);
+      return false;
+    }
+    const json = await res.json().catch(() => null);
+    diag('info', `Connection OK (${dt}ms)`, json);
+    setConnStatus('ok', `connected (${dt}ms)`);
+    return true;
+  } catch (err) {
+    diag('error', `Connection test threw: ${err.message}`, {
+      origin: location.origin,
+      hint: 'Likely network/DNS error, mixed content, or browser blocked the request',
+      stack: String(err.stack || '').slice(0, 400),
+    });
+    setConnStatus('err', 'unreachable');
+    return false;
+  }
+}
+document.getElementById('testConnBtn').addEventListener('click', testConnection);
 
 // ── Add run ────────────────────────────────────────────────────────────────
 document.getElementById('addBtn').addEventListener('click', addRun);
@@ -420,25 +494,94 @@ async function processQueue() {
   }
 }
 
-async function apiFetch(url, opts) {
+// ── apiFetch — same-origin only, with diagnostics ──────────────────────────
+async function apiFetch(path, opts) {
+  if (!path.startsWith('/')) throw new Error(`apiFetch: path must start with "/" (got "${path}")`);
+  const url = location.origin + path;
+  const method = (opts && opts.method) || 'GET';
+  diag('info', `${method} ${path}`);
   let res;
+  const t0 = performance.now();
   try {
-    res = await fetch(url, opts);
+    res = await fetch(path, opts);
   } catch (netErr) {
-    // Network-level failure: backend not running, wrong port, or CORS blocked
-    const isCorsProbable = !url.startsWith(location.origin);
-    const hint = isCorsProbable
-      ? `\nLikely causes:\n• Backend not running at ${backendUrl()}\n• CORS not enabled on backend (add CORSMiddleware)\n• Wrong backend URL`
-      : `\nBackend unreachable at: ${url}`;
-    throw new Error(`Network error — ${netErr.message}${hint}`);
+    const dt = Math.round(performance.now() - t0);
+    diag('error', `${method} ${path} — Network error after ${dt}ms: ${netErr.message}`, {
+      origin: location.origin,
+      cause: 'fetch() rejected before response — typically DNS failure, offline, mixed content, or browser blocked the request',
+    });
+    throw new Error(`Network error reaching ${path}: ${netErr.message}`);
   }
+  const dt = Math.round(performance.now() - t0);
   if (!res.ok) {
     let detail = '';
-    try { const j = await res.json(); detail = JSON.stringify(j.detail || j, null, 2); }
+    let detailObj = null;
+    try { detailObj = await res.json(); detail = JSON.stringify(detailObj, null, 2); }
     catch(_) { try { detail = await res.text(); } catch(_){} }
-    throw new Error(`HTTP ${res.status} from ${url}\n${detail}`);
+    diag('error', `${method} ${path} → HTTP ${res.status} (${dt}ms)`, detailObj || { body: detail.slice(0, 400) });
+    throw new Error(`HTTP ${res.status} ${res.statusText} from ${path}\n${detail}`);
   }
+  diag('info', `${method} ${path} → ${res.status} (${dt}ms)`);
   return res.json();
+}
+
+// ── Vercel Blob upload (same pattern as input.html) ────────────────────────
+let _blobModulePromise = null;
+function getBlobModule() {
+  if (!_blobModulePromise) {
+    _blobModulePromise = import('https://esm.sh/@vercel/blob@2.3.4-5d06fa0-20260428215217/client');
+  }
+  return _blobModulePromise;
+}
+function safeUploadName(file, side) {
+  const name = file && file.name ? file.name : `stimulus-${side}.bin`;
+  const dot = name.lastIndexOf('.');
+  const ext = dot > -1 ? name.slice(dot).toLowerCase() : '';
+  let stem = dot > -1 ? name.slice(0, dot) : name;
+  stem = stem.normalize('NFKD').replace(/[^\w\-]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+  if (!stem) stem = `stimulus-${side}`;
+  return `uploads/${side}-${Date.now()}-${stem}${ext}`;
+}
+function safeContentType(file) {
+  if (file && file.type) return file.type;
+  const name = (file && file.name) || '';
+  const ext = name.split('.').pop().toLowerCase();
+  const map = {
+    mp4:'video/mp4', mov:'video/quicktime', webm:'video/webm', mkv:'video/x-matroska', avi:'video/x-msvideo',
+    mp3:'audio/mpeg', m4a:'audio/mp4', aac:'audio/aac', wav:'audio/wav', flac:'audio/flac', ogg:'audio/ogg', opus:'audio/ogg',
+  };
+  return map[ext] || 'application/octet-stream';
+}
+async function uploadToBlob(file, side) {
+  const pathname = safeUploadName(file, side);
+  diag('info', `blob: requesting client token for ${pathname}`);
+  const tokenRes = await fetch('/api/blob/upload', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      type: 'blob.generate-client-token',
+      payload: { pathname, clientPayload: null, multipart: false },
+    }),
+  });
+  if (!tokenRes.ok) {
+    const txt = await tokenRes.text().catch(() => '');
+    diag('error', `blob: token request HTTP ${tokenRes.status}`, { body: txt.slice(0, 400) });
+    throw new Error(`Blob token request failed: HTTP ${tokenRes.status} ${txt.slice(0,200)}`);
+  }
+  const tokenJson = await tokenRes.json();
+  if (!tokenJson || !tokenJson.clientToken) {
+    diag('error', 'blob: token response missing clientToken', tokenJson);
+    throw new Error('Blob token response missing clientToken');
+  }
+  diag('info', `blob: token OK, uploading ${file.name} (${(file.size/1024/1024).toFixed(1)}MB)`);
+  const blobClient = await getBlobModule();
+  const result = await blobClient.put(pathname, file, {
+    access: 'private',
+    token: tokenJson.clientToken,
+    contentType: safeContentType(file),
+  });
+  diag('info', `blob: upload OK → ${result.url}`);
+  return result;
 }
 
 async function processRun(run) {
@@ -448,53 +591,64 @@ async function processRun(run) {
   saveQueue();
   renderQueue();
 
-  try {
-    const base = backendUrl();
-    let jobId;
+  diag('info', `▶ run start: "${run.label}" (${run.mod})`);
 
+  try {
+    let payload;
     if (run.mod === 'text') {
-      const data = await apiFetch(`${base}/api/diff/start`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ text_a: run.textA, text_b: run.textB }),
-      });
-      jobId = data.job_id;
+      payload = { modality: 'text', text_a: run.textA, text_b: run.textB };
 
     } else if (run.urlA) {
-      // URL-based audio/video — use local /api/diff/url-start
-      const data = await apiFetch(`${base}/api/diff/url-start`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ url_a: run.urlA, url_b: run.urlB, modality: run.mod }),
-      });
-      jobId = data.job_id;
+      // URL mode — RunPod will fetch these directly. They must be public.
+      payload = {
+        modality: run.mod,
+        media_url_a: run.urlA,
+        media_url_b: run.urlB,
+        media_name_a: run.urlA.split('/').pop().split('?')[0] || `a.${run.mod === 'video' ? 'mp4' : 'mp3'}`,
+        media_name_b: run.urlB.split('/').pop().split('?')[0] || `b.${run.mod === 'video' ? 'mp4' : 'mp3'}`,
+      };
 
     } else {
-      // File-based audio/video — use multipart /api/diff/upload
+      // File mode — upload to Vercel Blob first, then submit URLs to /api/diff/start
       if (!run.fileData_a || !run.fileData_b) {
         throw new Error(
           'File data was not preserved across page reload.\n' +
-          'File uploads are stored in memory only — reload the page and re-add this run.\n' +
-          'Tip: use URL mode for large files to avoid this.'
+          'Reload the page and re-add this run, or use URL mode for large files.'
         );
       }
-      const form = new FormData();
-      const blobA = base64ToBlob(run.fileData_a, run.fileName_a);
-      const blobB = base64ToBlob(run.fileData_b, run.fileName_b);
-      form.append('file_a', blobA, run.fileName_a);
-      form.append('file_b', blobB, run.fileName_b);
-      const data = await apiFetch(`${base}/api/diff/upload`, { method: 'POST', body: form });
-      jobId = data.job_id;
+      const fileA = base64ToFile(run.fileData_a, run.fileName_a);
+      const fileB = base64ToFile(run.fileData_b, run.fileName_b);
+      const [uploadA, uploadB] = await Promise.all([
+        uploadToBlob(fileA, 'a'),
+        uploadToBlob(fileB, 'b'),
+      ]);
+      payload = {
+        modality: run.mod,
+        media_url_a: uploadA.url,
+        media_url_b: uploadB.url,
+        media_name_a: run.fileName_a,
+        media_name_b: run.fileName_b,
+      };
     }
 
-    run.jobId = jobId;
+    const data = await apiFetch('/api/diff/start', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!data.job_id) {
+      diag('error', '/api/diff/start succeeded but response had no job_id', data);
+      throw new Error('Backend response missing job_id');
+    }
+    run.jobId = data.job_id;
+    diag('info', `job submitted: ${data.job_id}`);
     saveQueue();
     renderQueue();
 
-    // Poll until done
     await pollUntilDone(run);
 
   } catch (err) {
+    diag('error', `✗ run failed: "${run.label}" — ${err.message}`);
     run.status = 'error';
     run.error = err.message;
     run.finishedAt = Date.now();
@@ -504,34 +658,54 @@ async function processRun(run) {
 }
 
 async function pollUntilDone(run) {
-  const base = backendUrl();
-  const maxWait = 90 * 60 * 1000; // 90 minutes
+  const maxWait = 90 * 60 * 1000;
   const start = Date.now();
+  let consecErrs = 0;
   while (Date.now() - start < maxWait) {
     await sleep(5000);
     try {
-      const res = await fetch(`${base}/api/diff/status/${run.jobId}`);
-      if (!res.ok) continue;
+      const res = await fetch(`/api/diff/status/${encodeURIComponent(run.jobId)}`, { cache: 'no-store' });
+      if (!res.ok) {
+        consecErrs++;
+        diag('warn', `status poll for ${run.jobId.slice(0,8)}: HTTP ${res.status} (consec err #${consecErrs})`);
+        if (consecErrs >= 12) throw new Error(`Status endpoint returned ${res.status} for 60s straight`);
+        continue;
+      }
+      consecErrs = 0;
       const data = await res.json();
-      if (data.status === 'done') {
+      if (data.status === 'done' || data.status === 'COMPLETED' || data.status === 'completed') {
+        diag('info', `✓ job ${run.jobId.slice(0,8)} completed in ${Math.round((Date.now()-run.startedAt)/1000)}s`);
         run.status = 'done';
         run.finishedAt = Date.now();
         saveQueue();
         renderQueue();
         return;
       }
-      if (data.status === 'error') {
+      if (data.status === 'error' || data.status === 'FAILED' || data.status === 'failed') {
+        const errMsg = (data.error && (data.error.message || JSON.stringify(data.error))) || data.message || 'Backend reported failure';
+        diag('error', `✗ job ${run.jobId.slice(0,8)} failed: ${errMsg}`, data);
         run.status = 'error';
-        run.error = (data.error && (data.error.message || JSON.stringify(data.error))) || 'Backend error';
+        run.error = errMsg;
         run.finishedAt = Date.now();
         saveQueue();
         renderQueue();
         return;
       }
-      // still running — update elapsed display
       renderQueue();
-    } catch(_) { /* retry */ }
+    } catch (e) {
+      consecErrs++;
+      diag('warn', `status poll threw: ${e.message} (consec err #${consecErrs})`);
+      if (consecErrs >= 12) {
+        run.status = 'error';
+        run.error = `Status polling failed for 60s straight: ${e.message}`;
+        run.finishedAt = Date.now();
+        saveQueue();
+        renderQueue();
+        return;
+      }
+    }
   }
+  diag('error', `✗ job ${run.jobId.slice(0,8)} timed out after 90min`);
   run.status = 'error';
   run.error = 'Timed out after 90 minutes.';
   run.finishedAt = Date.now();
@@ -541,19 +715,15 @@ async function pollUntilDone(run) {
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-function base64ToBlob(b64, filename) {
-  const mime = guessMime(filename);
+function base64ToFile(b64, filename) {
+  const ext = (filename || '').split('.').pop().toLowerCase();
+  const mime = { mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', mkv: 'video/x-matroska',
+                 mp3: 'audio/mpeg', wav: 'audio/wav', flac: 'audio/flac', ogg: 'audio/ogg',
+                 m4a: 'audio/mp4', aac: 'audio/aac' }[ext] || 'application/octet-stream';
   const bin = atob(b64);
   const buf = new Uint8Array(bin.length);
   for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-  return new Blob([buf], { type: mime });
-}
-
-function guessMime(name) {
-  const ext = (name || '').split('.').pop().toLowerCase();
-  return { mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', mkv: 'video/x-matroska',
-           mp3: 'audio/mpeg', wav: 'audio/wav', flac: 'audio/flac', ogg: 'audio/ogg',
-           m4a: 'audio/mp4', aac: 'audio/aac' }[ext] || 'application/octet-stream';
+  return new File([buf], filename, { type: mime });
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────
@@ -644,12 +814,10 @@ function init() {
   loadQueue();
   renderQueue();
   updateControls();
-  // Persist backend URL
-  const saved = localStorage.getItem('bd_admin_backend');
-  if (saved) document.getElementById('backendUrl').value = saved;
-  document.getElementById('backendUrl').addEventListener('change', () => {
-    localStorage.setItem('bd_admin_backend', document.getElementById('backendUrl').value);
-  });
+  diag('info', `admin loaded — origin: ${location.origin}`);
+  // Auto-test connection on first load so the user sees the green dot
+  // without having to click anything.
+  testConnection();
 }
 </script>
 </body>
