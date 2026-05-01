@@ -98,6 +98,38 @@ async function fetchJob(id) {
   return adaptResult(job);
 }
 
+/**
+ * Clean a blob-storage filename so the UI shows something readable.
+ * Real worker output looks like:
+ *   "uploads/b-1777655412477426-some-stem-XYZ8aB.mp4"
+ *   "b.1777655412477426_medium-83136f5b...mp4"
+ *   "https://....vercel-storage.com/uploads/a-1234-stem-XYZ.mp4"
+ * Strip the upload prefix, the timestamp, the random Vercel Blob suffix,
+ * fall back to a 36-char truncation with ellipsis.
+ */
+function cleanMediaName(raw, fallback) {
+  let s = String(raw || "").trim();
+  if (!s) return fallback;
+  // If it's a URL, take the last path segment.
+  try {
+    if (/^https?:\/\//i.test(s)) {
+      const u = new URL(s);
+      s = u.pathname.split("/").filter(Boolean).pop() || s;
+    }
+  } catch (_) { /* ignore */ }
+  // Strip "uploads/" prefix if present.
+  s = s.replace(/^uploads\//i, "");
+  // Strip leading "[ab][-.]<digits>[._-]" (slot id + timestamp).
+  s = s.replace(/^[ab][.\-_]\d{6,}[._\-]+/i, "");
+  // Strip "_medium-" prefix that some worker code adds.
+  s = s.replace(/^medium[._\-]+/i, "");
+  // Strip the Vercel Blob random suffix: "-XYZ8aB.ext" → ".ext".
+  s = s.replace(/-[A-Za-z0-9]{6,}(\.[A-Za-z0-9]{1,5})$/, "$1");
+  // Final truncation with ellipsis so wide names don't push the layout around.
+  if (s.length > 38) s = s.slice(0, 35) + "…";
+  return s || fallback;
+}
+
 function adaptResult(job) {
   const result = job.result || {};
   const meta = result.meta || {};
@@ -110,14 +142,14 @@ function adaptResult(job) {
     samples: {
       a: {
         label: "A",
-        name: meta.media_name_a || meta.media_filename_a || "Sample A",
+        name: cleanMediaName(meta.media_name_a || meta.media_filename_a, "Sample A"),
         duration: Number(meta.media_duration_a_s) || 0,
         keyframes: Array.isArray(features.keyframes_a) ? features.keyframes_a : [],
         transcript_segments: Array.isArray(meta.transcript_segments_a) ? meta.transcript_segments_a : [],
       },
       b: {
         label: "B",
-        name: meta.media_name_b || meta.media_filename_b || "Sample B",
+        name: cleanMediaName(meta.media_name_b || meta.media_filename_b, "Sample B"),
         duration: Number(meta.media_duration_b_s) || 0,
         keyframes: Array.isArray(features.keyframes_b) ? features.keyframes_b : [],
         transcript_segments: Array.isArray(meta.transcript_segments_b) ? meta.transcript_segments_b : [],
@@ -155,8 +187,8 @@ function render(data) {
   if (sa) sa.textContent = data.samples.a.duration ? fmtTime(data.samples.a.duration) : "—";
   const sb = document.getElementById("sampleStatsB");
   if (sb) sb.textContent = data.samples.b.duration ? fmtTime(data.samples.b.duration) : "—";
-  renderSample("#sampleA", data.samples.a);
-  renderSample("#sampleB", data.samples.b);
+  renderSample("#sampleA", data.samples.a, data.dimensions, "a");
+  renderSample("#sampleB", data.samples.b, data.dimensions, "b");
   renderTracks(data);
   renderMoments(data);
   renderScenePair(data);
@@ -291,7 +323,54 @@ function renderRecommendations(data) {
     .join("");
 }
 
-function renderSample(selector, sample) {
+/**
+ * Empty-state body for the "video" sample card when the worker didn't return
+ * keyframe thumbnails. Falls back to a useful summary: top 3 dimensions for
+ * THIS side by mean activation, with each one's peak time.
+ */
+function renderSampleNoKeyframes(sample, dimensions, side) {
+  const field = side === "b" ? "timeseries_b" : "timeseries_a";
+  const dur = Math.max(1, sample.duration || 30);
+  const ranked = dimensions
+    .map((d) => {
+      const ts = Array.isArray(d?.[field]) ? d[field] : [];
+      if (!ts.length) return null;
+      const m = mean(ts);
+      // Find peak index, convert to seconds.
+      let peakIdx = 0, peakV = -Infinity;
+      for (let i = 0; i < ts.length; i += 1) {
+        const n = Number(ts[i]);
+        if (Number.isFinite(n) && n > peakV) { peakV = n; peakIdx = i; }
+      }
+      const peakSec = (peakIdx / Math.max(1, ts.length - 1)) * dur;
+      return { label: d.label || d.key || "—", mean: m, peakSec, peakV };
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.mean - a.mean)
+    .slice(0, 3);
+
+  if (!ranked.length) {
+    return `<div class="empty-strip">No keyframes returned by the worker, and no dimensional time-series available for a fallback summary.</div>`;
+  }
+
+  const peaks = ranked
+    .map((r) => `
+      <li>
+        <strong>${escapeHtml(r.label)}</strong>
+        <span class="sample-fallback-vals">mean ${r.mean.toFixed(2)} · peak ${r.peakV.toFixed(2)} at ${fmtTime(r.peakSec)}</span>
+      </li>
+    `)
+    .join("");
+
+  return `
+    <div class="sample-fallback">
+      <p class="sample-fallback-note">Keyframes not returned by the worker for this clip. Top three cortical systems by mean activation:</p>
+      <ol class="sample-fallback-list">${peaks}</ol>
+    </div>
+  `;
+}
+
+function renderSample(selector, sample, dimensions, side) {
   const root = $(selector);
   if (!root) return;
   const keyStrip = sample.keyframes.length
@@ -305,7 +384,7 @@ function renderSample(selector, sample) {
           `
         )
         .join("")}</div>`
-    : `<div class="empty-strip">Keyframes not available — ffmpeg scene-detection returned nothing for this clip.</div>`;
+    : renderSampleNoKeyframes(sample, Array.isArray(dimensions) ? dimensions : [], side);
   const transcript = sample.transcript_segments.length
     ? `<details class="transcript-details">
         <summary>Transcript (${sample.transcript_segments.length} phrases)</summary>
@@ -422,7 +501,12 @@ function renderScenePair(data) {
   const aFrames = data.samples.a.keyframes;
   const bFrames = data.samples.b.keyframes;
   if (!aFrames.length && !bFrames.length) {
-    root.innerHTML = `<div class="empty-strip">No keyframes returned by ffmpeg.</div>`;
+    // No keyframes either side. Instead of a single dead empty line,
+    // render a side-by-side "peak moments" summary built from each
+    // dimension's per-side peak — gives the user a useful structural
+    // alignment view (when in A's timeline did its top systems peak,
+    // and when in B's timeline did B's top systems peak).
+    root.innerHTML = renderScenePairFallback(data);
     return;
   }
   const rows = Math.max(aFrames.length, bFrames.length);
@@ -431,6 +515,55 @@ function renderScenePair(data) {
     html.push(`<div class="scene-pair">${frameBox(aFrames[i], "a")}${frameBox(bFrames[i], "b")}</div>`);
   }
   root.innerHTML = html.join("");
+}
+
+function renderScenePairFallback(data) {
+  const dims = Array.isArray(data?.dimensions) ? data.dimensions : [];
+  if (!dims.length) {
+    return `<div class="empty-strip">No keyframes returned by the worker, and no dimensional time-series available for a fallback alignment view.</div>`;
+  }
+  const durA = Math.max(1, data.samples.a.duration || 30);
+  const durB = Math.max(1, data.samples.b.duration || 30);
+
+  function peaksFor(side) {
+    const field = side === "b" ? "timeseries_b" : "timeseries_a";
+    const dur = side === "b" ? durB : durA;
+    return dims
+      .map((d) => {
+        const ts = Array.isArray(d?.[field]) ? d[field] : [];
+        if (!ts.length) return null;
+        let peakIdx = 0, peakV = -Infinity;
+        for (let i = 0; i < ts.length; i += 1) {
+          const n = Number(ts[i]);
+          if (Number.isFinite(n) && n > peakV) { peakV = n; peakIdx = i; }
+        }
+        const peakSec = (peakIdx / Math.max(1, ts.length - 1)) * dur;
+        return { label: d.label || d.key || "—", peakSec, peakV };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.peakV - a.peakV)
+      .slice(0, 5);
+  }
+  const aPeaks = peaksFor("a");
+  const bPeaks = peaksFor("b");
+  function row(p) {
+    return `<li><strong>${escapeHtml(p.label)}</strong><span class="scene-fallback-meta">peak ${p.peakV.toFixed(2)} at ${fmtTime(p.peakSec)}</span></li>`;
+  }
+  return `
+    <div class="scene-fallback">
+      <p class="scene-fallback-note">No keyframes returned by the worker for either side. Aligned peaks per dimension instead:</p>
+      <div class="scene-fallback-grid">
+        <div class="scene-fallback-side">
+          <div class="scene-fallback-side-head"><span class="badge a">A</span> ${escapeHtml(data.samples.a.name || "Cut A")}</div>
+          <ol>${aPeaks.map(row).join("") || `<li class="empty-line">No dimensional data for A.</li>`}</ol>
+        </div>
+        <div class="scene-fallback-side">
+          <div class="scene-fallback-side-head"><span class="badge b">B</span> ${escapeHtml(data.samples.b.name || "Cut B")}</div>
+          <ol>${bPeaks.map(row).join("") || `<li class="empty-line">No dimensional data for B.</li>`}</ol>
+        </div>
+      </div>
+    </div>
+  `;
 }
 
 function frameBox(kf, side) {
