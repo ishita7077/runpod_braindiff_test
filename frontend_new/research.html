@@ -1,257 +1,2902 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta name="theme-color" content="#f7f4ec" />
-<title>Research — BrainDiff</title>
-<meta name="description" content="The science behind BrainDiff — why self-report misses what people actually do, and how TRIBE v2 lets us peek at the cortex instead." />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brain Diff — Research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&family=Newsreader:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  color-scheme:light;
-  --bg:#f7f4ec; --bg-2:#efeadf; --bg-3:#e7e2d4;
-  --surface:#ffffff; --panel:#ffffff; --panel-2:#f1ecde;
-  --line:#e2ddcf; --line-2:#cbc5b4;
-  --ink:#17171a; --ink-dim:#3d3d42; --ink-mute:#77736b;
-  --accent:#c1272d; --accent-2:#d94a4e; --accent-3:#f8e9e6;
-  --good:#2a5583; --good-2:#4a78ab; --good-3:#e6edf6;
-  --brain-stage:#ebe6da; --brain-stage-2:#e0d9ca; --brain-stage-glow:rgba(150,160,185,0.18);
-  --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
-  --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
-}
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --bg:#0b0c0f; --bg-2:#101116; --bg-3:#15171c;
-  --surface:#15171c; --panel:rgba(20,22,28,0.72); --panel-2:rgba(28,31,38,0.58);
-  --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
-  --ink:#e8e4db; --ink-dim:#b6b1a6; --ink-mute:#7f7a70;
-  --accent:#e04a2e; --accent-2:#f27455; --accent-3:rgba(224,74,46,0.12);
-  --good:#6a97c9; --good-2:#8db2d4; --good-3:rgba(106,151,201,0.12);
-  --brain-stage:#07080b; --brain-stage-2:#050608; --brain-stage-glow:rgba(40,60,100,0.18);
-  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
-  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+:root {
+  --bg: #08080F;
+  --bg-soft: #0C0C18;
+  --bg-card: #0E0E1A;
+  --bg-warm: #14110D;
+  --text: #E8E4DC;
+  --text-soft: #9A9690;
+  --text-mute: #5A5A6A;
+  --rule: #1F1F2E;
+  --rule-warm: #2A241B;
+  --gold: #C9A66B;
+  --gold-bright: #E8C788;
+  --gold-faint: rgba(201, 166, 107, 0.1);
+  --crimson: #8C2A1F;
+
+  /* Seven cortical system colors */
+  --c-memory: #E8C788;
+  --c-effort: #7FB3C6;
+  --c-social: #B89BC9;
+  --c-gut: #E25B43;
+  --c-language: #8AA876;
+  --c-personal: #FFD89E;
+  --c-attention: #D4A857;
 }
 
-*{box-sizing:border-box}html,body{margin:0;padding:0}
-body{
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Newsreader', Georgia, serif;
+  font-weight: 300;
+  line-height: 1.7;
+  font-size: 18px;
+  overflow-x: hidden;
+}
+
+::selection { background: var(--gold); color: var(--bg); }
+
+/* ─── Top Bar ─── */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 6%;
+  border-bottom: 1px solid var(--rule);
+  background: rgba(8, 8, 15, 0.85);
+  backdrop-filter: blur(12px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.brand {
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: -0.01em;
+}
+
+.brand em {
+  font-style: italic;
+  color: var(--gold-bright);
+}
+
+.topbar-meta {
+  display: flex;
+  gap: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+.topbar-meta strong { color: var(--text-soft); font-weight: 400; }
+
+/* ─── Article Container ─── */
+.article {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 80px 24px 120px;
+}
+
+.article-wide {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.article-bleed {
+  width: 100%;
+  margin: 80px 0;
+  padding: 0;
+}
+
+/* ─── Cold open ─── */
+.cold-open {
+  padding: 120px 6% 100px;
+  border-bottom: 1px solid var(--rule);
   background:
-    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
-    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
-    var(--bg);
-  color:var(--ink);font-family:'Inter Tight',system-ui,-apple-system,sans-serif;
-  font-feature-settings:"cv11","ss01";-webkit-font-smoothing:antialiased;line-height:1.6;
+    radial-gradient(ellipse 60% 80% at 50% 30%, rgba(201, 166, 107, 0.06) 0%, transparent 60%);
+  text-align: center;
+  position: relative;
+  min-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
 }
-:root[data-theme="dark"] body{
-  background:radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
-    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),var(--bg);
+
+/* Rotating brain outline behind hero text — barely visible, low contrast,
+   slow rotation. Pure outline so it doesn't compete with the text. */
+.hero-brain-bg {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: clamp(420px, 58vw, 760px);
+  height: clamp(420px, 58vw, 760px);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.18;
+  animation: hero-brain-rot 80s linear infinite;
 }
-a{color:inherit;text-decoration:none}
-.shell{max-width:var(--shell-max);margin:0 auto;padding:0 var(--shell-pad-x)}
+.hero-brain-bg svg { width: 100%; height: 100%; display: block; }
+.hero-brain-bg .brain-outline { fill: none; stroke: var(--gold); stroke-width: 0.6; }
+.hero-brain-bg .brain-pulse { fill: none; stroke: var(--gold-bright); stroke-width: 0.4; opacity: 0.6; animation: hero-brain-pulse 4.5s ease-in-out infinite; }
+@keyframes hero-brain-rot { from { transform: translate(-50%, -50%) rotate(0deg); } to { transform: translate(-50%, -50%) rotate(360deg); } }
+@keyframes hero-brain-pulse { 0%,100% { opacity: 0.25; } 50% { opacity: 0.7; } }
+.cold-open > * { position: relative; z-index: 1; }
 
-.theme-switcher{position:fixed;top:14px;right:20px;z-index:60}
-.theme-toggle{width:34px;height:34px;border-radius:8px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-dim);cursor:pointer;font-size:14px;display:grid;place-items:center;box-shadow:var(--shadow-sm);font-family:inherit;transition:color .15s ease, border-color .15s ease}
-.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
-.theme-toggle .tt-moon{display:inline}.theme-toggle .tt-sun{display:none}
-:root[data-theme="dark"] .theme-toggle .tt-sun{display:inline}
-:root[data-theme="dark"] .theme-toggle .tt-moon{display:none}
-
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:22px var(--shell-pad-x);max-width:var(--shell-max);margin:0 auto;position:sticky;top:0;z-index:20;background:color-mix(in srgb, var(--bg) 84%, transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.022em;font-size:15px;color:var(--ink)}
-.brand-mark{width:24px;height:24px;border-radius:6px;background:var(--accent);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace}
-.brand-word b{font-weight:600}
-.brand-logo{height:24px;width:auto;display:block;border-radius:4px}
-.nav{display:flex;gap:28px;align-items:center;font-size:13.5px;color:var(--ink-dim)}
-.nav a{transition:color .15s ease}
-.nav a:hover{color:var(--ink)}
-.nav a.is-active{color:var(--ink)}
-.nav-cta{padding:8px 16px;border:1px solid var(--line-2);border-radius:8px;color:var(--ink);background:var(--surface);font-weight:500;font-size:13px;transition:all .15s ease;box-shadow:var(--shadow-sm)}
-.nav-cta:hover{border-color:var(--accent);color:var(--accent)}
-
-.page-hero{padding:clamp(48px,9vh,96px) 0 40px}
-.page-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:16px;display:inline-block;padding:5px 10px;border:1px solid var(--line);border-radius:6px;background:color-mix(in srgb, var(--surface) 60%, transparent)}
-h1.page-title{font-family:'Fraunces','Source Serif 4',Georgia,serif;font-weight:400;font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;font-size:clamp(36px,4.6vw,58px);line-height:1.06;letter-spacing:-0.022em;margin:0 0 18px;color:var(--ink)}
-h1.page-title em{font-style:italic;color:var(--accent)}
-.page-sub{font-size:clamp(15.5px,1.25vw,18px);color:var(--ink-dim);max-width:58ch;line-height:1.6;margin:0 0 20px}
-
-.section{padding:48px 0;border-top:1px solid var(--line)}
-.section-eyebrow{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);margin-bottom:14px}
-h2.section-title{font-family:'Fraunces','Source Serif 4',Georgia,serif;font-weight:400;font-variation-settings:"opsz" 144, "SOFT" 0, "WONK" 0;font-size:clamp(26px,2.6vw,34px);line-height:1.1;letter-spacing:-0.02em;margin:0 0 14px;max-width:26ch;color:var(--ink)}
-h2.section-title em{font-style:italic;color:var(--accent)}
-.section-lead{color:var(--ink-dim);max-width:60ch;margin:0 0 22px;font-size:15.5px;line-height:1.7}
-.prose{color:var(--ink-dim);font-size:15.5px;line-height:1.75;max-width:62ch}
-.prose p{margin:0 0 16px}
-.prose strong{color:var(--ink);font-weight:600}
-.prose em{font-style:italic;color:var(--ink)}
-
-.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:28px 0 8px}
-.stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;box-shadow:var(--shadow-sm);backdrop-filter:blur(8px)}
-.stat .num{font-family:'Fraunces',serif;font-variation-settings:"opsz" 144;font-size:36px;color:var(--accent);line-height:1;margin-bottom:8px;letter-spacing:-0.02em}
-.stat .lbl{font-size:13px;color:var(--ink-dim);line-height:1.5}
-
-.cite-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:14px}
-.cite-list li{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 18px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow-sm)}
-.cite-list .title{color:var(--ink);font-weight:500;font-size:14px}
-.cite-list .meta{font-size:12px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:0.03em}
-.cite-list a{color:var(--accent);border-bottom:1px solid color-mix(in srgb, var(--accent) 35%, transparent);font-size:12px;align-self:flex-start;margin-top:4px}
-.cite-list a:hover{border-bottom-color:var(--accent)}
-
-.cta-footer{padding:64px 0;border-top:1px solid var(--line);display:flex;gap:16px;flex-wrap:wrap;align-items:center}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:8px;font-weight:500;font-size:14px;letter-spacing:-0.005em;transition:all .15s ease;cursor:pointer;border:none;font-family:inherit}
-.btn-primary{background:var(--accent);color:#fff;box-shadow:var(--shadow-md)}
-.btn-primary:hover{background:color-mix(in srgb, var(--accent) 88%, black);transform:translateY(-1px)}
-.btn-ghost{background:var(--surface);color:var(--ink-dim);border:1px solid var(--line-2);box-shadow:var(--shadow-sm)}
-.btn-ghost:hover{color:var(--ink);border-color:var(--accent)}
-
-.footer{border-top:1px solid var(--line);padding:36px 0;color:var(--ink-mute);font-size:12px;font-family:'Inter Tight',system-ui,sans-serif;letter-spacing:-0.005em}
-.footer .shell{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px}
-.footer a{color:var(--ink-dim);transition:color .15s ease;border-bottom:1px solid transparent;padding-bottom:1px}
-.footer a:hover{color:var(--accent);border-bottom-color:color-mix(in srgb, var(--accent) 50%, transparent)}
-.footer .footer-brand{font-family:'Fraunces',serif;font-variation-settings:"opsz" 48;font-size:15px;color:var(--ink);font-weight:500;letter-spacing:-0.01em}
-.footer .footer-credit{color:var(--ink-mute)}
-.footer .heart{color:var(--accent);display:inline-block;margin:0 2px;animation:heartbeat 1.6s ease-in-out infinite}
-@keyframes heartbeat{0%,60%,100%{transform:scale(1)}30%{transform:scale(1.12)}45%{transform:scale(1.05)}}
-
-@media (max-width: 960px){
-  .nav{gap:18px;font-size:13px}
-  .stat-grid{grid-template-columns:1fr 1fr;gap:12px}
-  .section{padding:40px 0}
-  .page-hero{padding:clamp(32px,6vh,64px) 0 28px}
+.cold-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 64px;
 }
-@media (max-width: 640px){
-  :root{--shell-pad-x:clamp(16px,5vw,24px)}
-  .topbar{padding:14px var(--shell-pad-x)}
-  .nav{gap:12px;font-size:12.5px}
-  .nav a:not(.nav-cta){display:none}
-  .nav-cta{display:inline-flex;padding:7px 13px;font-size:12.5px}
-  .stat-grid{grid-template-columns:1fr}
-  .section{padding:32px 0}
-  h1.page-title{font-size:clamp(32px,9vw,44px)}
+
+.cold-question {
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(36px, 5.5vw, 72px);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  max-width: 1100px;
+  margin-bottom: 64px;
+  color: var(--text);
+}
+
+.cold-question em {
+  color: var(--gold-bright);
+  font-style: italic;
+}
+
+.cold-frame {
+  font-family: 'Newsreader', serif;
+  font-size: 18px;
+  line-height: 1.7;
+  color: var(--text-soft);
+  max-width: 600px;
+  font-weight: 300;
+}
+
+.cold-frame p { margin-bottom: 16px; }
+
+.scroll-cue {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-top: 80px;
+}
+
+/* ─── Section ─── */
+.section {
+  padding: 70px 0 50px;
+}
+
+.section-header {
+  max-width: 760px;
+  margin: 0 auto 32px;
+  padding: 0 24px;
+}
+
+/* ─── New section pattern ───
+   - section-lead     = orientation paragraph (always visible, no label)
+   - section-deeper   = native <details> toggle wrapping the long-form prose
+   - section-bottom   = closing 2-3 sentence summary, gold left rule
+*/
+.section-lead {
+  max-width: 760px;
+  margin: 0 auto 24px;
+  padding: 0 24px;
+  font-size: 19px;
+  line-height: 1.65;
+  color: var(--text);
+  font-family: 'Newsreader', Georgia, serif;
+  font-weight: 300;
+}
+.section-lead em { font-style: italic; color: var(--gold-bright); }
+.section-lead strong { color: var(--text); font-weight: 400; }
+
+.section-deeper {
+  max-width: 760px;
+  margin: 0 auto 24px;
+  padding: 0 24px;
+}
+.section-deeper > summary {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  border: 1px solid var(--rule-warm);
+  border-radius: 4px;
+  background: rgba(201, 166, 107, 0.04);
+  list-style: none;
+  user-select: none;
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+.section-deeper > summary::-webkit-details-marker { display: none; }
+.section-deeper > summary:hover {
+  background: rgba(201, 166, 107, 0.10);
+  border-color: var(--gold);
+}
+.section-deeper > summary::after {
+  content: '↓';
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.section-deeper[open] > summary::after { transform: rotate(180deg); }
+.section-deeper[open] > summary { margin-bottom: 18px; background: rgba(201, 166, 107, 0.08); }
+.section-deeper .prose { margin-top: 4px; }
+
+.section-bottom {
+  max-width: 760px;
+  margin: 28px auto 0;
+  padding: 18px 24px 18px 28px;
+  border-left: 2px solid var(--gold);
+  background: rgba(201, 166, 107, 0.03);
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 16.5px;
+  line-height: 1.65;
+  color: var(--text-soft);
+}
+.section-bottom strong { color: var(--text); font-weight: 400; }
+.section-bottom em { color: var(--gold-bright); font-style: italic; }
+
+/* ─── INTERACTIVE TAG — stupid obvious ───
+   Pulses, gold pill, sits ABOVE the widget. Cannot be missed. */
+.iact-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px 8px 14px;
+  margin: 0 0 16px;
+  background: linear-gradient(90deg, rgba(201,166,107,0.18), rgba(201,166,107,0.06));
+  border: 1px solid var(--gold);
+  border-radius: 999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  animation: iact-pulse 2.4s ease-in-out infinite;
+  cursor: default;
+}
+.iact-tag::before {
+  content: '▶';
+  display: inline-block;
+  font-size: 9px;
+  color: var(--gold-bright);
+  animation: iact-arrow 1.4s ease-in-out infinite;
+}
+@keyframes iact-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 166, 107, 0.45); }
+  50%      { box-shadow: 0 0 0 10px rgba(201, 166, 107, 0); }
+}
+@keyframes iact-arrow {
+  0%, 100% { transform: translateX(0); }
+  50%      { transform: translateX(3px); }
+}
+
+/* Visual: when an interactive widget hasn't been touched yet, give the
+   first item a soft pulsing halo so the affordance is unmistakable. */
+@keyframes hint-glow {
+  0%, 100% { filter: drop-shadow(0 0 0px rgba(201, 166, 107, 0)); }
+  50%      { filter: drop-shadow(0 0 8px rgba(232, 199, 136, 0.65)); }
+}
+.hint-glow { animation: hint-glow 2s ease-in-out infinite; }
+.hint-glow.hint-stop { animation: none; filter: none; }
+
+/* Side-by-side video stage in Section 7 comparator */
+.respond-videos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 18px 0 18px;
+}
+.respond-video-cell { display: flex; flex-direction: column; gap: 6px; }
+.respond-video-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+.respond-video-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #050510;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.respond-video-frame video { width: 100%; height: 100%; object-fit: cover; }
+.respond-video-placeholder {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; color: var(--text-mute);
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: 0.04em;
+  text-align: center; padding: 16px;
+}
+.respond-video-placeholder-icon {
+  font-size: 28px; color: var(--gold); opacity: 0.4; margin-bottom: 4px;
+}
+.respond-video-placeholder-sub {
+  font-size: 10px; color: var(--text-mute); opacity: 0.7; margin-top: 4px;
+}
+.respond-video-placeholder code {
+  background: rgba(201,166,107,0.08);
+  color: var(--gold-bright);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+.respond-videos.is-hidden { display: none; }
+@media (max-width: 700px) {
+  .respond-videos { grid-template-columns: 1fr; }
+}
+
+/* ─── Single CTA + slim footer ─── */
+.btn-primary-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 38px;
+  background: var(--gold);
+  color: var(--bg);
+  font-family: 'Fraunces', serif;
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: -0.005em;
+  text-decoration: none;
+  border-radius: 6px;
+  border: 1px solid var(--gold);
+  transition: background .18s ease, transform .18s ease, box-shadow .18s ease;
+  box-shadow: 0 0 0 0 rgba(232,199,136,0);
+}
+.btn-primary-gold:hover {
+  background: var(--gold-bright);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(201, 166, 107, 0.25);
+}
+.btn-primary-gold .btn-arrow { transition: transform .2s ease; }
+.btn-primary-gold:hover .btn-arrow { transform: translateX(4px); }
+
+/* Pill / ghost button used inside sections (e.g. methodology link) */
+.btn-ghost-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--gold-bright);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+  border: 1px solid var(--rule-warm);
+  border-radius: 4px;
+  transition: border-color .18s ease, background .18s ease, color .18s ease;
+}
+.btn-ghost-gold:hover {
+  border-color: var(--gold);
+  background: rgba(201, 166, 107, 0.08);
+  color: var(--gold-bright);
+}
+
+.footer-slim {
+  border-top: 1px solid var(--rule-warm);
+  padding: 36px 6% 28px;
+  background: var(--bg-soft);
+}
+.footer-slim-inner {
+  max-width: 880px;
+  margin: 0 auto;
+}
+.footer-builder {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--text-soft);
+  letter-spacing: 0.01em;
+  margin-bottom: 22px;
+  max-width: 720px;
+}
+.footer-builder a {
+  color: var(--gold-bright);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(232, 199, 136, 0.5);
+}
+.footer-builder a:hover { text-decoration-color: var(--gold-bright); }
+
+.footer-refs > summary {
+  cursor: pointer;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  list-style: none;
+  padding: 8px 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: color .18s ease;
+  user-select: none;
+}
+.footer-refs > summary::-webkit-details-marker { display: none; }
+.footer-refs > summary:hover { color: var(--gold-bright); }
+.footer-refs[open] > summary { color: var(--gold-bright); margin-bottom: 12px; }
+
+.footer-refs-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  padding: 16px 0 8px;
+  border-top: 1px solid var(--rule);
+}
+.footer-refs-grid h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin: 0 0 14px;
+  font-weight: 400;
+}
+.footer-refs-grid p {
+  font-size: 12.5px;
+  line-height: 1.75;
+  color: var(--text-soft);
+}
+.footer-refs-grid a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--text-mute);
+}
+.footer-refs-grid a:hover { color: var(--gold-bright); }
+
+.footer-meta {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--rule);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text-mute);
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.footer-meta a { color: var(--text-soft); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--rule-warm); }
+.footer-meta a:hover { color: var(--gold-bright); }
+.footer-heart { color: var(--gold-bright); display:inline-block; animation: hb 1.6s ease-in-out infinite; }
+@keyframes hb { 0%,60%,100%{transform:scale(1)} 30%{transform:scale(1.18)} }
+
+@media (max-width: 700px) {
+  .footer-refs-grid { grid-template-columns: 1fr; gap: 28px; }
+}
+
+.section-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 32px;
+}
+
+.section-num strong { color: var(--gold); font-weight: 400; }
+
+.section-h2 {
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+  font-size: clamp(32px, 4vw, 48px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 24px;
+  max-width: 720px;
+}
+
+.section-h2 em { font-style: italic; color: var(--gold-bright); }
+
+.therefore-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+  padding: 6px 12px;
+  background: var(--gold-faint);
+  border-radius: 2px;
+}
+
+.but-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--crimson);
+  margin-bottom: 16px;
+  padding: 6px 12px;
+  background: rgba(140, 42, 31, 0.1);
+  border-radius: 2px;
+}
+
+.so-tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  margin-bottom: 16px;
+  padding: 6px 12px;
+  background: rgba(232, 199, 136, 0.1);
+  border-radius: 2px;
+}
+
+/* ─── Body Prose ─── */
+.prose {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.prose p {
+  margin-bottom: 28px;
+  color: var(--text);
+  line-height: 1.7;
+}
+
+.prose p.lede {
+  font-size: 22px;
+  line-height: 1.55;
+  color: var(--text);
+  font-weight: 300;
+}
+
+.prose strong {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.prose em {
+  font-style: italic;
+  color: var(--gold-bright);
+}
+
+.prose-soft {
+  color: var(--text-soft) !important;
+}
+
+/* ─── Pull-quote ─── */
+.pullquote {
+  max-width: 800px;
+  margin: 64px auto;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.pullquote-text {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(28px, 3.5vw, 42px);
+  line-height: 1.3;
+  color: var(--text);
+  letter-spacing: -0.01em;
+  position: relative;
+}
+
+.pullquote-text::before,
+.pullquote-text::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 1px;
+  background: var(--gold);
+  margin: 32px auto;
+  opacity: 0.6;
+}
+
+.pullquote-cite {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+/* ─── Citations inline ─── */
+.cite {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.78em;
+  color: var(--gold);
+  vertical-align: super;
+  cursor: help;
+  letter-spacing: 0.05em;
+}
+
+/* ─── INTERACTIVE 1: The Cortex ─── */
+.cortex-wrap {
+  max-width: 1100px;
+  margin: 64px auto;
+  padding: 48px 24px;
+  background: radial-gradient(ellipse at center, #0C0C18 0%, #050510 80%);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+.cortex-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 48px;
+  align-items: center;
+}
+
+.cortex-svg-wrap {
+  position: relative;
+}
+
+.cortex-svg {
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  display: block;
+}
+
+.cortex-side h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 16px;
+}
+
+.cortex-side h3 {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.3;
+  margin-bottom: 24px;
+}
+
+.cortex-side p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text-soft);
+  margin-bottom: 16px;
+}
+
+.cortex-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+.cortex-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-soft);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 2px;
+  transition: background 0.15s;
+}
+
+.cortex-legend-item:hover {
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+
+.cortex-legend-item.active {
+  background: rgba(201, 166, 107, 0.08);
+  color: var(--text);
+}
+
+.cortex-legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ─── INTERACTIVE 2: EQ Items ─── */
+.eq-test-wrap {
+  max-width: 760px;
+  margin: 64px auto;
+  padding: 48px 32px;
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+.eq-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--crimson);
+  margin-bottom: 12px;
+}
+
+.eq-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 26px;
+  line-height: 1.2;
+  margin-bottom: 32px;
+}
+
+.eq-item {
+  margin-bottom: 32px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.eq-item:last-of-type {
+  border-bottom: none;
+}
+
+.eq-item-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: var(--text-mute);
+  margin-bottom: 8px;
+}
+
+.eq-item-text {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.4;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.eq-options {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+}
+
+.eq-option {
+  padding: 12px 8px;
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--text-soft);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.15s;
+  text-align: center;
+}
+
+.eq-option:hover {
+  border-color: var(--text-mute);
+  color: var(--text);
+}
+
+.eq-option.selected {
+  background: rgba(232, 199, 136, 0.12);
+  border-color: var(--gold-bright);
+  color: var(--gold-bright);
+}
+
+.eq-reveal {
+  margin-top: 32px;
+  padding: 24px;
+  background: rgba(140, 42, 31, 0.05);
+  border-left: 2px solid var(--crimson);
+  border-radius: 2px;
+  display: none;
+}
+
+.eq-reveal.shown {
+  display: block;
+}
+
+.eq-reveal h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--crimson);
+  margin-bottom: 16px;
+}
+
+.eq-reveal p {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-soft);
+  margin-bottom: 12px;
+}
+
+.eq-reveal p strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.eq-cross-cultural {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-top: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+}
+
+.eq-cell {
+  padding: 12px 8px;
+  background: rgba(0,0,0,0.2);
+  border-radius: 2px;
+  text-align: center;
+  color: var(--text-mute);
+}
+
+.eq-cell strong {
+  display: block;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+/* ─── INTERACTIVE 3: Encoding Model Timeline ─── */
+.timeline-wrap {
+  max-width: 1100px;
+  margin: 64px auto;
+  padding: 48px;
+  background: radial-gradient(ellipse at top, #0E0E1C 0%, #050510 80%);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+.timeline-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.timeline-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+
+.timeline-sub {
+  color: var(--text-soft);
+  font-size: 16px;
+  margin-bottom: 40px;
+}
+
+.timeline-chart {
+  position: relative;
+  height: 360px;
+  margin-bottom: 24px;
+}
+
+.timeline-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.timeline-card {
+  margin-top: 24px;
+  padding: 24px 28px;
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--gold);
+  border-radius: 2px;
+  min-height: 140px;
+  transition: all 0.2s;
+}
+
+.timeline-card-year {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+
+.timeline-card-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.3;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.timeline-card-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 16px;
+}
+
+.timeline-card-desc {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+
+.timeline-card-desc strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+/* ─── INTERACTIVE 4: Watch Cortex Respond ─── */
+.cortex-respond-wrap {
+  max-width: 1200px;
+  margin: 64px auto;
+  padding: 48px;
+  background: radial-gradient(ellipse at center, #0C0C18 0%, #050510 80%);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+}
+
+.respond-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--gold-bright);
+  margin-bottom: 12px;
+}
+
+.respond-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.2;
+  margin-bottom: 32px;
+}
+
+.respond-presets {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 32px;
+}
+
+.respond-preset {
+  padding: 16px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.respond-preset:hover {
+  border-color: var(--gold);
+}
+
+.respond-preset.active {
+  background: rgba(232, 199, 136, 0.08);
+  border-color: var(--gold-bright);
+}
+
+.respond-preset-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 6px;
+}
+
+.respond-preset-name {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 16px;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.respond-display {
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 32px;
+  position: relative;
+  min-height: 320px;
+}
+
+.respond-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--text-mute);
+}
+
+.respond-play {
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  padding: 10px 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 2px;
+  font-weight: 500;
+}
+
+.respond-play:hover {
+  background: var(--gold-bright);
+}
+
+.respond-time {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.respond-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.respond-bar-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 60px;
+  gap: 16px;
+  align-items: center;
+}
+
+.respond-bar-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  text-align: right;
+}
+
+.respond-bar-track {
+  height: 24px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 2px;
+  position: relative;
+  overflow: hidden;
+}
+
+.respond-bar-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  background: var(--gold);
+  border-radius: 2px;
+  transition: width 0.1s linear;
+}
+
+.respond-bar-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--text);
+  text-align: right;
+  font-weight: 500;
+}
+
+/* ─── INTERACTIVE 5: Seven-Lab Montage (THE CENTERPIECE) ─── */
+.montage-section {
+  padding: 100px 0 80px;
+  background: linear-gradient(180deg, var(--bg) 0%, #050510 50%, var(--bg) 100%);
+  border-top: 1px solid var(--rule);
+  border-bottom: 1px solid var(--rule);
+}
+
+.montage-wrap {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.montage-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.montage-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 24px;
+}
+
+.montage-title {
+  font-family: 'Fraunces', serif;
+  font-weight: 300;
+  font-style: italic;
+  font-size: clamp(36px, 5vw, 56px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin-bottom: 16px;
+}
+
+.montage-title em { color: var(--gold-bright); }
+
+.montage-sub {
+  font-family: 'Newsreader', serif;
+  font-size: 18px;
+  color: var(--text-soft);
+  max-width: 640px;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.montage-stage {
+  background: radial-gradient(ellipse at center, #08080F 0%, #020208 80%);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: 64px 48px 48px;
+  position: relative;
+  overflow: hidden;
+}
+
+.montage-stage::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 17% 23%, rgba(255,255,255,0.4) 0.4px, transparent 1px),
+    radial-gradient(circle at 41% 67%, rgba(255,255,255,0.5) 0.4px, transparent 1px),
+    radial-gradient(circle at 73% 31%, rgba(255,255,255,0.4) 0.4px, transparent 1px),
+    radial-gradient(circle at 89% 79%, rgba(255,255,255,0.5) 0.4px, transparent 1px),
+    radial-gradient(circle at 13% 81%, rgba(255,255,255,0.4) 0.4px, transparent 1px),
+    radial-gradient(circle at 53% 11%, rgba(255,255,255,0.5) 0.4px, transparent 1px);
+  pointer-events: none;
+  opacity: 0.5;
+}
+
+.montage-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 56px;
+  align-items: start;
+  position: relative;
+  z-index: 1;
+}
+
+.montage-brain-wrap {
+  position: relative;
+}
+
+.montage-brain {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.montage-side {
+  display: flex;
+  flex-direction: column;
+}
+
+.montage-current-year {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 56px;
+  line-height: 1;
+  color: var(--gold-bright);
+  margin-bottom: 8px;
+}
+
+.montage-current-system {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--text-soft);
+  margin-bottom: 24px;
+}
+
+.montage-current-card {
+  padding: 24px 24px 20px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  border-left: 2px solid var(--gold);
+  margin-bottom: 32px;
+  min-height: 220px;
+}
+
+.montage-card-lab {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+  margin-bottom: 8px;
+}
+
+.montage-card-question {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.3;
+  color: var(--text);
+  margin-bottom: 20px;
+}
+
+.montage-card-found {
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--text-soft);
+  margin-bottom: 12px;
+}
+
+.montage-card-found strong {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.montage-card-region {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-top: 12px;
+}
+
+.montage-falk-callout {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: rgba(232, 199, 136, 0.06);
+  border-radius: 2px;
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--gold-bright);
+  display: none;
+}
+
+.montage-falk-callout.shown {
+  display: block;
+}
+
+.montage-falk-callout strong {
+  font-style: normal;
+  font-weight: 500;
+  color: var(--gold-bright);
+}
+
+/* Time slider */
+.montage-slider-wrap {
+  margin-top: 48px;
+  padding: 24px 32px 16px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.montage-slider {
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--rule);
+  border-radius: 2px;
+  outline: none;
+}
+
+.montage-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--gold-bright);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 16px rgba(232, 199, 136, 0.6);
+}
+
+.montage-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--gold-bright);
+  border-radius: 50%;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 0 16px rgba(232, 199, 136, 0.6);
+}
+
+.montage-year-marks {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--text-mute);
+}
+
+.montage-year-marks span {
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 2px;
+  transition: all 0.15s;
+}
+
+.montage-year-marks span:hover {
+  color: var(--text);
+  background: rgba(255,255,255,0.04);
+}
+
+.montage-year-marks span.active {
+  color: var(--gold-bright);
+  font-weight: 500;
+}
+
+/* Open questions section */
+.openq-section {
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-warm) 50%, var(--bg) 100%);
+  padding: 120px 0;
+  border-top: 1px solid var(--rule-warm);
+  border-bottom: 1px solid var(--rule-warm);
+}
+
+.openq-list {
+  max-width: 800px;
+  margin: 64px auto 0;
+  padding: 0 24px;
+}
+
+.openq-item {
+  padding: 28px 0;
+  border-bottom: 1px solid var(--rule-warm);
+  display: grid;
+  grid-template-columns: 60px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.openq-item:last-child {
+  border-bottom: none;
+}
+
+.openq-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--gold);
+  padding-top: 8px;
+}
+
+.openq-text {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: 24px;
+  line-height: 1.4;
+  color: var(--text);
+}
+
+/* Final close */
+.final-close {
+  padding: 100px 6%;
+  text-align: center;
+  border-top: 1px solid var(--rule);
+}
+
+.final-close-text {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(22px, 3vw, 32px);
+  line-height: 1.5;
+  color: var(--text-soft);
+  max-width: 700px;
+  margin: 0 auto 32px;
+}
+
+.final-close-thesis {
+  font-family: 'Fraunces', serif;
+  font-weight: 500;
+  font-size: clamp(24px, 3.5vw, 36px);
+  line-height: 1.3;
+  color: var(--text);
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+.final-close-thesis em {
+  color: var(--gold-bright);
+  font-style: italic;
+}
+
+.final-cta {
+  margin-top: 48px;
+}
+
+.final-cta a {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text);
+  border: 1px solid var(--gold);
+  padding: 16px 28px;
+  border-radius: 2px;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+
+.final-cta a:hover {
+  background: var(--gold);
+  color: var(--bg);
+}
+
+/* Footer */
+.research-footer {
+  padding: 64px 8%;
+  background: var(--bg-soft);
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 56px;
+  font-size: 14px;
+  color: var(--text-soft);
+  line-height: 1.6;
+}
+
+.research-footer h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+  font-weight: 400;
+}
+
+.research-footer a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--text-mute);
+}
+
+.research-footer a:hover { color: var(--gold-bright); }
+
+@media (max-width: 1100px) {
+  .cortex-grid, .montage-grid { grid-template-columns: 1fr; gap: 40px; }
+  .respond-presets { grid-template-columns: 1fr; }
+  .research-footer { grid-template-columns: 1fr; gap: 40px; }
+}
+
+@media (max-width: 700px) {
+  .article { padding: 60px 16px 80px; }
+  .respond-bar-row { grid-template-columns: 100px 1fr 50px; }
+  .eq-options { grid-template-columns: repeat(5, 1fr); gap: 4px; }
+  .eq-option { padding: 8px 4px; font-size: 9px; }
 }
 </style>
 </head>
 <body>
-<div class="theme-switcher"><button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle light/dark"><span class="tt-sun">☀</span><span class="tt-moon">☾</span></button></div>
 
-<header class="topbar">
-  <a href="/" class="brand"><img class="brand-logo" src="/assets/braindiff-logo.png" alt="BrainDiff logo" /><span class="brand-word">Brain<b>Diff</b></span></a>
-  <nav class="nav">
-    <a href="/research" class="is-active">Research</a>
-    <a href="/methodology">Methodology</a>
-    <a href="/#case-study">Case studies</a>
-    <a href="/launch" class="nav-cta">Launch →</a>
-  </nav>
-</header>
+<div class="topbar">
+  <a href="/" class="brand" style="text-decoration:none;color:inherit">Brain<em>Diff</em></a>
+  <div class="topbar-meta">
+    <a href="/methodology" style="color:inherit;text-decoration:none">Methodology</a>
+    <a href="/#case-study" style="color:inherit;text-decoration:none">Case studies</a>
+    <a href="/launch" style="color:var(--gold-bright);text-decoration:none;border:1px solid var(--rule-warm);padding:6px 12px;border-radius:4px">Launch →</a>
+  </div>
+</div>
 
-<main>
-  <section class="page-hero shell">
-    <div class="page-eyebrow">Research</div>
-    <h1 class="page-title">Why self-report <em>misses.</em></h1>
-    <p class="page-sub">Roughly 90% of decisions happen below conscious awareness — driven by instinct, emotion, and memory. Asking someone <em>why</em> they chose, liked, or bought returns a story the conscious brain wrote after the fact. BrainDiff skips the story and looks at the response.</p>
-  </section>
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- COLD OPEN -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="cold-open">
+  <!-- Rotating brain outline behind hero, low-contrast, ambient -->
+  <div class="hero-brain-bg" aria-hidden="true">
+    <svg viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+      <!-- Outer cortical outline (top-down) -->
+      <path class="brain-outline" d="M 200 40
+            C 110 40, 50 110, 48 200
+            C 46 290, 100 360, 200 370
+            C 300 360, 354 290, 352 200
+            C 350 110, 290 40, 200 40 Z"/>
+      <!-- Central sulcus -->
+      <path class="brain-outline" d="M 200 50 Q 198 200, 202 360"/>
+      <!-- Lateral sulci -->
+      <path class="brain-outline" d="M 80 180 Q 130 195, 175 185"/>
+      <path class="brain-outline" d="M 320 180 Q 270 195, 225 185"/>
+      <!-- Subtle gyri -->
+      <path class="brain-outline" d="M 95 130 Q 145 145, 195 130"/>
+      <path class="brain-outline" d="M 305 130 Q 255 145, 205 130"/>
+      <path class="brain-outline" d="M 80 250 Q 140 270, 195 255"/>
+      <path class="brain-outline" d="M 320 250 Q 260 270, 205 255"/>
+      <!-- Pulsing ring (gentle breath) -->
+      <ellipse class="brain-pulse" cx="200" cy="200" rx="172" ry="168"/>
+      <ellipse class="brain-pulse" cx="200" cy="200" rx="148" ry="146" style="animation-delay:1.5s"/>
+    </svg>
+  </div>
 
-  <section class="section shell">
-    <div class="section-eyebrow">The gap</div>
-    <h2 class="section-title">The brain acts first. The mouth explains after.</h2>
-    <div class="prose">
-      <p>Traditional market research asks a conscious mind to report on a subconscious process. That's asking consumers to act as their own psychologists — and it rarely works.</p>
-      <p>When researchers compare what people <strong>say</strong> they'll do with what they <strong>actually</strong> do, self-reported data only predicts real-world behaviour around <strong>24%</strong> of the time. When they compare neural measures (fMRI, EEG) to real-world behaviour, prediction jumps to about <strong>86%</strong>.</p>
-      <p>That gap is the reason BrainDiff exists.</p>
-    </div>
-    <div class="stat-grid">
-      <div class="stat"><div class="num">720+</div><div class="lbl">people's fMRI behind every BrainDiff prediction — TRIBE v2's training set.</div></div>
-      <div class="stat"><div class="num">~20,000</div><div class="lbl">cortical vertices per comparison — fsaverage5 resolution, the standard surface atlas.</div></div>
-      <div class="stat"><div class="num">1,000+</div><div class="lbl">hours of fMRI data inside the model, released open-access by Meta FAIR.</div></div>
-    </div>
-    <p class="prose" style="margin-top:16px;color:var(--ink-mute);font-size:13px">
-      On the same scale: <strong>r = 0.87</strong> — the correlation Falk, Berkman &amp; Lieberman (2012) reported between one small cortical region's response in 30 smokers and the national call volume their anti-smoking ads would drive weeks later. Focus groups and self-report had ranked those same ads differently.
+  <div class="cold-eyebrow">A Brain Diff Research Note</div>
+
+  <h1 class="cold-question">
+    What if the part that knows what <em>matters</em><br>
+    isn't the part you can <em>ask</em>?
+  </h1>
+
+  <div class="cold-frame">
+    <p style="font-size:14px;color:var(--text-soft);font-family:'JetBrains Mono',monospace;letter-spacing:0.04em;line-height:1.7;text-align:left;max-width:600px;margin:0 auto">
+      One thing before you read further: when we say <strong style="color:var(--text)">brain</strong>, we're being sloppy on purpose. We mean <strong style="color:var(--text)">cortex</strong> — the outer surface. It's where language gets parsed, attention gets allocated, and memories get filed. TRIBE v2 does not model subcortical structures.
     </p>
-  </section>
+    <p style="font-size:12px;color:var(--text-mute);font-family:'JetBrains Mono',monospace;letter-spacing:0.12em;text-transform:uppercase;margin-top:28px">
+      Skim the headlines · expand any section to read deeper
+    </p>
+  </div>
 
-  <section class="section shell">
-    <div class="section-eyebrow">What the cortex actually tracks</div>
-    <h2 class="section-title">Three signals drive behaviour.</h2>
+  <div class="scroll-cue">↓ Begin</div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SECTION 1 — THE CORTEX -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">SECTION <strong>01</strong> · THEREFORE</div>
+    <span class="therefore-tag">→ THEREFORE</span>
+    <h2 class="section-h2">We'd need to know what <em>"the brain"</em> actually is.</h2>
+  </div>
+
+  <p class="section-lead">
+    The cortex is the outer sheet of the brain — two to four millimeters thick, folded densely enough that, unfurled, it covers about the area of a dinner napkin. It has internal structure: groupings of regions that fire together, found by listening to the cortex at rest rather than by giving it tasks.
+  </p>
+
+  <details class="section-deeper">
+    <summary>How the cortex is mapped, and where the seven networks come from</summary>
     <div class="prose">
-      <p>Decades of neuroscience, and more recently neuromarketing, converge on three signals that predict what people do next:</p>
-      <p><strong>Personal relevance</strong> — activity in medial prefrontal cortex (mPFC) tracks whether a message feels like it's about <em>you</em>. Falk et al. (2012) showed mPFC activation predicted population-level smoking-cessation response even when self-reports didn't.</p>
-      <p><strong>Memory encoding</strong> — activity in the ventrolateral prefrontal cortex during exposure predicts whether content will be remembered days later. Memory is the bridge between seeing a message today and acting on it tomorrow.</p>
-      <p><strong>Emotional + visceral response</strong> — the anterior insula and related regions fire on gut reactions: urgency, stakes, moral weight. This is the "felt edge" of a message that self-report usually flattens out.</p>
-      <p>BrainDiff reports on all three — plus four more (social reasoning, language depth, attention, processing effort) — every time you run a comparison.</p>
+      <p>
+        For research purposes, the cortex is mapped onto a standardized surface called <strong>fsaverage5</strong>: a reference template with 20,484 vertices, each one a point on the cortical sheet that can be tracked across subjects. When neuroscientists talk about &ldquo;a region of the brain doing X,&rdquo; they usually mean the average activity at some collection of these vertices, across many people, doing X.
+      </p>
+      <p>
+        In 2011, Yeo and colleagues at Harvard published a parcellation of this surface into <strong>seven networks</strong><span class="cite">[1]</span> — visual, somatomotor, dorsal attention, ventral attention, limbic, frontoparietal, default. They didn't decide what the cortex should look like; they let the cortex's resting activity reveal its own organization. The seven-network map is now one of the most reproduced findings in cognitive neuroscience.
+      </p>
     </div>
-  </section>
+  </details>
 
-  <section class="section shell">
-    <div class="section-eyebrow">The model</div>
-    <h2 class="section-title">TRIBE v2 — Meta FAIR's open brain-response model.</h2>
+  <div class="section-bottom">
+    You don't have to memorize the names. The point: the cortex has internal structure that's the same across people, and that structure was found by listening — not designed. Everything later in this page is built on top of these seven groupings.
+  </div>
+
+  <!-- INTERACTIVE 1: The Cortex -->
+  <div class="cortex-wrap">
+    <div class="cortex-grid">
+      <div class="cortex-svg-wrap">
+        <svg class="cortex-svg" viewBox="0 0 600 480" id="cortex-svg" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="cortex-glow"><stop offset="0%" stop-color="#1a1a2a" stop-opacity="0.4"/><stop offset="100%" stop-color="#1a1a2a" stop-opacity="0"/></radialGradient>
+            <filter id="region-glow"><feGaussianBlur stdDeviation="3"/></filter>
+          </defs>
+
+          <ellipse cx="300" cy="240" rx="240" ry="200" fill="url(#cortex-glow)"/>
+
+          <!-- Brain top-down outline -->
+          <path d="M 300 60
+                   C 180 60, 100 150, 95 240
+                   C 90 340, 140 430, 220 460
+                   C 260 472, 290 472, 300 472
+                   C 310 472, 340 472, 380 460
+                   C 460 430, 510 340, 505 240
+                   C 500 150, 420 60, 300 60 Z"
+                fill="#0a0a14"
+                stroke="#3a3a52"
+                stroke-width="1"/>
+
+          <!-- Central sulcus -->
+          <path d="M 300 70 Q 298 240, 302 380 Q 300 460, 300 470" fill="none" stroke="#2a2a3e" stroke-width="0.6" stroke-dasharray="3 4"/>
+
+          <!-- 7 Yeo regions (simplified, top-down) -->
+          <!-- Default (medial frontal + parietal) -->
+          <path id="region-default"
+                class="brain-region" data-system="default"
+                d="M 300 90 Q 270 95, 250 120 Q 240 150, 250 180 Q 280 175, 300 175 Q 320 175, 350 180 Q 360 150, 350 120 Q 330 95, 300 90 Z
+                   M 280 380 Q 300 385, 320 380 Q 320 410, 300 425 Q 280 410, 280 380 Z"
+                fill="#B89BC9" fill-opacity="0.15" stroke="#B89BC9" stroke-width="0.8" stroke-opacity="0.5"/>
+
+          <!-- Dorsal attention (parietal lateral) -->
+          <path id="region-dorsal"
+                class="brain-region" data-system="dorsal"
+                d="M 165 200 Q 195 210, 220 230 Q 215 270, 195 285 Q 165 280, 145 250 Q 145 220, 165 200 Z
+                   M 435 200 Q 405 210, 380 230 Q 385 270, 405 285 Q 435 280, 455 250 Q 455 220, 435 200 Z"
+                fill="#D4A857" fill-opacity="0.15" stroke="#D4A857" stroke-width="0.8" stroke-opacity="0.5"/>
+
+          <!-- Frontoparietal -->
+          <path id="region-fronto"
+                class="brain-region" data-system="frontoparietal"
+                d="M 165 130 Q 195 140, 215 160 Q 210 195, 195 205 Q 165 200, 150 180 Q 145 150, 165 130 Z
+                   M 435 130 Q 405 140, 385 160 Q 390 195, 405 205 Q 435 200, 450 180 Q 455 150, 435 130 Z"
+                fill="#7FB3C6" fill-opacity="0.15" stroke="#7FB3C6" stroke-width="0.8" stroke-opacity="0.5"/>
+
+          <!-- Limbic (medial inferior) -->
+          <path id="region-limbic"
+                class="brain-region" data-system="limbic"
+                d="M 240 270 Q 270 280, 300 280 Q 330 280, 360 270 Q 365 300, 350 320 Q 320 325, 300 325 Q 280 325, 250 320 Q 235 300, 240 270 Z"
+                fill="#E25B43" fill-opacity="0.15" stroke="#E25B43" stroke-width="0.8" stroke-opacity="0.5"/>
+
+          <!-- Ventral attention (insular/cingulate) -->
+          <path id="region-ventral"
+                class="brain-region" data-system="ventral"
+                d="M 175 295 Q 200 305, 225 315 Q 220 350, 195 360 Q 170 350, 160 325 Q 160 305, 175 295 Z
+                   M 425 295 Q 400 305, 375 315 Q 380 350, 405 360 Q 430 350, 440 325 Q 440 305, 425 295 Z"
+                fill="#FFB89E" fill-opacity="0.15" stroke="#FFB89E" stroke-width="0.8" stroke-opacity="0.5"/>
+
+          <!-- Visual (occipital, back) -->
+          <path id="region-visual"
+                class="brain-region" data-system="visual"
+                d="M 220 410 Q 260 420, 300 425 Q 340 420, 380 410 Q 380 440, 350 460 Q 320 470, 300 470 Q 280 470, 250 460 Q 220 440, 220 410 Z"
+                fill="#8AA876" fill-opacity="0.15" stroke="#8AA876" stroke-width="0.8" stroke-opacity="0.5"/>
+
+          <!-- Somatomotor (central strip) -->
+          <path id="region-somato"
+                class="brain-region" data-system="somatomotor"
+                d="M 200 215 Q 250 220, 300 215 Q 350 220, 400 215 Q 405 245, 400 270 Q 350 275, 300 270 Q 250 275, 200 270 Q 195 245, 200 215 Z"
+                fill="#E8C788" fill-opacity="0.12" stroke="#E8C788" stroke-width="0.8" stroke-opacity="0.5"/>
+
+          <!-- Anatomical labels -->
+          <text x="300" y="50" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#5A5A6A" letter-spacing="2">FRONTAL</text>
+          <text x="60" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#5A5A6A" letter-spacing="2" transform="rotate(-90 60 240)">LEFT</text>
+          <text x="540" y="240" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#5A5A6A" letter-spacing="2" transform="rotate(90 540 240)">RIGHT</text>
+          <text x="300" y="478" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#5A5A6A" letter-spacing="2">OCCIPITAL</text>
+        </svg>
+      </div>
+
+      <div class="cortex-side">
+        <div class="iact-tag">Hover a name &middot; brain lights up</div>
+        <h3>The cortex's seven networks.</h3>
+        <p>Each network is a real grouping the cortex makes for itself — visible whenever it's left to its own activity, with no task imposed. Hover any name to see where it lives. You don't have to memorize them.</p>
+
+        <div class="cortex-legend" id="cortex-legend">
+          <div class="cortex-legend-item" data-system="default">
+            <div class="cortex-legend-dot" style="background:#B89BC9"></div>
+            <span>Default mode</span>
+          </div>
+          <div class="cortex-legend-item" data-system="dorsal">
+            <div class="cortex-legend-dot" style="background:#D4A857"></div>
+            <span>Dorsal attention</span>
+          </div>
+          <div class="cortex-legend-item" data-system="frontoparietal">
+            <div class="cortex-legend-dot" style="background:#7FB3C6"></div>
+            <span>Frontoparietal</span>
+          </div>
+          <div class="cortex-legend-item" data-system="limbic">
+            <div class="cortex-legend-dot" style="background:#E25B43"></div>
+            <span>Limbic</span>
+          </div>
+          <div class="cortex-legend-item" data-system="ventral">
+            <div class="cortex-legend-dot" style="background:#FFB89E"></div>
+            <span>Ventral attention</span>
+          </div>
+          <div class="cortex-legend-item" data-system="visual">
+            <div class="cortex-legend-dot" style="background:#8AA876"></div>
+            <span>Visual</span>
+          </div>
+          <div class="cortex-legend-item" data-system="somatomotor">
+            <div class="cortex-legend-dot" style="background:#E8C788"></div>
+            <span>Somatomotor</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SECTION 2 — 35 YEARS STUCK -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">SECTION <strong>02</strong> · BUT</div>
+    <span class="but-tag">↺ BUT</span>
+    <h2 class="section-h2">We don't have one brain. We have <em>billions</em>, all different.</h2>
+  </div>
+
+  <p class="section-lead">
+    Emotional intelligence has been an academic field for thirty-five years. Three traditions try to measure it (ability tests, self-report questionnaires, informant ratings) and they disagree with each other. The deeper problem isn't methodology — it's that the interesting questions don't have correct answers.
+  </p>
+
+  <details class="section-deeper">
+    <summary>The three traditions, the Marcus thought experiment, and the 2023 EQ-Bench / MMLU collapse</summary>
     <div class="prose">
-      <p>BrainDiff is not a scanner. We don't record your brain. Instead, we borrow a model trained on other people's brains — Meta FAIR's <strong>TRIBE v2</strong>, released in 2025.</p>
-      <p>TRIBE v2 was trained on fMRI recordings from 8 subjects watching hours of naturalistic video and listening to rich narrative audio. From that data, it learned a mapping: given any piece of content, predict the cortical response pattern across the standard fsaverage5 surface — 20,484 vertices covering the whole cortex.</p>
-      <p>We take that prediction, run it for two pieces of content side-by-side, and subtract. The result: a signed map of where, and how strongly, one version moves the cortex more than the other.</p>
+      <p>
+        <strong>Ability tests</strong> like the MSCEIT score people on emotion problems where the &ldquo;correct&rdquo; answer is whatever the majority of experts say.<span class="cite">[2]</span> Consensus-based, which is to say circular. <strong>Self-report questionnaires</strong> (EQ-i, TEIQue) ask people what they think they're good at — measuring reputation, not capacity, and overlapping heavily with personality and IQ.<span class="cite">[3]</span> <strong>Informant ratings</strong> (ESCI) ask the people around someone — measuring social legibility, which is real but not the same thing.
+      </p>
+      <p>
+        After thirty-five years and dozens of meta-analyses, the numbers don't agree, and the field cannot say what its central object is.
+      </p>
+      <p style="padding: 22px 26px; background: rgba(140, 42, 31, 0.05); border-left: 2px solid var(--crimson); margin: 28px 0; font-style: italic; color: var(--text);">
+        <em>Marcus's father just died. What should you say to him?</em>
+      </p>
+      <p>
+        American workplace: something direct — <em>I'm so sorry, let me know if there's anything I can do.</em> Japanese workplace: silence and a formal condolence card; direct emotional language would be intrusive. A stoic colleague: ask Marcus about a work project — distraction as kindness. A therapist: ask Marcus what was coming up for him.
+      </p>
+      <p>
+        All four are defensible. Any &ldquo;correct&rdquo; answer a test assigns smuggles in a cultural norm, a professional norm, or an individual preference.
+      </p>
+      <p>
+        In 2023, <strong>EQ-Bench</strong> began scoring large language models on emotional reasoning. The benchmark correlated 0.97 with MMLU, the standard general-knowledge benchmark.<span class="cite">[4]</span> Whatever EQ-Bench was measuring was almost identical to general reasoning. The field had been measuring general cognitive ability with emotional wallpaper.
+      </p>
     </div>
-  </section>
 
-  <section class="section shell">
-    <div class="section-eyebrow">Sources</div>
-    <h2 class="section-title">Citations.</h2>
-    <p class="section-lead">The science BrainDiff rests on. External links lead to the original papers where available.</p>
-    <ul class="cite-list">
-      <li id="falk">
-        <div class="title">From neural responses to population behavior: Neural focus group predicts population-level media effects</div>
-        <div class="meta">Falk, Berkman &amp; Lieberman · Penn · Psychological Science 23(5), 439–445 · 2012</div>
-        <a href="https://journals.sagepub.com/doi/10.1177/0956797611434964" target="_blank" rel="noopener">Sage · DOI 10.1177/0956797611434964 →</a>
-      </li>
-      <li id="huth">
-        <div class="title">Natural speech reveals the semantic maps that tile human cerebral cortex</div>
-        <div class="meta">Huth, de Heer, Griffiths, Theunissen &amp; Gallant · UT Austin / UC Berkeley · Nature 532, 453–458 · 2016</div>
-        <a href="https://www.nature.com/articles/nature17637" target="_blank" rel="noopener">Nature · DOI 10.1038/nature17637 →</a>
-      </li>
-      <li id="fedorenko">
-        <div class="title">New method for fMRI investigations of language: defining ROIs functionally in individual subjects</div>
-        <div class="meta">Fedorenko, Hsieh, Nieto-Castañón, Whitfield-Gabrieli &amp; Kanwisher · MIT · Journal of Neurophysiology 104, 1177–1194 · 2010</div>
-        <a href="https://journals.physiology.org/doi/10.1152/jn.00032.2010" target="_blank" rel="noopener">J. Neurophysiology · DOI 10.1152/jn.00032.2010 →</a>
-      </li>
-      <li id="knutson">
-        <div class="title">Neural predictors of purchases</div>
-        <div class="meta">Knutson, Rick, Wimmer, Prelec &amp; Loewenstein · Stanford · Neuron 53, 147–156 · 2007</div>
-        <a href="https://www.cell.com/neuron/fulltext/S0896-6273(06)00904-1" target="_blank" rel="noopener">Neuron · DOI 10.1016/j.neuron.2006.11.010 →</a>
-      </li>
-      <li id="hasson">
-        <div class="title">A hierarchy of temporal receptive windows in human cortex</div>
-        <div class="meta">Hasson, Yang, Vallines, Heeger &amp; Rubin · Princeton / NYU · Journal of Neuroscience 28(10), 2539–2550 · 2008</div>
-        <a href="https://www.jneurosci.org/content/28/10/2539" target="_blank" rel="noopener">J. Neuroscience · DOI 10.1523/JNEUROSCI.5487-07.2008 →</a>
-      </li>
-      <li id="tribe">
-        <div class="title">TRIBE v2 — Transformer for Brain Responses to Everything</div>
-        <div class="meta">Tang et al. · Meta FAIR · 2025 · open access model weights</div>
-        <a href="https://huggingface.co/facebook/tribev2" target="_blank" rel="noopener">Hugging Face · facebook/tribev2 →</a>
-      </li>
-    </ul>
-  </section>
+    <!-- Smith 2018 callout (kept inside the deeper detail) -->
+    <div class="pullquote">
+      <div class="pullquote-text">
+        No brain-based model of emotional intelligence<br>
+        has yet been <em>proposed</em>.
+      </div>
+      <div class="pullquote-cite">Smith, Killgore &amp; Lane · Biological Psychology · 2018</div>
+    </div>
 
-  <section class="cta-footer shell">
-    <a href="/launch" class="btn btn-primary">Launch app <span>→</span></a>
-    <a href="/methodology" class="btn btn-ghost">See the methodology →</a>
-  </section>
-</main>
+    <div class="prose">
+      <p>That sentence has stood for eight years. It still stands.</p>
+    </div>
+  </details>
 
-<footer class="footer">
-  <div class="shell">
-    <span class="footer-brand">BrainDiff</span>
-    <span class="footer-credit">Made with <span class="heart" aria-hidden="true">♥</span> by <a href="https://polka.foundation" target="_blank" rel="noopener">Polka Foundation</a> · <a href="https://github.com/" target="_blank" rel="noopener">GitHub</a></span>
+  <div class="section-bottom">
+    The trouble with measuring emotional intelligence isn't that we lack the right test. It's that the construct itself fragments the moment you try to operationalize it across cultures, professions, or theories. Three of those items follow — try them and see what your scores end up correlating with.
+  </div>
+
+  <!-- INTERACTIVE 2: EQ Self-Report -->
+  <div class="eq-test-wrap">
+    <div class="iact-tag">Tap an answer for each item · result appears below</div>
+    <div class="eq-title">Try three items from a real EQ self-report scale.</div>
+    <div style="font-size:13px;color:var(--text-mute);margin-top:-8px;margin-bottom:24px;font-family:'Newsreader',serif;line-height:1.6;max-width:580px">Pick one option per item. After the third answer, a panel appears showing what these answers actually correlate with — including a couple of things you'd never expect.</div>
+
+    <div class="eq-item" data-item="1">
+      <div class="eq-item-num">ITEM 01 · TEIQue, adapted</div>
+      <div class="eq-item-text">"I usually find it difficult to regulate my emotions."</div>
+      <div class="eq-options">
+        <button class="eq-option" data-val="1">Strongly disagree</button>
+        <button class="eq-option" data-val="2">Disagree</button>
+        <button class="eq-option" data-val="3">Neutral</button>
+        <button class="eq-option" data-val="4">Agree</button>
+        <button class="eq-option" data-val="5">Strongly agree</button>
+      </div>
+    </div>
+
+    <div class="eq-item" data-item="2">
+      <div class="eq-item-num">ITEM 02 · SSEIT, adapted</div>
+      <div class="eq-item-text">"On the whole, I'm able to deal with stress."</div>
+      <div class="eq-options">
+        <button class="eq-option" data-val="1">Strongly disagree</button>
+        <button class="eq-option" data-val="2">Disagree</button>
+        <button class="eq-option" data-val="3">Neutral</button>
+        <button class="eq-option" data-val="4">Agree</button>
+        <button class="eq-option" data-val="5">Strongly agree</button>
+      </div>
+    </div>
+
+    <div class="eq-item" data-item="3">
+      <div class="eq-item-num">ITEM 03 · WLEIS, adapted</div>
+      <div class="eq-item-text">"I often pause and think about my feelings."</div>
+      <div class="eq-options">
+        <button class="eq-option" data-val="1">Strongly disagree</button>
+        <button class="eq-option" data-val="2">Disagree</button>
+        <button class="eq-option" data-val="3">Neutral</button>
+        <button class="eq-option" data-val="4">Agree</button>
+        <button class="eq-option" data-val="5">Strongly agree</button>
+      </div>
+    </div>
+
+    <div class="eq-reveal" id="eq-reveal">
+      <h4>What just happened</h4>
+      <p>You answered three items. The same three items produce different mean scores in different cultures, and correlate strongly with personality traits unrelated to "emotional intelligence."</p>
+
+      <div class="eq-cross-cultural">
+        <div class="eq-cell"><strong>3.4</strong>US sample mean</div>
+        <div class="eq-cell"><strong>2.9</strong>East Asia mean</div>
+        <div class="eq-cell"><strong>r = 0.61</strong>w/ neuroticism</div>
+        <div class="eq-cell"><strong>r = 0.43</strong>w/ openness</div>
+      </div>
+
+      <p style="margin-top: 16px;"><strong>This is what thirty-five years of measurement looks like.</strong> Items that vary by culture, correlate with personality traits, and never converge on a stable construct. The field has never agreed on what it is measuring.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SECTION 3 — POPULATION-AVERAGE -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">SECTION <strong>03</strong> · THEREFORE</div>
+    <span class="therefore-tag">→ THEREFORE</span>
+    <h2 class="section-h2">We'd need a brain that wasn't <em>anyone's</em> brain.</h2>
+  </div>
+
+  <p class="section-lead">
+    Individual brains vary; self-report can't be trusted. The move is to step back from individuals and look for what's stable across many of them. fMRI researchers have been doing this for decades — aggregating across subjects to find the response patterns that are population-wide.
+  </p>
+
+  <details class="section-deeper">
+    <summary>How Brain Diff inherits the population-average move</summary>
+    <div class="prose">
+      <p>
+        Individual brains differ enormously in their fine-grained activity. The <em>response patterns</em> across cortex turn out to be surprisingly stable. Brain Diff doesn't measure your brain — it predicts the response of <em>the average human cortex</em> across the 720+ subjects in TRIBEv2's training set.<span class="cite">[5]</span> When we say "the cortex did X," we mean: averaged across those people, the cortex did X.
+      </p>
+      <p>
+        For content evaluation this is exactly the right unit of analysis. What someone making a video, ad, or script actually wants to know isn't <em>how will this one person respond?</em> — it's <em>how will humans on average respond?</em> A focus group is one (broken) way to ask. The cortex, simulated at the population level, is another.
+      </p>
+    </div>
+  </details>
+
+  <div class="section-bottom">
+    Brain Diff is built on a population-average unit, not individual variance — that's the right scale for content questions, and it's also a real limitation we own. You won't get a personal readout. You'll get a stable estimate of what humans, broadly, would do.
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SECTION 4 — HASSON / NATURALISTIC -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">SECTION <strong>04</strong> · BUT</div>
+    <span class="but-tag">↺ BUT</span>
+    <h2 class="section-h2">Aggregated brains don't watch <em>real videos</em>.<br>They lie in scanners doing lab tasks.</h2>
+  </div>
+
+  <p class="section-lead">
+    Putting a brain in a scanner costs about <strong>$600/hour</strong>. A single naturalistic study runs <strong>$150K–$300K and 6–12 months</strong>. That cost is the reason almost everything we know about cognition was learned with flashcards, not movies — until Uri Hasson's lab at Princeton (2004) showed that when many people watched the <em>same movie</em>, large swaths of cortex synchronized across them.<span class="cite">[6]</span> The cortex was responding to real content, and the response was measurable.
+  </p>
+
+  <details class="section-deeper">
+    <summary>Why the lab-task tradition stuck for so long, and what Hasson changed</summary>
+    <div class="prose">
+      <p>
+        For most of the history of cognitive neuroscience, the way you studied a brain was by giving it a tightly controlled task. <em>Identify the face. Remember the word. Solve the puzzle.</em> Beautiful science — reproducible, falsifiable. It also bore almost no resemblance to how brains actually spend their time.
+      </p>
+      <p>
+        Hasson's paradigm — &ldquo;naturalistic stimuli&rdquo; — is the methodological bridge between the lab task and the real world. Without it, the seven cortical systems Brain Diff exposes would only be defined by how they respond to flashcards. With it, we can see them respond to content as it is actually consumed. The entire training-data regime Brain Diff inherits is downstream of this shift.
+      </p>
+    </div>
+  </details>
+
+  <div class="section-bottom">
+    Hasson made it legitimate to study the cortex's response to real content — movies, narrative audio, full videos — instead of stripped-down lab probes. Every model trained on naturalistic content, including TRIBEv2, depends on this paradigm shift.
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SECTION 5 — ENCODING MODEL ARC -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">SECTION <strong>05</strong> · THEREFORE</div>
+    <span class="therefore-tag">→ THEREFORE</span>
+    <h2 class="section-h2">We'd need to predict the cortex's response<br>without putting anyone in a <em>scanner</em>.</h2>
+  </div>
+
+  <p class="section-lead">
+    fMRI is too expensive and too slow to be a tool. A real comparison tool needs a <strong>model</strong> that predicts brain response from input — a simulation, not a measurement. Between 2021 and 2024, a wave of papers from MIT, Princeton, Paris, and UT Austin made that possible, one capability at a time.
+  </p>
+
+  <details class="section-deeper">
+    <summary>The five-year arc — Schrimpf, Goldstein, Caucheteux, Tang</summary>
+    <div class="prose">
+      <p>
+        In 2021, <strong>Schrimpf and colleagues at MIT</strong> showed that the internal representations of large language models — GPT-2, BERT, others — predicted human brain activity in language regions, with surprising accuracy.<span class="cite">[7]</span> The same statistical structure that made language models work showed up in cortex.
+      </p>
+      <p>
+        In 2022, <strong>Goldstein and colleagues at Princeton</strong> went further: LLMs and human brains share <em>computational principles</em> for language — predicting the next word, integrating context, building meaning across time.<span class="cite">[8]</span> Not just similar outputs. Similar processing.
+      </p>
+      <p>
+        That same year, <strong>Caucheteux and King in Paris</strong> formalized &ldquo;brain score&rdquo;: a metric for how brain-like a model's representations are.<span class="cite">[9]</span> A way to benchmark not what models can <em>do</em>, but how closely they resemble what cortex does on the same input.
+      </p>
+      <p>
+        In 2023, <strong>Tang and the Huth lab at UT Austin</strong> demonstrated semantic decoding from fMRI: continuous reconstruction of language from brain recordings, using a language model as the decoding bridge.<span class="cite">[10]</span> Not telepathy — but proof that the cortex-to-model mapping was real, bidirectional, and useful.
+      </p>
+      <p>
+        Each paper added one move. By 2024 the open question wasn't <em>whether</em> encoding models could predict brain response — it was whether the technique could extend beyond text, to images, audio, and video.
+      </p>
+    </div>
+  </details>
+
+  <div class="section-bottom">
+    Five years, four labs, one direction: from "LLMs predict cortex on text" to a measurable, bidirectional bridge between models and brains. Without this arc, no one would have a model worth handing a video to.
+  </div>
+
+  <!-- INTERACTIVE 3: Encoding Model Timeline -->
+  <div class="timeline-wrap">
+    <div class="iact-tag">Hover or tap any dot &middot; paper details appear in the card</div>
+    <div class="timeline-title">Five years of brain encoding models, leading somewhere.</div>
+    <div class="timeline-sub">Each datapoint adds one capability. The trendline is what made TRIBE inevitable.</div>
+
+    <div class="timeline-chart">
+      <svg class="timeline-svg" id="timeline-svg" viewBox="0 0 1000 360" preserveAspectRatio="none"></svg>
+    </div>
+
+    <div class="timeline-card" id="timeline-card">
+      <div class="timeline-card-year">HOVER OR TAP A DATAPOINT</div>
+      <div class="timeline-card-title">The encoding-model arc</div>
+      <div class="timeline-card-meta">2021 — 2025</div>
+      <div class="timeline-card-desc">Five papers, four labs, one direction. Each one made the next inevitable.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SECTION 6 — TRIBE (rolled in: video is harder) -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">SECTION <strong>06</strong> · THEREFORE</div>
+    <span class="therefore-tag">→ THEREFORE</span>
+    <h2 class="section-h2">TRIBEv2 — the model that ties it together.</h2>
+  </div>
+
+  <p class="section-lead">
+    In late 2025, Meta FAIR published <strong>TRIBEv2</strong> — the integration the previous five years had been pointing at. It handles audio, video, and language together (the &ldquo;hard case&rdquo;), trained on 720+ subjects watching naturalistic content, released CC BY-NC. Brain Diff is built on it.
+  </p>
+
+  <details class="section-deeper">
+    <summary>What TRIBEv2 actually does — architecture, output, and the honest disclosure</summary>
+    <div class="prose">
+      <p>
+        Video is the hard case because audio, visuals, and language arrive simultaneously and interact — change the narration over the same image and the cortex responds differently. TRIBEv2 handles all three streams together: three frozen feature extractors (LLaMA 3.2-3B, V-JEPA2, Wav2Vec-BERT) process each stream; a temporal transformer fuses them; a subject-specific projection maps the fused signal onto cortex.
+      </p>
+      <p>
+        Output, per input video: <strong>20,484 cortical points × 1Hz of predicted BOLD response</strong>. One number per cortical point per second.
+      </p>
+      <p>
+        Honest disclosure: this is <em>predicted</em> response, not measured. Out-of-distribution stimuli — pure music, abstract animation, content unlike the training set — produce noisier predictions.
+      </p>
+    </div>
+    <p style="margin-top:18px">
+      <a href="/methodology" class="btn-ghost-gold">Read the full methodology →</a>
+    </p>
+  </details>
+
+  <div class="section-bottom">
+    TRIBEv2 is the model under the hood. It produces a second-by-second cortical response prediction for any video you can hand it. The rest of this page is about what that prediction lets you see when you compare two pieces of content.
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SECTION 8 — SO NOW -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">SECTION <strong>07</strong> · SO NOW</div>
+    <span class="so-tag">⟶ SO NOW</span>
+    <h2 class="section-h2">What does the cortex <em>say</em>?</h2>
+  </div>
+
+  <p class="section-lead">
+    We have the cortex. We have a way to simulate its response. So we can ask any video, any audio clip, any combination of the two: <em>what did the cortex do, second by second?</em> Take two pieces of content, run each through TRIBE, surface the seven cortical systems' response — and compare, system by system, moment by moment.
+  </p>
+
+  <details class="section-deeper">
+    <summary>How a comparison works under the hood</summary>
+    <div class="prose">
+      <p>
+        Each video is processed through TRIBEv2 separately. The model outputs a 20,484-vertex × 1Hz prediction. We project those vertices onto the seven Yeo networks, producing one time-series per system per video — fourteen series total for a pair. Comparison is then a series of operations on those: signature shape, divergence at each second, named co-activation patterns, system-to-system connectivity within each video.
+      </p>
+    </div>
+  </details>
+
+  <!-- INTERACTIVE 4: Watch the cortex respond — Cleo vs MrBeast only, with side-by-side video placeholders -->
+  <div class="cortex-respond-wrap">
+    <div class="iact-tag">Press play &middot; videos and bars run together</div>
+    <div class="respond-title">Cleo Abram vs. MrBeast — press Play, watch the seven systems diverge.</div>
+    <div style="font-size:13.5px;color:var(--text-soft);font-family:'Newsreader',serif;line-height:1.6;max-width:600px;margin:8px 0 24px">
+      Two creators. Two opening hooks. Same seven cortical systems. Watch where each one wins — and where they're surprisingly identical. <em style="color:var(--text-mute)">More presets coming as the comparator library grows.</em>
+    </div>
+
+    <!-- Side-by-side video stage (placeholders until clips land) -->
+    <div class="respond-videos" id="respond-videos">
+      <div class="respond-video-cell">
+        <div class="respond-video-label">A · Cleo Abram &mdash; intro</div>
+        <div class="respond-video-frame" id="vidA-frame">
+          <div class="respond-video-placeholder">
+            <div class="respond-video-placeholder-icon">▶</div>
+            <div>Video clip placeholder</div>
+            <div class="respond-video-placeholder-sub">Drop the Cleo Abram intro MP4 in <code>/assets/research/cleo.mp4</code></div>
+          </div>
+          <video id="vidA" preload="metadata" playsinline muted style="display:none" src="/assets/research/cleo.mp4"></video>
+        </div>
+      </div>
+      <div class="respond-video-cell">
+        <div class="respond-video-label">B · MrBeast &mdash; hook</div>
+        <div class="respond-video-frame" id="vidB-frame">
+          <div class="respond-video-placeholder">
+            <div class="respond-video-placeholder-icon">▶</div>
+            <div>Video clip placeholder</div>
+            <div class="respond-video-placeholder-sub">Drop the MrBeast hook MP4 in <code>/assets/research/mrbeast.mp4</code></div>
+          </div>
+          <video id="vidB" preload="metadata" playsinline muted style="display:none" src="/assets/research/mrbeast.mp4"></video>
+        </div>
+      </div>
+    </div>
+
+    <div class="respond-display">
+      <div class="respond-controls">
+        <button class="respond-play" id="respond-play">▶ Play</button>
+        <span>TIME &nbsp;<span class="respond-time" id="respond-time">0:00</span> / 0:30</span>
+        <label class="respond-video-toggle" style="margin-left:auto;display:inline-flex;align-items:center;gap:6px;font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:0.06em;color:var(--text-mute);cursor:pointer">
+          <input type="checkbox" id="respond-video-on" checked style="accent-color:var(--gold)"/>
+          Show videos
+        </label>
+      </div>
+
+      <div class="respond-bars" id="respond-bars">
+        <!-- Generated by JS -->
+      </div>
+    </div>
+  </div>
+
+  <div class="section-bottom">
+    The bars below the videos are the seven cortical systems responding to each clip in real time. Where the bars rise together, both videos are recruiting the same system. Where they diverge, the cortex is responding differently — and that divergence is where most of the interesting questions about content actually live.
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SECTION 9 — THE SEVEN-LAB MONTAGE (CENTERPIECE) -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="montage-section">
+  <div class="montage-wrap">
+    <div class="montage-header">
+      <div class="section-num" style="margin-bottom:24px">SECTION <strong>08</strong> &middot; THE CENTERPIECE</div>
+      <h2 class="montage-title">Thirty years of cognitive neuroscience,<br>mapped onto <em>one brain</em>.</h2>
+      <p class="montage-sub">
+        The seven systems Brain Diff exposes are real groupings the cortex makes for itself — each one isolated by a specific lab, in a specific year, asking a specific question. <strong style="color:var(--gold-bright)">Drag the slider below ↓</strong> to walk forward through time and watch them appear in the order they were first reported.
+      </p>
+      <div class="iact-tag" style="margin-top:18px">Drag the year slider &middot; brain regions light up in order</div>
+    </div>
+
+    <div class="montage-stage">
+      <div class="montage-grid">
+        <div class="montage-brain-wrap">
+          <svg class="montage-brain" id="montage-brain" viewBox="0 0 700 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <radialGradient id="mont-bg-glow"><stop offset="0%" stop-color="#1a1a2a" stop-opacity="0.4"/><stop offset="100%" stop-color="#1a1a2a" stop-opacity="0"/></radialGradient>
+              <filter id="mont-glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <filter id="mont-glow-strong"><feGaussianBlur stdDeviation="14" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+
+            <ellipse cx="350" cy="300" rx="320" ry="270" fill="url(#mont-bg-glow)"/>
+
+            <!-- Brain outline -->
+            <path d="M 350 70
+                     C 220 70, 130 170, 125 280
+                     C 120 400, 175 500, 270 540
+                     C 310 555, 340 558, 350 558
+                     C 360 558, 390 555, 430 540
+                     C 525 500, 580 400, 575 280
+                     C 570 170, 480 70, 350 70 Z"
+                  fill="#08080F"
+                  stroke="#3a3a52"
+                  stroke-width="1"/>
+
+            <!-- Central sulcus -->
+            <path d="M 350 80 Q 348 280, 352 460 Q 350 540, 350 555" fill="none" stroke="#2a2a3e" stroke-width="0.6" stroke-dasharray="3 4"/>
+
+            <!-- Subtle gyri -->
+            <path d="M 195 250 Q 250 260, 290 250" fill="none" stroke="#2a2a3e" stroke-width="0.4" stroke-dasharray="1 4"/>
+            <path d="M 410 250 Q 460 260, 510 250" fill="none" stroke="#2a2a3e" stroke-width="0.4" stroke-dasharray="1 4"/>
+
+            <!-- 7 systems — each as a region that lights up -->
+            <!-- 1: Memory Encoding (left vlPFC) — 1998 -->
+            <g class="mont-system" data-year="1998" data-system="memory" opacity="0">
+              <circle cx="200" cy="240" r="45" fill="#E8C788" fill-opacity="0.18" filter="url(#mont-glow)"/>
+              <circle cx="200" cy="240" r="22" fill="#E8C788" fill-opacity="0.5"/>
+              <circle cx="200" cy="240" r="8" fill="#E8C788" fill-opacity="0.95"/>
+              <text x="160" y="195" text-anchor="end" font-family="JetBrains Mono, monospace" font-size="9" fill="#E8C788" letter-spacing="2">MEMORY · 1998</text>
+            </g>
+
+            <!-- 2: Brain Effort (dlPFC) — 2001 -->
+            <g class="mont-system" data-year="2001" data-system="effort" opacity="0">
+              <circle cx="500" cy="220" r="45" fill="#7FB3C6" fill-opacity="0.18" filter="url(#mont-glow)"/>
+              <circle cx="500" cy="220" r="22" fill="#7FB3C6" fill-opacity="0.5"/>
+              <circle cx="500" cy="220" r="8" fill="#7FB3C6" fill-opacity="0.95"/>
+              <text x="555" y="220" font-family="JetBrains Mono, monospace" font-size="9" fill="#7FB3C6" letter-spacing="2">EFFORT · 2001</text>
+            </g>
+
+            <!-- 3: Social Thinking (right TPJ) — 2003 -->
+            <g class="mont-system" data-year="2003" data-system="social" opacity="0">
+              <circle cx="510" cy="380" r="40" fill="#B89BC9" fill-opacity="0.18" filter="url(#mont-glow)"/>
+              <circle cx="510" cy="380" r="20" fill="#B89BC9" fill-opacity="0.5"/>
+              <circle cx="510" cy="380" r="7" fill="#B89BC9" fill-opacity="0.95"/>
+              <text x="565" y="385" font-family="JetBrains Mono, monospace" font-size="9" fill="#B89BC9" letter-spacing="2">SOCIAL · 2003</text>
+            </g>
+
+            <!-- 4: Gut Reaction (anterior insula, bilateral) — 2005 -->
+            <g class="mont-system" data-year="2005" data-system="gut" opacity="0">
+              <circle cx="290" cy="340" r="34" fill="#E25B43" fill-opacity="0.18" filter="url(#mont-glow)"/>
+              <circle cx="290" cy="340" r="16" fill="#E25B43" fill-opacity="0.5"/>
+              <circle cx="290" cy="340" r="6" fill="#E25B43" fill-opacity="0.95"/>
+              <circle cx="410" cy="340" r="34" fill="#E25B43" fill-opacity="0.18" filter="url(#mont-glow)"/>
+              <circle cx="410" cy="340" r="16" fill="#E25B43" fill-opacity="0.5"/>
+              <circle cx="410" cy="340" r="6" fill="#E25B43" fill-opacity="0.95"/>
+              <text x="350" y="395" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#E25B43" letter-spacing="2">GUT · 2005</text>
+            </g>
+
+            <!-- 5: Language Depth (Broca/Wernicke, left lateral) — 2011 -->
+            <g class="mont-system" data-year="2011" data-system="language" opacity="0">
+              <ellipse cx="180" cy="380" rx="50" ry="35" fill="#8AA876" fill-opacity="0.18" filter="url(#mont-glow)"/>
+              <ellipse cx="180" cy="380" rx="28" ry="18" fill="#8AA876" fill-opacity="0.5"/>
+              <circle cx="180" cy="380" r="7" fill="#8AA876" fill-opacity="0.95"/>
+              <text x="125" y="445" font-family="JetBrains Mono, monospace" font-size="9" fill="#8AA876" letter-spacing="2">LANGUAGE · 2011</text>
+            </g>
+
+            <!-- 6: Yeo parcellation (subtle full-brain frame) — 2011 -->
+            <g class="mont-system mont-yeo" data-year="2011.5" data-system="yeo" opacity="0">
+              <path d="M 350 70
+                       C 220 70, 130 170, 125 280
+                       C 120 400, 175 500, 270 540
+                       C 310 555, 340 558, 350 558
+                       C 360 558, 390 555, 430 540
+                       C 525 500, 580 400, 575 280
+                       C 570 170, 480 70, 350 70 Z"
+                    fill="none"
+                    stroke="#D4A857"
+                    stroke-width="1.5"
+                    stroke-opacity="0.7"
+                    stroke-dasharray="4 6"/>
+              <text x="350" y="50" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#D4A857" letter-spacing="2">YEO 7-NETWORK PARCELLATION · 2011</text>
+            </g>
+
+            <!-- 7: Personal Resonance (mPFC, frontal midline) — 2012 -->
+            <g class="mont-system" data-year="2012" data-system="personal" opacity="0">
+              <circle cx="350" cy="160" r="56" fill="#FFD89E" fill-opacity="0.22" filter="url(#mont-glow-strong)"/>
+              <circle cx="350" cy="160" r="28" fill="#FFD89E" fill-opacity="0.6"/>
+              <circle cx="350" cy="160" r="10" fill="#FFD89E" fill-opacity="1"/>
+              <text x="350" y="115" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#FFD89E" letter-spacing="2">PERSONAL RESONANCE · 2012</text>
+              <text x="350" y="225" text-anchor="middle" font-family="Fraunces, serif" font-style="italic" font-size="14" fill="#FFD89E" id="falk-callout-svg" opacity="0">r = 0.87</text>
+            </g>
+          </svg>
+        </div>
+
+        <div class="montage-side">
+          <div class="montage-current-year" id="montage-year">1995</div>
+          <div class="montage-current-system" id="montage-system">— Drag the slider —</div>
+
+          <div class="montage-current-card" id="montage-card">
+            <div class="montage-card-lab">PRE-DISCOVERY</div>
+            <div class="montage-card-question">Drag the slider forward and watch each system appear in the year it was published.</div>
+            <div class="montage-card-found">By 2012, all seven systems Brain Diff exposes had been mapped onto the cortex by separate labs over thirty years of cognitive neuroscience.</div>
+            <div class="montage-card-region">SEVEN SYSTEMS · 1995 — 2012</div>
+            <div class="montage-falk-callout" id="falk-callout">
+              <strong>r = 0.87</strong> — brain activity in the medial prefrontal cortex, measured while subjects watched anti-smoking ads, predicted national-scale call volume to the quit-smoking hotline. <strong>Stimulus-side measurement worked.</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="montage-slider-wrap">
+        <input type="range" class="montage-slider" id="montage-slider" min="1995" max="2012" value="1995" step="0.1">
+        <div class="montage-year-marks">
+          <span data-year="1995">1995</span>
+          <span data-year="1998">1998</span>
+          <span data-year="2001">2001</span>
+          <span data-year="2003">2003</span>
+          <span data-year="2005">2005</span>
+          <span data-year="2011">2011</span>
+          <span data-year="2012">2012</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Pull quote 3 -->
+<div class="pullquote">
+  <div class="pullquote-text">
+    Seven systems. Thirty years of work.<br>
+    Now visible <em>in one place</em>.
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SECTION 9 — SO WE BUILT BRAIN DIFF -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num">SECTION <strong>09</strong></div>
+    <h2 class="section-h2">So we built <em>Brain Diff</em>.</h2>
+  </div>
+
+  <p class="section-lead">
+    Two cuts of the same ad. Two scripts for the same talk. Two product videos. Two anything. Brain Diff lays them side by side, runs each through TRIBEv2, and shows you — second by second, system by system — exactly where the cortex responds differently. The output is a description of the difference, not a winner.
+  </p>
+
+  <details class="section-deeper">
+    <summary>What Brain Diff returns, what it doesn't, and why we built it</summary>
+    <div class="prose">
+      <p>
+        For each pair, Brain Diff surfaces: the <em>signature shape</em> of each video across the seven systems, where the two responses overlap, where they diverge, named co-activation patterns, and the connectivity between systems within each video. Plus seven per-system time-series so you can see exactly when divergences happen.
+      </p>
+      <p>
+        It does not rank. It does not judge. It does not predict virality. The category — encoding-model-based content evaluation — has no other current entrant. We built Brain Diff because the tool we wanted to use to evaluate content didn't exist, and the science said it should.
+      </p>
+    </div>
+  </details>
+
+  <div class="section-bottom">
+    Brain Diff is a comparator, not a critic. It shows you the cortical shape of each video and the gap between them. The interesting questions — which one to ship, which one to fix, which one to throw out — are still yours. We just give you a thicker description to make the call with.
+  </div>
+</section>
+
+<!-- Pull quote 4 -->
+<div class="pullquote">
+  <div class="pullquote-text">
+    The verdict is yours.<br>
+    Brain Diff just shows you<br>
+    <em>the difference</em>.
+  </div>
+</div>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SECTION 10 — OPEN FRONT (combined Limits + Open Questions) -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="section openq-section">
+  <div class="section-header">
+    <div class="section-num">SECTION <strong>10</strong></div>
+    <h2 class="section-h2">The open research front<br>— and what's <em>permanently outside the scope</em>.</h2>
+  </div>
+
+  <p class="section-lead">
+    Two honest things at the close: what Brain Diff structurally <em>cannot</em> do (and never will), and the research questions it newly makes <em>askable</em>. Both are open. Both are yours, if you want them.
+  </p>
+
+  <details class="section-deeper">
+    <summary>The full list — limits, then open questions</summary>
+
+    <h3 style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin:18px 0 14px;font-weight:400">Permanently outside the scope</h3>
+    <div class="prose">
+      <p>
+        <strong>No subcortical structures.</strong> TRIBE outputs cortical surface only. The nucleus accumbens, amygdala, and thalamus — reward, threat, arousal — are not visible to us. We use cortical proxies where we can (mPFC for value, anterior insula for visceral response). Knutson's NAcc-purchase work<span class="cite">[11]</span> is precedent, not inheritance.
+      </p>
+      <p>
+        <strong>No individual brains.</strong> Population-average across 720+ subjects. We can tell you what humans on average do — not what <em>you</em> do.
+      </p>
+      <p>
+        <strong>No sub-second resolution.</strong> 1Hz. Micro-expressions and 200ms audio cuts smear together.
+      </p>
+      <p>
+        <strong>Limited out-of-distribution generalization.</strong> Pure music, abstract animation, anything unlike the naturalistic-film training set — predictions get noisier. We label this when it applies.
+      </p>
+      <p>
+        <strong>Live calibration.</strong> We don't yet have ground-truth fMRI vs. Brain Diff predictions on identical content. We're building it. Until then, pattern thresholds are open-source defaults, not measured precision values. They will be revised as data accumulates.
+      </p>
+    </div>
+
+    <h3 style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);margin:36px 0 14px;font-weight:400">Open research front</h3>
+    <div class="prose">
+      <p>
+        Questions Brain Diff makes newly tractable. Not a roadmap — a research agenda. If you're a researcher, builder, journalist, or critic, these are yours to take.
+      </p>
+    </div>
+
+    <div class="openq-list" style="margin-top:24px">
+      <div class="openq-item">
+        <div class="openq-num">Q1</div>
+        <div class="openq-text">Does narrative structure produce predictable cortical signatures across cultures?</div>
+      </div>
+      <div class="openq-item">
+        <div class="openq-num">Q2</div>
+        <div class="openq-text">Can we identify when a piece of content is "memorable" before any audience has seen it?</div>
+      </div>
+      <div class="openq-item">
+        <div class="openq-num">Q3</div>
+        <div class="openq-text">What does it mean when two pieces of content produce near-identical cortical responses despite being completely different on the surface?</div>
+      </div>
+      <div class="openq-item">
+        <div class="openq-num">Q4</div>
+        <div class="openq-text">Is there a "minimum viable signature" — the shortest content that still produces a complete cortical response pattern?</div>
+      </div>
+      <div class="openq-item">
+        <div class="openq-num">Q5</div>
+        <div class="openq-text">Do creators with track records of resonant work share a cortical-response fingerprint?</div>
+      </div>
+      <div class="openq-item">
+        <div class="openq-num">Q6</div>
+        <div class="openq-text">How does the cortex respond to AI-generated content differently from human-generated content, if at all?</div>
+      </div>
+      <div class="openq-item">
+        <div class="openq-num">Q7</div>
+        <div class="openq-text">Can we identify cortical signatures of manipulation versus genuine resonance — or are they indistinguishable at this resolution?</div>
+      </div>
+    </div>
+  </details>
+
+  <div class="section-bottom">
+    Brain Diff is a tool with sharp edges and real holes. It can show you the seven-system shape of any video, second by second; it cannot tell you about subcortex, individual variance, or sub-second moments. The seven open questions above are where the next year of work goes.
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- FINAL CLOSE + single CTA -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<section class="final-close">
+  <p class="final-close-thesis">
+    The part that knows what matters<br>
+    isn't the part you can ask.<br>
+    <em>So we asked the cortex instead.</em>
+  </p>
+
+  <div class="final-cta">
+    <a href="/launch" class="btn-primary-gold">Try Brain Diff <span class="btn-arrow">→</span></a>
+  </div>
+</section>
+
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<!-- SLIM FOOTER — builder note + collapsed references -->
+<!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
+<footer class="footer-slim">
+  <div class="footer-slim-inner">
+    <div class="footer-builder">
+      Built carefully. Probably wrong about something. For corrections, comments, feedback, chit-chat reach out to <a href="mailto:ishita@polkafoundation.com">ishita@polkafoundation.com</a>.
+    </div>
+
+    <details class="footer-refs">
+      <summary>References &amp; related ↓</summary>
+      <div class="footer-refs-grid">
+        <div>
+          <h4>Citations</h4>
+          <p>
+            [1] Yeo et al., <em>J. Neurophysiology</em>, 2011<br>
+            [2] Mayer-Salovey-Caruso (MSCEIT), 2002<br>
+            [3] Petrides (TEIQue), 2009<br>
+            [4] Paech, EQ-Bench, 2023<br>
+            [5] Meta FAIR TRIBEv2, ICLR 2026<br>
+            [6] Hasson lab, Princeton, 2004 onwards<br>
+            [7] Schrimpf et al., <em>PNAS</em>, 2021<br>
+            [8] Goldstein et al., <em>Nature Neuroscience</em>, 2022<br>
+            [9] Caucheteux &amp; King, <em>Communications Biology</em>, 2022<br>
+            [10] Tang, Huth et al., <em>Nature Neuroscience</em>, 2023<br>
+            [11] Knutson et al., <em>Neuron</em>, 2007
+          </p>
+        </div>
+        <div>
+          <h4>Related</h4>
+          <p>
+            <a href="/methodology">Methodology — how we compute</a><br>
+            <a href="/methodology/patterns">Pattern definitions (open source)</a><br>
+            <a href="/#case-study">Case studies</a><br>
+            <a href="https://huggingface.co/facebook/tribev2" target="_blank" rel="noopener">TRIBE v2 · Meta FAIR</a><br>
+            <a href="https://github.com/ishita7077/runpod_braindiff_test" target="_blank" rel="noopener">GitHub — open a PR</a>
+          </p>
+        </div>
+      </div>
+    </details>
+
+    <div class="footer-meta">
+      <span>Brain Diff</span>
+      <span>·</span>
+      <span>Made with <span class="footer-heart">♥</span> by <a href="https://polka.foundation" target="_blank" rel="noopener">Polka Foundation</a></span>
+    </div>
   </div>
 </footer>
 
 <script>
-function toggleTheme(){
-  var r=document.documentElement;
-  var next=r.getAttribute('data-theme')==='dark'?'light':'dark';
-  if(next==='dark') r.setAttribute('data-theme','dark');
-  else r.removeAttribute('data-theme');
-  try{localStorage.setItem('braindiff-theme',next);}catch(e){}
+// ════════════════════════════════════════════════
+// INTERACTIVE 1: The Cortex (legend hover)
+// ════════════════════════════════════════════════
+const cortexLegend = document.querySelectorAll('#cortex-legend .cortex-legend-item');
+const cortexRegions = document.querySelectorAll('.brain-region');
+
+cortexLegend.forEach(item => {
+  item.addEventListener('mouseenter', () => {
+    const sys = item.dataset.system;
+    cortexLegend.forEach(l => l.classList.remove('active'));
+    item.classList.add('active');
+    cortexRegions.forEach(r => {
+      if (r.dataset.system === sys) {
+        r.style.fillOpacity = '0.6';
+        r.style.strokeOpacity = '1';
+      } else {
+        r.style.fillOpacity = '0.05';
+        r.style.strokeOpacity = '0.2';
+      }
+    });
+  });
+});
+
+const cortexWrap = document.querySelector('.cortex-wrap');
+cortexWrap.addEventListener('mouseleave', () => {
+  cortexLegend.forEach(l => l.classList.remove('active'));
+  cortexRegions.forEach(r => {
+    r.style.fillOpacity = '';
+    r.style.strokeOpacity = '';
+  });
+});
+
+// ════════════════════════════════════════════════
+// INTERACTIVE 2: EQ Self-Report
+// ════════════════════════════════════════════════
+const eqAnswers = {};
+document.querySelectorAll('.eq-item').forEach(item => {
+  const itemNum = item.dataset.item;
+  item.querySelectorAll('.eq-option').forEach(btn => {
+    btn.addEventListener('click', () => {
+      item.querySelectorAll('.eq-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      eqAnswers[itemNum] = btn.dataset.val;
+      // Show reveal once all 3 answered
+      if (Object.keys(eqAnswers).length === 3) {
+        document.getElementById('eq-reveal').classList.add('shown');
+        document.getElementById('eq-reveal').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+      }
+    });
+  });
+});
+
+// ════════════════════════════════════════════════
+// INTERACTIVE 3: Encoding Model Timeline
+// ════════════════════════════════════════════════
+const timelineData = [
+  { year: 2020, label: 'Pre-encoding-model era', lab: '—', score: 0.10, desc: 'Brain encoding from foundation models was not yet a tractable approach. Brain prediction relied on hand-crafted features.', meta: 'BASELINE' },
+  { year: 2021, label: 'LLMs predict brain activity', lab: 'Schrimpf et al. · MIT', score: 0.35, desc: 'First major demonstration that **GPT-style language model representations** align with human brain activity in language regions. The same statistical structure that made models work showed up in cortex.', meta: 'PNAS · 2021' },
+  { year: 2022, label: 'Shared computational principles', lab: 'Goldstein et al. · Princeton', score: 0.50, desc: 'Showed that **LLMs and human brains share computational principles** for language — predictive processing, contextual integration, meaning over time.', meta: 'Nature Neuroscience · 2022' },
+  { year: 2022, label: 'Brain scores formalized', lab: 'Caucheteux & King · ENS', score: 0.58, desc: 'Formalized **"brain scores"** as a metric for how brain-like a model\'s representations are. Made the question benchmarkable.', meta: 'Communications Biology · 2022' },
+  { year: 2023, label: 'Semantic decoding from fMRI', lab: 'Tang, Huth et al. · UT Austin', score: 0.68, desc: 'Demonstrated **continuous reconstruction of language** from brain activity, using LLMs as the decoding bridge. The cortex-to-model mapping became bidirectional.', meta: 'Nature Neuroscience · 2023' },
+  { year: 2025, label: 'TRIBEv2 — multimodal integration', lab: 'Meta FAIR', score: 0.92, desc: '**Three foundation models, one temporal transformer, 720+ subjects.** Predicts cortical response to video, audio, and language simultaneously. The integration this whole arc was pointing at.', meta: 'Algonauts 2025 winner · ICLR 2026' }
+];
+
+function renderTimeline() {
+  const svg = document.getElementById('timeline-svg');
+  if (!svg) return;
+  svg.innerHTML = '';
+
+  const W = 1000, H = 360;
+  const padL = 60, padR = 40, padT = 40, padB = 60;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  const xMin = 2019.5, xMax = 2025.5;
+  const yMin = 0, yMax = 1.0;
+
+  function xC(year) { return padL + ((year - xMin) / (xMax - xMin)) * plotW; }
+  function yC(score) { return padT + plotH - ((score - yMin) / (yMax - yMin)) * plotH; }
+
+  // Y axis labels
+  [0, 0.25, 0.5, 0.75, 1.0].forEach(t => {
+    const y = yC(t);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', padL); line.setAttribute('x2', W - padR);
+    line.setAttribute('y1', y); line.setAttribute('y2', y);
+    line.setAttribute('stroke', '#1F1F2E'); line.setAttribute('stroke-width', '0.5');
+    line.setAttribute('stroke-dasharray', '2 4'); line.setAttribute('opacity', '0.4');
+    svg.appendChild(line);
+
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    lbl.setAttribute('x', padL - 12); lbl.setAttribute('y', y + 4);
+    lbl.setAttribute('text-anchor', 'end'); lbl.setAttribute('font-family', 'JetBrains Mono, monospace');
+    lbl.setAttribute('font-size', '9'); lbl.setAttribute('fill', '#5A5A6A');
+    lbl.textContent = t.toFixed(2);
+    svg.appendChild(lbl);
+  });
+
+  // Y axis title
+  const yTitle = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+  yTitle.setAttribute('x', 18); yTitle.setAttribute('y', H/2);
+  yTitle.setAttribute('text-anchor', 'middle'); yTitle.setAttribute('font-family', 'JetBrains Mono, monospace');
+  yTitle.setAttribute('font-size', '9'); yTitle.setAttribute('fill', '#9A9690');
+  yTitle.setAttribute('letter-spacing', '2');
+  yTitle.setAttribute('transform', `rotate(-90 18 ${H/2})`);
+  yTitle.textContent = 'BRAIN PREDICTION SCORE';
+  svg.appendChild(yTitle);
+
+  // X axis labels
+  for (let yr = 2020; yr <= 2025; yr++) {
+    const x = xC(yr);
+    const lbl = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    lbl.setAttribute('x', x); lbl.setAttribute('y', H - padB + 24);
+    lbl.setAttribute('text-anchor', 'middle'); lbl.setAttribute('font-family', 'JetBrains Mono, monospace');
+    lbl.setAttribute('font-size', '11'); lbl.setAttribute('fill', '#5A5A6A');
+    lbl.setAttribute('letter-spacing', '1');
+    lbl.textContent = yr;
+    svg.appendChild(lbl);
+  }
+
+  // Build connecting line path
+  const sortedData = [...timelineData].sort((a, b) => a.year - b.year);
+  let pathD = '';
+  sortedData.forEach((d, i) => {
+    const x = xC(d.year);
+    const y = yC(d.score);
+    if (i === 0) pathD += `M ${x.toFixed(1)} ${y.toFixed(1)}`;
+    else {
+      const px = xC(sortedData[i-1].year);
+      const py = yC(sortedData[i-1].score);
+      const cx1 = (px + x) / 2;
+      pathD += ` C ${cx1.toFixed(1)} ${py.toFixed(1)}, ${cx1.toFixed(1)} ${y.toFixed(1)}, ${x.toFixed(1)} ${y.toFixed(1)}`;
+    }
+  });
+
+  // Area under curve
+  const areaD = pathD + ` L ${xC(sortedData[sortedData.length-1].year).toFixed(1)} ${yC(0).toFixed(1)} L ${xC(sortedData[0].year).toFixed(1)} ${yC(0).toFixed(1)} Z`;
+  const area = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  area.setAttribute('d', areaD);
+  area.setAttribute('fill', '#C9A66B');
+  area.setAttribute('fill-opacity', '0.05');
+  svg.appendChild(area);
+
+  // Line
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  line.setAttribute('d', pathD);
+  line.setAttribute('stroke', '#C9A66B');
+  line.setAttribute('stroke-width', '2');
+  line.setAttribute('fill', 'none');
+  line.setAttribute('opacity', '0.7');
+  svg.appendChild(line);
+
+  // Datapoints
+  timelineData.forEach((d, i) => {
+    const x = xC(d.year);
+    const y = yC(d.score);
+    const isTribe = d.label.includes('TRIBE');
+
+    if (isTribe) {
+      const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      halo.setAttribute('cx', x); halo.setAttribute('cy', y); halo.setAttribute('r', 28);
+      halo.setAttribute('fill', '#E8C788'); halo.setAttribute('fill-opacity', '0.15');
+      svg.appendChild(halo);
+    }
+
+    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('cx', x); dot.setAttribute('cy', y);
+    dot.setAttribute('r', isTribe ? 10 : 6);
+    dot.setAttribute('fill', isTribe ? '#E8C788' : '#C9A66B');
+    dot.setAttribute('stroke', '#08080F'); dot.setAttribute('stroke-width', '2');
+    dot.setAttribute('cursor', 'pointer');
+    dot.dataset.idx = i;
+    svg.appendChild(dot);
+
+    // Label above each point
+    if (i > 0) {
+      const labelLines = d.lab.split(' · ');
+      const yOff = isTribe ? -28 : -22;
+      const lblText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      lblText.setAttribute('x', x); lblText.setAttribute('y', y + yOff);
+      lblText.setAttribute('text-anchor', 'middle');
+      lblText.setAttribute('font-family', 'JetBrains Mono, monospace');
+      lblText.setAttribute('font-size', isTribe ? '11' : '9');
+      lblText.setAttribute('fill', isTribe ? '#E8C788' : '#9A9690');
+      lblText.setAttribute('letter-spacing', '1');
+      lblText.setAttribute('font-weight', isTribe ? '500' : '400');
+      lblText.textContent = isTribe ? 'TRIBEv2' : labelLines[0];
+      svg.appendChild(lblText);
+    }
+
+    dot.addEventListener('mouseenter', () => updateTimelineCard(i));
+    dot.addEventListener('click', () => updateTimelineCard(i));
+  });
 }
+
+function updateTimelineCard(idx) {
+  const d = timelineData[idx];
+  const card = document.getElementById('timeline-card');
+  card.querySelector('.timeline-card-year').textContent = d.year;
+  card.querySelector('.timeline-card-title').textContent = d.label;
+  card.querySelector('.timeline-card-meta').textContent = `${d.lab} · ${d.meta}`;
+  card.querySelector('.timeline-card-desc').innerHTML = d.desc.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+}
+
+renderTimeline();
+
+// ════════════════════════════════════════════════
+// INTERACTIVE 4: Watch Cortex Respond
+// ════════════════════════════════════════════════
+const respondPresets = [
+  { // Cleo vs MrBeast
+    a: { name: 'Cleo Abram', peaks: [0.42, 0.48, 0.78, 0.34, 0.65, 0.55, 0.75], shapes: ['plateau','oscillation','sustained','flatline','plateau','plateau','sustained'] },
+    b: { name: 'MrBeast',    peaks: [0.88, 0.85, 0.60, 0.78, 0.71, 0.62, 0.62], shapes: ['slow-build','sustained','episodic','cliff','cliff','late-surge','oscillation'] }
+  },
+  { // PSA A vs B
+    a: { name: 'PSA A', peaks: [0.55, 0.60, 0.45, 0.50, 0.62, 0.55, 0.58], shapes: ['plateau','plateau','plateau','plateau','plateau','plateau','plateau'] },
+    b: { name: 'PSA B', peaks: [0.82, 0.65, 0.50, 0.78, 0.68, 0.60, 0.55], shapes: ['slow-build','oscillation','plateau','cliff','plateau','plateau','plateau'] }
+  },
+  { // Doc vs Ad
+    a: { name: 'Documentary', peaks: [0.50, 0.65, 0.75, 0.40, 0.70, 0.60, 0.78], shapes: ['plateau','sustained','sustained','flatline','plateau','plateau','sustained'] },
+    b: { name: 'Advertisement', peaks: [0.78, 0.80, 0.45, 0.70, 0.50, 0.55, 0.50], shapes: ['slow-build','sustained','flatline','cliff','flatline','plateau','plateau'] }
+  }
+];
+
+const dimensions = ['Personal Resonance', 'Attention', 'Brain Effort', 'Gut Reaction', 'Memory Encoding', 'Social Thinking', 'Language Depth'];
+const dimColors = ['#FFD89E', '#D4A857', '#7FB3C6', '#E25B43', '#E8C788', '#B89BC9', '#8AA876'];
+
+let currentPreset = 0;
+let respondPlaying = false;
+let respondTime = 0;
+let respondInterval;
+
+function gen(shape, peak) {
+  const arr = [];
+  for (let t = 0; t < 30; t++) {
+    let v;
+    const norm = t / 29;
+    switch(shape) {
+      case 'slow-build': v = 0.2 + (peak - 0.2) * Math.pow(norm, 1.5); break;
+      case 'sustained': v = peak * 0.85 + Math.sin(t * 0.4) * 0.05; break;
+      case 'oscillation': v = (0.3 + peak) / 2 + Math.sin(t * 0.6) * 0.15; break;
+      case 'episodic': v = 0.3 + Math.max(0, Math.sin(t * 0.4)) * (peak - 0.3); break;
+      case 'cliff': v = norm < 0.65 ? peak * 0.9 : peak * 0.9 - (norm - 0.65) * 1.6; break;
+      case 'late-surge': v = 0.3 + Math.pow(Math.max(0, norm - 0.45), 1.7) * (peak - 0.3) * 1.8; break;
+      case 'plateau': v = peak * 0.82 + Math.sin(t * 0.45) * 0.05; break;
+      case 'flatline': v = 0.25 + Math.sin(t * 0.5) * 0.04; break;
+      default: v = peak * 0.7;
+    }
+    arr.push(Math.max(0, Math.min(1, v)));
+  }
+  return arr;
+}
+
+function buildRespondBars() {
+  const c = document.getElementById('respond-bars');
+  c.innerHTML = '';
+  dimensions.forEach((d, i) => {
+    const row = document.createElement('div');
+    row.className = 'respond-bar-row';
+    row.innerHTML = `
+      <div class="respond-bar-name">${d}</div>
+      <div class="respond-bar-track" style="position:relative">
+        <div class="respond-bar-fill" data-side="a" data-dim="${i}" style="background:#7FB3C6; opacity:0.55; width:0%"></div>
+        <div class="respond-bar-fill" data-side="b" data-dim="${i}" style="background:#E25B43; opacity:0.85; width:0%"></div>
+      </div>
+      <div class="respond-bar-value" data-dim="${i}">—</div>
+    `;
+    c.appendChild(row);
+  });
+}
+
+function updateRespond(t) {
+  const preset = respondPresets[currentPreset];
+  const tt = Math.min(29, Math.floor(t));
+  preset.a.dataA = preset.a.dataA || preset.a.shapes.map((s, i) => gen(s, preset.a.peaks[i]));
+  preset.b.dataB = preset.b.dataB || preset.b.shapes.map((s, i) => gen(s, preset.b.peaks[i]));
+  document.querySelectorAll('.respond-bar-fill').forEach(el => {
+    const side = el.dataset.side;
+    const dim = parseInt(el.dataset.dim);
+    const val = side === 'a' ? preset.a.dataA[dim][tt] : preset.b.dataB[dim][tt];
+    el.style.width = (val * 100) + '%';
+  });
+  document.querySelectorAll('.respond-bar-value').forEach(el => {
+    const dim = parseInt(el.dataset.dim);
+    const va = preset.a.dataA[dim][tt];
+    const vb = preset.b.dataB[dim][tt];
+    el.textContent = `${va.toFixed(2)} / ${vb.toFixed(2)}`;
+  });
+  document.getElementById('respond-time').textContent = `0:${String(Math.floor(t)).padStart(2,'0')}`;
+}
+
+buildRespondBars();
+updateRespond(0);
+
+document.querySelectorAll('.respond-preset').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.respond-preset').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentPreset = parseInt(btn.dataset.preset);
+    respondTime = 0;
+    updateRespond(0);
+  });
+});
+
+// Play / pause — also drives the optional side-by-side video clips
+const vidA = document.getElementById('vidA');
+const vidB = document.getElementById('vidB');
+const videosWrap = document.getElementById('respond-videos');
+const videosToggle = document.getElementById('respond-video-on');
+
+function videosAvailable() {
+  // If the file 404s, the <video> readyState stays 0 and duration is NaN.
+  // We treat the videos as available only if both have loaded metadata.
+  return vidA && vidB && vidA.readyState >= 1 && vidB.readyState >= 1
+         && Number.isFinite(vidA.duration) && Number.isFinite(vidB.duration);
+}
+
+function tryShowVideos() {
+  if (!videosToggle || !videosToggle.checked) return;
+  if (!videosAvailable()) return;
+  vidA.style.display = 'block';
+  vidB.style.display = 'block';
+  // Hide the placeholder cards once videos are confirmed loaded
+  document.querySelectorAll('.respond-video-placeholder').forEach(p => p.style.display = 'none');
+}
+
+if (vidA) vidA.addEventListener('loadedmetadata', tryShowVideos);
+if (vidB) vidB.addEventListener('loadedmetadata', tryShowVideos);
+
+if (videosToggle) {
+  videosToggle.addEventListener('change', () => {
+    if (videosToggle.checked) {
+      videosWrap.classList.remove('is-hidden');
+      tryShowVideos();
+    } else {
+      videosWrap.classList.add('is-hidden');
+      if (vidA && !vidA.paused) vidA.pause();
+      if (vidB && !vidB.paused) vidB.pause();
+    }
+  });
+}
+
+document.getElementById('respond-play').addEventListener('click', () => {
+  if (respondPlaying) {
+    clearInterval(respondInterval);
+    respondPlaying = false;
+    document.getElementById('respond-play').textContent = '▶ Play';
+    if (vidA && !vidA.paused) vidA.pause();
+    if (vidB && !vidB.paused) vidB.pause();
+  } else {
+    if (respondTime >= 29) respondTime = 0;
+    respondPlaying = true;
+    document.getElementById('respond-play').textContent = '❚❚ Pause';
+    // If real videos are loaded, sync them to the bar timer.
+    if (videosAvailable() && videosToggle && videosToggle.checked) {
+      try {
+        vidA.currentTime = respondTime;
+        vidB.currentTime = respondTime;
+        vidA.play().catch(() => {});
+        vidB.play().catch(() => {});
+      } catch (_) { /* placeholder mode */ }
+    }
+    respondInterval = setInterval(() => {
+      respondTime += 0.5;
+      if (respondTime >= 29) {
+        clearInterval(respondInterval);
+        respondPlaying = false;
+        document.getElementById('respond-play').textContent = '▶ Play';
+        respondTime = 29;
+        if (vidA && !vidA.paused) vidA.pause();
+        if (vidB && !vidB.paused) vidB.pause();
+      }
+      updateRespond(respondTime);
+    }, 100);
+  }
+});
+
+// ════════════════════════════════════════════════
+// INTERACTIVE 5: The Seven-Lab Montage
+// ════════════════════════════════════════════════
+const montageData = [
+  { yearKey: 1995, year: '1995', system: '— Pre-discovery —', lab: 'PRE-DISCOVERY', question: 'The cortex was known. Its functional architecture was not.', found: 'In 1995, the seven-network cortical organization Brain Diff inherits had not yet been mapped. The journey starts here.', region: '— · BEGIN —', isFalk: false },
+  { yearKey: 1998, year: '1998', system: 'Memory Encoding · Wagner et al.', lab: 'WAGNER LAB · MIT · 1998', question: 'What predicts whether something will be remembered?', found: 'Activity in the **left ventrolateral prefrontal cortex** at the moment of encoding predicts whether a stimulus will later be remembered. The "subsequent memory effect" is born.', region: 'LEFT vlPFC · MEMORY ENCODING', isFalk: false },
+  { yearKey: 2001, year: '2001', system: 'Brain Effort · Miller & Cohen', lab: 'MILLER & COHEN · PRINCETON · 2001', question: 'How does the brain hold goals in mind, against distraction?', found: 'The **dorsolateral prefrontal cortex** implements cognitive control — sustaining goal-relevant information and overriding habitual responses. The integrative theory of prefrontal function.', region: 'dlPFC · COGNITIVE CONTROL', isFalk: false },
+  { yearKey: 2003, year: '2003', system: 'Social Thinking · Saxe & Kanwisher', lab: 'SAXE & KANWISHER · MIT · 2003', question: 'Where does the brain model another person\'s mind?', found: 'The **right temporo-parietal junction** is selectively engaged when reasoning about others\' beliefs and mental states. Theory of mind has a cortical address.', region: 'RIGHT TPJ · MENTALIZING', isFalk: false },
+  { yearKey: 2005, year: '2005', system: 'Gut Reaction · Critchley', lab: 'CRITCHLEY · UCL/SUSSEX · 2005', question: 'How does the body\'s internal state become felt experience?', found: 'The **anterior insula** integrates visceral signals into conscious feeling. Interoception — the sense of the inside of the body — has neural mechanics.', region: 'ANTERIOR INSULA · INTEROCEPTION', isFalk: false },
+  { yearKey: 2011, year: '2011', system: 'Language Depth · Fedorenko et al.', lab: 'FEDORENKO · MIT · 2011', question: 'Where, exactly, does language live in the brain?', found: 'A **sharply localized network** including Broca\'s and Wernicke\'s regions handles linguistic processing — and is functionally separable from general cognition.', region: 'BROCA / WERNICKE · LANGUAGE NETWORK', isFalk: false },
+  { yearKey: 2011.5, year: '2011', system: 'The Frame · Yeo et al.', lab: 'YEO · HARVARD · 2011', question: 'Can the cortex be partitioned into reproducible functional networks?', found: 'A **seven-network parcellation** emerges from cortical resting activity, reproducibly across subjects. The map Brain Diff inherits.', region: 'SEVEN-NETWORK PARCELLATION', isFalk: false },
+  { yearKey: 2012, year: '2012', system: 'Personal Resonance · Falk et al.', lab: 'FALK · PENN · 2012', question: 'Does cortical activity predict population-scale behavior?', found: 'Activity in the **medial prefrontal cortex**, measured while subjects watched anti-smoking ads, predicted **national-scale call volume** to the quit-smoking hotline at **r = 0.87**. Stimulus-side measurement worked.', region: 'mPFC · SELF-RELEVANCE & VALUE', isFalk: true }
+];
+
+const slider = document.getElementById('montage-slider');
+const yearMarks = document.querySelectorAll('.montage-year-marks span');
+const montageSystems = document.querySelectorAll('.mont-system');
+const falkCalloutSvg = document.getElementById('falk-callout-svg');
+
+function updateMontage(yr) {
+  // Find the most recent data entry at or before this year
+  let entry = montageData[0];
+  for (let i = 1; i < montageData.length; i++) {
+    if (montageData[i].yearKey <= yr) entry = montageData[i];
+    else break;
+  }
+
+  // Show systems whose year <= current year
+  montageSystems.forEach(s => {
+    const sysYr = parseFloat(s.dataset.year);
+    s.style.opacity = sysYr <= yr ? '1' : '0';
+    s.style.transition = 'opacity 0.6s ease-out';
+  });
+
+  // Update falk r=0.87 callout in SVG
+  if (yr >= 2012) {
+    falkCalloutSvg.style.opacity = '1';
+    falkCalloutSvg.style.transition = 'opacity 0.6s ease-out';
+  } else {
+    falkCalloutSvg.style.opacity = '0';
+  }
+
+  // Update side card
+  document.getElementById('montage-year').textContent = entry.year;
+  document.getElementById('montage-system').textContent = entry.system;
+  document.getElementById('montage-card').querySelector('.montage-card-lab').textContent = entry.lab;
+  document.getElementById('montage-card').querySelector('.montage-card-question').textContent = entry.question;
+  document.getElementById('montage-card').querySelector('.montage-card-found').innerHTML = entry.found.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  document.getElementById('montage-card').querySelector('.montage-card-region').textContent = entry.region;
+
+  // Falk callout in side panel
+  const falkCallout = document.getElementById('falk-callout');
+  if (entry.isFalk) {
+    falkCallout.classList.add('shown');
+  } else {
+    falkCallout.classList.remove('shown');
+  }
+
+  // Update active year mark
+  yearMarks.forEach(m => {
+    const my = parseFloat(m.dataset.year);
+    m.classList.toggle('active', Math.floor(yr) >= my);
+  });
+}
+
+slider.addEventListener('input', e => updateMontage(parseFloat(e.target.value)));
+yearMarks.forEach(m => {
+  m.addEventListener('click', () => {
+    const y = parseFloat(m.dataset.year);
+    slider.value = y;
+    updateMontage(y);
+  });
+});
+
+updateMontage(1995);
 </script>
+
 </body>
 </html>

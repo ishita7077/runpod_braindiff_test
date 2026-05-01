@@ -5,7 +5,6 @@
     { "src": "^/demo/(.*)$", "dest": "/frontend_new/demo/$1" },
     { "src": "^/(.*\\.(?:css|js))$", "dest": "/frontend_new/$1" },
     { "src": "^/research/?$", "dest": "/frontend_new/research.html" },
-    { "src": "^/research-new/?$", "dest": "/frontend_new/research-new.html" },
     { "src": "^/methodology/patterns/?$", "dest": "/frontend_new/methodology-patterns.html" },
     { "src": "^/methodology/connectivity/?$", "dest": "/frontend_new/methodology-connectivity.html" },
     { "src": "^/methodology/skeleton/?$", "dest": "/frontend_new/methodology-skeleton.html" },
