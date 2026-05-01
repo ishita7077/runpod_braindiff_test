@@ -40,17 +40,34 @@ function dimRowFor(rows, key) {
 
 /**
  * Color a cell based on its activation value (0..1).
- * Cream-theme aware: dark slate (low) → mid (no contrast) → vermillion (high).
- * Returns a hex color string.
+ * Theme-aware. Light: slate (low) → cream-mid → vermillion (high).
+ *               Dark: cool blue (low) → dark mid → coral (high).
+ * The mid stop matters — in dark theme, a cream mid blends into nothing,
+ * so we pick a low-luminance neutral that reads on the bg without flatlining.
+ * Returns an rgb() string.
  */
+function isDarkTheme() {
+  try {
+    return document.documentElement.getAttribute("data-theme") === "dark";
+  } catch (_) { return true; }
+}
+function paletteStops() {
+  if (isDarkTheme()) {
+    return [
+      { stop: 0.0, rgb: [127, 179, 198] }, // --a (cool blue)
+      { stop: 0.5, rgb: [40, 40, 60] },    // dark mid neutral, reads on bg #08080F
+      { stop: 1.0, rgb: [226, 91, 67] },   // --accent (coral)
+    ];
+  }
+  return [
+    { stop: 0.0, rgb: [42, 85, 131] },     // --good slate
+    { stop: 0.5, rgb: [200, 192, 174] },   // cream mid — reads on cream bg
+    { stop: 1.0, rgb: [193, 39, 45] },     // --accent vermillion
+  ];
+}
 function colorForValue(v) {
   const value = Math.max(0, Math.min(1, v));
-  // Three-stop interpolation: --good (#2a5583) at 0, mid neutral at 0.5, --accent (#c1272d) at 1.
-  const stops = [
-    { stop: 0.0, rgb: [42, 85, 131] },
-    { stop: 0.5, rgb: [200, 192, 174] },
-    { stop: 1.0, rgb: [193, 39, 45] },
-  ];
+  const stops = paletteStops();
   let lo = stops[0], hi = stops[1];
   for (let i = 1; i < stops.length; i += 1) {
     if (value <= stops[i].stop) { hi = stops[i]; lo = stops[i - 1]; break; }

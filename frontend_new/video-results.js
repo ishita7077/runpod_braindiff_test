@@ -20,6 +20,7 @@ import { renderConnectivity } from "./assets/connectivity-graph.js";
 import { renderSpectrogram } from "./assets/spectrogram.js";
 import { renderComparisonChart } from "./assets/comparison-chart.js";
 import { renderSkeleton } from "./assets/structural-skeleton.js";
+import { renderChordProgression } from "./assets/chord-progression.js";
 
 const params = new URLSearchParams(location.search);
 const jobId = params.get("job");
@@ -226,6 +227,27 @@ function renderPatterns(data) {
   } else if (skelRoot) {
     skelRoot.hidden = true;
   }
+  // Chord progression — Brain Diff novel section. Classifies each second of
+  // the seven-system response into a named chord (Learning Moment, Visceral
+  // Hit, Emotional Impact, etc.) and renders the side-by-side progression.
+  // Renders nothing if fewer than two named systems are present in dimensions.
+  const chordRoot = document.getElementById("chordSection");
+  if (chordRoot && data.dimensions && data.dimensions.length) {
+    try {
+      renderChordProgression(chordRoot, {
+        dimensions: data.dimensions,
+        durationA: totalA,
+        durationB: totalB,
+        labelA: data.samples.a.name || "Cut A",
+        labelB: data.samples.b.name || "Cut B",
+      });
+    } catch (err) {
+      console.error("Chord progression failed to render", err);
+      chordRoot.hidden = true;
+    }
+  } else if (chordRoot) {
+    chordRoot.hidden = true;
+  }
 }
 
 function renderWarnings(data) {
@@ -316,14 +338,17 @@ function renderSample(selector, sample) {
 function renderTracks(data) {
   const root = $("#tracks");
   if (!root) return;
-  if (!data.dimensions.length) {
+  const dims = Array.isArray(data?.dimensions) ? data.dimensions : [];
+  if (!dims.length) {
     root.innerHTML = `<div class="empty-strip">No dimensional data returned for this run.</div>`;
     return;
   }
-  root.innerHTML = data.dimensions
+  root.innerHTML = dims
     .map((dim, i) => {
-      const a = mean(dim.timeseries_a || []);
-      const b = mean(dim.timeseries_b || []);
+      // Worker can return timeseries_a/b as null when the dimension is sparse
+      // — guard explicitly so we don't .length on null and crash the page.
+      const a = mean(Array.isArray(dim?.timeseries_a) ? dim.timeseries_a : []);
+      const b = mean(Array.isArray(dim?.timeseries_b) ? dim.timeseries_b : []);
       const delta = b - a;
       return `
         <button class="track-row" type="button" data-track="${i}" data-track-key="${escapeHtml(dim.key || "")}">
@@ -345,16 +370,18 @@ function renderTracks(data) {
 function renderMoments(data) {
   const root = $("#moments");
   if (!root) return;
-  if (!data.moments.length) {
+  const moments = Array.isArray(data?.moments) ? data.moments : [];
+  const dims = Array.isArray(data?.dimensions) ? data.dimensions : [];
+  if (!moments.length) {
     root.innerHTML = `<div class="empty-strip">No peak-Δ moments detected — contrast is uniform across the cut.</div>`;
     return;
   }
   const dimMap = new Map();
-  for (const dim of data.dimensions) dimMap.set(dim.key, dim);
+  for (const dim of dims) dimMap.set(dim?.key, dim);
   // Find a keyframe near each moment, prefer the side that "won" the moment.
   function frameForMoment(m) {
     const list = m.sample === "B" ? data.samples.b.keyframes : data.samples.a.keyframes;
-    if (!list.length) return null;
+    if (!Array.isArray(list) || !list.length) return null;
     let best = list[0];
     let bestD = Math.abs((best.time || 0) - m.time);
     for (const kf of list) {
@@ -363,7 +390,7 @@ function renderMoments(data) {
     }
     return best;
   }
-  root.innerHTML = data.moments
+  root.innerHTML = moments
     .map((m, i) => {
       const dim = dimMap.get(m.track) || {};
       const dimLabel = dim.label || m.track || "Cortical contrast";

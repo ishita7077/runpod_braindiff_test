@@ -26,6 +26,11 @@
   --b-soft: rgba(193, 39, 45, 0.07);
   --gold: #8a6820;
   --gold-bright: #b38a30;
+  /* --good aliases the A side colour. CSS across this page uses var(--good)
+     extensively but it was previously undefined; the fallback hex is now
+     wrong in dark theme. Keep in sync with --a / --blue. */
+  --good: #2a5583;
+  --good-soft: rgba(42, 85, 131, 0.10);
   --rule: #e2ddcf;
   --brain-stage: #ebe6da;
   --shadow-sm: 0 1px 2px rgba(20, 20, 25, 0.04), 0 1px 3px rgba(20, 20, 25, 0.05);
@@ -58,6 +63,9 @@
   --b-soft: rgba(226, 91, 67, 0.12);
   --gold: #C9A66B;
   --gold-bright: #E8C788;
+  /* --good aliases --a in dark too — keeps badges and curves consistent */
+  --good: #7FB3C6;
+  --good-soft: rgba(127, 179, 198, 0.14);
   --rule: #1F1F2E;
   /* Legacy aliases kept for component styles */
   --accent: #E25B43;
@@ -596,7 +604,9 @@ body[data-media-kind="video"] .hero-copy {
   border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
-  background: #000;
+  /* Was hardcoded #000 — invisible empty state in light theme.
+     bg-2 reads as a neutral charcoal-on-light or near-black on dark. */
+  background: var(--bg-2, #efeadf);
   transition: border-color 0.15s, transform 0.15s;
 }
 .keyframe img {
@@ -761,7 +771,9 @@ body[data-media-kind="video"] .hero-copy {
   box-shadow: 0 4px 12px rgba(0,0,0,0.18);
 }
 .pattern-block:focus-visible {
-  outline: 2px solid #fff;
+  /* Was hardcoded #fff — invisible against light backgrounds.
+     ink contrasts with bg in both themes. */
+  outline: 2px solid var(--ink, #17171a);
   outline-offset: 2px;
 }
 .pattern-block-name {
@@ -781,11 +793,13 @@ body[data-media-kind="video"] .hero-copy {
   text-overflow: ellipsis;
 }
 
-/* Pattern Card overlay (modal). Click outside or hit Esc to close. */
+/* Pattern Card overlay (modal). Click outside or hit Esc to close.
+   Was hardcoded #000 — too heavy in light theme. Theme-aware ink colour
+   gives a proper modal scrim in both. */
 .pattern-card-overlay {
   position: fixed;
   inset: 0;
-  background: color-mix(in srgb, #000 55%, transparent);
+  background: color-mix(in srgb, var(--ink, #17171a) 55%, transparent);
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
   z-index: 200;
@@ -1385,7 +1399,12 @@ body[data-media-kind="video"] .hero-copy {
 .spectro-scale-bar {
   width: 220px; height: 8px;
   border-radius: 2px;
-  background: linear-gradient(90deg, rgb(42,85,131) 0%, rgb(200,192,174) 50%, rgb(193,39,45) 100%);
+  /* Was three hardcoded RGBs that mid-stop blended into the dark page bg.
+     Now uses --good (A), --line-2 (neutral mid), --accent (B). */
+  background: linear-gradient(90deg,
+    var(--good, #2a5583) 0%,
+    var(--line-2, #c8c0ae) 50%,
+    var(--accent, #c1272d) 100%);
 }
 .spectro-scale-labels {
   width: 220px;
@@ -2074,4 +2093,294 @@ body[data-media-kind="video"] .hero-copy {
   .lower-grid { grid-template-columns: 1fr; }
   .section { padding: 48px 5%; }
   .headline-section { padding: 48px 5% 36px; }
+}
+
+/* ────────────────────────────────────────────────────────────────────────────
+   CHORD PROGRESSION (Section 03B)
+   The novel Brain Diff card. Classifies each second of the seven-system
+   response into a named chord and renders the progression as colored blocks
+   over a time axis. Theme-aware via CSS vars.
+   ──────────────────────────────────────────────────────────────────────── */
+
+.chord-section {
+  padding: 26px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.chord-head {
+  max-width: 720px;
+}
+.chord-head h3 {
+  font-family: var(--serif, 'Fraunces', Georgia, serif);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  margin: 4px 0 8px;
+  color: var(--ink, #17171a);
+}
+.chord-head .chord-sub {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--ink-dim, #3d3d42);
+  margin: 0;
+}
+.chord-head .chord-sub strong {
+  color: var(--ink, #17171a);
+  font-weight: 500;
+}
+.chord-head .chord-sub em {
+  color: var(--accent, #c1272d);
+  font-style: italic;
+}
+
+.chord-progression-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+@media (max-width: 900px) {
+  .chord-progression-pair { grid-template-columns: 1fr; gap: 22px; }
+}
+
+.chord-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--line, #e2ddcf);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface, #fff) 96%, transparent);
+}
+.chord-side-a { border-left: 3px solid var(--good, #2a5583); }
+.chord-side-b { border-left: 3px solid var(--accent, #c1272d); }
+
+.chord-side-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+}
+.chord-side-head .badge {
+  display: inline-grid;
+  place-items: center;
+  width: 22px; height: 22px;
+  border-radius: 4px;
+  font-size: 11px; font-weight: 600;
+  color: #fff;
+  flex-shrink: 0;
+}
+.chord-side-head .badge.a { background: var(--good, #2a5583); }
+.chord-side-head .badge.b { background: var(--accent, #c1272d); }
+.chord-side-name {
+  font-family: var(--serif, 'Fraunces', Georgia, serif);
+  font-size: 15px;
+  color: var(--ink, #17171a);
+  font-weight: 500;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chord-side-meta {
+  font-size: 11px;
+  color: var(--ink-mute, #77736b);
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  letter-spacing: 0.04em;
+}
+
+.chord-strip-wrap {
+  width: var(--strip-w, 100%);
+}
+
+.chord-strip {
+  position: relative;
+  height: 64px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--ink-mute, #77736b) 8%, transparent);
+  border: 1px solid var(--line, #e2ddcf);
+  overflow: hidden;
+}
+
+.chord-strip-axis {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 16px;
+  border-top: 1px dashed color-mix(in srgb, var(--ink-mute, #77736b) 30%, transparent);
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+}
+.chord-tick {
+  position: absolute;
+  bottom: 1px;
+  transform: translateX(-50%);
+  font-size: 9.5px;
+  color: var(--ink-mute, #77736b);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.chord-tick:first-child { transform: none; }
+.chord-tick:last-child  { transform: translateX(-100%); }
+
+.chord-strip-blocks {
+  position: absolute;
+  inset: 4px 4px 22px 4px;
+  /* No flexbox here — the blocks are absolutely positioned over the strip */
+}
+
+.chord-block {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 8px;
+  border-radius: 4px;
+  cursor: help;
+  overflow: hidden;
+  min-width: 4px;
+  transition: filter 0.15s ease, transform 0.15s ease;
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink, #17171a) 14%, transparent);
+}
+.chord-block:hover,
+.chord-block.is-hover {
+  filter: brightness(1.08) saturate(1.1);
+  transform: translateY(-1px);
+  z-index: 2;
+}
+.chord-block-label {
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chord-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  color: var(--ink-mute, #77736b);
+  letter-spacing: 0.04em;
+}
+
+.chord-progression-line {
+  font-family: var(--serif, 'Fraunces', Georgia, serif);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-dim, #3d3d42);
+  margin: 0;
+}
+.chord-progression-line strong {
+  color: var(--ink, #17171a);
+  font-weight: 500;
+}
+
+/* Details/Summary toggle for chord defs */
+.chord-details > summary {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  margin-top: 4px;
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-dim, #3d3d42);
+  border: 1px solid var(--line-2, #cbc5b4);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--surface, #fff) 92%, transparent);
+  list-style: none;
+  user-select: none;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.chord-details > summary::-webkit-details-marker { display: none; }
+.chord-details > summary:hover {
+  border-color: var(--ink-mute, #77736b);
+  color: var(--ink, #17171a);
+}
+.chord-details[open] > summary {
+  margin-bottom: 14px;
+  border-color: var(--ink-mute, #77736b);
+  color: var(--ink, #17171a);
+}
+
+.chord-defs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+  margin-top: 6px;
+}
+.chord-def-card {
+  padding: 14px 16px;
+  border: 1px solid var(--line, #e2ddcf);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--surface, #fff) 96%, transparent);
+}
+.chord-def-head {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin-bottom: 8px;
+}
+.chord-def-swatch {
+  display: inline-block;
+  width: 14px; height: 14px;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ink, #17171a) 14%, transparent);
+}
+.chord-def-card h4 {
+  margin: 0;
+  font-family: var(--serif, 'Fraunces', Georgia, serif);
+  font-weight: 500;
+  font-size: 14.5px;
+  letter-spacing: -0.005em;
+  color: var(--ink, #17171a);
+}
+.chord-def-blurb {
+  margin: 0 0 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--ink-dim, #3d3d42);
+}
+.chord-def-science {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--ink-mute, #77736b);
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+}
+.chord-def-meta {
+  margin: 0;
+  font-size: 10.5px;
+  color: var(--ink-mute, #77736b);
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.chord-fineprint {
+  margin: 14px 0 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--ink-mute, #77736b);
+  font-family: var(--mono, 'JetBrains Mono', monospace);
+  letter-spacing: 0.02em;
+}
+.chord-fineprint a {
+  color: var(--accent, #c1272d);
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
