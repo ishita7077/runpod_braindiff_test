@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>BrainDiff — Admin</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f7f4ec;--bg-2:#efeadf;--surface:#fff;--panel:#fff;--panel-2:#f1ecde;
+  --line:#e2ddcf;--line-2:#cbc5b4;
+  --ink:#17171a;--ink-dim:#3d3d42;--ink-mute:#77736b;
+  --accent:#c1272d;--accent-2:#d94a4e;--accent-3:#f8e9e6;
+  --good:#2a5583;--good-bg:#e6edf6;
+  --warn:#b05000;--warn-bg:#fef3e6;
+  --bad:#a83e2c;--bad-bg:#fdecea;
+  --mod-text:#2a5583;--mod-audio:#6b4f1d;--mod-video:#5c2d6e;
+  --shadow-sm:0 1px 2px rgba(20,20,25,.04),0 1px 3px rgba(20,20,25,.05);
+  --shadow-md:0 1px 2px rgba(20,20,25,.04),0 8px 24px rgba(20,20,25,.06);
+  --r:10px;
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0b0c0f;--bg-2:#101116;--surface:#15171c;--panel:rgba(20,22,28,.9);--panel-2:rgba(28,31,38,.6);
+  --line:rgba(255,255,255,.07);--line-2:rgba(255,255,255,.13);
+  --ink:#e8e4db;--ink-dim:#b6b1a6;--ink-mute:#7f7a70;
+  --accent:#e04a2e;--accent-2:#f27455;--accent-3:rgba(224,74,46,.12);
+  --good:#6a97c9;--good-bg:rgba(106,151,201,.12);
+  --warn:#e0a54e;--warn-bg:rgba(224,165,78,.1);
+  --bad:#e07560;--bad-bg:rgba(224,117,96,.1);
+  --mod-text:#8db2d4;--mod-audio:#d4a84b;--mod-video:#c491d4;
+  --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+  --shadow-md:0 12px 32px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Inter Tight',system-ui,sans-serif;font-feature-settings:"cv11","ss01";-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit}
+
+/* ── auth gate ── */
+#gate{position:fixed;inset:0;background:var(--bg);z-index:100;display:flex;align-items:center;justify-content:center}
+.gate-card{background:var(--panel);border:1px solid var(--line-2);border-radius:16px;padding:36px 40px;width:min(380px,90vw);box-shadow:var(--shadow-md)}
+.gate-card h2{font-family:'Fraunces',Georgia,serif;font-weight:400;font-size:24px;margin-bottom:4px}
+.gate-card p{font-size:13px;color:var(--ink-mute);margin-bottom:24px}
+.gate-err{color:var(--bad);font-size:12.5px;margin-top:8px;display:none}
+
+/* ── layout ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(14px)}
+.brand{font-weight:600;font-size:14px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.brand-badge{font-size:10px;font-family:'JetBrains Mono',monospace;background:var(--accent-3);color:var(--accent);border-radius:4px;padding:1px 6px;letter-spacing:.04em;text-transform:uppercase}
+.topbar-right{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink-mute)}
+.backend-url{font-family:'JetBrains Mono',monospace;font-size:11px;padding:4px 8px;border:1px solid var(--line-2);border-radius:6px;background:var(--surface);color:var(--ink);width:220px}
+.theme-toggle{width:30px;height:30px;border-radius:7px;background:var(--surface);border:1px solid var(--line-2);color:var(--ink-mute);cursor:pointer;font-size:13px;display:grid;place-items:center;font-family:inherit}
+.tt-moon{display:inline}
+.tt-sun{display:none}
+:root[data-theme="dark"] .tt-sun{display:inline}
+:root[data-theme="dark"] .tt-moon{display:none}
+
+main{max-width:1100px;margin:0 auto;padding:28px 20px 60px}
+h1{font-family:'Fraunces',Georgia,serif;font-weight:400;font-size:clamp(22px,2.4vw,28px);letter-spacing:-.02em;margin-bottom:6px}
+.sub{font-size:13px;color:var(--ink-mute);margin-bottom:28px}
+
+/* ── shared form components ── */
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11.5px;font-weight:500;color:var(--ink-dim);letter-spacing:.02em;text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+input[type=text],input[type=url],textarea,select{
+  font:inherit;font-size:13px;padding:8px 11px;border-radius:8px;border:1px solid var(--line-2);
+  background:var(--surface);color:var(--ink);width:100%;transition:border-color .15s;resize:vertical;
+}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--accent)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--line-2);background:var(--surface);color:var(--ink);font-family:inherit;transition:border-color .15s,background .15s}
+.btn:hover{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface))}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.btn-primary:hover{filter:brightness(.95)}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed;pointer-events:none}
+
+/* ── add-run form card ── */
+.form-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px 22px;box-shadow:var(--shadow-sm);margin-bottom:24px}
+.form-card h2{font-size:13px;font-weight:600;margin-bottom:16px;font-family:'JetBrains Mono',monospace;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-mute)}
+.mod-tabs{display:flex;gap:4px;margin-bottom:16px}
+.mod-tab{padding:5px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--line-2);background:transparent;color:var(--ink-dim);font-family:inherit;transition:.15s}
+.mod-tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-3)}
+.row-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:600px){.row-2{grid-template-columns:1fr}}
+.form-actions{display:flex;gap:8px;margin-top:16px;align-items:center}
+.input-mode-toggle{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-mute);margin-left:auto}
+.input-mode-toggle input{width:auto}
+
+/* ── queue ── */
+.section-title{font-family:'JetBrains Mono',monospace;font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--ink-mute);margin-bottom:10px;display:flex;align-items:center;gap:10px}
+.queue-controls{display:flex;gap:8px;margin-left:auto}
+.queue-empty{padding:24px;text-align:center;font-size:13px;color:var(--ink-mute);border:1px dashed var(--line-2);border-radius:var(--r)}
+.run-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;box-shadow:var(--shadow-sm);margin-bottom:8px;display:flex;flex-direction:column;gap:8px}
+.run-header{display:flex;align-items:center;gap:10px}
+.run-label{font-weight:600;font-size:14px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.run-meta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute)}
+.mod-pill{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em;font-weight:500}
+.mod-text{background:color-mix(in srgb,var(--mod-text) 12%,transparent);color:var(--mod-text)}
+.mod-audio{background:color-mix(in srgb,var(--mod-audio) 12%,transparent);color:var(--mod-audio)}
+.mod-video{background:color-mix(in srgb,var(--mod-video) 12%,transparent);color:var(--mod-video)}
+.status-pill{font-size:10px;font-family:'JetBrains Mono',monospace;padding:2px 8px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em;font-weight:600}
+.s-pending{background:var(--panel-2);color:var(--ink-mute)}
+.s-running{background:var(--warn-bg);color:var(--warn)}
+.s-done{background:var(--good-bg);color:var(--good)}
+.s-error{background:var(--bad-bg);color:var(--bad)}
+.run-inputs{font-size:12px;color:var(--ink-mute);display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
+.run-footer{display:flex;align-items:center;gap:8px}
+.run-progress{flex:1;height:3px;background:var(--line);border-radius:2px;overflow:hidden}
+.run-progress-bar{height:100%;background:var(--accent);border-radius:2px;transition:width .4s}
+.run-links{display:flex;gap:8px}
+.run-links a{font-size:12px;color:var(--good);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--good) 40%,transparent);padding-bottom:1px}
+.run-links a:hover{border-bottom-color:var(--good)}
+.run-error{font-size:12px;color:var(--bad);font-family:'JetBrains Mono',monospace;white-space:pre-wrap;word-break:break-all}
+.run-elapsed{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink-mute)}
+.remove-btn{background:none;border:none;color:var(--ink-mute);cursor:pointer;font-size:14px;padding:0 4px;line-height:1}
+.remove-btn:hover{color:var(--bad)}
+</style>
+</head>
+<body>
+
+<!-- Auth gate -->
+<div id="gate">
+  <div class="gate-card">
+    <h2>Admin access</h2>
+    <p>BrainDiff bulk-run dashboard. Private — Ishita only.</p>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="gatePw" autocomplete="current-password" placeholder="Enter password"/>
+    </div>
+    <div class="gate-err" id="gateErr">Incorrect password.</div>
+    <div style="margin-top:16px">
+      <button class="btn btn-primary" id="gateBtn" style="width:100%">Unlock</button>
+    </div>
+  </div>
+</div>
+
+<!-- Main app (hidden until auth) -->
+<div id="app" style="display:none">
+
+<div class="topbar">
+  <div class="brand">
+    BrainDiff <span class="brand-badge">admin</span>
+  </div>
+  <div class="topbar-right">
+    <label style="display:flex;align-items:center;gap:6px;font-size:12px">
+      Backend
+      <input type="url" class="backend-url" id="backendUrl" value="http://localhost:8000" placeholder="http://localhost:8000"/>
+    </label>
+    <button class="btn btn-sm" id="lockBtn" title="Lock dashboard">🔒</button>
+    <button class="theme-toggle" id="themeToggle"><span class="tt-moon">☾</span><span class="tt-sun">☀</span></button>
+  </div>
+</div>
+
+<main>
+  <h1>Bulk runs</h1>
+  <p class="sub">Queue runs sequentially — text, audio, or video. Each starts when the previous finishes.</p>
+
+  <!-- Add run form -->
+  <div class="form-card">
+    <h2>Add run to queue</h2>
+
+    <div class="mod-tabs">
+      <button class="mod-tab active" data-mod="text">Text</button>
+      <button class="mod-tab" data-mod="audio">Audio</button>
+      <button class="mod-tab" data-mod="video">Video</button>
+    </div>
+
+    <div class="field" style="margin-bottom:12px">
+      <label>Label (optional)</label>
+      <input type="text" id="runLabel" placeholder="e.g. F1 calm vs excited"/>
+    </div>
+
+    <!-- Text mode -->
+    <div id="textFields" class="row-2">
+      <div class="field">
+        <label>Text A</label>
+        <textarea id="textA" rows="4" placeholder="Paste text A…"></textarea>
+      </div>
+      <div class="field">
+        <label>Text B</label>
+        <textarea id="textB" rows="4" placeholder="Paste text B…"></textarea>
+      </div>
+    </div>
+
+    <!-- Audio/Video mode -->
+    <div id="mediaFields" style="display:none">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+        <label style="font-size:12px;color:var(--ink-mute);display:flex;align-items:center;gap:6px;cursor:pointer">
+          <input type="checkbox" id="useUrlToggle"/> Use internet URLs instead of file upload
+        </label>
+      </div>
+
+      <!-- File upload mode -->
+      <div id="fileMode" class="row-2">
+        <div class="field">
+          <label>File A</label>
+          <input type="file" id="fileA" accept="audio/*,video/*" style="font-size:13px;padding:6px 10px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);color:var(--ink);width:100%"/>
+        </div>
+        <div class="field">
+          <label>File B</label>
+          <input type="file" id="fileB" accept="audio/*,video/*" style="font-size:13px;padding:6px 10px;border:1px solid var(--line-2);border-radius:8px;background:var(--surface);color:var(--ink);width:100%"/>
+        </div>
+      </div>
+
+      <!-- URL mode -->
+      <div id="urlMode" style="display:none" class="row-2">
+        <div class="field">
+          <label>URL A</label>
+          <input type="url" id="urlA" placeholder="https://…/audio.mp3"/>
+        </div>
+        <div class="field">
+          <label>URL B</label>
+          <input type="url" id="urlB" placeholder="https://…/audio.mp3"/>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn btn-primary" id="addBtn">+ Add to queue</button>
+      <span id="addMsg" style="font-size:12px;color:var(--ink-mute)"></span>
+    </div>
+  </div>
+
+  <!-- Queue -->
+  <div>
+    <div class="section-title">
+      Queue
+      <span id="queueCount" style="color:var(--ink-dim)">0 runs</span>
+      <div class="queue-controls">
+        <button class="btn btn-sm btn-primary" id="startBtn" disabled>▶ Start queue</button>
+        <button class="btn btn-sm" id="clearDoneBtn">Clear done</button>
+      </div>
+    </div>
+    <div id="queueList">
+      <div class="queue-empty" id="emptyState">No runs queued yet. Add a run above to get started.</div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+// SHA-256 of "braindiff-admin-v2" — change this hash to change the password.
+const PASSWORD_HASH = 'e196baf288fcfdb6300dd64733dfec3f8dd3363e8c54ada2e943b06d2d5207b9';
+const STORAGE_KEY = 'bd_admin_authed_v2';
+const QUEUE_KEY = 'bd_admin_queue_v2';
+
+// ── Auth ───────────────────────────────────────────────────────────────────
+async function sha256hex(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkAuth() {
+  if (sessionStorage.getItem(STORAGE_KEY) === '1') { unlock(); return; }
+  // Allow ?k=hash shortcut for quick dev access
+  const k = new URLSearchParams(location.search).get('k');
+  if (k && await sha256hex(k) === PASSWORD_HASH) { unlock(); return; }
+}
+
+async function tryLogin() {
+  const pw = document.getElementById('gatePw').value;
+  const hash = await sha256hex(pw);
+  if (hash === PASSWORD_HASH) {
+    sessionStorage.setItem(STORAGE_KEY, '1');
+    unlock();
+  } else {
+    document.getElementById('gateErr').style.display = 'block';
+    document.getElementById('gatePw').value = '';
+    document.getElementById('gatePw').focus();
+  }
+}
+
+function unlock() {
+  document.getElementById('gate').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  init();
+}
+
+document.getElementById('gateBtn').addEventListener('click', tryLogin);
+document.getElementById('gatePw').addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+document.getElementById('lockBtn').addEventListener('click', () => {
+  sessionStorage.removeItem(STORAGE_KEY);
+  location.reload();
+});
+checkAuth();
+
+// ── Theme ──────────────────────────────────────────────────────────────────
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.setAttribute('data-theme', dark ? '' : 'dark');
+  try { localStorage.setItem('braindiff-theme', dark ? '' : 'dark'); } catch(_){}
+});
+
+// ── Queue state ────────────────────────────────────────────────────────────
+let queue = [];
+let running = false;
+
+function loadQueue() {
+  try { queue = JSON.parse(localStorage.getItem(QUEUE_KEY) || '[]'); } catch(_) { queue = []; }
+}
+function saveQueue() {
+  try { localStorage.setItem(QUEUE_KEY, JSON.stringify(queue)); } catch(_){}
+}
+
+// ── Modality tabs ──────────────────────────────────────────────────────────
+let currentMod = 'text';
+document.querySelectorAll('.mod-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.mod-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    currentMod = tab.dataset.mod;
+    document.getElementById('textFields').style.display = currentMod === 'text' ? '' : 'none';
+    document.getElementById('mediaFields').style.display = currentMod !== 'text' ? '' : 'none';
+  });
+});
+
+document.getElementById('useUrlToggle').addEventListener('change', e => {
+  document.getElementById('fileMode').style.display = e.target.checked ? 'none' : '';
+  document.getElementById('urlMode').style.display = e.target.checked ? '' : 'none';
+});
+
+// ── Backend URL ────────────────────────────────────────────────────────────
+function backendUrl() {
+  return document.getElementById('backendUrl').value.replace(/\/$/, '');
+}
+
+// ── Add run ────────────────────────────────────────────────────────────────
+document.getElementById('addBtn').addEventListener('click', addRun);
+
+async function addRun() {
+  const label = document.getElementById('runLabel').value.trim() || `Run ${queue.length + 1}`;
+  const mod = currentMod;
+  const msg = document.getElementById('addMsg');
+  msg.textContent = '';
+
+  const run = { id: crypto.randomUUID(), label, mod, status: 'pending', jobId: null, error: null, startedAt: null, finishedAt: null, inputSummary: '' };
+
+  if (mod === 'text') {
+    const a = document.getElementById('textA').value.trim();
+    const b = document.getElementById('textB').value.trim();
+    if (!a || !b) { msg.textContent = 'Both text fields are required.'; return; }
+    run.textA = a;
+    run.textB = b;
+    run.inputSummary = `A: ${a.slice(0,60)}… | B: ${b.slice(0,60)}…`;
+
+  } else {
+    const useUrl = document.getElementById('useUrlToggle').checked;
+    if (useUrl) {
+      const ua = document.getElementById('urlA').value.trim();
+      const ub = document.getElementById('urlB').value.trim();
+      if (!ua || !ub) { msg.textContent = 'Both URLs are required.'; return; }
+      run.urlA = ua;
+      run.urlB = ub;
+      run.inputSummary = `A: ${ua} | B: ${ub}`;
+    } else {
+      const fa = document.getElementById('fileA').files[0];
+      const fb = document.getElementById('fileB').files[0];
+      if (!fa || !fb) { msg.textContent = 'Both files are required.'; return; }
+      // Store as base64 for queue persistence — only works for small files
+      // For large files, we start immediately instead of queuing the bytes
+      run.fileName_a = fa.name;
+      run.fileName_b = fb.name;
+      run.fileData_a = await readFileAsBase64(fa);
+      run.fileData_b = await readFileAsBase64(fb);
+      run.inputSummary = `${fa.name} | ${fb.name}`;
+    }
+  }
+
+  queue.push(run);
+  saveQueue();
+  renderQueue();
+  updateControls();
+  msg.textContent = `"${label}" added to queue.`;
+  // Clear inputs
+  document.getElementById('runLabel').value = '';
+  document.getElementById('textA').value = '';
+  document.getElementById('textB').value = '';
+  document.getElementById('urlA').value = '';
+  document.getElementById('urlB').value = '';
+  document.getElementById('fileA').value = '';
+  document.getElementById('fileB').value = '';
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = e => resolve(e.target.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ── Queue runner ───────────────────────────────────────────────────────────
+document.getElementById('startBtn').addEventListener('click', startQueue);
+document.getElementById('clearDoneBtn').addEventListener('click', () => {
+  queue = queue.filter(r => r.status !== 'done' && r.status !== 'error');
+  saveQueue();
+  renderQueue();
+  updateControls();
+});
+
+async function startQueue() {
+  if (running) return;
+  running = true;
+  updateControls();
+  await processQueue();
+  running = false;
+  updateControls();
+}
+
+async function processQueue() {
+  for (const run of queue) {
+    if (run.status !== 'pending') continue;
+    await processRun(run);
+  }
+}
+
+async function processRun(run) {
+  run.status = 'running';
+  run.startedAt = Date.now();
+  saveQueue();
+  renderQueue();
+
+  try {
+    const base = backendUrl();
+    let jobId;
+
+    if (run.mod === 'text') {
+      const res = await fetch(`${base}/api/diff/start`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ text_a: run.textA, text_b: run.textB }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const data = await res.json();
+      jobId = data.job_id;
+
+    } else if (run.urlA) {
+      // URL-based audio/video — use local /api/diff/url-start
+      const res = await fetch(`${base}/api/diff/url-start`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ url_a: run.urlA, url_b: run.urlB, modality: run.mod }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const data = await res.json();
+      jobId = data.job_id;
+
+    } else {
+      // File-based audio/video — use multipart /api/diff/upload
+      const form = new FormData();
+      const blobA = base64ToBlob(run.fileData_a, run.fileName_a);
+      const blobB = base64ToBlob(run.fileData_b, run.fileName_b);
+      form.append('file_a', blobA, run.fileName_a);
+      form.append('file_b', blobB, run.fileName_b);
+      const res = await fetch(`${base}/api/diff/upload`, { method: 'POST', body: form });
+      if (!res.ok) throw new Error(`HTTP ${res.status}: ${await res.text()}`);
+      const data = await res.json();
+      jobId = data.job_id;
+    }
+
+    run.jobId = jobId;
+    saveQueue();
+    renderQueue();
+
+    // Poll until done
+    await pollUntilDone(run);
+
+  } catch (err) {
+    run.status = 'error';
+    run.error = err.message;
+    run.finishedAt = Date.now();
+    saveQueue();
+    renderQueue();
+  }
+}
+
+async function pollUntilDone(run) {
+  const base = backendUrl();
+  const maxWait = 90 * 60 * 1000; // 90 minutes
+  const start = Date.now();
+  while (Date.now() - start < maxWait) {
+    await sleep(5000);
+    try {
+      const res = await fetch(`${base}/api/diff/status/${run.jobId}`);
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data.status === 'done') {
+        run.status = 'done';
+        run.finishedAt = Date.now();
+        saveQueue();
+        renderQueue();
+        return;
+      }
+      if (data.status === 'error') {
+        run.status = 'error';
+        run.error = (data.error && (data.error.message || JSON.stringify(data.error))) || 'Backend error';
+        run.finishedAt = Date.now();
+        saveQueue();
+        renderQueue();
+        return;
+      }
+      // still running — update elapsed display
+      renderQueue();
+    } catch(_) { /* retry */ }
+  }
+  run.status = 'error';
+  run.error = 'Timed out after 90 minutes.';
+  run.finishedAt = Date.now();
+  saveQueue();
+  renderQueue();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+function base64ToBlob(b64, filename) {
+  const mime = guessMime(filename);
+  const bin = atob(b64);
+  const buf = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+  return new Blob([buf], { type: mime });
+}
+
+function guessMime(name) {
+  const ext = (name || '').split('.').pop().toLowerCase();
+  return { mp4: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', mkv: 'video/x-matroska',
+           mp3: 'audio/mpeg', wav: 'audio/wav', flac: 'audio/flac', ogg: 'audio/ogg',
+           m4a: 'audio/mp4', aac: 'audio/aac' }[ext] || 'application/octet-stream';
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function resultUrl(run) {
+  if (!run.jobId) return null;
+  const base = `?job=${encodeURIComponent(run.jobId)}`;
+  if (run.mod === 'text') return `/text-results-demo.html${base}`;
+  if (run.mod === 'audio') return `/audio-results.html${base}`;
+  if (run.mod === 'video') return `/video-results.html${base}`;
+  return `/results.html${base}`;
+}
+
+function elapsed(run) {
+  if (!run.startedAt) return '';
+  const ms = (run.finishedAt || Date.now()) - run.startedAt;
+  const s = Math.floor(ms / 1000);
+  if (s < 60) return `${s}s`;
+  return `${Math.floor(s / 60)}m ${s % 60}s`;
+}
+
+function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderQueue() {
+  const list = document.getElementById('queueList');
+  const empty = document.getElementById('emptyState');
+  if (queue.length === 0) {
+    list.innerHTML = '';
+    list.appendChild(empty);
+    updateControls();
+    return;
+  }
+  const cards = queue.map((run, i) => {
+    const modCls = `mod-${run.mod}`;
+    const statusCls = `s-${run.status}`;
+    const statusLabel = run.status === 'running' ? '⟳ running' : run.status;
+    const url = resultUrl(run);
+    const el = elapsed(run);
+    let progressPct = run.status === 'done' ? 100 : run.status === 'running' ? 50 : 0;
+
+    let footerHtml = '';
+    if (run.status === 'running') {
+      footerHtml = `<div class="run-footer"><div class="run-progress"><div class="run-progress-bar" style="width:${progressPct}%"></div></div><span class="run-elapsed">${el}</span></div>`;
+    } else if (run.status === 'done' && url) {
+      footerHtml = `<div class="run-footer"><div class="run-links"><a href="${esc(url)}" target="_blank">View results →</a></div><span class="run-elapsed">${el}</span></div>`;
+    } else if (run.status === 'error') {
+      footerHtml = `<div class="run-error">${esc(run.error || 'Unknown error')}</div><div class="run-footer"><span class="run-elapsed">${el}</span></div>`;
+    }
+
+    return `<div class="run-card" data-id="${run.id}">
+      <div class="run-header">
+        <span class="mod-pill ${modCls}">${run.mod}</span>
+        <span class="run-label">${esc(run.label)}</span>
+        <span class="run-meta">#${i + 1}</span>
+        <span class="status-pill ${statusCls}">${statusLabel}</span>
+        ${run.status === 'pending' ? `<button class="remove-btn" data-id="${run.id}" title="Remove">✕</button>` : ''}
+      </div>
+      <div class="run-inputs">${esc(run.inputSummary)}</div>
+      ${run.jobId ? `<div class="run-meta">job: ${esc(run.jobId)}</div>` : ''}
+      ${footerHtml}
+    </div>`;
+  }).join('');
+
+  list.innerHTML = cards;
+
+  // Remove buttons
+  list.querySelectorAll('.remove-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      queue = queue.filter(r => r.id !== btn.dataset.id);
+      saveQueue();
+      renderQueue();
+      updateControls();
+    });
+  });
+
+  updateControls();
+}
+
+function updateControls() {
+  const countEl = document.getElementById('queueCount');
+  countEl.textContent = `${queue.length} run${queue.length !== 1 ? 's' : ''}`;
+  const hasPending = queue.some(r => r.status === 'pending');
+  document.getElementById('startBtn').disabled = !hasPending || running;
+  document.getElementById('startBtn').textContent = running ? '⟳ Running…' : '▶ Start queue';
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+function init() {
+  loadQueue();
+  renderQueue();
+  updateControls();
+  // Persist backend URL
+  const saved = localStorage.getItem('bd_admin_backend');
+  if (saved) document.getElementById('backendUrl').value = saved;
+  document.getElementById('backendUrl').addEventListener('change', () => {
+    localStorage.setItem('bd_admin_backend', document.getElementById('backendUrl').value);
+  });
+}
+</script>
+</body>
+</html>

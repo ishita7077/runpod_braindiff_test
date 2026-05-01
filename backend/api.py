@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from typing import Any
 
 import numpy as np
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import Body, FastAPI, HTTPException, UploadFile
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -851,6 +851,91 @@ async def start_diff(payload: DiffRequest) -> JobStartResponse:
     job_store.create(job_id, request_id)
     asyncio.create_task(_guarded_diff_job(job_id, request_id, payload))
     return JobStartResponse(job_id=job_id, request_id=request_id, status="queued")
+
+
+def _ext_from_url_and_ct(url: str, content_type: str) -> str:
+    """Best-effort file extension from URL path, falling back to Content-Type."""
+    from urllib.parse import urlparse
+    path_ext = os.path.splitext(urlparse(url).path)[1].lower()
+    if path_ext in AUDIO_EXTS | VIDEO_EXTS:
+        return path_ext
+    ct = content_type.split(";")[0].strip().lower()
+    _CT_MAP = {
+        "audio/mpeg": ".mp3", "audio/mp3": ".mp3", "audio/wav": ".wav",
+        "audio/flac": ".flac", "audio/ogg": ".ogg", "audio/aac": ".aac",
+        "audio/mp4": ".m4a", "audio/x-m4a": ".m4a",
+        "video/mp4": ".mp4", "video/quicktime": ".mov", "video/webm": ".webm",
+        "video/x-matroska": ".mkv", "video/x-msvideo": ".avi",
+    }
+    return _CT_MAP.get(ct, path_ext or ".bin")
+
+
+@app.post("/api/diff/url-start", response_model=JobStartResponse, status_code=202)
+async def url_start_diff(body: dict = Body(...)) -> JSONResponse:
+    """Download audio/video from public internet URLs, then start a diff job.
+
+    Body: { url_a: str, url_b: str, modality: "audio"|"video" }
+    """
+    import shutil
+    import httpx
+
+    url_a = str(body.get("url_a", "")).strip()
+    url_b = str(body.get("url_b", "")).strip()
+    modality = str(body.get("modality", "")).strip().lower()
+
+    if not url_a or not url_b:
+        raise HTTPException(status_code=400, detail="url_a and url_b are required.")
+    if modality not in ("audio", "video"):
+        raise HTTPException(status_code=400, detail="modality must be 'audio' or 'video'.")
+
+    job_id = str(uuid.uuid4())
+    request_id = str(uuid.uuid4())
+    upload_dir = os.path.join(UPLOAD_ROOT, job_id)
+    os.makedirs(upload_dir, exist_ok=True)
+
+    try:
+        paths: dict[str, str] = {}
+        async with httpx.AsyncClient(timeout=180.0, follow_redirects=True) as client:
+            for slot, url in (("a", url_a), ("b", url_b)):
+                logger.info("url-start: downloading %s → slot %s", url, slot)
+                total = 0
+                async with client.stream("GET", url) as resp:
+                    resp.raise_for_status()
+                    ext = _ext_from_url_and_ct(url, resp.headers.get("content-type", ""))
+                    dest = os.path.join(upload_dir, f"{slot}{ext}")
+                    with open(dest, "wb") as fh:
+                        async for chunk in resp.aiter_bytes(256 * 1024):
+                            total += len(chunk)
+                            if total > MAX_UPLOAD_BYTES:
+                                raise HTTPException(
+                                    status_code=413, detail=f"URL {slot} exceeds 100 MB cap."
+                                )
+                            fh.write(chunk)
+                kind = _classify_ext(ext)
+                if kind != modality:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=f"URL {slot} appears to be {kind!r}, expected {modality!r}.",
+                    )
+                paths[slot] = dest
+
+        diff_req = (
+            DiffRequest(audio_path_a=paths["a"], audio_path_b=paths["b"])
+            if modality == "audio"
+            else DiffRequest(video_path_a=paths["a"], video_path_b=paths["b"])
+        )
+        job_store.create(job_id, request_id)
+        asyncio.create_task(_guarded_diff_job(job_id, request_id, diff_req))
+        return JSONResponse(
+            status_code=202,
+            content={"job_id": job_id, "request_id": request_id, "status": "queued"},
+        )
+    except HTTPException:
+        shutil.rmtree(upload_dir, ignore_errors=True)
+        raise
+    except Exception as exc:
+        shutil.rmtree(upload_dir, ignore_errors=True)
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.get("/api/diff/status/{job_id}")

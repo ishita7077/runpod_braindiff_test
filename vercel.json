@@ -16,6 +16,7 @@
     { "src": "^/video-results/?$", "dest": "/frontend_new/video-results.html" },
     { "src": "^/audio-results/?$", "dest": "/frontend_new/audio-results.html" },
     { "src": "^/dashboard/?$", "dest": "/frontend_new/dashboard.html" },
+    { "src": "^/admin/?$", "dest": "/frontend_new/admin.html" },
     { "src": "^/$", "dest": "/frontend_new/index.html" },
     { "src": "^(.*)$", "dest": "/frontend_new/$1" }
   ]
