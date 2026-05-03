@@ -6,44 +6,73 @@
 <title>Brain Diff — Research</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&family=Newsreader:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<meta name="theme-color" content="#f7f4ec" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,300;1,9..144,400;1,9..144,500&family=Newsreader:ital,wght@0,300;0,400;0,500;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
 <style>
 :root {
-  --bg: #08080F;
-  --bg-soft: #0C0C18;
-  --bg-card: #0E0E1A;
-  --bg-warm: #14110D;
-  --text: #E8E4DC;
-  --text-soft: #9A9690;
-  --text-mute: #5A5A6A;
-  --rule: #1F1F2E;
-  --rule-warm: #2A241B;
-  --gold: #C9A66B;
-  --gold-bright: #E8C788;
-  --gold-faint: rgba(201, 166, 107, 0.1);
-  --crimson: #8C2A1F;
+  color-scheme: light;
 
-  /* Seven cortical system colors */
-  --c-memory: #E8C788;
-  --c-effort: #7FB3C6;
-  --c-social: #B89BC9;
-  --c-gut: #E25B43;
-  --c-language: #8AA876;
-  --c-personal: #FFD89E;
-  --c-attention: #D4A857;
+  --bg: #f7f4ec; --bg-2: #efeadf; --bg-3: #e7e2d4;
+  --surface: #ffffff;
+  --line: #e2ddcf; --line-2: #cbc5b4;
+  --ink: #17171a; --ink-dim: #3d3d42; --ink-mute: #77736b;
+  --accent: #c1272d; --accent-2: #d94a4e; --accent-dim: rgba(193,39,45,0.10);
+  --good: #2a5583; --good-dim: rgba(42,85,131,0.10);
+  --shadow-sm: 0 1px 2px rgba(20,20,25,.04), 0 1px 3px rgba(20,20,25,.05);
+
+  /* Seven cortical system colors — darkened for cream background legibility */
+  --c-memory: #b8892b; --c-effort: #2a7a96; --c-social: #7a5a9a;
+  --c-gut: #c04030; --c-language: #4a7a3a;
+  --c-personal: #c09028; --c-attention: #a07820;
+
+  /* Backward-compat aliases — existing CSS continues to work unchanged */
+  --bg-soft: var(--bg-2); --bg-card: var(--surface); --bg-warm: var(--bg-2);
+  --text: var(--ink); --text-soft: var(--ink-dim); --text-mute: var(--ink-mute);
+  --rule: var(--line); --rule-warm: var(--line-2);
+  --gold: var(--accent); --gold-bright: var(--accent-2); --gold-faint: var(--accent-dim);
+  --crimson: var(--accent);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #08080F; --bg-2: #0C0C18; --bg-3: #101020;
+  --surface: #0E0E1A;
+  --line: #1F1F2E; --line-2: #2A241B;
+  --ink: #E8E4DC; --ink-dim: #9A9690; --ink-mute: #5A5A6A;
+  --accent: #C9A66B; --accent-2: #E8C788; --accent-dim: rgba(201,166,107,0.10);
+  --good: #4a78ab; --good-dim: rgba(42,85,131,0.10);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+
+  /* Cortical system colors — warm vivid for dark backgrounds */
+  --c-memory: #E8C788; --c-effort: #7FB3C6; --c-social: #B89BC9;
+  --c-gut: #E25B43; --c-language: #8AA876;
+  --c-personal: #FFD89E; --c-attention: #D4A857;
+
+  --crimson: #E25B43;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
 
 body {
-  background: var(--bg);
-  color: var(--text);
+  background:
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 5%, transparent), transparent 55%),
+    var(--bg);
+  color: var(--ink);
   font-family: 'Newsreader', Georgia, serif;
   font-weight: 300;
   line-height: 1.7;
   font-size: 18px;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+:root[data-theme="dark"] body {
+  background:
+    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 10%, transparent), transparent 55%),
+    var(--bg);
 }
 
 ::selection { background: var(--gold); color: var(--bg); }
@@ -55,8 +84,9 @@ body {
   align-items: center;
   padding: 24px 6%;
   border-bottom: 1px solid var(--rule);
-  background: rgba(8, 8, 15, 0.85);
-  backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--bg) 84%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -110,7 +140,7 @@ body {
   padding: 120px 6% 100px;
   border-bottom: 1px solid var(--rule);
   background:
-    radial-gradient(ellipse 60% 80% at 50% 30%, rgba(201, 166, 107, 0.06) 0%, transparent 60%);
+    radial-gradient(ellipse 60% 80% at 50% 30%, var(--accent-dim) 0%, transparent 60%);
   text-align: center;
   position: relative;
   min-height: 90vh;
@@ -234,14 +264,14 @@ body {
   color: var(--gold-bright);
   border: 1px solid var(--rule-warm);
   border-radius: 4px;
-  background: rgba(201, 166, 107, 0.04);
+  background: var(--accent-dim);
   list-style: none;
   user-select: none;
   transition: background 0.18s ease, border-color 0.18s ease;
 }
 .section-deeper > summary::-webkit-details-marker { display: none; }
 .section-deeper > summary:hover {
-  background: rgba(201, 166, 107, 0.10);
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
   border-color: var(--gold);
 }
 .section-deeper > summary::after {
@@ -250,7 +280,7 @@ body {
   transition: transform 0.2s ease;
 }
 .section-deeper[open] > summary::after { transform: rotate(180deg); }
-.section-deeper[open] > summary { margin-bottom: 18px; background: rgba(201, 166, 107, 0.08); }
+.section-deeper[open] > summary { margin-bottom: 18px; background: color-mix(in srgb, var(--accent) 10%, transparent); }
 .section-deeper .prose { margin-top: 4px; }
 
 .section-bottom {
@@ -258,7 +288,7 @@ body {
   margin: 28px auto 0;
   padding: 18px 24px 18px 28px;
   border-left: 2px solid var(--gold);
-  background: rgba(201, 166, 107, 0.03);
+  background: color-mix(in srgb, var(--accent) 4%, transparent);
   font-family: 'Newsreader', Georgia, serif;
   font-size: 16.5px;
   line-height: 1.65;
@@ -275,7 +305,7 @@ body {
   gap: 10px;
   padding: 8px 16px 8px 14px;
   margin: 0 0 16px;
-  background: linear-gradient(90deg, rgba(201,166,107,0.18), rgba(201,166,107,0.06));
+  background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 18%, transparent), color-mix(in srgb, var(--accent) 6%, transparent));
   border: 1px solid var(--gold);
   border-radius: 999px;
   font-family: 'JetBrains Mono', monospace;
@@ -295,8 +325,8 @@ body {
   animation: iact-arrow 1.4s ease-in-out infinite;
 }
 @keyframes iact-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 166, 107, 0.45); }
-  50%      { box-shadow: 0 0 0 10px rgba(201, 166, 107, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
+  50%      { box-shadow: 0 0 0 10px color-mix(in srgb, var(--accent) 0%, transparent); }
 }
 @keyframes iact-arrow {
   0%, 100% { transform: translateX(0); }
@@ -306,8 +336,8 @@ body {
 /* Visual: when an interactive widget hasn't been touched yet, give the
    first item a soft pulsing halo so the affordance is unmistakable. */
 @keyframes hint-glow {
-  0%, 100% { filter: drop-shadow(0 0 0px rgba(201, 166, 107, 0)); }
-  50%      { filter: drop-shadow(0 0 8px rgba(232, 199, 136, 0.65)); }
+  0%, 100% { filter: drop-shadow(0 0 0px color-mix(in srgb, var(--accent) 0%, transparent)); }
+  50%      { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 65%, transparent)); }
 }
 .hint-glow { animation: hint-glow 2s ease-in-out infinite; }
 .hint-glow.hint-stop { animation: none; filter: none; }
@@ -331,7 +361,7 @@ body {
   position: relative;
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #050510;
+  background: var(--bg-3);
   border: 1px solid var(--rule);
   border-radius: 6px;
   overflow: hidden;
@@ -351,7 +381,7 @@ body {
   font-size: 10px; color: var(--text-mute); opacity: 0.7; margin-top: 4px;
 }
 .respond-video-placeholder code {
-  background: rgba(201,166,107,0.08);
+  background: var(--accent-dim);
   color: var(--gold-bright);
   padding: 1px 6px;
   border-radius: 3px;
@@ -382,7 +412,7 @@ body {
 .btn-primary-gold:hover {
   background: var(--gold-bright);
   transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(201, 166, 107, 0.25);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 .btn-primary-gold .btn-arrow { transition: transform .2s ease; }
 .btn-primary-gold:hover .btn-arrow { transform: translateX(4px); }
@@ -407,7 +437,7 @@ body {
 }
 .btn-ghost-gold:hover {
   border-color: var(--gold);
-  background: rgba(201, 166, 107, 0.08);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   color: var(--gold-bright);
 }
 
@@ -433,7 +463,7 @@ body {
   color: var(--gold-bright);
   text-decoration: underline;
   text-underline-offset: 3px;
-  text-decoration-color: rgba(232, 199, 136, 0.5);
+  text-decoration-color: color-mix(in srgb, var(--accent) 50%, transparent);
 }
 .footer-builder a:hover { text-decoration-color: var(--gold-bright); }
 
@@ -655,9 +685,15 @@ body {
   max-width: 1100px;
   margin: 64px auto;
   padding: 48px 24px;
-  background: radial-gradient(ellipse at center, #0C0C18 0%, #050510 80%);
-  border: 1px solid var(--rule);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+:root[data-theme="dark"] .cortex-wrap {
+  background: radial-gradient(ellipse at center, #0C0C18 0%, #050510 80%);
+  border-color: var(--rule);
+  box-shadow: none;
 }
 
 .cortex-grid {
@@ -725,12 +761,12 @@ body {
 }
 
 .cortex-legend-item:hover {
-  background: rgba(255,255,255,0.03);
+  background: var(--bg-2);
   color: var(--text);
 }
 
 .cortex-legend-item.active {
-  background: rgba(201, 166, 107, 0.08);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   color: var(--text);
 }
 
@@ -823,7 +859,7 @@ body {
 }
 
 .eq-option.selected {
-  background: rgba(232, 199, 136, 0.12);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
   border-color: var(--gold-bright);
   color: var(--gold-bright);
 }
@@ -831,7 +867,7 @@ body {
 .eq-reveal {
   margin-top: 32px;
   padding: 24px;
-  background: rgba(140, 42, 31, 0.05);
+  background: color-mix(in srgb, var(--accent) 5%, transparent);
   border-left: 2px solid var(--crimson);
   border-radius: 2px;
   display: none;
@@ -895,9 +931,15 @@ body {
   max-width: 1100px;
   margin: 64px auto;
   padding: 48px;
-  background: radial-gradient(ellipse at top, #0E0E1C 0%, #050510 80%);
-  border: 1px solid var(--rule);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+:root[data-theme="dark"] .timeline-wrap {
+  background: radial-gradient(ellipse at top, #0E0E1C 0%, #050510 80%);
+  border-color: var(--rule);
+  box-shadow: none;
 }
 
 .timeline-eyebrow {
@@ -989,9 +1031,14 @@ body {
   max-width: 1200px;
   margin: 64px auto;
   padding: 48px;
-  background: radial-gradient(ellipse at center, #0C0C18 0%, #050510 80%);
-  border: 1px solid var(--rule);
+  background: var(--surface);
+  border: 1px solid var(--line);
   border-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+:root[data-theme="dark"] .cortex-respond-wrap {
+  background: radial-gradient(ellipse at center, #0C0C18 0%, #050510 80%);
+  border-color: var(--rule);
 }
 
 .respond-eyebrow {
@@ -1033,7 +1080,7 @@ body {
 }
 
 .respond-preset.active {
-  background: rgba(232, 199, 136, 0.08);
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
   border-color: var(--gold-bright);
 }
 
@@ -1121,7 +1168,7 @@ body {
 
 .respond-bar-track {
   height: 24px;
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-2);
   border-radius: 2px;
   position: relative;
   overflow: hidden;
@@ -1148,9 +1195,12 @@ body {
 /* ─── INTERACTIVE 5: Seven-Lab Montage (THE CENTERPIECE) ─── */
 .montage-section {
   padding: 100px 0 80px;
-  background: linear-gradient(180deg, var(--bg) 0%, #050510 50%, var(--bg) 100%);
+  background: linear-gradient(180deg, var(--bg) 0%, var(--bg-3) 50%, var(--bg) 100%);
   border-top: 1px solid var(--rule);
   border-bottom: 1px solid var(--rule);
+}
+:root[data-theme="dark"] .montage-section {
+  background: linear-gradient(180deg, var(--bg) 0%, #050510 50%, var(--bg) 100%);
 }
 
 .montage-wrap {
@@ -1195,12 +1245,16 @@ body {
 }
 
 .montage-stage {
-  background: radial-gradient(ellipse at center, #08080F 0%, #020208 80%);
-  border: 1px solid var(--rule);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
   border-radius: 4px;
   padding: 64px 48px 48px;
   position: relative;
   overflow: hidden;
+}
+:root[data-theme="dark"] .montage-stage {
+  background: radial-gradient(ellipse at center, #08080F 0%, #020208 80%);
+  border-color: var(--rule);
 }
 
 .montage-stage::before {
@@ -1360,7 +1414,7 @@ body {
   background: var(--gold-bright);
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 0 16px rgba(232, 199, 136, 0.6);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 .montage-slider::-moz-range-thumb {
@@ -1370,7 +1424,7 @@ body {
   border-radius: 50%;
   cursor: pointer;
   border: none;
-  box-shadow: 0 0 16px rgba(232, 199, 136, 0.6);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 .montage-year-marks {
@@ -1392,7 +1446,7 @@ body {
 
 .montage-year-marks span:hover {
   color: var(--text);
-  background: rgba(255,255,255,0.04);
+  background: var(--bg-2);
 }
 
 .montage-year-marks span.active {
@@ -1567,18 +1621,68 @@ body {
   transition: width 0.9s cubic-bezier(.22,.8,.34,1), opacity 0.3s ease;
 }
 .respond-bar-fill.bar-hidden { width: 0% !important; }
+
+/* ── THEME TOGGLE ─────────────────────────────────────────── */
+.theme-switcher { position: fixed; top: 14px; right: 20px; z-index: 200; }
+.theme-toggle { width: 34px; height: 34px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line-2); color: var(--ink-mute); cursor: pointer; font-size: 14px; display: grid; place-items: center; box-shadow: var(--shadow-sm); font-family: inherit; transition: color .15s, border-color .15s; }
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.theme-toggle .tt-moon { display: inline; } .theme-toggle .tt-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .tt-sun { display: inline; }
+:root[data-theme="dark"] .theme-toggle .tt-moon { display: none; }
+
+/* ── NEW TOPBAR (site-consistent) ──────────────────────────── */
+.topbar-new { display: flex; align-items: center; justify-content: space-between; padding: 22px clamp(20px, 4.5vw, 52px); max-width: 1200px; margin: 0 auto; position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.brand-new { display: flex; align-items: center; gap: 10px; font-weight: 500; letter-spacing: -.022em; font-size: 15px; color: var(--ink); font-family: 'Inter Tight', system-ui, sans-serif; text-decoration: none; border: none; }
+.brand-logo-new { height: 24px; width: auto; display: block; border-radius: 4px; }
+.brand-word-new b { font-weight: 600; }
+.nav-new { display: flex; gap: 28px; align-items: center; font-size: 13.5px; color: var(--ink-mute); font-family: 'Inter Tight', system-ui, sans-serif; }
+.nav-new a { color: inherit; text-decoration: none; border: none; transition: color .15s; }
+.nav-new a:hover { color: var(--ink); }
+.nav-new a.is-active { color: var(--ink); font-weight: 500; }
+.nav-cta-new { padding: 8px 16px; border: 1px solid var(--line-2) !important; border-radius: 8px; color: var(--ink) !important; background: var(--surface); font-weight: 500; font-size: 13px; transition: all .15s !important; box-shadow: var(--shadow-sm); }
+.nav-cta-new:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
+@media (max-width: 700px) { .nav-new a:not(.nav-cta-new) { display: none; } }
+
+/* ── SVG BRAIN FILL OVERRIDES (light mode) ─────────────────── */
+path[fill="#0a0a14"] { fill: var(--bg-2); }
+path[fill="#08080F"] { fill: var(--bg-2); }
+path[fill="#020208"] { fill: var(--bg-2); }
+path[stroke="#3a3a52"] { stroke: var(--line-2); }
+path[stroke="#2a2a3e"] { stroke: var(--line); }
+:root[data-theme="dark"] path[fill="#0a0a14"] { fill: #0a0a14; }
+:root[data-theme="dark"] path[fill="#08080F"] { fill: #08080F; }
+:root[data-theme="dark"] path[fill="#020208"] { fill: #020208; }
+:root[data-theme="dark"] path[stroke="#3a3a52"] { stroke: #3a3a52; }
+:root[data-theme="dark"] path[stroke="#2a2a3e"] { stroke: #2a2a3e; }
+
+/* ── LIGHT-MODE CARD SURFACE FIXES ─────────────────────────── */
+.montage-current-card { background: var(--surface) !important; }
+.montage-falk-callout { background: var(--accent-dim) !important; }
+.so-tag { background: var(--accent-dim); color: var(--gold-bright); }
+:root[data-theme="dark"] .montage-current-card { background: rgba(255,255,255,0.02) !important; }
+:root[data-theme="dark"] .montage-falk-callout { background: rgba(232,199,136,0.06) !important; }
 </style>
 </head>
 <body>
 
-<div class="topbar">
-  <a href="/" class="brand" style="text-decoration:none;color:inherit">Brain<em>Diff</em></a>
-  <div class="topbar-meta">
-    <a href="/methodology" style="color:inherit;text-decoration:none">Methodology</a>
-    <a href="/#case-study" style="color:inherit;text-decoration:none">Case studies</a>
-    <a href="/launch" style="color:var(--gold-bright);text-decoration:none;border:1px solid var(--rule-warm);padding:6px 12px;border-radius:4px">Launch →</a>
-  </div>
+<div class="theme-switcher">
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+    <span class="tt-sun">☀</span><span class="tt-moon">☾</span>
+  </button>
 </div>
+
+<header class="topbar-new">
+  <a href="/" class="brand-new">
+    <img class="brand-logo-new" src="./assets/braindiff-logo.png" alt="BrainDiff logo" />
+    <span class="brand-word-new">Brain<b>Diff</b></span>
+  </a>
+  <nav class="nav-new">
+    <a href="/research" class="is-active">Research</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/#case-study">Case studies</a>
+    <a href="/launch" class="nav-cta-new">Launch →</a>
+  </nav>
+</header>
 
 <!-- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 <!-- COLD OPEN -->
@@ -2468,6 +2572,15 @@ body {
 </footer>
 
 <script>
+// ── Theme toggle ──────────────────────────────────────────────
+function toggleTheme() {
+  var r = document.documentElement;
+  var next = r.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  if (next === 'dark') r.setAttribute('data-theme', 'dark');
+  else r.removeAttribute('data-theme');
+  try { localStorage.setItem('braindiff-theme', next); } catch(e) {}
+}
+
 // ════════════════════════════════════════════════
 // INTERACTIVE 1: The Cortex (legend hover)
 // ════════════════════════════════════════════════
