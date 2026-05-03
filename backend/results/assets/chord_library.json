@@ -1,0 +1,117 @@
+{
+  "version": "1.0",
+  "chords": [
+    {
+      "id": "visceral-hit",
+      "name": "Visceral Hit",
+      "micro_label": "body before mind",
+      "min_duration_seconds": 1,
+      "formula": "Gut >= theta_H AND Effort <= theta_L",
+      "formula_human": "Gut reaction is high (top 30% of clip) AND cognitive effort is low (bottom 30%) — held for at least 1 second.",
+      "meaning": "The body reacts before the mind catches up. The anterior insula — the cortex's interoceptive hub, mapping body-state signals into felt sensation — fires high while the dorsolateral prefrontal cortex stays quiet. This pattern is the cortical signature of a moment that arrives in the chest before the brain has decided whether to care. Pre-reflective. Bypasses analysis.",
+      "citations": [
+        {"id": "craig-2009", "evidence_level": "anchor"},
+        {"id": "critchley-2005", "evidence_level": "anchor"}
+      ]
+    },
+    {
+      "id": "learning-moment",
+      "name": "Learning Moment",
+      "micro_label": "encoding under attention",
+      "min_duration_seconds": 1,
+      "formula": "Attention >= theta_H AND Memory >= theta_H",
+      "formula_human": "Attention and memory encoding are both high (top 30% of clip) — held for at least 1 second.",
+      "meaning": "The cortex is encoding what will be remembered. The dorsal attention network and the left ventrolateral prefrontal cortex co-activate — sustained attention plus the subsequent-memory effect (Wagner 1998) firing together. When these two systems peak together, the brain is doing more than processing: it is committing the moment to long-term storage. The signature of content built to stick.",
+      "citations": [
+        {"id": "wagner-1998", "evidence_level": "anchor"},
+        {"id": "corbetta-shulman-2002", "evidence_level": "anchor"},
+        {"id": "uncapher-wagner-2009", "evidence_level": "supporting"}
+      ]
+    },
+    {
+      "id": "reasoning-beat",
+      "name": "Reasoning Beat",
+      "micro_label": "control over language",
+      "min_duration_seconds": 2,
+      "formula": "Effort >= theta_H AND Language >= theta_H",
+      "formula_human": "Cognitive effort and language depth are both high (top 30% of clip) — held for at least 2 seconds.",
+      "meaning": "The viewer is actively interpreting. The dorsolateral prefrontal cortex applies cognitive control while the language network — Broca's and Wernicke's together — processes semantic meaning under that control. This isn't passive listening; the cortex is restructuring its mental model in real time. The signature of content that asks the viewer to think rather than feel.",
+      "citations": [
+        {"id": "miller-cohen-2001", "evidence_level": "anchor"},
+        {"id": "fedorenko-2011", "evidence_level": "anchor"}
+      ]
+    },
+    {
+      "id": "emotional-impact",
+      "name": "Emotional Impact",
+      "micro_label": "self meets viscera",
+      "min_duration_seconds": 1,
+      "formula": "Personal >= theta_H AND Gut >= theta_H",
+      "formula_human": "Self-relevance and gut reaction are both high (top 30% of clip) — held for at least 1 second.",
+      "meaning": "The medial prefrontal cortex (mPFC) and the anterior insula co-activate — self-relevance and visceral response firing simultaneously. The cortex is saying \"this matters to me, in my body.\" This is the exact pattern Falk and colleagues found in 2012 predicted population-level behavior change at r=0.87 in their anti-smoking ad study. The signature of content that doesn't just inform but lands.",
+      "citations": [
+        {"id": "falk-2012", "evidence_level": "anchor"},
+        {"id": "northoff-2006", "evidence_level": "anchor"}
+      ]
+    },
+    {
+      "id": "social-resonance",
+      "name": "Social Resonance",
+      "micro_label": "self meets other",
+      "min_duration_seconds": 1,
+      "formula": "Social >= theta_H AND Personal >= theta_H",
+      "formula_human": "Theory-of-mind and self-relevance are both high (top 30% of clip) — held for at least 1 second.",
+      "meaning": "The right temporo-parietal junction and the medial prefrontal cortex co-activate — the cortex is modeling another mind while asking how it relates to the self. This is the cortical pattern under parasocial bonding: the moment a viewer stops watching a creator and starts feeling like they know them. The signature of content that builds relationship, not just attention.",
+      "citations": [
+        {"id": "saxe-kanwisher-2003", "evidence_level": "anchor"},
+        {"id": "mar-2011", "evidence_level": "supporting"}
+      ]
+    },
+    {
+      "id": "cold-cognitive-work",
+      "name": "Cold Cognitive Work",
+      "micro_label": "effort without self",
+      "min_duration_seconds": 2,
+      "formula": "Effort >= theta_H AND Personal <= theta_L",
+      "formula_human": "Cognitive effort is high (top 30%) AND self-relevance is low (bottom 30%) — held for at least 2 seconds.",
+      "meaning": "The dorsolateral prefrontal cortex works hard while the medial prefrontal cortex stays quiet. The cortex is processing without integrating — solving a problem the viewer doesn't yet feel is theirs. The signature of content that informs but does not yet land.",
+      "citations": [
+        {"id": "miller-cohen-2001", "evidence_level": "anchor"},
+        {"id": "northoff-2006", "evidence_level": "anchor"}
+      ]
+    },
+    {
+      "id": "story-integration",
+      "name": "Story Integration",
+      "micro_label": "narrative network online",
+      "min_duration_seconds": 2,
+      "formula": "Memory >= theta_S AND Social >= theta_S AND Language >= theta_S",
+      "formula_human": "Memory, theory-of-mind, and language are all at or above the median — held for at least 2 seconds.",
+      "meaning": "Three systems coordinate: memory encoding what's happening, theory-of-mind tracking who's doing it, and the language network processing how it's being told. This is the cortical signature of the brain treating content as a story rather than a series of moments — the network state under sustained narrative comprehension.",
+      "citations": [
+        {"id": "mar-2011", "evidence_level": "anchor"},
+        {"id": "wagner-1998", "evidence_level": "supporting"},
+        {"id": "fedorenko-2011", "evidence_level": "supporting"}
+      ]
+    }
+  ],
+  "thresholds": {
+    "theta_H_percentile": 70,
+    "theta_S_percentile": 50,
+    "theta_L_percentile": 30,
+    "scope": "per-clip, per-system"
+  },
+  "citations_registry": {
+    "craig-2009": "Craig, A. D. (2009). How do you feel — now? The anterior insula and human awareness. Nature Reviews Neuroscience, 10(1), 59–70.",
+    "critchley-2005": "Critchley, H. D. (2005). Neural mechanisms of autonomic, affective, and cognitive integration. Journal of Comparative Neurology, 493(1), 154–166.",
+    "wagner-1998": "Wagner, A. D., et al. (1998). Building memories: remembering and forgetting of verbal experiences as predicted by brain activity. Science, 281, 1188–1191.",
+    "corbetta-shulman-2002": "Corbetta, M., & Shulman, G. L. (2002). Control of goal-directed and stimulus-driven attention in the brain. Nature Reviews Neuroscience, 3, 201–215.",
+    "uncapher-wagner-2009": "Uncapher, M. R., & Wagner, A. D. (2009). Posterior parietal cortex and episodic encoding. Nature Reviews Neuroscience, 10, 613–625.",
+    "miller-cohen-2001": "Miller, E. K., & Cohen, J. D. (2001). An integrative theory of prefrontal cortex function. Annual Review of Neuroscience, 24, 167–202.",
+    "fedorenko-2011": "Fedorenko, E., Behr, M. K., & Kanwisher, N. (2011). Functional specificity for high-level linguistic processing in the human brain. PNAS, 108(39), 16428–16433.",
+    "falk-2012": "Falk, E. B., Berkman, E. T., & Lieberman, M. D. (2012). From neural responses to population behavior. Psychological Science, 23(5), 439–445.",
+    "northoff-2006": "Northoff, G., et al. (2006). Self-referential processing in our brain — a meta-analysis. NeuroImage, 31(1), 440–457.",
+    "saxe-kanwisher-2003": "Saxe, R., & Kanwisher, N. (2003). People thinking about thinking people. NeuroImage, 19(4), 1835–1842.",
+    "mar-2011": "Mar, R. A. (2011). The neural bases of social cognition and story comprehension. Annual Review of Psychology, 62, 103–134."
+  }
+}

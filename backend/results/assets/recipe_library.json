@@ -1,0 +1,370 @@
+{
+  "version": "1.0",
+  "library": [
+    {
+      "id": "slow-build-deep-encode",
+      "name": "Slow Build → Deep Encode",
+      "short_description": "Gradual attention, language and memory engagement, late reasoning climax",
+      "description_template": "Gradual attention building over the runtime, deep language network engagement, memory encoding throughout, climax in a Reasoning Beat in the back half.",
+      "built_for_tag": "retention",
+      "fingerprint": {
+        "system_means_pattern": {
+          "memory_encoding": ">=0.55",
+          "language_depth": ">=0.55",
+          "brain_effort": ">=0.45",
+          "gut_reaction": "<=0.40"
+        },
+        "characteristic_chords": ["learning-moment", "reasoning-beat"],
+        "chord_timing_pattern": "chords cluster in second half of runtime",
+        "integration_score": ">=0.35",
+        "hub_node_candidates": ["memory_encoding", "language_depth"]
+      },
+      "exemplar_videos": [
+        "Cleo Abram - Huge If True - Quantum Computing intro",
+        "Vox - The Search for the Meaning of the Universe",
+        "Veritasium - The Discovery That Transformed Pi"
+      ]
+    },
+    {
+      "id": "visceral-hook-low-effort-hold",
+      "name": "Visceral Hook → Low-Effort Hold",
+      "short_description": "Immediate insula spike, sustained low cognitive load, late emotional close",
+      "description_template": "Immediate anterior insula spike in the opening seconds, sustained low cognitive effort across the middle, late Emotional Impact in the closing third.",
+      "built_for_tag": "spread",
+      "fingerprint": {
+        "system_means_pattern": {
+          "gut_reaction": ">=0.55",
+          "brain_effort": "<=0.40",
+          "personal_resonance": ">=0.50"
+        },
+        "characteristic_chords": ["visceral-hit", "emotional-impact"],
+        "chord_timing_pattern": "visceral hit in first 10s, emotional impact in last 15s",
+        "integration_score": "<=0.30",
+        "hub_node_candidates": ["gut_reaction", "personal_resonance"],
+        "anti_coupling": "effort_x_gut < -0.20"
+      },
+      "exemplar_videos": [
+        "MrBeast - Beast Games intro",
+        "MrBeast - Last to Leave Circle Wins $500,000",
+        "Dude Perfect - Trick Shot Battles"
+      ]
+    },
+    {
+      "id": "personal-social-story",
+      "name": "Personal → Social → Story",
+      "short_description": "Self-relevance opens, theory-of-mind takes over, narrative integration sustains",
+      "description_template": "Self-relevance opens the runtime, theory-of-mind activates as characters appear, narrative integration sustains the back half through the close.",
+      "built_for_tag": "parasocial bond",
+      "fingerprint": {
+        "system_means_pattern": {
+          "personal_resonance": ">=0.55",
+          "social_thinking": ">=0.50"
+        },
+        "characteristic_chords": ["emotional-impact", "social-resonance"],
+        "chord_timing_pattern": "personal resonance peaks first 15s, social peaks 20-40s",
+        "integration_score": ">=0.30",
+        "hub_node_candidates": ["personal_resonance", "social_thinking"]
+      },
+      "exemplar_videos": [
+        "Casey Neistat - vlog",
+        "Emma Chamberlain - lifestyle vlog",
+        "Marques Brownlee - product reaction"
+      ]
+    },
+    {
+      "id": "cold-cognitive-work",
+      "name": "Cold Cognitive Work",
+      "short_description": "High effort and language without personal or visceral engagement",
+      "description_template": "High dorsolateral prefrontal effort and language network engagement throughout, with self-relevance and visceral response staying low across the full runtime.",
+      "built_for_tag": "instruction",
+      "fingerprint": {
+        "system_means_pattern": {
+          "brain_effort": ">=0.60",
+          "language_depth": ">=0.55",
+          "personal_resonance": "<=0.35",
+          "gut_reaction": "<=0.35"
+        },
+        "characteristic_chords": ["reasoning-beat"],
+        "chord_timing_pattern": "reasoning beats spread across runtime, no visceral or emotional chords",
+        "integration_score": ">=0.30",
+        "hub_node_candidates": ["brain_effort", "language_depth"]
+      },
+      "exemplar_videos": [
+        "Khan Academy - chemistry tutorial",
+        "MIT OCW - lecture clip",
+        "fast.ai - coding tutorial"
+      ]
+    },
+    {
+      "id": "feel-think-feel",
+      "name": "Feel → Think → Feel",
+      "short_description": "Visceral open, reasoning middle, emotional close — the classic three-act",
+      "description_template": "Visceral hit in the opening, reasoning beat in the middle, emotional impact at the close. The three-act persuasion structure mapped onto the cortex.",
+      "built_for_tag": "persuasion",
+      "fingerprint": {
+        "system_means_pattern": {
+          "gut_reaction": ">=0.45",
+          "brain_effort": ">=0.45",
+          "personal_resonance": ">=0.45"
+        },
+        "characteristic_chords": ["visceral-hit", "reasoning-beat", "emotional-impact"],
+        "chord_timing_pattern": "visceral first 15s, reasoning 20-40s, emotional last 15s — in order",
+        "integration_score": ">=0.35"
+      },
+      "exemplar_videos": [
+        "TED Talk - average format",
+        "PSA campaign - long-form",
+        "documentary trailer"
+      ]
+    },
+    {
+      "id": "setup-reveal",
+      "name": "Setup → Reveal",
+      "short_description": "Sustained attention and theory-of-mind building, late visceral spike",
+      "description_template": "Sustained attention and theory-of-mind building over most of the runtime, late visceral spike in the closing seconds. The narrative payoff structure.",
+      "built_for_tag": "narrative payoff",
+      "fingerprint": {
+        "system_means_pattern": {
+          "attention": ">=0.55",
+          "social_thinking": ">=0.45"
+        },
+        "characteristic_chords": ["visceral-hit"],
+        "chord_timing_pattern": "no chords in first 40s, visceral or emotional chord in last 20s",
+        "rate_of_change": "gut reaction shows sharp inflection in last 20%"
+      },
+      "exemplar_videos": [
+        "comedy sketch with punchline",
+        "horror trailer",
+        "magic reveal video"
+      ]
+    },
+    {
+      "id": "pure-attention-spike",
+      "name": "Pure Attention Spike",
+      "short_description": "Strong attention without recruitment of any other cognitive system",
+      "description_template": "Strong dorsal attention network activation without recruitment of language, memory, or self-relevance systems. Attention captured but not converted into deeper engagement.",
+      "built_for_tag": "scroll-stop",
+      "fingerprint": {
+        "system_means_pattern": {
+          "attention": ">=0.65",
+          "memory_encoding": "<=0.40",
+          "language_depth": "<=0.40",
+          "personal_resonance": "<=0.40"
+        },
+        "characteristic_chords": [],
+        "integration_score": "<=0.25"
+      },
+      "exemplar_videos": [
+        "static spectacle clip",
+        "ASMR-style content",
+        "satisfying-loop video"
+      ]
+    },
+    {
+      "id": "empty-calories",
+      "name": "Empty Calories",
+      "short_description": "Visceral firing without any other cortical engagement — body without mind",
+      "description_template": "Sustained visceral response without recruitment of memory, language, or self-relevance systems. The body reacts; the mind disengages. Often diagnostic of bad incentives.",
+      "built_for_tag": "shock",
+      "fingerprint": {
+        "system_means_pattern": {
+          "gut_reaction": ">=0.60",
+          "memory_encoding": "<=0.35",
+          "language_depth": "<=0.35",
+          "personal_resonance": "<=0.35"
+        },
+        "characteristic_chords": ["visceral-hit"],
+        "integration_score": "<=0.20"
+      },
+      "exemplar_videos": [
+        "shock content - low-quality",
+        "rage-bait clip",
+        "outrage-cycle reaction video"
+      ]
+    },
+    {
+      "id": "talking-head-reasoning",
+      "name": "Talking Head Reasoning",
+      "short_description": "Language and effort with moderate social — straight argument delivery",
+      "description_template": "Language network and dorsolateral prefrontal effort engaged throughout, moderate theory-of-mind activation tracking the speaker. Argument delivery, no visceral or memory peaks.",
+      "built_for_tag": "argumentation",
+      "fingerprint": {
+        "system_means_pattern": {
+          "language_depth": ">=0.55",
+          "brain_effort": ">=0.50",
+          "social_thinking": ">=0.40"
+        },
+        "characteristic_chords": ["reasoning-beat"],
+        "integration_score": ">=0.30"
+      },
+      "exemplar_videos": [
+        "podcast clip - long-form interview",
+        "explainer creator - solo to-camera",
+        "lecture format"
+      ]
+    },
+    {
+      "id": "cinematic-build",
+      "name": "Cinematic Build",
+      "short_description": "Sustained attention with periodic social and emotional peaks",
+      "description_template": "Sustained attention across the full runtime with periodic peaks in theory-of-mind and emotional impact. Story-driven, character-anchored, paced for sustained immersion.",
+      "built_for_tag": "immersion",
+      "fingerprint": {
+        "system_means_pattern": {
+          "attention": ">=0.55",
+          "social_thinking": ">=0.50",
+          "personal_resonance": ">=0.45"
+        },
+        "characteristic_chords": ["emotional-impact", "social-resonance"],
+        "integration_score": ">=0.40"
+      },
+      "exemplar_videos": [
+        "film trailer - prestige drama",
+        "documentary - long-form",
+        "narrative ad - 60s+"
+      ]
+    },
+    {
+      "id": "rapid-cuts-no-anchor",
+      "name": "Rapid Cuts, No Anchor",
+      "short_description": "Attention spikes without any sustaining system coupling",
+      "description_template": "Repeated attention spikes from rapid scene changes, but no coupling to memory, language, or emotional systems. Each spike resets the previous one.",
+      "built_for_tag": "novelty churn",
+      "fingerprint": {
+        "system_means_pattern": {
+          "attention": "high_variance",
+          "memory_encoding": "<=0.40"
+        },
+        "characteristic_chords": ["pure-attention-spike"],
+        "integration_score": "<=0.25"
+      },
+      "exemplar_videos": [
+        "TikTok compilation",
+        "reaction video - high cut rate",
+        "highlight reel"
+      ]
+    },
+    {
+      "id": "emotional-arc-no-reasoning",
+      "name": "Emotional Arc, No Reasoning",
+      "short_description": "Personal resonance and visceral response high, cognitive control low",
+      "description_template": "Personal resonance and visceral response activated together throughout, with cognitive control staying low. The viewer feels without analyzing.",
+      "built_for_tag": "emotional resonance",
+      "fingerprint": {
+        "system_means_pattern": {
+          "personal_resonance": ">=0.55",
+          "gut_reaction": ">=0.50",
+          "brain_effort": "<=0.40"
+        },
+        "characteristic_chords": ["emotional-impact"],
+        "integration_score": ">=0.30"
+      },
+      "exemplar_videos": [
+        "personal essay video",
+        "vulnerability post — long form",
+        "tribute / memoir clip"
+      ]
+    },
+    {
+      "id": "social-modeling-heavy",
+      "name": "Social Modeling Heavy",
+      "short_description": "Theory-of-mind dominant, other systems supporting role",
+      "description_template": "Right temporoparietal junction activation dominant across the runtime — the cortex is constantly modeling other minds. Other systems play supporting roles.",
+      "built_for_tag": "social processing",
+      "fingerprint": {
+        "system_means_pattern": {
+          "social_thinking": ">=0.60",
+          "personal_resonance": ">=0.40"
+        },
+        "characteristic_chords": ["social-resonance"],
+        "hub_node_candidates": ["social_thinking"]
+      },
+      "exemplar_videos": [
+        "interview clip - emotional",
+        "drama scene - dialogue heavy",
+        "celebrity profile"
+      ]
+    },
+    {
+      "id": "language-heavy-narration",
+      "name": "Language-Heavy Narration",
+      "short_description": "Sustained language network with attention but limited effort",
+      "description_template": "Sustained language network activation with attention engaged, but cognitive control staying low. Voice-driven content the viewer follows passively.",
+      "built_for_tag": "narrative consumption",
+      "fingerprint": {
+        "system_means_pattern": {
+          "language_depth": ">=0.60",
+          "attention": ">=0.50",
+          "brain_effort": "<=0.45"
+        },
+        "characteristic_chords": [],
+        "hub_node_candidates": ["language_depth"]
+      },
+      "exemplar_videos": [
+        "audiobook clip - performed",
+        "narrative podcast",
+        "voice-over dominant ad"
+      ]
+    },
+    {
+      "id": "memory-anchored",
+      "name": "Memory-Anchored",
+      "short_description": "Memory encoding peaks repeatedly, anchoring the experience",
+      "description_template": "Memory encoding peaks at multiple points across the runtime, anchoring specific moments for later recall. Built around discrete memorable beats.",
+      "built_for_tag": "memorability",
+      "fingerprint": {
+        "system_means_pattern": {
+          "memory_encoding": ">=0.60"
+        },
+        "characteristic_chords": ["learning-moment"],
+        "hub_node_candidates": ["memory_encoding"]
+      },
+      "exemplar_videos": [
+        "reveal-format video",
+        "structured listicle",
+        "step-by-step demo"
+      ]
+    },
+    {
+      "id": "tight-integration-balanced",
+      "name": "Tight Integration, Balanced Pull",
+      "short_description": "All seven systems coordinating tightly, no single system dominant",
+      "description_template": "High integration score with all seven systems coupling at moderate to strong levels. No single system dominates — the cortex operates as a unified network throughout.",
+      "built_for_tag": "complete experience",
+      "fingerprint": {
+        "system_means_pattern": "all_systems_in_range_0.45_to_0.65",
+        "integration_score": ">=0.55"
+      },
+      "exemplar_videos": [
+        "prestige TV pilot",
+        "high-craft short film",
+        "feature trailer - critical favorite"
+      ]
+    },
+    {
+      "id": "decoupled-parallel",
+      "name": "Decoupled Parallel Pipelines",
+      "short_description": "Multiple systems firing strongly but independent of each other",
+      "description_template": "Several cortical systems show strong activation, but with low pairwise coupling. Each system operates in its own lane — the cortex processes the content as parallel streams rather than an integrated experience.",
+      "built_for_tag": "multi-track stimulus",
+      "fingerprint": {
+        "integration_score": "<=0.20",
+        "system_means_pattern": "at_least_3_systems_above_0.55"
+      },
+      "exemplar_videos": [
+        "music video with rapid context switches",
+        "experimental short - non-narrative",
+        "highlight compilation - multiple genres"
+      ]
+    },
+    {
+      "id": "uncategorized",
+      "name": "Uncategorized",
+      "short_description": "Cortical signature does not match any current library entry",
+      "description_template": "This video's cortical signature does not match any recipe currently in the Brain Diff library at confidence ≥ 0.6. Closest match noted in audit logs.",
+      "built_for_tag": "novel pattern",
+      "fingerprint": null,
+      "exemplar_videos": []
+    }
+  ]
+}

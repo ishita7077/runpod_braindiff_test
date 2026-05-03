@@ -1,0 +1,45 @@
+{
+  "version": "1.0",
+  "notes": "Fallback content per slot, used when both manual override and LLM generation are unavailable. Generic enough to render any comparison without being wrong.",
+  "headline": {
+    "value": "Two videos. Two cortical recipes. Different strategies, same brain.",
+    "source": "fallback",
+    "status": "generic"
+  },
+  "body": {
+    "value": "These two videos recruit the cortex differently. Each runs a distinct cognitive recipe — different systems pulled, different timing, different cortical fingerprints. Neither is winning. They're playing different games.",
+    "source": "fallback",
+    "status": "generic"
+  },
+  "frame2_sub": {
+    "value": "Two recipes unfold across the runtime. A chord fires when two cortical systems cross threshold at the same second and hold for at least one or two more. The chord progression below shows when each play makes its moves.",
+    "source": "fallback",
+    "status": "generic"
+  },
+  "recipe_match": {
+    "value": {
+      "library_id": "uncategorized",
+      "name": "Uncategorized",
+      "confidence": 0.0,
+      "score_breakdown": {},
+      "rationale": "Recipe match unavailable; default uncategorized used."
+    },
+    "source": "fallback",
+    "status": "generic"
+  },
+  "recipe_description": {
+    "value": "The cortical signature for this video did not match a named recipe in the current library. Closest match noted in audit logs. *Built for novel pattern.*",
+    "source": "fallback",
+    "status": "generic"
+  },
+  "chord_context": {
+    "value": "This chord fires here because the underlying systems crossed threshold together at this moment.",
+    "source": "fallback",
+    "status": "generic"
+  },
+  "coupling_callout": {
+    "value": "The two systems show a measurable correlation across this video's runtime. The pattern reflects how this content recruits the cortex.",
+    "source": "fallback",
+    "status": "generic"
+  }
+}

@@ -29,3 +29,8 @@ MISTAKES_AGENT.md
 # Never commit it — contains live BLOB_READ_WRITE_TOKEN, UPSTASH_*, TURNSTILE_*.
 .env.production
 .env*.local
+
+# Results page generation outputs (per-comparison artefacts)
+/outputs/
+/audit_log/
+

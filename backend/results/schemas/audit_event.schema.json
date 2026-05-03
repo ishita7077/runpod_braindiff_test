@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "braindiff://schemas/audit_event.v1",
+  "title": "Audit log event (one per line in audit_log/{comparison_id}.jsonl)",
+  "description": "Every step of generation produces one event. The debug CLI filters and replays these. Event types are an enum — adding a new event type requires schema update.",
+  "type": "object",
+  "required": ["schema_version", "event_type", "timestamp", "comparison_id", "run_id"],
+  "properties": {
+    "schema_version": {"const": "audit_event.v1"},
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "comparison_started",
+        "input_normalized",
+        "input_invalid",
+        "model_manager_started",
+        "model_manager_failed",
+        "slot_started",
+        "slot_prompt_rendered",
+        "slot_model_called",
+        "slot_model_returned",
+        "slot_model_failed",
+        "slot_validation_passed",
+        "slot_validation_failed",
+        "slot_retry_started",
+        "slot_fallback_used",
+        "slot_override_used",
+        "slot_override_invalid",
+        "slot_completed",
+        "library_match_scored",
+        "library_match_low_confidence",
+        "content_assembled",
+        "content_schema_invalid",
+        "frontend_contract_validated",
+        "comparison_completed",
+        "comparison_failed"
+      ]
+    },
+    "timestamp":     {"type": "string", "format": "date-time"},
+    "comparison_id": {"type": "string"},
+    "run_id":        {"type": "string"},
+    "slot":          {"type": ["string", "null"], "description": "Slot address (generic path) — null for comparison-level events."},
+    "attempt":       {"type": ["integer", "null"]},
+    "error_code":    {"type": ["string", "null"], "description": "Same enum as raw_slot.validation.errors[].code, plus comparison-level codes (INPUT_MISSING_FIELDS, MODEL_TIMEOUT, MODEL_OOM, ASSEMBLER_OVERRIDE_INVALID, etc.)."},
+    "error_detail":  {"type": ["string", "null"]},
+    "input_hash":    {"type": ["string", "null"]},
+    "prompt_hash":   {"type": ["string", "null"]},
+    "raw_output_path":{"type": ["string", "null"]},
+    "latency_ms":    {"type": ["integer", "null"]},
+    "data": {
+      "type": ["object", "null"],
+      "description": "Event-specific payload. e.g. library_match_scored has score_breakdown here."
+    }
+  }
+}

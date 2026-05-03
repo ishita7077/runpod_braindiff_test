@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "braindiff://schemas/raw_slot.v1",
+  "title": "Raw slot output (uniform JSON shape — every slot returns this)",
+  "description": "Whatever the LLM (or library matcher) produces for one slot is wrapped in this shape and written to raw/{slot_address}.json. Assembler reads .selected and ignores .candidates.",
+  "type": "object",
+  "required": ["schema_version", "slot", "comparison_id", "run_id", "attempts", "selected", "validation"],
+  "properties": {
+    "schema_version": {"const": "raw_slot.v1"},
+    "slot":           {"type": "string", "description": "Generic slot address. e.g. 'headline', 'recipe_match.video_a', 'chord_moments[3].context', 'coupling_callouts.video_b.strongest'."},
+    "comparison_id":  {"type": "string"},
+    "run_id":         {"type": "string"},
+    "generated_at":   {"type": "string", "format": "date-time"},
+    "model": {
+      "type": "object",
+      "properties": {
+        "model_id":            {"type": "string"},
+        "model_revision":      {"type": ["string", "null"]},
+        "transformers_version":{"type": ["string", "null"]},
+        "torch_version":       {"type": ["string", "null"]},
+        "seed":                {"type": "integer"},
+        "do_sample":           {"type": "boolean"},
+        "temperature":         {"type": "number"},
+        "top_p":               {"type": "number"},
+        "max_new_tokens":      {"type": "integer"}
+      }
+    },
+    "asset_hashes": {
+      "type": "object",
+      "properties": {
+        "prompt_template_hash":  {"type": "string"},
+        "voice_exemplars_hash":  {"type": "string"},
+        "recipe_library_version":{"type": "string"},
+        "chord_library_version": {"type": "string"}
+      }
+    },
+    "prompt_rendered": {"type": "string", "description": "The fully-rendered prompt sent to the model. Stored for debugging — large but worth it."},
+    "candidates": {
+      "type": "array",
+      "description": "Multiple candidates if the slot prompt asked for them; single-element if not. Order = generation order.",
+      "items": {
+        "oneOf": [
+          {"type": "string"},
+          {"type": "object"}
+        ]
+      }
+    },
+    "selected": {
+      "description": "Final candidate the assembler reads. Type depends on slot — string for text slots, object for recipe_match.",
+      "oneOf": [
+        {"type": "string"},
+        {"type": "object"},
+        {"type": "null"}
+      ]
+    },
+    "attempts": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "How many generation attempts ran before settling. >1 means the validator rejected the first."
+    },
+    "validation": {
+      "type": "object",
+      "required": ["passed", "errors"],
+      "properties": {
+        "passed": {"type": "boolean"},
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["code", "detail"],
+            "properties": {
+              "code":   {"type": "string", "description": "Enum: BANNED_PATTERN, TOO_MANY_SENTENCES, TOO_FEW_SENTENCES, OVER_WORD_LIMIT, MISSING_REQUIRED_TOKEN, INVALID_JSON, RECIPE_NOT_IN_LIBRARY, CONFIDENCE_TOO_LOW, CONTAINS_WINNER_LANGUAGE, MISSING_TIMESTAMP, MISSING_BUILT_FOR_TAG, etc."},
+              "detail": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "latency_ms": {"type": "integer"},
+    "tokens_used": {
+      "type": "object",
+      "properties": {
+        "input":  {"type": "integer"},
+        "output": {"type": "integer"}
+      }
+    }
+  }
+}

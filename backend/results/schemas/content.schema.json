@@ -1,0 +1,189 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "braindiff://schemas/content.v1",
+  "title": "Results page content contract",
+  "description": "What the frontend reads. Frontend has no other content logic — every visible string is here, with provenance.",
+  "type": "object",
+  "required": ["schema_version", "comparison_id", "run_id", "analysis_version", "generated_at", "assets", "videos", "slots"],
+  "properties": {
+    "schema_version": {"const": "results_content.v1"},
+    "comparison_id": {"type": "string", "pattern": "^[a-f0-9]{16}$"},
+    "run_id": {"type": "string"},
+    "analysis_version": {"type": "string"},
+    "generated_at": {"type": "string", "format": "date-time"},
+
+    "assets": {
+      "type": "object",
+      "description": "Hashes of every asset that influenced this content. Voice drift / library updates can be detected by comparing these to current asset hashes.",
+      "required": ["recipe_library_version", "chord_library_version", "voice_exemplars_hash", "prompt_templates_hash", "slot_defaults_hash"],
+      "properties": {
+        "recipe_library_version": {"type": "string"},
+        "chord_library_version": {"type": "string"},
+        "voice_exemplars_hash": {"type": "string"},
+        "prompt_templates_hash": {"type": "string"},
+        "slot_defaults_hash": {"type": "string"},
+        "model_id": {"type": "string"},
+        "model_revision": {"type": ["string", "null"]}
+      }
+    },
+
+    "videos": {
+      "type": "object",
+      "required": ["video_a", "video_b"],
+      "properties": {
+        "video_a": {"$ref": "#/$defs/videoMeta"},
+        "video_b": {"$ref": "#/$defs/videoMeta"}
+      }
+    },
+
+    "slots": {
+      "type": "object",
+      "description": "Every renderable content slot. Generic paths only — no creator names. Display names live inside slot values.",
+      "required": [
+        "headline", "body", "frame2_sub",
+        "recipe_match", "recipe_description",
+        "chord_meanings", "chord_moments",
+        "coupling_callouts"
+      ],
+      "properties": {
+        "headline":         {"$ref": "#/$defs/scalarSlot"},
+        "body":             {"$ref": "#/$defs/scalarSlot"},
+        "frame2_sub":       {"$ref": "#/$defs/scalarSlot"},
+
+        "recipe_match": {
+          "type": "object",
+          "required": ["video_a", "video_b"],
+          "properties": {
+            "video_a": {"$ref": "#/$defs/recipeMatchSlot"},
+            "video_b": {"$ref": "#/$defs/recipeMatchSlot"}
+          }
+        },
+        "recipe_description": {
+          "type": "object",
+          "required": ["video_a", "video_b"],
+          "properties": {
+            "video_a": {"$ref": "#/$defs/scalarSlot"},
+            "video_b": {"$ref": "#/$defs/scalarSlot"}
+          }
+        },
+
+        "chord_meanings": {
+          "type": "object",
+          "description": "Static, hand-authored. Keyed by chord_id. Always source=library — never LLM-generated.",
+          "additionalProperties": {"$ref": "#/$defs/chordMeaningSlot"}
+        },
+        "chord_moments": {
+          "type": "array",
+          "description": "Per-firing context sentences. Each addressable by index for override.",
+          "items": {"$ref": "#/$defs/chordMomentSlot"}
+        },
+
+        "coupling_callouts": {
+          "type": "object",
+          "required": ["video_a", "video_b"],
+          "properties": {
+            "video_a": {"$ref": "#/$defs/couplingCalloutPair"},
+            "video_b": {"$ref": "#/$defs/couplingCalloutPair"}
+          }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "sourceTier": {
+      "type": "string",
+      "enum": ["override", "llm", "fallback", "library"],
+      "description": "Where this slot's value came from. Renders as a corner badge in dev mode."
+    },
+    "slotStatus": {
+      "type": "string",
+      "enum": ["ok", "validation_failed", "generation_failed", "override_invalid", "missing_inputs", "generic"],
+      "description": "Render-time hint. 'ok' = good. Anything else = degraded path was taken."
+    },
+    "videoMeta": {
+      "type": "object",
+      "required": ["id", "display_name"],
+      "properties": {
+        "id": {"type": "string"},
+        "display_name": {"type": "string"},
+        "creator": {"type": ["string", "null"]},
+        "title": {"type": ["string", "null"]},
+        "duration_seconds": {"type": ["number", "null"]}
+      }
+    },
+    "scalarSlot": {
+      "type": "object",
+      "required": ["value", "source", "status"],
+      "properties": {
+        "value":     {"type": "string"},
+        "source":    {"$ref": "#/$defs/sourceTier"},
+        "status":    {"$ref": "#/$defs/slotStatus"},
+        "raw_path":  {"type": ["string", "null"]},
+        "errors":    {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "recipeMatchSlot": {
+      "type": "object",
+      "required": ["value", "source", "status"],
+      "properties": {
+        "value": {
+          "type": "object",
+          "required": ["library_id", "name", "confidence", "rationale"],
+          "properties": {
+            "library_id":       {"type": "string"},
+            "name":             {"type": "string"},
+            "confidence":       {"type": "number", "minimum": 0, "maximum": 1},
+            "score_breakdown":  {"type": "object", "additionalProperties": {"type": "number"}},
+            "rationale":        {"type": "string"}
+          }
+        },
+        "source":    {"$ref": "#/$defs/sourceTier"},
+        "status":    {"$ref": "#/$defs/slotStatus"},
+        "raw_path":  {"type": ["string", "null"]},
+        "errors":    {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "chordMeaningSlot": {
+      "type": "object",
+      "required": ["value", "source", "status"],
+      "properties": {
+        "value": {
+          "type": "object",
+          "required": ["id", "name", "micro_label", "formula_human", "meaning"],
+          "properties": {
+            "id":            {"type": "string"},
+            "name":          {"type": "string"},
+            "micro_label":   {"type": "string"},
+            "formula_human": {"type": "string"},
+            "meaning":       {"type": "string"},
+            "citations":     {"type": "array"}
+          }
+        },
+        "source": {"$ref": "#/$defs/sourceTier"},
+        "status": {"$ref": "#/$defs/slotStatus"}
+      }
+    },
+    "chordMomentSlot": {
+      "type": "object",
+      "required": ["index", "video", "chord_id", "timestamp_seconds", "context"],
+      "properties": {
+        "index":              {"type": "integer"},
+        "video":              {"type": "string", "enum": ["video_a", "video_b"]},
+        "chord_id":           {"type": "string"},
+        "timestamp_seconds":  {"type": "number"},
+        "quote":              {"type": ["string", "null"]},
+        "context":            {"$ref": "#/$defs/scalarSlot"}
+      }
+    },
+    "couplingCalloutPair": {
+      "type": "object",
+      "required": ["strongest", "weakest", "anti"],
+      "properties": {
+        "strongest": {"$ref": "#/$defs/scalarSlot"},
+        "weakest":   {"$ref": "#/$defs/scalarSlot"},
+        "anti":      {"$ref": "#/$defs/scalarSlot"}
+      }
+    }
+  }
+}

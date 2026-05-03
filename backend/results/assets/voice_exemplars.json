@@ -1,0 +1,76 @@
+{
+  "version": "1.0",
+  "notes": "Voice anchors used as few-shot exemplars in slot prompts. Refining brand voice = PR to this file. Prompts pull exemplars by slot tag at render time. Hash of this file is logged with every generation for voice-drift traceability.",
+  "headline": [
+    "MrBeast hits the body, fast. Cleo holds the head, deep.",
+    "B reaches the gut. A builds the argument.",
+    "One lands viscerally. The other lands intellectually.",
+    "MrBeast triggers feeling. Cleo triggers thinking.",
+    "B aims at the chest. A aims at the chair.",
+    "Cleo wires the cortex for tomorrow. MrBeast wires it for now.",
+    "One hits the chest. The other rewires the room.",
+    "MrBeast asks the body a question. Cleo asks the mind.",
+    "B activates the senses. A activates the model.",
+    "One opens the wallet. The other opens the textbook.",
+    "MrBeast lands in the gut. Cleo lands in the chair.",
+    "B is built to share. A is built to remember.",
+    "The body reads MrBeast. The brain reads Cleo."
+  ],
+  "body": [
+    "Two videos that look similar in the wild and feel different to watch. The cortex shows why. Each runs a distinct cognitive recipe — different systems pulled, different timing, different cortical fingerprints. Neither is winning. They're playing different games.",
+    "Same length, same upload week, same thumbnail energy. The brain receives them as opposites. MrBeast pulls the body before the mind catches up. Cleo builds the mind without ever asking the body. Different objectives, different machinery.",
+    "Both videos open with what creators call hooks. The cortex disagrees about what 'hook' means. One arrives in the gut at second eight. The other arrives in the language network at second twenty. They're optimizing for different cortical outcomes.",
+    "The cortex doesn't grade content. It runs whatever is presented through whatever systems are necessary. MrBeast presents stakes; the anterior insula responds. Cleo presents claims; the language and memory networks respond. Two videos, two recruitment patterns, no contest.",
+    "A common mistake: treating two videos as competing for the same brain real estate. The cortex doesn't work that way. Different content recruits different systems. Cleo and MrBeast share less cortical real estate than this comparison suggests — they're playing on adjacent fields.",
+    "What we call 'engagement' is one word for many cortical patterns. MrBeast produces visceral engagement: insula peaks, attention spikes, body forward in chair. Cleo produces cognitive engagement: language network sustained, memory encoding throughout, mental model under construction. Both are real. Neither is the same thing."
+  ],
+  "recipe_description": [
+    "Gradual attention, deep language and memory engagement, climax in a Reasoning Beat at 0:32. *Built for retention.*",
+    "Immediate anterior insula spike, sustained low cognitive effort, late Emotional Impact at 0:47. *Built for spread.*",
+    "Personal resonance opens at 0:04, theory-of-mind takes over at 0:18, narrative integration sustains through close. *Built for parasocial bond.*",
+    "Visceral hit at 0:09, reasoning beat at 0:22, second visceral peak at 0:48. The classic three-act feel-think-feel arc. *Built for persuasion.*",
+    "Visceral hit at 0:09, sustained low effort through the middle, emotional close at 0:54. The pattern that defined a decade of YouTube. *Built for shareability.*",
+    "No chords detected. Pure attention spikes at 0:04, 0:18, 0:33, 0:51 with no system coupling. *Built for novelty churn.*",
+    "Memory encoding peaks four times across the runtime (0:08, 0:22, 0:38, 0:54), anchoring discrete moments. *Built for memorability.*",
+    "All seven systems sustained between 0.45 and 0.65 across the full runtime. The cortex operates as a unified network. *Built for complete experience.*"
+  ],
+  "chord_context": {
+    "visceral-hit": [
+      "The viewer's body responds to the offer before they've decided whether they care.",
+      "The viewer's body responds to the threat before they've decided whether to flinch.",
+      "MrBeast's hook lands in the chest before the prefrontal cortex has time to evaluate it."
+    ],
+    "reasoning-beat": [
+      "Cleo restructures the viewer's mental model in real time — the cortex has to work to follow.",
+      "Cleo restructures what the viewer thought they knew about quantum computing in 4.2 seconds.",
+      "The argument requires effort because it contradicts a default mental model — and the cortex shows up for the work."
+    ],
+    "learning-moment": [
+      "The metaphor lands because attention and memory peak together — a moment built to be remembered tomorrow.",
+      "The metaphor sticks because attention and memory peak together — exactly when the subsequent-memory effect predicts retention.",
+      "The cortex is committing this image to long-term storage in real time."
+    ],
+    "emotional-impact": [
+      "The promise is personal AND felt — the cortical pattern that drives behavior change.",
+      "Self-relevance and visceral response fire together — the moment the content stops being information and becomes meaning."
+    ]
+  },
+  "coupling_callout": [
+    "Cleo's Memory and Language systems rose together across her runtime. When the brain was encoding what to remember, it was also processing the linguistic meaning. The two systems fired as a team — the signature of content built to stick.",
+    "Cleo's Self-Relevance and Visceral Response systems operated independently. Viewers found her content meaningful without feeling it in the body. The brain was thinking, not feeling.",
+    "MrBeast's Attention and Visceral Response systems moved together. Where the viewer's eye locked on, the body reacted. Attention was visceral, not analytical.",
+    "When MrBeast's Visceral Response fired, his Cognitive Control system went DOWN. The body reacted before the mind could catch up. The cortex was actively bypassing analysis — the hallmark of high-stakes entertainment.",
+    "When Cleo's Memory and Effort systems coupled, the cortex was working hard to encode something specific. The viewer was building a structured model — not just absorbing facts.",
+    "MrBeast's Personal and Gut systems moved together. The body felt what the self heard. The cortical pattern under behavior change.",
+    "Cleo's Attention and Effort decoupled. She holds focus without forcing cognitive load. The cortex stays engaged at low metabolic cost — the marker of well-paced explanation.",
+    "MrBeast's Memory and Language stayed independent. The viewer hears the words, but the cortex isn't encoding them. Designed to be felt now, not remembered later."
+  ],
+  "frame2_sub": [
+    "Cleo's Slow Build → Deep Encode and MrBeast's Visceral Hook → Low-Effort Hold are built from the same seven cortical systems — but coupled differently and pulled at different times. Below: each video's chord progression, beat by beat.",
+    "Two recipes unfold across the runtime. A chord fires when two cortical systems cross threshold at the same second and hold for at least one or two more. Watch where each video's chords land — the timing IS the strategy.",
+    "Slow Build → Deep Encode versus Visceral Hook → Low-Effort Hold. Same ingredients, different recipes. The chord progression below shows when each play makes its moves.",
+    "Two videos, sixty seconds, twelve chord events between them. Below: when each chord fires, what cortical systems crossed threshold together, and what the firing means for the recipe each video is running.",
+    "The chord progression is where the recipe shows itself. Watch the timing. The sequence matters as much as which chords fire — one creator's chords cluster late, the other's cluster at the open and close.",
+    "A chord fires when the cortex enters a recognizable cognitive state — body reacting before mind, memory encoding under attention, etc. Below: the full progression for both videos, scrubbable in real time."
+  ]
+}
