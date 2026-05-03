@@ -189,8 +189,17 @@ h4 { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 
 /* Step 3: Matrix */
 .matrix-vis-wrap { overflow-x: auto; }
 .matrix-3b1b { display: inline-grid; gap: 0; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; }
-.matrix-cell-3b1b { width: 52px; height: 26px; display: flex; align-items: center; justify-content: center; font-size: 9px; font-family: 'JetBrains Mono', monospace; color: rgba(0,0,0,0.4); border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transition: background .5s ease, opacity .5s ease; opacity: 0; background: var(--bg-2); }
-:root[data-theme="dark"] .matrix-cell-3b1b { color: rgba(255,255,255,0.4); }
+.matrix-cell-3b1b {
+  width: 52px; height: 26px; display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-family: 'JetBrains Mono', monospace; color: rgba(0,0,0,0.45);
+  border-right: 1px solid var(--line); border-bottom: 1px solid var(--line);
+  transition: background .5s ease, opacity .5s ease; opacity: 0;
+  background: color-mix(in srgb, var(--good) calc(var(--val, 0) * 90%), var(--bg-2));
+}
+:root[data-theme="dark"] .matrix-cell-3b1b {
+  background: color-mix(in srgb, #b89340 calc(var(--val, 0) * 90%), var(--bg-3));
+  color: rgba(255,255,255,0.55);
+}
 .matrix-cell-3b1b.row-label { background: var(--bg-3) !important; color: var(--ink-mute); font-size: 9px; width: 36px; opacity: 1; border-right: 1px solid var(--line-2); }
 .matrix-cell-3b1b.col-label { background: var(--bg-3) !important; color: var(--ink-mute); font-size: 8px; height: 20px; opacity: 1; border-bottom: 1px solid var(--line-2); }
 .matrix-cell-3b1b.ellipsis { background: var(--bg-3) !important; color: var(--ink-mute); opacity: 1; width: 28px; font-size: 11px; letter-spacing: -2px; }
@@ -200,8 +209,27 @@ h4 { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 
 .matrix-legend { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
 .legend-label { font-size: 9px; color: var(--ink-mute); letter-spacing: .06em; }
 .legend-scale { flex: 1; height: 6px; border-radius: 3px; max-width: 120px; }
-:root:not([data-theme="dark"]) .legend-scale { background: linear-gradient(to right, #d9d4c5 0%, #8db2d4 40%, #2a5583 100%); }
-:root[data-theme="dark"] .legend-scale { background: linear-gradient(to right, rgba(30,20,10,1) 0%, rgba(120,80,20,.6) 40%, rgba(184,147,52,.9) 75%, rgba(212,168,87,1) 100%); }
+:root:not([data-theme="dark"]) .legend-scale { background: linear-gradient(to right, var(--bg-2) 0%, color-mix(in srgb, var(--good) 50%, var(--bg-2)) 50%, var(--good) 100%); }
+:root[data-theme="dark"] .legend-scale { background: linear-gradient(to right, var(--bg-3) 0%, color-mix(in srgb, #b89340 50%, var(--bg-3)) 50%, #b89340 100%); }
+
+/* Step 3: Connectivity 7x7 matrix */
+.conn-matrix-wrap { overflow-x: auto; margin: 18px 0; }
+.conn-matrix { display: inline-grid; gap: 0; border: 1px solid var(--line); border-radius: 2px; overflow: hidden; font-family: 'JetBrains Mono', monospace; }
+.conn-cell { width: 58px; height: 28px; display: flex; align-items: center; justify-content: center; font-size: 9px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); transition: background .35s; }
+.conn-cell.hdr { background: var(--bg-3); color: var(--ink-mute); font-size: 8px; height: 22px; border-bottom: 1px solid var(--line-2); }
+.conn-cell.lbl { background: var(--bg-3); color: var(--ink-mute); font-size: 8px; width: 46px; border-right: 1px solid var(--line-2); }
+.conn-cell.corner { background: var(--bg-3); width: 46px; height: 22px; }
+.conn-cell.pos { background: color-mix(in srgb, var(--good) calc(var(--mag,0) * 80%), var(--bg-2)); color: var(--ink-dim); }
+.conn-cell.neg { background: color-mix(in srgb, var(--accent) calc(var(--mag,0) * 80%), var(--bg-2)); color: var(--ink-dim); }
+.conn-cell.diag { background: var(--bg-2); color: var(--ink-mute); }
+:root[data-theme="dark"] .conn-cell.pos { background: color-mix(in srgb, var(--good) calc(var(--mag,0) * 70%), var(--bg-3)); }
+:root[data-theme="dark"] .conn-cell.neg { background: color-mix(in srgb, var(--accent) calc(var(--mag,0) * 70%), var(--bg-3)); }
+:root[data-theme="dark"] .conn-cell { color: rgba(255,255,255,0.55); }
+.conn-axis-label { font-family: 'JetBrains Mono', monospace; font-size: 8.5px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 4px; }
+.conn-legend { display: flex; align-items: center; gap: 12px; margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-mute); }
+.conn-legend-swatch { width: 18px; height: 8px; border-radius: 2px; display: inline-block; vertical-align: middle; margin-right: 4px; }
+.conn-legend-swatch.pos-swatch { background: var(--good); }
+.conn-legend-swatch.neg-swatch { background: var(--accent); }
 
 /* Step 4: Contrast */
 .contrast-rows { display: flex; flex-direction: column; gap: 10px; }
@@ -230,26 +258,35 @@ h4 { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 
 
 /* ── CHORD HORIZONTAL SCROLL ──────────────────────────────── */
 .chord-scroll-container { position: relative; margin: 24px 0; }
+.chord-scroll-container::after {
+  content: '';
+  position: absolute;
+  right: 0; top: 0; bottom: 18px;
+  width: 56px;
+  background: linear-gradient(to right, transparent, var(--bg));
+  pointer-events: none;
+  border-radius: 0 6px 6px 0;
+  z-index: 2;
+}
 .scroll-hint { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: var(--ink-mute); letter-spacing: .12em; text-transform: uppercase; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
 .scroll-hint::after { content: '→'; color: var(--accent); }
 .chord-scroll {
   display: flex;
   gap: 12px;
   overflow-x: auto;
-  padding: 4px 4px 18px;
-  scroll-snap-type: x mandatory;
+  padding: 4px 4px 16px;
   -webkit-overflow-scrolling: touch;
   touch-action: pan-x;
   cursor: grab;
   overscroll-behavior-x: contain;
   /* Custom scrollbar */
   scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) var(--line);
+  scrollbar-color: color-mix(in srgb, var(--accent) 40%, transparent) transparent;
 }
 .chord-scroll:active { cursor: grabbing; }
-.chord-scroll::-webkit-scrollbar { height: 4px; }
-.chord-scroll::-webkit-scrollbar-track { background: var(--line); border-radius: 2px; }
-.chord-scroll::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--accent) 50%, transparent); border-radius: 2px; }
+.chord-scroll::-webkit-scrollbar { height: 3px; }
+.chord-scroll::-webkit-scrollbar-track { background: transparent; }
+.chord-scroll::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 2px; }
 .chord-card {
   flex: 0 0 280px;
   scroll-snap-align: start;
@@ -309,19 +346,28 @@ h4 { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 
 
 /* ── REFERENCES ───────────────────────────────────────────── */
 .references-section { margin-top: 64px; padding-top: 32px; border-top: 1px solid var(--line); }
-.ref-header { display: flex; align-items: center; justify-content: space-between; }
-.ref-title-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .2em; color: var(--ink-mute); text-transform: uppercase; }
-.ref-toggle-btn { display: flex; align-items: center; gap: 8px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); border: 1px solid var(--line); background: var(--surface); padding: 7px 14px; border-radius: 4px; cursor: pointer; transition: background .18s, border-color .18s; letter-spacing: .08em; text-transform: uppercase; user-select: none; }
-.ref-toggle-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
-.ref-toggle-btn .r-count { background: var(--accent-dim); padding: 1px 6px; border-radius: 10px; font-size: 9px; }
-.ref-toggle-btn .r-arrow { transition: transform .2s; display: inline-block; }
-.ref-toggle-btn.open .r-arrow { transform: rotate(180deg); }
-.ref-list-wrap { display: none; margin-top: 20px; }
-.ref-list-wrap.open { display: block; }
+.ref-details { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.ref-details summary {
+  list-style: none; cursor: pointer; padding: 14px 18px;
+  font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .12em;
+  color: var(--ink-mute); text-transform: uppercase;
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--bg-2); transition: color .18s, background .18s; user-select: none;
+}
+.ref-details summary::-webkit-details-marker { display: none; }
+.ref-details summary:hover { color: var(--accent); background: var(--bg-3); }
+.ref-details[open] summary { color: var(--accent); border-bottom: 1px solid var(--line); background: var(--bg-2); }
+.ref-summary-left { display: flex; align-items: center; gap: 10px; }
+.ref-count-badge { background: var(--accent-dim); color: var(--accent); padding: 2px 8px; border-radius: 10px; font-size: 9px; letter-spacing: .04em; }
+.ref-arrow { transition: transform .22s; display: inline-block; }
+.ref-details[open] .ref-arrow { transform: rotate(180deg); }
+.ref-list-inner { padding: 0 18px; background: var(--surface); }
 .cite-list { list-style: none; }
-.cite-list li { padding: 8px 0 8px 26px; border-bottom: 1px solid var(--line); color: var(--ink-mute); font-size: 13px; line-height: 1.65; position: relative; font-family: 'Newsreader', serif; }
-.cite-list li:last-child { border-bottom: none; }
-.cite-num { position: absolute; left: 0; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); }
+.cite-list li { padding: 9px 0 9px 28px; border-bottom: 1px solid var(--line); color: var(--ink-mute); font-size: 13px; line-height: 1.65; position: relative; font-family: 'Newsreader', serif; }
+.cite-list li:first-child { padding-top: 14px; }
+.cite-list li:last-child { border-bottom: none; padding-bottom: 14px; }
+.cite-num { position: absolute; left: 0; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent); top: 12px; }
+.cite-list li:first-child .cite-num { top: 17px; }
 .cite-list em { font-style: italic; color: var(--ink-dim); }
 
 /* ── FOOTER ───────────────────────────────────────────────── */
@@ -593,42 +639,48 @@ h4 { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 
 
       <p>Two systems must meet their thresholds simultaneously — sustained for the minimum duration — for a chord to register. The chord progression then sequences these co-activation windows across the video timeline, giving you a named cognitive arc rather than just a list of activation values.</p>
 
+      <div class="connectivity-inner" style="margin: 22px 0;">
+        <h4>A concrete example</h4>
+        <p>Consider a 30-second product ad. At 0:02, a startling visual lands — gut spikes, prefrontal stays quiet: <strong>Visceral Hit</strong>. The narrator then explains what just happened — effort and language co-activate: <strong>Reasoning Beat</strong>. A close-up face shows genuine surprise, and the viewer connects it to themselves — personal resonance and gut fire together: <strong>Emotional Impact</strong>.</p>
+        <p style="margin-top:8px">The progression reads: <code>Visceral Hit → Reasoning Beat → Emotional Impact</code>. That arc tells you something a single bar chart cannot: the ad felt first, then reasoned, then resonated. Compare it to an ad that skips the visceral opener and leads with reasoning — very different experience, identical dimension averages.</p>
+      </div>
+
       <div class="chord-scroll-container">
         <div class="scroll-hint">7 chords — drag or scroll to explore</div>
         <div class="chord-scroll" id="chord-scroll">
           <div class="chord-card">
             <div class="chord-name">Learning Moment</div>
-            <div class="chord-formula">Attention + Memory Encoding ≥ θ<br>sustained ≥ 2s</div>
+            <div class="chord-formula">Attention ≥ θ<sub>H</sub> &amp; Memory ≥ θ<sub>H</sub><br>sustained ≥ 1s</div>
             <p class="chord-meaning">The cortex is actively encoding this moment into long-term memory. The dorsal attention network and left vlPFC co-activate — the pattern Wagner et al. 1998 showed predicts later recall.</p>
           </div>
           <div class="chord-card">
             <div class="chord-name">Emotional Impact</div>
-            <div class="chord-formula">Personal Resonance + Gut Reaction ≥ θ<br>sustained ≥ 2s</div>
+            <div class="chord-formula">Personal Resonance ≥ θ<sub>H</sub> &amp; Gut ≥ θ<sub>H</sub><br>sustained ≥ 1s</div>
             <p class="chord-meaning">mPFC tags the content as self-relevant while anterior insula responds viscerally. Falk et al. 2012 found this pattern predicted real-world behavior change at r = 0.87.</p>
           </div>
           <div class="chord-card">
             <div class="chord-name">Reasoning Beat</div>
-            <div class="chord-formula">Brain Effort + Language Depth ≥ θ<br>sustained ≥ 2s</div>
+            <div class="chord-formula">Brain Effort ≥ θ<sub>H</sub> &amp; Language ≥ θ<sub>H</sub><br>sustained ≥ 1s</div>
             <p class="chord-meaning">The prefrontal cortex applies cognitive control while the language network processes meaning. The viewer is working through an argument. Miller &amp; Cohen 2001; Fedorenko et al. 2011.</p>
           </div>
           <div class="chord-card">
             <div class="chord-name">Story Integration</div>
-            <div class="chord-formula">Attention + Language ≥ θ &nbsp;·&nbsp; Personal Res elevated<br>sustained ≥ 3s</div>
+            <div class="chord-formula">Attention ≥ θ<sub>H</sub> &amp; Language ≥ θ<sub>H</sub><br>Personal Resonance ≥ θ<sub>S</sub> (median) · sustained ≥ 2s</div>
             <p class="chord-meaning">The cortex is building a situation model — integrating narrative with prior knowledge and personal experience. Not tracking facts, but constructing a story. Mar 2011; Yeshurun et al. 2017.</p>
           </div>
           <div class="chord-card">
             <div class="chord-name">Visceral Hit</div>
-            <div class="chord-formula">Gut Reaction ≥ θ<br>Brain Effort specifically low</div>
+            <div class="chord-formula">Gut Reaction ≥ θ<sub>H</sub> &amp; Effort ≤ θ<sub>L</sub><br>sustained ≥ 1s</div>
             <p class="chord-meaning">High insula with suppressed prefrontal activity — the body responded before deliberation engaged. Ochsner &amp; Gross 2005; Fox et al. 2005; Damasio 1994.</p>
           </div>
           <div class="chord-card">
             <div class="chord-name">Cold Cognitive Work</div>
-            <div class="chord-formula">Brain Effort ≥ θ<br>Personal Resonance specifically low</div>
+            <div class="chord-formula">Brain Effort ≥ θ<sub>H</sub> &amp; Personal ≤ θ<sub>L</sub><br>sustained ≥ 2s</div>
             <p class="chord-meaning">Sustained effortful processing without self-referential engagement. Processing the content without connecting it personally. Fox et al. 2005; Raichle et al. 2001.</p>
           </div>
           <div class="chord-card">
             <div class="chord-name">Social Resonance</div>
-            <div class="chord-formula">Social Thinking + Personal Resonance ≥ θ<br>sustained ≥ 2s</div>
+            <div class="chord-formula">Social Thinking ≥ θ<sub>H</sub> &amp; Personal ≥ θ<sub>H</sub><br>sustained ≥ 1s</div>
             <p class="chord-meaning">Right TPJ models another person's mind while mPFC connects it to the self. The cortical correlate of understanding another's experience through your own. Saxe &amp; Kanwisher 2003.</p>
           </div>
         </div>
@@ -637,20 +689,20 @@ h4 { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 
       <details class="threshold-toggle">
         <summary><span>Threshold values &amp; calibration</span><span class="t-arrow">↓</span></summary>
         <div class="threshold-body">
-          <p>Every chord requires specific threshold values. These are v1 defaults, calibrated against a reference corpus. All values are published in <code>data/pattern-definitions.json</code> alongside the open-source codebase.</p>
+          <p>All thresholds are percentile-relative, computed within each clip. <strong>θ<sub>H</sub></strong> = 70th percentile (high) · <strong>θ<sub>S</sub></strong> = 50th percentile (median / elevated) · <strong>θ<sub>L</sub></strong> = 30th percentile (low). Each system's percentile is computed from its own activation timeseries within that clip, so thresholds scale naturally to the content's own range.</p>
           <table class="t-table">
-            <thead><tr><th>Chord</th><th>Primary threshold</th><th>Min duration</th><th>Secondary</th></tr></thead>
+            <thead><tr><th>Chord</th><th>Condition</th><th>Min duration</th></tr></thead>
             <tbody>
-              <tr><td>Learning Moment</td><td>0.55</td><td>2s</td><td>—</td></tr>
-              <tr><td>Emotional Impact</td><td>0.55</td><td>2s</td><td>—</td></tr>
-              <tr><td>Reasoning Beat</td><td>0.50</td><td>2s</td><td>—</td></tr>
-              <tr><td>Story Integration</td><td>0.50 (Att/Lang) · 0.40 (PR)</td><td>3s</td><td>—</td></tr>
-              <tr><td>Visceral Hit</td><td>Gut ≥ 0.55</td><td>2s</td><td>Effort ≤ 0.40</td></tr>
-              <tr><td>Cold Cognitive Work</td><td>Effort ≥ 0.65</td><td>3s</td><td>Personal Res ≤ 0.35</td></tr>
-              <tr><td>Social Resonance</td><td>0.45</td><td>2s</td><td>—</td></tr>
+              <tr><td>Learning Moment</td><td>Attention ≥ θ<sub>H</sub> &amp; Memory ≥ θ<sub>H</sub></td><td>1s</td></tr>
+              <tr><td>Emotional Impact</td><td>Personal ≥ θ<sub>H</sub> &amp; Gut ≥ θ<sub>H</sub></td><td>1s</td></tr>
+              <tr><td>Reasoning Beat</td><td>Effort ≥ θ<sub>H</sub> &amp; Language ≥ θ<sub>H</sub></td><td>1s</td></tr>
+              <tr><td>Story Integration</td><td>Attention ≥ θ<sub>H</sub> &amp; Language ≥ θ<sub>H</sub> &amp; Personal ≥ θ<sub>S</sub></td><td>2s</td></tr>
+              <tr><td>Visceral Hit</td><td>Gut ≥ θ<sub>H</sub> &amp; Effort ≤ θ<sub>L</sub></td><td>1s</td></tr>
+              <tr><td>Cold Cognitive Work</td><td>Effort ≥ θ<sub>H</sub> &amp; Personal ≤ θ<sub>L</sub></td><td>2s</td></tr>
+              <tr><td>Social Resonance</td><td>Social ≥ θ<sub>H</sub> &amp; Personal ≥ θ<sub>H</sub></td><td>1s</td></tr>
             </tbody>
           </table>
-          <p class="t-note">Calibrated to produce 3–5 meaningful events per 30-second segment. Chord definitions reviewed by a neuroscience postdoc before v1 shipped. Recalibration script available with the open-source release.</p>
+          <p class="t-note">θ<sub>H</sub> = p70 · θ<sub>S</sub> = p50 · θ<sub>L</sub> = p30 — all per-clip, per-system. Chord definitions reviewed by a neuroscience postdoc before v1 shipped. Pattern definitions published in <code>data/pattern-definitions.json</code> in the open-source codebase.</p>
         </div>
       </details>
 
@@ -667,7 +719,16 @@ h4 { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 
 
       <div class="connectivity-inner">
         <h4>What the matrix shows</h4>
-        <p>Positive correlation: two systems fire together in this content. Negative correlation: when one is high, the other tends to be low. The aggregate measures — integration score, hub dimension — describe the overall architecture of cortical engagement the content produces. Computed on TRIBEv2's predicted time series, not raw fMRI.</p>
+        <p>Positive correlation (blue): two systems fire together in this content. Negative correlation (red): when one is high, the other tends to be low. The diagonal is always 1.0. The aggregate measures — integration score, hub dimension — describe the overall architecture of cortical engagement the content produces. Computed on TRIBEv2's predicted time series, not raw fMRI.</p>
+        <div class="conn-axis-label" style="margin-top:14px">Rows and columns = the 7 cortical systems</div>
+        <div class="conn-matrix-wrap">
+          <div class="conn-matrix" id="conn-matrix-grid"></div>
+        </div>
+        <div class="conn-legend">
+          <span><span class="conn-legend-swatch pos-swatch"></span>Positive (co-activation)</span>
+          <span><span class="conn-legend-swatch neg-swatch"></span>Negative (suppression)</span>
+          <span style="margin-left:auto;opacity:.6">example values</span>
+        </div>
       </div>
 
       <div class="step-vis" id="vis-step5">
@@ -730,43 +791,44 @@ h4 { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 
 
     <!-- REFERENCES -->
     <section class="references-section" id="citations">
-      <div class="ref-header">
-        <span class="ref-title-label">References</span>
-        <button class="ref-toggle-btn" id="ref-toggle" onclick="toggleRefs()">
-          <span>25 citations</span>
-          <span class="r-count">expand</span>
-          <span class="r-arrow">↓</span>
-        </button>
-      </div>
-      <div class="ref-list-wrap" id="ref-list">
-        <ul class="cite-list">
-          <li><span class="cite-num">1</span>Allen, E. A., et al. (2014). Tracking whole-brain connectivity dynamics in the resting state. <em>Cerebral Cortex</em>, 24(3), 663–676.</li>
-          <li><span class="cite-num">2</span>Corbetta, M., &amp; Shulman, G. L. (2002). Control of goal-directed and stimulus-driven attention in the brain. <em>Nature Reviews Neuroscience</em>, 3, 201–215.</li>
-          <li><span class="cite-num">3</span>Craig, A. D. (2009). How do you feel — now? The anterior insula and human awareness. <em>Nature Reviews Neuroscience</em>, 10(1), 59–70.</li>
-          <li><span class="cite-num">4</span>Critchley, H. D. (2005). Neural mechanisms of autonomic, affective, and cognitive integration. <em>Journal of Comparative Neurology</em>, 493(1), 154–166.</li>
-          <li><span class="cite-num">5</span>Critchley, H. D., et al. (2004). Neural systems supporting interoceptive awareness. <em>Nature Neuroscience</em>, 7(2), 189–195.</li>
-          <li><span class="cite-num">6</span>Damasio, A. (1994). <em>Descartes' Error: Emotion, Reason, and the Human Brain.</em> Putnam.</li>
-          <li><span class="cite-num">7</span>Falk, E. B., Berkman, E. T., &amp; Lieberman, M. D. (2012). From neural responses to population behavior: neural focus group predicts population-level media effects. <em>Psychological Science</em>, 23(5), 439–445.</li>
-          <li><span class="cite-num">8</span>Fedorenko, E., Behr, M. K., &amp; Kanwisher, N. (2011). Functional specificity for high-level linguistic processing in the human brain. <em>PNAS</em>, 108(39), 16428–16433.</li>
-          <li><span class="cite-num">9</span>Fox, M. D., et al. (2005). The human brain is intrinsically organized into dynamic, anticorrelated functional networks. <em>PNAS</em>, 102(27), 9673–9678.</li>
-          <li><span class="cite-num">10</span>Hutchison, R. M., et al. (2013). Dynamic functional connectivity: promise, issues, and interpretations. <em>NeuroImage</em>, 80, 360–378.</li>
-          <li><span class="cite-num">11</span>Kim, H. (2011). Neural activity that predicts subsequent memory and forgetting: a meta-analysis of 74 fMRI studies. <em>NeuroImage</em>, 54(3), 2446–2461.</li>
-          <li><span class="cite-num">12</span>Mar, R. A. (2011). The neural bases of social cognition and story comprehension. <em>Annual Review of Psychology</em>, 62, 103–134.</li>
-          <li><span class="cite-num">13</span>Miller, E. K., &amp; Cohen, J. D. (2001). An integrative theory of prefrontal cortex function. <em>Annual Review of Neuroscience</em>, 24, 167–202.</li>
-          <li><span class="cite-num">14</span>Northoff, G., et al. (2006). Self-referential processing in our brain — a meta-analysis of imaging studies on the self. <em>NeuroImage</em>, 31(1), 440–457.</li>
-          <li><span class="cite-num">15</span>Ochsner, K. N., &amp; Gross, J. J. (2005). The cognitive control of emotion. <em>Trends in Cognitive Sciences</em>, 9(8), 242–249.</li>
-          <li><span class="cite-num">16</span>Power, J. D., et al. (2011). Functional network organization of the human brain. <em>Neuron</em>, 72(4), 665–678.</li>
-          <li><span class="cite-num">17</span>Raichle, M. E., et al. (2001). A default mode of brain function. <em>PNAS</em>, 98(2), 676–682.</li>
-          <li><span class="cite-num">18</span>Saxe, R., &amp; Kanwisher, N. (2003). People thinking about thinking people. <em>NeuroImage</em>, 19(4), 1835–1842.</li>
-          <li><span class="cite-num">19</span>Saxe, R., &amp; Powell, L. J. (2006). It's the thought that counts. <em>Psychological Science</em>, 17(8), 692–699.</li>
-          <li><span class="cite-num">20</span>Schäfer, A., &amp; Menninghaus, W. (2025). Aesthetic effects in film: a mega-analysis of 16 datasets with 572 participants. <em>Psychological Science</em>.</li>
-          <li><span class="cite-num">21</span>Sporns, O. (2013). Network attributes for segregation and integration in the human brain. <em>Current Opinion in Neurobiology</em>, 23(2), 162–171.</li>
-          <li><span class="cite-num">22</span>Uncapher, M. R., &amp; Wagner, A. D. (2009). Posterior parietal cortex and episodic encoding. <em>Nature Reviews Neuroscience</em>, 10, 613–625.</li>
-          <li><span class="cite-num">23</span>Wagner, A. D., et al. (1998). Building memories: remembering and forgetting of verbal experiences as predicted by brain activity. <em>Science</em>, 281, 1188–1191.</li>
-          <li><span class="cite-num">24</span>Yeo, B. T., et al. (2011). The organization of the human cerebral cortex estimated by intrinsic functional connectivity. <em>Journal of Neurophysiology</em>, 106(3), 1125–1165.</li>
-          <li><span class="cite-num">25</span>Yeshurun, Y., et al. (2017). Memory retrieval during learning determines whether experience will contribute to episodic memory formation. <em>Neuron</em>, 93(4), 953–967.</li>
-        </ul>
-      </div>
+      <details class="ref-details">
+        <summary>
+          <div class="ref-summary-left">
+            <span>References</span>
+            <span class="ref-count-badge">25</span>
+          </div>
+          <span class="ref-arrow">↓</span>
+        </summary>
+        <div class="ref-list-inner">
+          <ul class="cite-list">
+            <li><span class="cite-num">1</span>Allen, E. A., et al. (2014). Tracking whole-brain connectivity dynamics in the resting state. <em>Cerebral Cortex</em>, 24(3), 663–676.</li>
+            <li><span class="cite-num">2</span>Corbetta, M., &amp; Shulman, G. L. (2002). Control of goal-directed and stimulus-driven attention in the brain. <em>Nature Reviews Neuroscience</em>, 3, 201–215.</li>
+            <li><span class="cite-num">3</span>Craig, A. D. (2009). How do you feel — now? The anterior insula and human awareness. <em>Nature Reviews Neuroscience</em>, 10(1), 59–70.</li>
+            <li><span class="cite-num">4</span>Critchley, H. D. (2005). Neural mechanisms of autonomic, affective, and cognitive integration. <em>Journal of Comparative Neurology</em>, 493(1), 154–166.</li>
+            <li><span class="cite-num">5</span>Critchley, H. D., et al. (2004). Neural systems supporting interoceptive awareness. <em>Nature Neuroscience</em>, 7(2), 189–195.</li>
+            <li><span class="cite-num">6</span>Damasio, A. (1994). <em>Descartes' Error: Emotion, Reason, and the Human Brain.</em> Putnam.</li>
+            <li><span class="cite-num">7</span>Falk, E. B., Berkman, E. T., &amp; Lieberman, M. D. (2012). From neural responses to population behavior: neural focus group predicts population-level media effects. <em>Psychological Science</em>, 23(5), 439–445.</li>
+            <li><span class="cite-num">8</span>Fedorenko, E., Behr, M. K., &amp; Kanwisher, N. (2011). Functional specificity for high-level linguistic processing in the human brain. <em>PNAS</em>, 108(39), 16428–16433.</li>
+            <li><span class="cite-num">9</span>Fox, M. D., et al. (2005). The human brain is intrinsically organized into dynamic, anticorrelated functional networks. <em>PNAS</em>, 102(27), 9673–9678.</li>
+            <li><span class="cite-num">10</span>Hutchison, R. M., et al. (2013). Dynamic functional connectivity: promise, issues, and interpretations. <em>NeuroImage</em>, 80, 360–378.</li>
+            <li><span class="cite-num">11</span>Kim, H. (2011). Neural activity that predicts subsequent memory and forgetting: a meta-analysis of 74 fMRI studies. <em>NeuroImage</em>, 54(3), 2446–2461.</li>
+            <li><span class="cite-num">12</span>Mar, R. A. (2011). The neural bases of social cognition and story comprehension. <em>Annual Review of Psychology</em>, 62, 103–134.</li>
+            <li><span class="cite-num">13</span>Miller, E. K., &amp; Cohen, J. D. (2001). An integrative theory of prefrontal cortex function. <em>Annual Review of Neuroscience</em>, 24, 167–202.</li>
+            <li><span class="cite-num">14</span>Northoff, G., et al. (2006). Self-referential processing in our brain — a meta-analysis of imaging studies on the self. <em>NeuroImage</em>, 31(1), 440–457.</li>
+            <li><span class="cite-num">15</span>Ochsner, K. N., &amp; Gross, J. J. (2005). The cognitive control of emotion. <em>Trends in Cognitive Sciences</em>, 9(8), 242–249.</li>
+            <li><span class="cite-num">16</span>Power, J. D., et al. (2011). Functional network organization of the human brain. <em>Neuron</em>, 72(4), 665–678.</li>
+            <li><span class="cite-num">17</span>Raichle, M. E., et al. (2001). A default mode of brain function. <em>PNAS</em>, 98(2), 676–682.</li>
+            <li><span class="cite-num">18</span>Saxe, R., &amp; Kanwisher, N. (2003). People thinking about thinking people. <em>NeuroImage</em>, 19(4), 1835–1842.</li>
+            <li><span class="cite-num">19</span>Saxe, R., &amp; Powell, L. J. (2006). It's the thought that counts. <em>Psychological Science</em>, 17(8), 692–699.</li>
+            <li><span class="cite-num">20</span>Schäfer, A., &amp; Menninghaus, W. (2025). Aesthetic effects in film: a mega-analysis of 16 datasets with 572 participants. <em>Psychological Science</em>.</li>
+            <li><span class="cite-num">21</span>Sporns, O. (2013). Network attributes for segregation and integration in the human brain. <em>Current Opinion in Neurobiology</em>, 23(2), 162–171.</li>
+            <li><span class="cite-num">22</span>Uncapher, M. R., &amp; Wagner, A. D. (2009). Posterior parietal cortex and episodic encoding. <em>Nature Reviews Neuroscience</em>, 10, 613–625.</li>
+            <li><span class="cite-num">23</span>Wagner, A. D., et al. (1998). Building memories: remembering and forgetting of verbal experiences as predicted by brain activity. <em>Science</em>, 281, 1188–1191.</li>
+            <li><span class="cite-num">24</span>Yeo, B. T., et al. (2011). The organization of the human cerebral cortex estimated by intrinsic functional connectivity. <em>Journal of Neurophysiology</em>, 106(3), 1125–1165.</li>
+            <li><span class="cite-num">25</span>Yeshurun, Y., et al. (2017). Memory retrieval during learning determines whether experience will contribute to episodic memory formation. <em>Neuron</em>, 93(4), 953–967.</li>
+          </ul>
+        </div>
+      </details>
     </section>
 
   </main>
@@ -819,15 +881,15 @@ activateStep(1);
 steps.forEach(s => s.addEventListener('mouseenter', () => activateStep(s.dataset.step)));
 document.querySelector('.process-graph').addEventListener('mouseleave', () => activateStep(1));
 
-// ── References toggle ──────────────────────────────────────
-function toggleRefs() {
-  const btn  = document.getElementById('ref-toggle');
-  const list = document.getElementById('ref-list');
-  const open = list.classList.toggle('open');
-  btn.classList.toggle('open', open);
-  btn.querySelector('.r-count').textContent = open ? 'collapse' : 'expand';
-  btn.querySelector('.r-arrow').style.transform = open ? 'rotate(180deg)' : '';
-}
+// ── Details arrow sync (references + threshold) ────────────
+document.querySelectorAll('details').forEach(d => {
+  const arrow = d.querySelector('.ref-arrow, .t-arrow');
+  if (arrow) {
+    d.addEventListener('toggle', () => {
+      arrow.style.transform = d.open ? 'rotate(180deg)' : '';
+    });
+  }
+});
 
 // ── Build waveform (Step 1) ────────────────────────────────
 (function() {
@@ -852,7 +914,7 @@ function toggleRefs() {
   });
 })();
 
-// ── Build 3B1B matrix (Step 3) ────────────────────────────
+// ── Build prediction matrix (Step 3) ──────────────────────
 (function() {
   const grid = document.getElementById('matrix-3b1b-grid');
   const ROWS = 5, COLS = 9;
@@ -875,7 +937,6 @@ function toggleRefs() {
     c.textContent = lbl;
     grid.appendChild(c);
   });
-  const isDark = () => document.documentElement.getAttribute('data-theme') === 'dark';
   vals.forEach((row, ri) => {
     const rl = document.createElement('div');
     rl.className = 'matrix-cell-3b1b row-label';
@@ -887,23 +948,66 @@ function toggleRefs() {
       cell.className = 'matrix-cell-3b1b' + (isEllipsis ? ' ellipsis' : '');
       if (!isEllipsis) {
         cell.textContent = v.toFixed(2);
-        const delay = (ri * COLS + ci) * 0.025;
-        cell.style.transitionDelay = delay + 's';
-        // Use good (slate blue) for light, gold for dark
-        if (isDark()) {
-          const r = Math.round(30 + v * 154);
-          const g = Math.round(20 + v * 107);
-          const b2 = Math.round(5 + v * 25);
-          cell.dataset.bg = `rgb(${r},${g},${b2})`;
-        } else {
-          const r = Math.round(240 - v * 80);
-          const g = Math.round(240 - v * 60);
-          const b2 = Math.round(255 - v * 80);
-          cell.dataset.bg = `rgb(${r},${g},${b2})`;
-        }
-        cell.dataset.opacity = (0.3 + v * 0.65).toFixed(2);
+        cell.style.setProperty('--val', v.toFixed(2));
+        cell.style.transitionDelay = ((ri * COLS + ci) * 0.025) + 's';
       } else {
         cell.textContent = '···';
+      }
+      grid.appendChild(cell);
+    });
+  });
+})();
+
+// ── Build connectivity 7×7 matrix ─────────────────────────
+(function() {
+  const grid = document.getElementById('conn-matrix-grid');
+  if (!grid) return;
+  const dims = ['PR','Att','Eff','Gut','Mem','Soc','Lang'];
+  const fullNames = ['Personal','Attention','Effort','Gut','Memory','Social','Language'];
+  // Illustrative correlation matrix (symmetric)
+  const r = [
+    [ 1.00, 0.31,-0.42, 0.58, 0.22, 0.64, 0.15],
+    [ 0.31, 1.00, 0.48,-0.19, 0.71, 0.09, 0.52],
+    [-0.42, 0.48, 1.00,-0.61, 0.33,-0.28, 0.67],
+    [ 0.58,-0.19,-0.61, 1.00,-0.08, 0.44,-0.33],
+    [ 0.22, 0.71, 0.33,-0.08, 1.00, 0.17, 0.59],
+    [ 0.64, 0.09,-0.28, 0.44, 0.17, 1.00, 0.11],
+    [ 0.15, 0.52, 0.67,-0.33, 0.59, 0.11, 1.00],
+  ];
+  const N = dims.length;
+  grid.style.gridTemplateColumns = `46px repeat(${N}, 58px)`;
+
+  // Top-left corner
+  const corner = document.createElement('div');
+  corner.className = 'conn-cell corner';
+  grid.appendChild(corner);
+
+  // Column headers
+  dims.forEach((d, i) => {
+    const c = document.createElement('div');
+    c.className = 'conn-cell hdr';
+    c.textContent = d;
+    c.title = fullNames[i];
+    grid.appendChild(c);
+  });
+
+  // Rows
+  r.forEach((row, ri) => {
+    const lbl = document.createElement('div');
+    lbl.className = 'conn-cell lbl';
+    lbl.textContent = dims[ri];
+    lbl.title = fullNames[ri];
+    grid.appendChild(lbl);
+    row.forEach((v, ci) => {
+      const cell = document.createElement('div');
+      const mag = Math.abs(v).toFixed(2);
+      if (ri === ci) {
+        cell.className = 'conn-cell diag';
+        cell.textContent = '1.00';
+      } else {
+        cell.className = 'conn-cell ' + (v >= 0 ? 'pos' : 'neg');
+        cell.style.setProperty('--mag', mag);
+        cell.textContent = v.toFixed(2);
       }
       grid.appendChild(cell);
     });
@@ -932,23 +1036,10 @@ function toggleRefs() {
 const visObs = new IntersectionObserver(entries => {
   entries.forEach(entry => {
     if (!entry.isIntersecting) return;
-    const el = entry.target;
-    el.classList.add('vis-active');
-    if (el.id === 'vis-step3') {
-      el.querySelectorAll('.matrix-cell-3b1b[data-bg]').forEach(cell => {
-        cell.style.background = cell.dataset.bg;
-        cell.style.opacity    = cell.dataset.opacity;
-        cell.style.color      = parseFloat(cell.dataset.opacity) > 0.6
-          ? 'rgba(0,0,0,0.65)' : 'rgba(0,0,0,0.3)';
-        if (document.documentElement.getAttribute('data-theme') === 'dark') {
-          cell.style.color = parseFloat(cell.dataset.opacity) > 0.55
-            ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.25)';
-        }
-      });
-    }
-    visObs.unobserve(el);
+    entry.target.classList.add('vis-active');
+    visObs.unobserve(entry.target);
   });
-}, { threshold: 0.35 });
+}, { threshold: 0.3 });
 document.querySelectorAll('.step-vis').forEach(el => visObs.observe(el));
 
 // ── Chord scroll — mouse drag + touch ─────────────────────
@@ -977,13 +1068,6 @@ document.querySelectorAll('.step-vis').forEach(el => visObs.observe(el));
   el.addEventListener('touchstart', () => {}, { passive: true });
 })();
 
-// ── Details arrow ──────────────────────────────────────────
-document.querySelectorAll('details').forEach(d => {
-  const a = d.querySelector('.t-arrow');
-  if (a) d.addEventListener('toggle', () => {
-    a.style.transform = d.open ? 'rotate(180deg)' : '';
-  });
-});
 </script>
 </body>
 </html>

@@ -1543,6 +1543,30 @@ body {
   .eq-options { grid-template-columns: repeat(5, 1fr); gap: 4px; }
   .eq-option { padding: 8px 4px; font-size: 9px; }
 }
+
+/* ─── Scroll-reveal animations ─── */
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity 0.58s cubic-bezier(.22,.8,.34,1), transform 0.58s cubic-bezier(.22,.8,.34,1);
+  will-change: opacity, transform;
+}
+.reveal.is-vis {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
+
+/* section header slides in a touch faster */
+.section-header { transition: opacity 0.48s ease, transform 0.48s ease; }
+
+/* Respond bars animate their width on scroll entry */
+.respond-bar-fill {
+  transition: width 0.9s cubic-bezier(.22,.8,.34,1), opacity 0.3s ease;
+}
+.respond-bar-fill.bar-hidden { width: 0% !important; }
 </style>
 </head>
 <body>
@@ -2895,7 +2919,82 @@ yearMarks.forEach(m => {
   });
 });
 
-updateMontage(1995);
+updateMontage(2008);
+
+// ════════════════════════════════════════════════
+// SCROLL-REVEAL + MIDWAY WIDGET INIT
+// ════════════════════════════════════════════════
+(function() {
+  // 1. Tag elements for reveal animation
+  document.querySelectorAll('.section').forEach(sec => {
+    sec.querySelector('.section-header')?.classList.add('reveal');
+    sec.querySelector('.section-lead')?.classList.add('reveal', 'reveal-delay-1');
+    sec.querySelector('.section-deeper')?.classList.add('reveal', 'reveal-delay-2');
+    sec.querySelector('.section-bottom')?.classList.add('reveal', 'reveal-delay-3');
+  });
+
+  // Cortex, timeline, respond, montage wrappers
+  document.querySelectorAll('.cortex-wrap, .timeline-wrap, .cortex-respond-wrap, .montage-wrap').forEach(el => {
+    el.classList.add('reveal', 'reveal-delay-1');
+  });
+
+  // 2. Set respond bars to start at midpoint (second 14 of 30)
+  // We hide them initially so the animate-in looks right on scroll entry.
+  let respondAnimated = false;
+  const respondSection = document.querySelector('.cortex-respond-wrap') ||
+    document.querySelector('#respond-bars')?.closest('.section');
+
+  // 3. Set timeline to pre-show middle data point (index 2 = Caucheteux & King)
+  let timelineAnimated = false;
+  const timelineEl = document.getElementById('timeline-svg')?.closest('.section') ||
+    document.querySelector('.timeline-wrap');
+
+  // 4. IntersectionObserver
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const el = entry.target;
+
+      // General reveal
+      el.classList.add('is-vis');
+
+      // Respond bars: animate to midpoint on first scroll entry
+      if (!respondAnimated && (el.classList.contains('cortex-respond-wrap') || el === respondSection)) {
+        respondAnimated = true;
+        setTimeout(() => updateRespond(14), 200);
+      }
+
+      // Timeline: pre-activate middle dot
+      if (!timelineAnimated && el === timelineEl) {
+        timelineAnimated = true;
+        setTimeout(() => updateTimelineCard(2), 300);
+      }
+
+      observer.unobserve(el);
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+
+  // Observe all .reveal elements
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Observe respond and timeline containers directly for widget midpoint init
+  if (respondSection) observer.observe(respondSection);
+  if (timelineEl) observer.observe(timelineEl);
+
+  // 5. Montage: start at middle of timeline (2005)
+  const montageSlider = document.getElementById('montage-slider');
+  if (montageSlider) {
+    const montageObs = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        montageSlider.value = 2005;
+        updateMontage(2005);
+        montageObs.disconnect();
+      }
+    }, { threshold: 0.2 });
+    const montageWrap = document.querySelector('.montage-wrap') || montageSlider.closest('section');
+    if (montageWrap) montageObs.observe(montageWrap);
+  }
+})();
 </script>
 
 </body>
