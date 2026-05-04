@@ -511,8 +511,25 @@ function acceptContent(json){
   document.getElementById('dev-comparison-id').textContent =
     `comparison_id=${CONTENT.comparison_id} · run_id=${CONTENT.run_id.slice(0,8)}…`;
   document.getElementById('nav-tag').textContent = `Results — ${CONTENT.comparison_id.slice(0,8)}`;
-  render();
-  initInteractions();
+  // Wrap render in a try/catch so a JS error inside one of the section
+  // renderers shows up on the page instead of leaving the loading state up.
+  try {
+    render();
+  } catch (err) {
+    console.error('render() failed', err);
+    return errCard(
+      'Render error',
+      `<code>${escapeHtmlText(err.message || String(err))}</code><br><br>` +
+      `<details style="margin-top:12px;text-align:left"><summary style="cursor:pointer;font-family:var(--ff-mono);font-size:11px">stack</summary>` +
+      `<pre style="font-size:10px;overflow:auto;text-align:left;white-space:pre-wrap">${escapeHtmlText(err.stack || '')}</pre></details>`
+    );
+  }
+  try {
+    initInteractions();
+  } catch (err) {
+    console.error('initInteractions() failed', err);
+    // Page is rendered; just log the interaction failure (scrubber/network won't work).
+  }
 }
 
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
