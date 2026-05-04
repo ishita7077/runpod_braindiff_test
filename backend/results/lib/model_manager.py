@@ -290,12 +290,12 @@ def set_model_manager(mgr: ModelManager) -> None:
 class LoadedTransformersBackend:
     """Real LLaMA backend. Uses transformers.AutoModelForCausalLM."""
 
-    model_id = "meta-llama/Llama-3.2-3B"
+    model_id = "meta-llama/Llama-3.2-3B-Instruct"
 
     def __init__(
         self,
         *,
-        model_name: str = "meta-llama/Llama-3.2-3B",
+        model_name: str = "meta-llama/Llama-3.2-3B-Instruct",
         cache_folder: str | None = None,    # None = use HF default (HF_HOME / ~/.cache/huggingface)
         device: str | None = None,
         dtype: str = "float16",
@@ -371,11 +371,17 @@ class LoadedTransformersBackend:
 
         start = time.perf_counter()
         torch.manual_seed(req.seed)
-        # Llama-3.2-Instruct chat formatting: wrap as a single user turn.
         messages = [{"role": "user", "content": req.prompt}]
-        chat_input = self._tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True, return_tensors="pt", return_dict=True,
-        )
+        if not getattr(self._tokenizer, "chat_template", None):
+            # Base model with no chat template — encode prompt directly.
+            encoded = self._tokenizer(req.prompt, return_tensors="pt", return_attention_mask=True)
+            chat_input = {"input_ids": encoded["input_ids"], "attention_mask": encoded["attention_mask"]}
+        else:
+            chat_input = self._tokenizer.apply_chat_template(
+                messages, add_generation_prompt=True, return_tensors="pt", return_dict=True,
+            )
+        if not isinstance(chat_input, dict) or "input_ids" not in chat_input:
+            raise RuntimeError(f"apply_chat_template returned unexpected type: {type(chat_input)}")
         input_ids = chat_input["input_ids"]
         attention_mask = chat_input.get("attention_mask")
         if self._device not in ("cpu", None):

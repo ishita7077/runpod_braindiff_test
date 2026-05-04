@@ -350,7 +350,7 @@ def generate_content_for_worker(
     transcript_segments_a: list[dict[str, Any]],
     transcript_segments_b: list[dict[str, Any]],
     analysis_version: str = "tribev2.live",
-    audit_log_dir: str = "/tmp/audit_log",
+    audit_log_dir: str | None = None,
     use_stub: bool = False,
 ) -> dict[str, Any]:
     """Run the full content pipeline. Returns {comparison_id, content, audit_log_path}.
@@ -360,6 +360,8 @@ def generate_content_for_worker(
     cmp_id = comparison_id(video_a_id, video_b_id, analysis_version)
     rid = new_run_id()
 
+    if audit_log_dir is None:
+        audit_log_dir = f"/tmp/braindiff_audit/{cmp_id}"
     audit_path = Path(audit_log_dir) / f"{cmp_id}.jsonl"
     audit_path.parent.mkdir(parents=True, exist_ok=True)
     audit = AuditLogger(comparison_id=cmp_id, run_id=rid, log_dir=audit_log_dir)
