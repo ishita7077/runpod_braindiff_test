@@ -2,8 +2,8 @@
   "schema_version": "raw_slot.v1",
   "slot": "recipe_match.video_a",
   "comparison_id": "0fefa93a76d08253",
-  "run_id": "01a85ff8-9cd6-4238-aeb5-1716313310ae",
-  "generated_at": "2026-05-04T05:12:12.160699+00:00",
+  "run_id": "eab5906c-60b3-4765-8f7e-641d636f1b58",
+  "generated_at": "2026-05-04T05:47:25.112867+00:00",
   "model": {
     "model_id": "stub-llama-3.2-3b-instruct",
     "model_revision": "stub-v0",

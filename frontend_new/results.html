@@ -398,9 +398,15 @@ function toggleTheme(){
 
 // ────────────────────────────────────────────────────────────
 // URL params + boot
+//
+// Two modes:
+//   ?id=<comparison_id>  → static sample demo, fetches /outputs/{id}/content.json
+//   ?jobId=<runpod_id>   → live RunPod job, polls /api/diff/status/{jobId}
+//                          and reads result.results_content (real LLaMA output)
 // ────────────────────────────────────────────────────────────
 const params = new URLSearchParams(location.search);
 const COMPARISON_ID = params.get('id');
+const JOB_ID = params.get('jobId') || params.get('job_id');
 const DEV_MODE = params.get('dev') !== '0';
 if (DEV_MODE) document.body.classList.add('dev-mode');
 
@@ -436,25 +442,81 @@ const REGION_POSITIONS = {
   gut_reaction:{cx:240,cy:160},
 };
 
-const CONTENT_URL = COMPARISON_ID ? `/outputs/${COMPARISON_ID}/content.json` : null;
+const STATIC_CONTENT_URL = COMPARISON_ID ? `/outputs/${COMPARISON_ID}/content.json` : null;
+const JOB_STATUS_URL = JOB_ID ? `/api/diff/status/${encodeURIComponent(JOB_ID)}` : null;
 
 // State
 let CONTENT = null;
 
 (async function boot(){
-  if (!COMPARISON_ID) return errCard('No comparison ID in URL', 'Add <code>?id=&lt;comparison_id&gt;</code> to the URL.');
-  document.getElementById('loading-path').textContent = CONTENT_URL;
+  if (JOB_ID)            return bootFromJob();
+  if (COMPARISON_ID)     return bootFromStatic();
+  return errCard('No comparison in URL',
+    'Add <code>?id=&lt;sample_id&gt;</code> for a demo, or <code>?jobId=&lt;runpod_job&gt;</code> for a live result.');
+})();
+
+async function bootFromStatic(){
+  document.getElementById('loading-path').textContent = STATIC_CONTENT_URL;
   let res;
-  try { res = await fetch(CONTENT_URL, {cache:'no-cache'}); }
-  catch (e) { return errCard('Failed to load content.json', `<code>${e.message}</code>`); }
-  if (!res.ok) return errCard('content.json not found', `Got HTTP ${res.status} from <code>${CONTENT_URL}</code>.`);
-  CONTENT = await res.json();
-  if (CONTENT.schema_version !== 'results_content.v1') return errCard('Schema mismatch', `Expected <code>results_content.v1</code>, got <code>${CONTENT.schema_version}</code>.`);
-  document.getElementById('dev-comparison-id').textContent = `comparison_id=${CONTENT.comparison_id} · run_id=${CONTENT.run_id.slice(0,8)}…`;
+  try { res = await fetch(STATIC_CONTENT_URL, {cache:'no-cache'}); }
+  catch (e) { return errCard('Failed to load content.json', `<code>${escapeHtmlText(e.message)}</code>`); }
+  if (!res.ok) return errCard('content.json not found', `Got HTTP ${res.status} from <code>${STATIC_CONTENT_URL}</code>.`);
+  const json = await res.json();
+  return acceptContent(json);
+}
+
+async function bootFromJob(){
+  document.getElementById('loading-path').textContent = `${JOB_STATUS_URL} (polling)`;
+  // Poll the worker's status until completed. Existing /run page uses the same endpoint;
+  // if user lands here mid-job we just keep polling until status === 'done'.
+  let attempts = 0;
+  while (attempts < 600) {  // ~10 min hard cap
+    attempts++;
+    let resp;
+    try { resp = await fetch(JOB_STATUS_URL, {cache:'no-cache'}); }
+    catch (e) { return errCard('Network error polling job', `<code>${escapeHtmlText(e.message)}</code>`); }
+    if (!resp.ok) return errCard('Job status check failed', `HTTP ${resp.status} from <code>${JOB_STATUS_URL}</code>`);
+    const data = await resp.json();
+    if (data.status === 'error') {
+      return errCard('Worker error', `<code>${escapeHtmlText((data.error && data.error.code) || 'unknown')}</code>: ${escapeHtmlText((data.error && data.error.message) || '')}`);
+    }
+    if (data.status === 'done') {
+      const content = data.result && data.result.results_content;
+      if (!content) {
+        return errCard(
+          'Worker finished but no results content',
+          'The job completed but the worker did not return the new results-page content. ' +
+          'This usually means the worker is running an older version that does not include the LLaMA content step. ' +
+          'Rebuild and redeploy the worker.',
+        );
+      }
+      return acceptContent(content);
+    }
+    // still in progress — show the latest event line if any
+    const last = (data.events && data.events.length) ? data.events[data.events.length - 1] : null;
+    if (last && last.message) {
+      document.getElementById('loading-path').textContent = `${last.status || 'working'}: ${last.message}`;
+    }
+    await sleep(2000);
+  }
+  return errCard('Polling timed out', 'The job took longer than 10 minutes. Refresh to try again or check the dashboard.');
+}
+
+function acceptContent(json){
+  if (json.schema_version !== 'results_content.v1') {
+    return errCard('Schema mismatch',
+      `Expected <code>results_content.v1</code>, got <code>${escapeHtmlText(json.schema_version || 'unknown')}</code>. The worker and the page are out of sync — redeploy.`);
+  }
+  CONTENT = json;
+  document.getElementById('dev-comparison-id').textContent =
+    `comparison_id=${CONTENT.comparison_id} · run_id=${CONTENT.run_id.slice(0,8)}…`;
   document.getElementById('nav-tag').textContent = `Results — ${CONTENT.comparison_id.slice(0,8)}`;
   render();
   initInteractions();
-})();
+}
+
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+function escapeHtmlText(s){ if (s == null) return ''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
 function errCard(title, html){
   document.getElementById('page-root').innerHTML = `<div class="state-card error"><h3>${esc(title)}</h3><p>${html}</p></div>`;

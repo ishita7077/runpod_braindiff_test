@@ -9,6 +9,15 @@ on:
   push:
     tags:
       - "runpod-worker-*"
+    # Auto-rebuild on main whenever worker-relevant code changes. Without
+    # this every backend/handler edit needed a manual trip to the Actions UI.
+    branches:
+      - main
+    paths:
+      - "runpod_worker/**"
+      - "backend/**"
+      - "atlases/**"
+      - ".github/workflows/runpod-worker-docker.yml"
 
 permissions:
   contents: read

@@ -2,8 +2,8 @@
   "schema_version": "raw_slot.v1",
   "slot": "recipe_description.video_b",
   "comparison_id": "6b4cf129dfb0bd3a",
-  "run_id": "ac1236dd-43db-4b0b-9081-98e752ecb290",
-  "generated_at": "2026-05-04T05:12:11.965788+00:00",
+  "run_id": "181631f8-5fe6-452d-b2b3-778a00d7a8f4",
+  "generated_at": "2026-05-04T05:47:24.913355+00:00",
   "model": {
     "model_id": "stub-llama-3.2-3b-instruct",
     "model_revision": "stub-v0",
@@ -28,5 +28,5 @@
     "passed": true,
     "errors": []
   },
-  "latency_ms": 20
+  "latency_ms": 21
 }

@@ -60,6 +60,9 @@ from backend.result_semantics import enrich_dimension_payload, winner_summary
 from backend.scorer import score_predictions
 from backend.vertex_codec import f32_b64
 
+# New results-page content generation (uses the same LLaMA TRIBE loaded).
+from backend.results.worker_integration import generate_content_for_worker
+
 from runpod_worker.progress import emitter_for
 
 MODEL_REVISION = os.getenv("TRIBEV2_REVISION", "facebook/tribev2")
@@ -140,6 +143,61 @@ def _pipeline_label(modality: str) -> str:
     return "video_frames_audio"
 
 
+def _generate_results_content(
+    *,
+    job_id: str,
+    scores_a: dict[str, dict[str, Any]],
+    scores_b: dict[str, dict[str, Any]],
+    transcript_segments_a: list[dict[str, Any]],
+    transcript_segments_b: list[dict[str, Any]],
+    duration_a_s: float,
+    duration_b_s: float,
+    title_a: str,
+    title_b: str,
+    progress: Any = None,
+) -> dict[str, Any] | None:
+    """Run the LLaMA-driven content pipeline using the same model TRIBE just used.
+
+    Soft-fails: if anything goes wrong, returns None and the page falls back to
+    its built-in stub copy. The brain prediction payload is still returned to
+    the user — content generation is purely additive.
+    """
+    if not job_id:
+        return None
+    try:
+        if progress:
+            progress.emit("generating_content", "Writing the page copy with LLaMA...")
+        # score_predictions returns per-second 'timeseries' per dim already.
+        # Adapter shape: {dim_name: [v0..vT]} per video.
+        ts_a = {k: list(v.get("timeseries", [])) for k, v in scores_a.items()}
+        ts_b = {k: list(v.get("timeseries", [])) for k, v in scores_b.items()}
+        result = generate_content_for_worker(
+            video_a_id=f"{job_id}_a",
+            video_b_id=f"{job_id}_b",
+            video_a_title=title_a or "Video A",
+            video_b_title=title_b or "Video B",
+            duration_a_s=duration_a_s,
+            duration_b_s=duration_b_s,
+            timeseries_a=ts_a,
+            timeseries_b=ts_b,
+            transcript_segments_a=transcript_segments_a,
+            transcript_segments_b=transcript_segments_b,
+            analysis_version=os.getenv("TRIBEV2_REVISION", "tribev2.live"),
+        )
+        return result
+    except Exception as exc:  # noqa: BLE001
+        # Don't break the existing flow if content gen fails.
+        try:
+            if progress:
+                progress.emit(
+                    "content_generation_failed",
+                    f"Content generation failed (non-fatal): {type(exc).__name__}: {exc}",
+                )
+        except Exception:
+            pass
+        return None
+
+
 def _build_response(
     *,
     transcript_a: str,
@@ -163,6 +221,7 @@ def _build_response(
     media_filenames: dict[str, str] | None = None,
     media_features: dict[str, Any] | None = None,
     job_id: str | None = None,
+    results_content: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     request_id = str(uuid.uuid4())
     if not job_id:
@@ -227,7 +286,7 @@ def _build_response(
         meta["media_name_b"] = media_filenames.get("b", "")
     if media_features is not None:
         meta["media_features"] = media_features
-    return {
+    response: dict[str, Any] = {
         "diff": diff,
         "dimensions": dimension_rows,
         "insights": insights,
@@ -237,6 +296,13 @@ def _build_response(
         "warnings": warnings,
         "meta": meta,
     }
+    # Results-page payload: schema-locked content.json shape so the new
+    # results.html can render directly without any extra API call. Only
+    # included when LLaMA-driven content generation succeeded.
+    if results_content and results_content.get("content"):
+        response["results_content"] = results_content["content"]
+        meta["results_comparison_id"] = results_content.get("comparison_id")
+    return response
 
 
 def _run_text(text_a: str, text_b: str, *, job_id: str | None = None) -> dict[str, Any]:
@@ -266,6 +332,24 @@ def _run_text(text_a: str, text_b: str, *, job_id: str | None = None) -> dict[st
         "predict_b_ms": int(timing_b.get("predict_ms", 0) or 0),
     }
     processing_time_ms = int((time.perf_counter() - started) * 1000)
+    # Use TRIBE's per-second per-dim scores to drive the results-page content.
+    # Text mode has no transcript segments — synthesise minimal ones from the inputs.
+    runtime_a = float(preds_a.shape[0])
+    runtime_b = float(preds_b.shape[0])
+    text_segments_a = [{"start": 0, "end": runtime_a, "text": text_a}]
+    text_segments_b = [{"start": 0, "end": runtime_b, "text": text_b}]
+    results_content = _generate_results_content(
+        job_id=job_id or "",
+        scores_a=scores_a,
+        scores_b=scores_b,
+        transcript_segments_a=text_segments_a,
+        transcript_segments_b=text_segments_b,
+        duration_a_s=runtime_a,
+        duration_b_s=runtime_b,
+        title_a=text_a[:60] or "Version A",
+        title_b=text_b[:60] or "Version B",
+        progress=progress,
+    )
     return _build_response(
         transcript_a=text_a,
         transcript_b=text_b,
@@ -285,6 +369,7 @@ def _run_text(text_a: str, text_b: str, *, job_id: str | None = None) -> dict[st
         median_b=median_b,
         warnings=warnings,
         job_id=job_id,
+        results_content=results_content,
     )
 
 
@@ -494,11 +579,28 @@ def _run_media(
             warnings.append(f"Structural skeleton failed: {err}")
 
         processing_time_ms = int((time.perf_counter() - started) * 1000)
+        # LLaMA-driven results-page content (uses TRIBE's per-second per-dim scores).
+        transcript_text_a = str(timing_a.get("transcript_text", "") or "")
+        transcript_text_b = str(timing_b.get("transcript_text", "") or "")
+        transcript_segs_a = list(timing_a.get("transcript_segments") or [])
+        transcript_segs_b = list(timing_b.get("transcript_segments") or [])
+        results_content = _generate_results_content(
+            job_id=job_id or "",
+            scores_a=scores_a,
+            scores_b=scores_b,
+            transcript_segments_a=transcript_segs_a,
+            transcript_segments_b=transcript_segs_b,
+            duration_a_s=float(media_durations.get("a", dur_a) if media_durations else dur_a),
+            duration_b_s=float(media_durations.get("b", dur_b) if media_durations else dur_b),
+            title_a=(media_filenames or {}).get("a", "") or transcript_text_a[:60] or "Video A",
+            title_b=(media_filenames or {}).get("b", "") or transcript_text_b[:60] or "Video B",
+            progress=progress,
+        )
         return _build_response(
-            transcript_a=str(timing_a.get("transcript_text", "") or ""),
-            transcript_b=str(timing_b.get("transcript_text", "") or ""),
-            transcript_segments_a=list(timing_a.get("transcript_segments") or []),
-            transcript_segments_b=list(timing_b.get("transcript_segments") or []),
+            transcript_a=transcript_text_a,
+            transcript_b=transcript_text_b,
+            transcript_segments_a=transcript_segs_a,
+            transcript_segments_b=transcript_segs_b,
             modality=modality,
             stage_times=stage_times,
             processing_time_ms=processing_time_ms,
@@ -516,6 +618,7 @@ def _run_media(
             media_filenames=media_filenames,
             media_features=media_features_payload,
             job_id=job_id,
+            results_content=results_content,
         )
     finally:
         for path in temp_files:
