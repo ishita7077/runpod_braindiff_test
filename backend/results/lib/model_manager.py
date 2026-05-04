@@ -291,12 +291,12 @@ def set_model_manager(mgr: ModelManager) -> None:
 class LoadedTransformersBackend:
     """Real Gemma backend. Uses transformers.AutoModelForCausalLM."""
 
-    model_id = "google/gemma-3-4b-it"
+    model_id = "google/gemma-3-1b-it"
 
     def __init__(
         self,
         *,
-        model_name: str = "google/gemma-3-4b-it",
+        model_name: str = "google/gemma-3-1b-it",
         cache_folder: str | None = None,    # None = use HF default (HF_HOME / ~/.cache/huggingface)
         device: str | None = None,
         dtype: str = "bfloat16",            # Gemma 3: float16 overflows and produces empty output
