@@ -1,0 +1,32 @@
+{
+  "schema_version": "raw_slot.v1",
+  "slot": "recipe_description.video_b",
+  "comparison_id": "6b4cf129dfb0bd3a",
+  "run_id": "a64ebee4-e2e1-4660-b5e5-e3e0be4c02c9",
+  "generated_at": "2026-05-04T03:42:02.778866+00:00",
+  "model": {
+    "model_id": "stub-llama-3.2-3b-instruct",
+    "model_revision": "stub-v0",
+    "seed": 3075626710,
+    "do_sample": false,
+    "temperature": 0.4,
+    "top_p": 0.9,
+    "max_new_tokens": 100
+  },
+  "asset_hashes": {
+    "voice_exemplars_hash": "0d3b1a744d6d",
+    "recipe_library_version": "1.0",
+    "chord_library_version": "1.0"
+  },
+  "prompt_rendered": "You are writing the description paragraph for one video's recipe in a Brain Diff\nstrategy insight panel.\n\nBrain Diff is a STRATEGY comparison. The description's job: take the matched\nrecipe's general template and customize it with this specific video's actual\ncortical events. The result must feel like it was written about THIS video,\nnot the recipe in general.\n\nFormat: 2 sentences max, ≤ 35 words total. The first sentence describes what\nthe cortex did across the runtime. The second sentence is the \"Built for X\"\ntag-line. The \"Built for X\" suffix MUST be wrapped in single asterisks like\n*Built for retention.* — this gets rendered as italic.\n\nThe description MUST contain at least one timestamp from the input data\n(format M:SS, e.g. 0:32).\n\nNo anatomical jargon. No percentages. No citations. No winner/loser framing.\n\nInputs:\n- Matched recipe: Visceral Hook → Low-Effort Hold\n- Recipe description template: Immediate anterior insula spike in the opening seconds, sustained low cognitive effort across the middle, late Emotional Impact in the closing third.\n- Built for tag: spread\n- Video's chord moments with timestamps:\n  - visceral-hit at 0:08 (\"I'll give one million dollars......\")\n  - emotional-impact at 0:47 (\"You can change your life......\")\n- Video's top 2 dimension peaks:\n  - gut_reaction peak at 0:08 (value 0.91)\n  - attention peak at 0:08 (value 0.88)\n- Video subject: MrBeast\n\nVoice exemplars:\n  1. Gradual attention, deep language and memory engagement, climax in a Reasoning Beat at 0:32. *Built for retention.*\n  2. Immediate anterior insula spike, sustained low cognitive effort, late Emotional Impact at 0:47. *Built for spread.*\n  3. Personal resonance opens at 0:04, theory-of-mind takes over at 0:18, narrative integration sustains through close. *Built for parasocial bond.*\n  4. Visceral hit at 0:09, reasoning beat at 0:22, second visceral peak at 0:48. The classic three-act feel-think-feel arc. *Built for persuasion.*\n  5. Visceral hit at 0:09, sustained low effort through the middle, emotional close at 0:54. The pattern that defined a decade of YouTube. *Built for shareability.*\n\nGenerate 2 candidate descriptions in this voice. Select the one that uses the\nmost specific timestamp evidence. Output only the selected description.\nNo explanation.\n",
+  "candidates": [
+    "Gradual attention building over the runtime, deep language and memory engagement, climax in a Reasoning Beat at 0:32. *Built for retention.*"
+  ],
+  "selected": "Gradual attention building over the runtime, deep language and memory engagement, climax in a Reasoning Beat at 0:32. *Built for retention.*",
+  "attempts": 1,
+  "validation": {
+    "passed": true,
+    "errors": []
+  },
+  "latency_ms": 20
+}

@@ -1,0 +1,374 @@
+{
+  "schema_version": "results_content.v1",
+  "comparison_id": "f8e6953993dda569",
+  "run_id": "af31f6d6-9f7e-4a73-a3db-5b30c1dac80c",
+  "analysis_version": "tribev2.2026.05",
+  "generated_at": "2026-05-04T03:42:02.909875+00:00",
+  "assets": {
+    "recipe_library_version": "1.0",
+    "chord_library_version": "1.0",
+    "voice_exemplars_hash": "0d3b1a744d6d",
+    "prompt_templates_hash": "9d5b8d3e132b",
+    "slot_defaults_hash": "1bf38d36293b"
+  },
+  "videos": {
+    "video_a": {
+      "id": "veritasium-pi-2024-09",
+      "display_name": "Veritasium",
+      "creator": "Veritasium",
+      "title": "The Discovery That Transformed Pi",
+      "duration_seconds": 60.0
+    },
+    "video_b": {
+      "id": "dudeperfect-trick-2024-08",
+      "display_name": "Dude Perfect",
+      "creator": "Dude Perfect",
+      "title": "Trick Shot Battle",
+      "duration_seconds": 60.0
+    }
+  },
+  "slots": {
+    "headline": {
+      "value": "B reaches the gut. A builds the argument.",
+      "source": "llm",
+      "status": "ok",
+      "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/headline.json",
+      "errors": []
+    },
+    "body": {
+      "value": "B reaches the gut. A builds the argument.",
+      "source": "llm",
+      "status": "ok",
+      "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/body.json",
+      "errors": []
+    },
+    "frame2_sub": {
+      "value": "Slow Build \u2192 Deep Encode and Visceral Hook \u2192 Low-Effort Hold unfold across the runtime. A chord fires when two systems cross threshold at the same second and hold.",
+      "source": "llm",
+      "status": "ok",
+      "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/frame2_sub.json",
+      "errors": []
+    },
+    "recipe_match": {
+      "video_a": {
+        "value": {
+          "library_id": "slow-build-deep-encode",
+          "name": "Slow Build \u2192 Deep Encode",
+          "built_for_tag": "retention",
+          "confidence": 0.925,
+          "score_breakdown": {
+            "system_means": 1.0,
+            "chords": 1.0,
+            "timing": 0.5,
+            "integration": 1.0,
+            "hub": 1.0
+          },
+          "rationale": "System means landed in the spec'd range and the characteristic chords appeared at the right times across the runtime."
+        },
+        "source": "llm",
+        "status": "ok",
+        "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/recipe_match.video_a.json",
+        "errors": []
+      },
+      "video_b": {
+        "value": {
+          "library_id": "visceral-hook-low-effort-hold",
+          "name": "Visceral Hook \u2192 Low-Effort Hold",
+          "built_for_tag": "spread",
+          "confidence": 0.965,
+          "score_breakdown": {
+            "system_means": 1.0,
+            "chords": 1.0,
+            "timing": 1.0,
+            "integration": 1.0,
+            "hub": 0.65
+          },
+          "rationale": "System means landed in the spec'd range and the characteristic chords appeared at the right times across the runtime."
+        },
+        "source": "llm",
+        "status": "ok",
+        "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/recipe_match.video_b.json",
+        "errors": []
+      }
+    },
+    "recipe_description": {
+      "video_a": {
+        "value": "Gradual attention building over the runtime, deep language and memory engagement, climax in a Reasoning Beat at 0:32. *Built for retention.*",
+        "source": "llm",
+        "status": "ok",
+        "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/recipe_description.video_a.json",
+        "errors": []
+      },
+      "video_b": {
+        "value": "Gradual attention building over the runtime, deep language and memory engagement, climax in a Reasoning Beat at 0:32. *Built for retention.*",
+        "source": "llm",
+        "status": "ok",
+        "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/recipe_description.video_b.json",
+        "errors": []
+      }
+    },
+    "chord_meanings": {
+      "visceral-hit": {
+        "value": {
+          "id": "visceral-hit",
+          "name": "Visceral Hit",
+          "micro_label": "body before mind",
+          "formula_human": "Gut reaction is high (top 30% of clip) AND cognitive effort is low (bottom 30%) \u2014 held for at least 1 second.",
+          "meaning": "The body reacts before the mind catches up. The anterior insula \u2014 the cortex's interoceptive hub, mapping body-state signals into felt sensation \u2014 fires high while the dorsolateral prefrontal cortex stays quiet. This pattern is the cortical signature of a moment that arrives in the chest before the brain has decided whether to care. Pre-reflective. Bypasses analysis.",
+          "citations": [
+            {
+              "id": "craig-2009",
+              "evidence_level": "anchor"
+            },
+            {
+              "id": "critchley-2005",
+              "evidence_level": "anchor"
+            }
+          ]
+        },
+        "source": "library",
+        "status": "ok"
+      },
+      "learning-moment": {
+        "value": {
+          "id": "learning-moment",
+          "name": "Learning Moment",
+          "micro_label": "encoding under attention",
+          "formula_human": "Attention and memory encoding are both high (top 30% of clip) \u2014 held for at least 1 second.",
+          "meaning": "The cortex is encoding what will be remembered. The dorsal attention network and the left ventrolateral prefrontal cortex co-activate \u2014 sustained attention plus the subsequent-memory effect (Wagner 1998) firing together. When these two systems peak together, the brain is doing more than processing: it is committing the moment to long-term storage. The signature of content built to stick.",
+          "citations": [
+            {
+              "id": "wagner-1998",
+              "evidence_level": "anchor"
+            },
+            {
+              "id": "corbetta-shulman-2002",
+              "evidence_level": "anchor"
+            },
+            {
+              "id": "uncapher-wagner-2009",
+              "evidence_level": "supporting"
+            }
+          ]
+        },
+        "source": "library",
+        "status": "ok"
+      },
+      "reasoning-beat": {
+        "value": {
+          "id": "reasoning-beat",
+          "name": "Reasoning Beat",
+          "micro_label": "control over language",
+          "formula_human": "Cognitive effort and language depth are both high (top 30% of clip) \u2014 held for at least 2 seconds.",
+          "meaning": "The viewer is actively interpreting. The dorsolateral prefrontal cortex applies cognitive control while the language network \u2014 Broca's and Wernicke's together \u2014 processes semantic meaning under that control. This isn't passive listening; the cortex is restructuring its mental model in real time. The signature of content that asks the viewer to think rather than feel.",
+          "citations": [
+            {
+              "id": "miller-cohen-2001",
+              "evidence_level": "anchor"
+            },
+            {
+              "id": "fedorenko-2011",
+              "evidence_level": "anchor"
+            }
+          ]
+        },
+        "source": "library",
+        "status": "ok"
+      },
+      "emotional-impact": {
+        "value": {
+          "id": "emotional-impact",
+          "name": "Emotional Impact",
+          "micro_label": "self meets viscera",
+          "formula_human": "Self-relevance and gut reaction are both high (top 30% of clip) \u2014 held for at least 1 second.",
+          "meaning": "The medial prefrontal cortex (mPFC) and the anterior insula co-activate \u2014 self-relevance and visceral response firing simultaneously. The cortex is saying \"this matters to me, in my body.\" This is the exact pattern Falk and colleagues found in 2012 predicted population-level behavior change at r=0.87 in their anti-smoking ad study. The signature of content that doesn't just inform but lands.",
+          "citations": [
+            {
+              "id": "falk-2012",
+              "evidence_level": "anchor"
+            },
+            {
+              "id": "northoff-2006",
+              "evidence_level": "anchor"
+            }
+          ]
+        },
+        "source": "library",
+        "status": "ok"
+      },
+      "social-resonance": {
+        "value": {
+          "id": "social-resonance",
+          "name": "Social Resonance",
+          "micro_label": "self meets other",
+          "formula_human": "Theory-of-mind and self-relevance are both high (top 30% of clip) \u2014 held for at least 1 second.",
+          "meaning": "The right temporo-parietal junction and the medial prefrontal cortex co-activate \u2014 the cortex is modeling another mind while asking how it relates to the self. This is the cortical pattern under parasocial bonding: the moment a viewer stops watching a creator and starts feeling like they know them. The signature of content that builds relationship, not just attention.",
+          "citations": [
+            {
+              "id": "saxe-kanwisher-2003",
+              "evidence_level": "anchor"
+            },
+            {
+              "id": "mar-2011",
+              "evidence_level": "supporting"
+            }
+          ]
+        },
+        "source": "library",
+        "status": "ok"
+      },
+      "cold-cognitive-work": {
+        "value": {
+          "id": "cold-cognitive-work",
+          "name": "Cold Cognitive Work",
+          "micro_label": "effort without self",
+          "formula_human": "Cognitive effort is high (top 30%) AND self-relevance is low (bottom 30%) \u2014 held for at least 2 seconds.",
+          "meaning": "The dorsolateral prefrontal cortex works hard while the medial prefrontal cortex stays quiet. The cortex is processing without integrating \u2014 solving a problem the viewer doesn't yet feel is theirs. The signature of content that informs but does not yet land.",
+          "citations": [
+            {
+              "id": "miller-cohen-2001",
+              "evidence_level": "anchor"
+            },
+            {
+              "id": "northoff-2006",
+              "evidence_level": "anchor"
+            }
+          ]
+        },
+        "source": "library",
+        "status": "ok"
+      },
+      "story-integration": {
+        "value": {
+          "id": "story-integration",
+          "name": "Story Integration",
+          "micro_label": "narrative network online",
+          "formula_human": "Memory, theory-of-mind, and language are all at or above the median \u2014 held for at least 2 seconds.",
+          "meaning": "Three systems coordinate: memory encoding what's happening, theory-of-mind tracking who's doing it, and the language network processing how it's being told. This is the cortical signature of the brain treating content as a story rather than a series of moments \u2014 the network state under sustained narrative comprehension.",
+          "citations": [
+            {
+              "id": "mar-2011",
+              "evidence_level": "anchor"
+            },
+            {
+              "id": "wagner-1998",
+              "evidence_level": "supporting"
+            },
+            {
+              "id": "fedorenko-2011",
+              "evidence_level": "supporting"
+            }
+          ]
+        },
+        "source": "library",
+        "status": "ok"
+      }
+    },
+    "chord_moments": [
+      {
+        "index": 0,
+        "video": "video_a",
+        "chord_id": "reasoning-beat",
+        "timestamp_seconds": 38.0,
+        "quote": "It turned out the answer had been hiding in plain sight...",
+        "context": {
+          "value": "The viewer's body responds at 0:38 before deciding whether to care.",
+          "source": "llm",
+          "status": "ok",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[0].context.json",
+          "errors": []
+        }
+      },
+      {
+        "index": 1,
+        "video": "video_a",
+        "chord_id": "learning-moment",
+        "timestamp_seconds": 24.0,
+        "quote": "Imagine integrating along this curve...",
+        "context": {
+          "value": "The viewer's body responds at 0:24 before deciding whether to care.",
+          "source": "llm",
+          "status": "ok",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[1].context.json",
+          "errors": []
+        }
+      },
+      {
+        "index": 2,
+        "video": "video_b",
+        "chord_id": "visceral-hit",
+        "timestamp_seconds": 7.0,
+        "quote": "No way that just went in...",
+        "context": {
+          "value": "The viewer's body responds at 0:07 before deciding whether to care.",
+          "source": "llm",
+          "status": "ok",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[2].context.json",
+          "errors": []
+        }
+      },
+      {
+        "index": 3,
+        "video": "video_b",
+        "chord_id": "emotional-impact",
+        "timestamp_seconds": 52.0,
+        "quote": "Boom! Champion!",
+        "context": {
+          "value": "The viewer's body responds at 0:52 before deciding whether to care.",
+          "source": "llm",
+          "status": "ok",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[3].context.json",
+          "errors": []
+        }
+      }
+    ],
+    "coupling_callouts": {
+      "video_a": {
+        "strongest": {
+          "value": "Language and Memory systems rose together across the runtime. The two systems fired as a team \u2014 the signature of content built to stick.",
+          "source": "llm",
+          "status": "ok",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/coupling_callouts.video_a.strongest.json",
+          "errors": []
+        },
+        "weakest": {
+          "value": "Self-relevance and Gut systems rose together across the runtime. The two systems fired as a team \u2014 the signature of content built to stick.",
+          "source": "llm",
+          "status": "ok",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/coupling_callouts.video_a.weakest.json",
+          "errors": []
+        },
+        "anti": {
+          "value": "The two systems show a measurable correlation across this video's runtime. The pattern reflects how this content recruits the cortex.",
+          "source": "fallback",
+          "status": "generic",
+          "raw_path": null,
+          "errors": []
+        }
+      },
+      "video_b": {
+        "strongest": {
+          "value": "Attention and Gut systems rose together across the runtime. The two systems fired as a team \u2014 the signature of content built to stick.",
+          "source": "llm",
+          "status": "ok",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/coupling_callouts.video_b.strongest.json",
+          "errors": []
+        },
+        "weakest": {
+          "value": "Memory and Language systems rose together across the runtime. The two systems fired as a team \u2014 the signature of content built to stick.",
+          "source": "llm",
+          "status": "ok",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/coupling_callouts.video_b.weakest.json",
+          "errors": []
+        },
+        "anti": {
+          "value": "Effort and Gut systems rose together across the runtime. The two systems fired as a team \u2014 the signature of content built to stick.",
+          "source": "llm",
+          "status": "ok",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/coupling_callouts.video_b.anti.json",
+          "errors": []
+        }
+      }
+    }
+  }
+}

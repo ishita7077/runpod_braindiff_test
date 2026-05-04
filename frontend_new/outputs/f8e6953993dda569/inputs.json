@@ -1,0 +1,166 @@
+{
+  "schema_version": "normalized_inputs.v1",
+  "analysis_version": "tribev2.2026.05",
+  "video_a": {
+    "id": "veritasium-pi-2024-09",
+    "display_name": "Veritasium",
+    "creator": "Veritasium",
+    "title": "The Discovery That Transformed Pi",
+    "duration_seconds": 60.0,
+    "system_means": {
+      "personal_resonance": 0.31,
+      "attention": 0.66,
+      "brain_effort": 0.72,
+      "gut_reaction": 0.22,
+      "memory_encoding": 0.62,
+      "social_thinking": 0.38,
+      "language_depth": 0.74
+    },
+    "system_peaks": {
+      "personal_resonance": {
+        "time": 12.0,
+        "value": 0.42
+      },
+      "attention": {
+        "time": 28.0,
+        "value": 0.81
+      },
+      "brain_effort": {
+        "time": 38.0,
+        "value": 0.89
+      },
+      "gut_reaction": {
+        "time": 5.0,
+        "value": 0.34
+      },
+      "memory_encoding": {
+        "time": 24.0,
+        "value": 0.78
+      },
+      "social_thinking": {
+        "time": 45.0,
+        "value": 0.52
+      },
+      "language_depth": {
+        "time": 38.0,
+        "value": 0.91
+      }
+    },
+    "chord_events": [
+      {
+        "chord_id": "reasoning-beat",
+        "timestamp_seconds": 38.0,
+        "duration_seconds": 4.0,
+        "quote": "It turned out the answer had been hiding in plain sight...",
+        "formula_values": {}
+      },
+      {
+        "chord_id": "learning-moment",
+        "timestamp_seconds": 24.0,
+        "duration_seconds": 2.0,
+        "quote": "Imagine integrating along this curve...",
+        "formula_values": {}
+      }
+    ],
+    "integration_score": 0.42,
+    "hub_node": "language_depth",
+    "couplings": [
+      {
+        "system_a": "language_depth",
+        "system_b": "memory_encoding",
+        "r": 0.71
+      },
+      {
+        "system_a": "brain_effort",
+        "system_b": "language_depth",
+        "r": 0.68
+      },
+      {
+        "system_a": "personal_resonance",
+        "system_b": "gut_reaction",
+        "r": 0.12
+      }
+    ]
+  },
+  "video_b": {
+    "id": "dudeperfect-trick-2024-08",
+    "display_name": "Dude Perfect",
+    "creator": "Dude Perfect",
+    "title": "Trick Shot Battle",
+    "duration_seconds": 60.0,
+    "system_means": {
+      "personal_resonance": 0.55,
+      "attention": 0.78,
+      "brain_effort": 0.29,
+      "gut_reaction": 0.71,
+      "memory_encoding": 0.34,
+      "social_thinking": 0.51,
+      "language_depth": 0.32
+    },
+    "system_peaks": {
+      "personal_resonance": {
+        "time": 52.0,
+        "value": 0.74
+      },
+      "attention": {
+        "time": 7.0,
+        "value": 0.92
+      },
+      "brain_effort": {
+        "time": 28.0,
+        "value": 0.38
+      },
+      "gut_reaction": {
+        "time": 7.0,
+        "value": 0.94
+      },
+      "memory_encoding": {
+        "time": 18.0,
+        "value": 0.45
+      },
+      "social_thinking": {
+        "time": 41.0,
+        "value": 0.62
+      },
+      "language_depth": {
+        "time": 22.0,
+        "value": 0.41
+      }
+    },
+    "chord_events": [
+      {
+        "chord_id": "visceral-hit",
+        "timestamp_seconds": 7.0,
+        "duration_seconds": 2.0,
+        "quote": "No way that just went in...",
+        "formula_values": {}
+      },
+      {
+        "chord_id": "emotional-impact",
+        "timestamp_seconds": 52.0,
+        "duration_seconds": 1.0,
+        "quote": "Boom! Champion!",
+        "formula_values": {}
+      }
+    ],
+    "integration_score": 0.19,
+    "hub_node": "gut_reaction",
+    "couplings": [
+      {
+        "system_a": "attention",
+        "system_b": "gut_reaction",
+        "r": 0.74
+      },
+      {
+        "system_a": "brain_effort",
+        "system_b": "gut_reaction",
+        "r": -0.41
+      },
+      {
+        "system_a": "memory_encoding",
+        "system_b": "language_depth",
+        "r": 0.18
+      }
+    ]
+  }
+}

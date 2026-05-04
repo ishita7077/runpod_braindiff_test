@@ -1,0 +1,159 @@
+{
+  "schema_version": "normalized_inputs.v1",
+  "analysis_version": "tribev2.2026.05",
+  "video_a": {
+    "id": "vox-meaning-2024-11",
+    "display_name": "Vox",
+    "creator": "Vox",
+    "title": "The Search for the Meaning of the Universe",
+    "duration_seconds": 60.0,
+    "system_means": {
+      "personal_resonance": 0.58,
+      "attention": 0.61,
+      "brain_effort": 0.52,
+      "gut_reaction": 0.34,
+      "memory_encoding": 0.61,
+      "social_thinking": 0.55,
+      "language_depth": 0.66
+    },
+    "system_peaks": {
+      "personal_resonance": {
+        "time": 8.0,
+        "value": 0.71
+      },
+      "attention": {
+        "time": 35.0,
+        "value": 0.74
+      },
+      "brain_effort": {
+        "time": 41.0,
+        "value": 0.69
+      },
+      "gut_reaction": {
+        "time": 12.0,
+        "value": 0.48
+      },
+      "memory_encoding": {
+        "time": 28.0,
+        "value": 0.78
+      },
+      "social_thinking": {
+        "time": 22.0,
+        "value": 0.71
+      },
+      "language_depth": {
+        "time": 35.0,
+        "value": 0.81
+      }
+    },
+    "chord_events": [
+      {
+        "chord_id": "story-integration",
+        "timestamp_seconds": 28.0,
+        "duration_seconds": 3.0,
+        "quote": "And then a strange pattern emerged...",
+        "formula_values": {}
+      },
+      {
+        "chord_id": "social-resonance",
+        "timestamp_seconds": 22.0,
+        "duration_seconds": 2.0,
+        "quote": "Carl Sagan wrote about this...",
+        "formula_values": {}
+      }
+    ],
+    "integration_score": 0.52,
+    "hub_node": "memory_encoding",
+    "couplings": [
+      {
+        "system_a": "memory_encoding",
+        "system_b": "social_thinking",
+        "r": 0.62
+      },
+      {
+        "system_a": "language_depth",
+        "system_b": "memory_encoding",
+        "r": 0.58
+      },
+      {
+        "system_a": "personal_resonance",
+        "system_b": "gut_reaction",
+        "r": 0.21
+      }
+    ]
+  },
+  "video_b": {
+    "id": "ragebait-shock-2024-12",
+    "display_name": "Shock Channel",
+    "creator": "Anonymous",
+    "title": "You Won't Believe What Happened",
+    "duration_seconds": 60.0,
+    "system_means": {
+      "personal_resonance": 0.32,
+      "attention": 0.71,
+      "brain_effort": 0.21,
+      "gut_reaction": 0.78,
+      "memory_encoding": 0.28,
+      "social_thinking": 0.3,
+      "language_depth": 0.31
+    },
+    "system_peaks": {
+      "personal_resonance": {
+        "time": 4.0,
+        "value": 0.44
+      },
+      "attention": {
+        "time": 4.0,
+        "value": 0.88
+      },
+      "brain_effort": {
+        "time": 18.0,
+        "value": 0.31
+      },
+      "gut_reaction": {
+        "time": 4.0,
+        "value": 0.95
+      },
+      "memory_encoding": {
+        "time": 38.0,
+        "value": 0.41
+      },
+      "social_thinking": {
+        "time": 28.0,
+        "value": 0.42
+      },
+      "language_depth": {
+        "time": 12.0,
+        "value": 0.38
+      }
+    },
+    "chord_events": [
+      {
+        "chord_id": "visceral-hit",
+        "timestamp_seconds": 4.0,
+        "duration_seconds": 2.0,
+        "quote": "...what happened next was unbelievable",
+        "formula_values": {}
+      }
+    ],
+    "integration_score": 0.14,
+    "hub_node": "gut_reaction",
+    "couplings": [
+      {
+        "system_a": "attention",
+        "system_b": "gut_reaction",
+        "r": 0.81
+      },
+      {
+        "system_a": "memory_encoding",
+        "system_b": "language_depth",
+        "r": 0.05
+      },
+      {
+        "system_a": "brain_effort",
+        "system_b": "gut_reaction",
+        "r": -0.28
+      }
+    ]
+  }
+}

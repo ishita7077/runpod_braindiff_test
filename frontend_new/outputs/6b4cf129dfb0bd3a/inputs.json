@@ -1,0 +1,166 @@
+{
+  "schema_version": "normalized_inputs.v1",
+  "analysis_version": "tribev2.2026.05",
+  "video_a": {
+    "id": "cleo-quantum-2024-04",
+    "display_name": "Cleo Abram",
+    "creator": "Cleo Abram",
+    "title": "Quantum Computing Explained",
+    "duration_seconds": 60.0,
+    "system_means": {
+      "personal_resonance": 0.42,
+      "attention": 0.62,
+      "brain_effort": 0.58,
+      "gut_reaction": 0.28,
+      "memory_encoding": 0.66,
+      "social_thinking": 0.41,
+      "language_depth": 0.71
+    },
+    "system_peaks": {
+      "personal_resonance": {
+        "time": 8.0,
+        "value": 0.55
+      },
+      "attention": {
+        "time": 22.0,
+        "value": 0.78
+      },
+      "brain_effort": {
+        "time": 32.0,
+        "value": 0.82
+      },
+      "gut_reaction": {
+        "time": 4.0,
+        "value": 0.41
+      },
+      "memory_encoding": {
+        "time": 18.0,
+        "value": 0.81
+      },
+      "social_thinking": {
+        "time": 28.0,
+        "value": 0.55
+      },
+      "language_depth": {
+        "time": 32.0,
+        "value": 0.86
+      }
+    },
+    "chord_events": [
+      {
+        "chord_id": "learning-moment",
+        "timestamp_seconds": 18.0,
+        "duration_seconds": 2.0,
+        "quote": "Imagine searching a library...",
+        "formula_values": {}
+      },
+      {
+        "chord_id": "reasoning-beat",
+        "timestamp_seconds": 32.0,
+        "duration_seconds": 4.0,
+        "quote": "Quantum computing isn't about being faster...",
+        "formula_values": {}
+      }
+    ],
+    "integration_score": 0.41,
+    "hub_node": "language_depth",
+    "couplings": [
+      {
+        "system_a": "memory_encoding",
+        "system_b": "language_depth",
+        "r": 0.65
+      },
+      {
+        "system_a": "personal_resonance",
+        "system_b": "gut_reaction",
+        "r": 0.18
+      },
+      {
+        "system_a": "attention",
+        "system_b": "brain_effort",
+        "r": 0.18
+      }
+    ]
+  },
+  "video_b": {
+    "id": "mrbeast-circle-2024-03",
+    "display_name": "MrBeast",
+    "creator": "MrBeast",
+    "title": "Last to Leave Circle Wins $500,000",
+    "duration_seconds": 60.0,
+    "system_means": {
+      "personal_resonance": 0.61,
+      "attention": 0.74,
+      "brain_effort": 0.32,
+      "gut_reaction": 0.69,
+      "memory_encoding": 0.39,
+      "social_thinking": 0.46,
+      "language_depth": 0.38
+    },
+    "system_peaks": {
+      "personal_resonance": {
+        "time": 47.0,
+        "value": 0.78
+      },
+      "attention": {
+        "time": 8.0,
+        "value": 0.88
+      },
+      "brain_effort": {
+        "time": 30.0,
+        "value": 0.42
+      },
+      "gut_reaction": {
+        "time": 8.0,
+        "value": 0.91
+      },
+      "memory_encoding": {
+        "time": 22.0,
+        "value": 0.51
+      },
+      "social_thinking": {
+        "time": 35.0,
+        "value": 0.58
+      },
+      "language_depth": {
+        "time": 18.0,
+        "value": 0.49
+      }
+    },
+    "chord_events": [
+      {
+        "chord_id": "visceral-hit",
+        "timestamp_seconds": 8.0,
+        "duration_seconds": 2.0,
+        "quote": "I'll give one million dollars...",
+        "formula_values": {}
+      },
+      {
+        "chord_id": "emotional-impact",
+        "timestamp_seconds": 47.0,
+        "duration_seconds": 1.0,
+        "quote": "You can change your life...",
+        "formula_values": {}
+      }
+    ],
+    "integration_score": 0.22,
+    "hub_node": "gut_reaction",
+    "couplings": [
+      {
+        "system_a": "attention",
+        "system_b": "gut_reaction",
+        "r": 0.62
+      },
+      {
+        "system_a": "brain_effort",
+        "system_b": "gut_reaction",
+        "r": -0.32
+      },
+      {
+        "system_a": "memory_encoding",
+        "system_b": "language_depth",
+        "r": 0.14
+      }
+    ]
+  }
+}

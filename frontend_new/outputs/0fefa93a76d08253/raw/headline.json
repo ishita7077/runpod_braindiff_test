@@ -1,0 +1,32 @@
+{
+  "schema_version": "raw_slot.v1",
+  "slot": "headline",
+  "comparison_id": "0fefa93a76d08253",
+  "run_id": "8655f395-a111-4aa8-b5c8-eec543119091",
+  "generated_at": "2026-05-04T03:42:02.959910+00:00",
+  "model": {
+    "model_id": "stub-llama-3.2-3b-instruct",
+    "model_revision": "stub-v0",
+    "seed": 1648552704,
+    "do_sample": false,
+    "temperature": 0.4,
+    "top_p": 0.9,
+    "max_new_tokens": 120
+  },
+  "asset_hashes": {
+    "voice_exemplars_hash": "0d3b1a744d6d",
+    "recipe_library_version": "1.0",
+    "chord_library_version": "1.0"
+  },
+  "prompt_rendered": "You are writing the hero headline for a Brain Diff results page.\n\nBrain Diff compares two videos by predicting cortical activation in 7 systems and\nidentifying their cognitive recipes. Every page is a STRATEGY comparison. Never\nwinner-vs-loser. Never \"X wins Y\" framing.\n\nFormat: Two short declarative sentences. Each sentence ≤ 8 words. The two\nsentences should mirror each other in structure — same verb pattern, opposite\ncontent. Use plain English. Never use anatomical terms (no \"insula,\" no \"cortex\").\nNever include numeric percentages, r-values, citations, or year stamps.\n\nInputs:\n- Video A subject: Vox\n- Video B subject: Shock Channel\n- Largest deltas (B − A):\n  - gut_reaction: +0.44 (B higher)\n  - language_depth: -0.35 (A higher)\n  - memory_encoding: -0.33 (A higher)\n- Body-axis dimensions winning for B: gut_reaction\n- Mind-axis dimensions winning for A: brain_effort, memory_encoding, language_depth\n\nVoice exemplars (study these carefully):\n  1. \"MrBeast hits the body, fast. Cleo holds the head, deep.\"\n  2. \"B reaches the gut. A builds the argument.\"\n  3. \"One lands viscerally. The other lands intellectually.\"\n  4. \"MrBeast triggers feeling. Cleo triggers thinking.\"\n  5. \"B aims at the chest. A aims at the chair.\"\n  6. \"Cleo wires the cortex for tomorrow. MrBeast wires it for now.\"\n\nGenerate 5 candidate headlines following this pattern. Then select the one with\nstrongest contrast and clearest plain-language framing. Output only the selected\nheadline as a single string. No explanation. No quotes around it.\n",
+  "candidates": [
+    "B reaches the gut. A builds the argument."
+  ],
+  "selected": "B reaches the gut. A builds the argument.",
+  "attempts": 1,
+  "validation": {
+    "passed": true,
+    "errors": []
+  },
+  "latency_ms": 8
+}

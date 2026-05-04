@@ -30,8 +30,10 @@ MISTAKES_AGENT.md
 .env.production
 .env*.local
 
-# Results page generation outputs (per-comparison artefacts)
-/frontend_new/outputs/
+# Results page operational artefacts (per-comparison logs / overrides)
 /audit_log/
 /manual_overrides/
+
+# Note: /frontend_new/outputs/ is NOT ignored — generated content.json is a
+# production asset shipped with the Vercel deploy.
 

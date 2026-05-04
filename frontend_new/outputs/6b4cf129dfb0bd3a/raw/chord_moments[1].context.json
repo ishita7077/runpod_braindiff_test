@@ -1,0 +1,32 @@
+{
+  "schema_version": "raw_slot.v1",
+  "slot": "chord_moments[1].context",
+  "comparison_id": "6b4cf129dfb0bd3a",
+  "run_id": "a64ebee4-e2e1-4660-b5e5-e3e0be4c02c9",
+  "generated_at": "2026-05-04T03:42:02.804708+00:00",
+  "model": {
+    "model_id": "stub-llama-3.2-3b-instruct",
+    "model_revision": "stub-v0",
+    "seed": 3879752872,
+    "do_sample": false,
+    "temperature": 0.4,
+    "top_p": 0.9,
+    "max_new_tokens": 80
+  },
+  "asset_hashes": {
+    "voice_exemplars_hash": "0d3b1a744d6d",
+    "recipe_library_version": "1.0",
+    "chord_library_version": "1.0"
+  },
+  "prompt_rendered": "You are writing one personalized sentence to append to a chord's general\nmeaning in the Brain Diff results page.\n\nThe chord type's meaning is already explained generically above your sentence.\nYour job: add ONE sentence that grounds this specific firing in this specific\nvideo. Reference the quote, the timestamp, the creator name, or a specific\ncortical detail.\n\nFormat: 1 sentence, ≤ 22 words. Direct, specific, no hedge language.\nNo anatomical jargon. No percentages. No citations. No winner/loser framing.\n\nInputs:\n- Chord type: Reasoning Beat\n- Chord general meaning (already on page, do not repeat): The viewer is actively interpreting. The dorsolateral prefrontal cortex applies cognitive control while the language network — Broca's and Wernicke's together — processes semantic meaning under that c\n- Firing timestamp (M:SS): 0:32\n- Firing video subject: Cleo Abram\n- Quote at this moment: Quantum computing isn't about being faster...\n- Specific values that triggered the chord: (not provided)\n\nVoice exemplars (this slot's anchors):\n  - Cleo restructures the viewer's mental model in real time — the cortex has to work to follow.\n  - Cleo restructures what the viewer thought they knew about quantum computing in 4.2 seconds.\n  - The argument requires effort because it contradicts a default mental model — and the cortex shows up for the work.\n\nGenerate 2 candidate sentences. Select the one with the most specific grounding.\nOutput only the selected sentence as a single string. No explanation.\n",
+  "candidates": [
+    "The viewer's body responds at 0:32 before deciding whether to care."
+  ],
+  "selected": "The viewer's body responds at 0:32 before deciding whether to care.",
+  "attempts": 1,
+  "validation": {
+    "passed": true,
+    "errors": []
+  },
+  "latency_ms": 45
+}
