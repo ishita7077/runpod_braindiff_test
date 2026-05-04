@@ -2,11 +2,11 @@
   "schema_version": "raw_slot.v1",
   "slot": "recipe_match.video_b",
   "comparison_id": "6b4cf129dfb0bd3a",
-  "run_id": "181631f8-5fe6-452d-b2b3-778a00d7a8f4",
-  "generated_at": "2026-05-04T05:47:24.906762+00:00",
+  "run_id": "ccd04925-4674-4190-a51a-61598cf52e2f",
+  "generated_at": "2026-05-04T07:09:50.155703+00:00",
   "model": {
-    "model_id": "stub-llama-3.2-3b-instruct",
-    "model_revision": "stub-v0",
+    "model_id": "meta-llama/Llama-3.2-3B-Instruct",
+    "model_revision": "meta-llama/Llama-3.2-3B-Instruct",
     "seed": 1993845680,
     "do_sample": false,
     "temperature": 0.4,
@@ -15,7 +15,7 @@
   },
   "prompt_rendered": "You are writing a one-sentence rationale for a Brain Diff recipe match.\n\nThe recipe match itself was already determined deterministically by score-based\nmatching against a structured library. Your only job: write ONE plain-English\nsentence explaining why this recipe matched, citing the score breakdown.\n\nFormat: 1 sentence, ≤ 35 words. No anatomical jargon. No percentages.\nNo citations. No winner/loser framing.\n\nInputs:\n- Matched recipe name: Visceral Hook → Low-Effort Hold\n- Matched recipe library_id: visceral-hook-low-effort-hold\n- Confidence score (0-1): 0.96\n- Score breakdown:\n  - system_means: 1.00\n  - chords: 1.00\n  - timing: 1.00\n  - integration: 1.00\n  - hub: 0.65\n- Video subject: MrBeast\n- Top 2 cortical features that drove the match:\n  - system_means score 1.00 — attention mean = 0.60\n  - chords score 1.00 — detected chords = ['visceral-hit', 'emotional-impact']\n\nOutput: just the sentence, no quotes, no preamble.\n",
   "candidates": [
-    "System means landed in the spec'd range and the characteristic chords appeared at the right times across the runtime."
+    "The Visceral Hook recipe matched the Low-Effort Hold recipe because it scored perfectly across all system means, chords, and timing, with a strong match driven by the presence of detected chords 'visceral-hit' and 'emotional-impact'."
   ],
   "selected": {
     "library_id": "visceral-hook-low-effort-hold",
@@ -29,14 +29,14 @@
       "integration": 1.0,
       "hub": 0.65
     },
-    "rationale": "System means landed in the spec'd range and the characteristic chords appeared at the right times across the runtime."
+    "rationale": "The Visceral Hook recipe matched the Low-Effort Hold recipe because it scored perfectly across all system means, chords, and timing, with a strong match driven by the presence of detected chords 'visceral-hit' and 'emotional-impact'."
   },
   "attempts": 1,
   "validation": {
     "passed": true,
     "errors": []
   },
-  "latency_ms": 14,
+  "latency_ms": 26919,
   "deterministic_match": {
     "library_id": "visceral-hook-low-effort-hold",
     "confidence": 0.965,

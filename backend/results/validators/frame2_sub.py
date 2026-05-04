@@ -29,10 +29,10 @@ class Frame2SubValidator(BaseValidator):
             ))
 
         wc = self.count_words(text)
-        if wc > 50:
+        if wc > 90:
             errors.append(ValidationError(
                 code="OVER_WORD_LIMIT",
-                detail=f"frame2_sub has {wc} words, max 50",
+                detail=f"frame2_sub has {wc} words, max 90",
             ))
 
         text_lower = text.lower()

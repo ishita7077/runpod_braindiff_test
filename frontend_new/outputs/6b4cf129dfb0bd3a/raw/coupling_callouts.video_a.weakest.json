@@ -2,11 +2,11 @@
   "schema_version": "raw_slot.v1",
   "slot": "coupling_callouts.video_a.weakest",
   "comparison_id": "6b4cf129dfb0bd3a",
-  "run_id": "181631f8-5fe6-452d-b2b3-778a00d7a8f4",
-  "generated_at": "2026-05-04T05:47:24.920596+00:00",
+  "run_id": "ccd04925-4674-4190-a51a-61598cf52e2f",
+  "generated_at": "2026-05-04T07:10:39.933412+00:00",
   "model": {
-    "model_id": "stub-llama-3.2-3b-instruct",
-    "model_revision": "stub-v0",
+    "model_id": "meta-llama/Llama-3.2-3B-Instruct",
+    "model_revision": "meta-llama/Llama-3.2-3B-Instruct",
     "seed": 705343804,
     "do_sample": false,
     "temperature": 0.4,
@@ -15,15 +15,15 @@
   },
   "prompt_rendered": "You are writing one coupling callout for a Brain Diff results page Network\nCoordination panel.\n\nA \"coupling callout\" describes how strongly two cortical systems fire together\nwithin a single video, and what that means for the cortex's cognitive strategy.\nBrain Diff is a STRATEGY comparison — every callout reinforces this framing.\n\nFormat: 2 sentences, ≤ 38 words total. The first sentence describes what the\nsystems DID (rose together / pulled apart / one suppressed the other). The\nsecond sentence ends with a recipe-relevant cognitive consequence — what the\ncortex was DOING because of this coupling pattern.\n\nMust reference both system names. No anatomical jargon. No percentages.\nNo citations. No winner/loser framing.\n\nInputs:\n- Video subject: Cleo Abram\n- Coupling type: weakest (strongest | weakest | anti)\n- System pair: personal_resonance ↔ gut_reaction\n- r-value: +0.18\n- Qualitative descriptor: decoupled\n- This video's recipe: Slow Build → Deep Encode\n\nVoice exemplars:\n  1. Cleo's Memory and Language systems rose together across her runtime. When the brain was encoding what to remember, it was also processing the linguistic meaning. The two systems fired as a team — the signature of content built to stick.\n  2. Cleo's Self-Relevance and Visceral Response systems operated independently. Viewers found her content meaningful without feeling it in the body. The brain was thinking, not feeling.\n  3. MrBeast's Attention and Visceral Response systems moved together. Where the viewer's eye locked on, the body reacted. Attention was visceral, not analytical.\n  4. When MrBeast's Visceral Response fired, his Cognitive Control system went DOWN. The body reacted before the mind could catch up. The cortex was actively bypassing analysis — the hallmark of high-stakes entertainment.\n\nGenerate 2 candidate callouts in this voice. Select the one with the strongest\nrecipe-relevant ending. Output only the selected 2-sentence callout as a\nsingle string. No explanation.\n",
   "candidates": [
-    "Self-relevance and Gut systems rose together across the runtime. The two systems fired as a team — the signature of content built to stick."
+    "Cleo Abram's personal_resonance and gut_reaction systems rose together, firing as a team to encode content that would stick. This coupling pattern allowed her to build a strong foundation for Deep Encode, where memories and meanings are deeply ingrained."
   ],
-  "selected": "Self-relevance and Gut systems rose together across the runtime. The two systems fired as a team — the signature of content built to stick.",
+  "selected": "Cleo Abram's personal_resonance and gut_reaction systems rose together, firing as a team to encode content that would stick. This coupling pattern allowed her to build a strong foundation for Deep Encode, where memories and meanings are deeply ingrained.",
   "attempts": 1,
   "validation": {
     "passed": true,
     "errors": []
   },
-  "latency_ms": 27,
+  "latency_ms": 76693,
   "pair": {
     "system_a": "personal_resonance",
     "system_b": "gut_reaction",

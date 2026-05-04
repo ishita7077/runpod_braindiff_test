@@ -296,7 +296,7 @@ class LoadedTransformersBackend:
         self,
         *,
         model_name: str = "meta-llama/Llama-3.2-3B-Instruct",
-        cache_folder: str = "./cache",
+        cache_folder: str | None = None,    # None = use HF default (HF_HOME / ~/.cache/huggingface)
         device: str | None = None,
         dtype: str = "float16",
     ) -> None:
@@ -330,17 +330,25 @@ class LoadedTransformersBackend:
             "float32": torch.float32,
         }.get(self._dtype_str, torch.float16)
 
-        self._tokenizer = AutoTokenizer.from_pretrained(
-            self.model_name, cache_dir=self.cache_folder,
-        )
+        # Pick CPU dtype = float32 (MPS GQA bug + better numerics on CPU);
+        # GPU dtype = whatever the caller asked (fp16 default).
+        load_dtype = torch.float32 if self._device == "cpu" else dtype
+
+        tok_kwargs: dict[str, Any] = {}
+        model_kwargs: dict[str, Any] = {}
+        if self.cache_folder:
+            tok_kwargs["cache_dir"] = self.cache_folder
+            model_kwargs["cache_dir"] = self.cache_folder
+
+        self._tokenizer = AutoTokenizer.from_pretrained(self.model_name, **tok_kwargs)
         if self._tokenizer.pad_token_id is None:
             self._tokenizer.pad_token_id = self._tokenizer.eos_token_id
 
         self._model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
-            cache_dir=self.cache_folder,
-            torch_dtype=dtype,
-            device_map=self._device if self._device != "cpu" else None,
+            torch_dtype=load_dtype,
+            device_map=self._device if self._device not in ("cpu", None) else None,
+            **model_kwargs,
         )
         if self._device == "cpu":
             self._model = self._model.to("cpu")
@@ -366,22 +374,28 @@ class LoadedTransformersBackend:
         # Llama-3.2-Instruct chat formatting: wrap as a single user turn.
         messages = [{"role": "user", "content": req.prompt}]
         chat_input = self._tokenizer.apply_chat_template(
-            messages, add_generation_prompt=True, return_tensors="pt",
+            messages, add_generation_prompt=True, return_tensors="pt", return_dict=True,
         )
-        if self._device != "cpu":
-            chat_input = chat_input.to(self._device)
-        input_len = chat_input.shape[1]
+        input_ids = chat_input["input_ids"]
+        attention_mask = chat_input.get("attention_mask")
+        if self._device not in ("cpu", None):
+            input_ids = input_ids.to(self._device)
+            if attention_mask is not None:
+                attention_mask = attention_mask.to(self._device)
+        input_len = input_ids.shape[1]
 
-        gen_kwargs = {
+        gen_kwargs: dict[str, Any] = {
             "max_new_tokens": req.max_new_tokens,
             "do_sample": req.do_sample,
             "pad_token_id": self._tokenizer.pad_token_id,
         }
+        if attention_mask is not None:
+            gen_kwargs["attention_mask"] = attention_mask
         if req.do_sample:
             gen_kwargs["temperature"] = req.temperature
             gen_kwargs["top_p"] = req.top_p
         with torch.inference_mode():
-            output_ids = self._model.generate(chat_input, **gen_kwargs)
+            output_ids = self._model.generate(input_ids, **gen_kwargs)
 
         new_tokens = output_ids[0, input_len:]
         text = self._tokenizer.decode(new_tokens, skip_special_tokens=True).strip()

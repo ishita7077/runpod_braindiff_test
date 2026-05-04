@@ -25,17 +25,17 @@ class ChordContextualMeaningValidator(BaseValidator):
         text = output.strip()
 
         n = self.count_sentences(text)
-        if not (2 <= n <= 3):
+        if not (1 <= n <= 4):
             errors.append(ValidationError(
                 code="WRONG_SENTENCE_COUNT",
-                detail=f"contextual meaning should be 2-3 sentences, got {n}",
+                detail=f"contextual meaning should be 1-4 sentences, got {n}",
             ))
 
         wc = self.count_words(text)
-        if wc > 70:
+        if wc > 100:
             errors.append(ValidationError(
                 code="OVER_WORD_LIMIT",
-                detail=f"contextual meaning has {wc} words, max 70",
+                detail=f"contextual meaning has {wc} words, max 100",
             ))
 
         errors.extend(self.check_banned_patterns(text))

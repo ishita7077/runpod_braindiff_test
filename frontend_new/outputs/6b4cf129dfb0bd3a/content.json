@@ -1,9 +1,9 @@
 {
   "schema_version": "results_content.v1",
   "comparison_id": "6b4cf129dfb0bd3a",
-  "run_id": "181631f8-5fe6-452d-b2b3-778a00d7a8f4",
+  "run_id": "ccd04925-4674-4190-a51a-61598cf52e2f",
   "analysis_version": "tribev2.2026.05",
-  "generated_at": "2026-05-04T05:47:24.954106+00:00",
+  "generated_at": "2026-05-04T07:12:20.075481+00:00",
   "assets": {
     "recipe_library_version": "1.0",
     "chord_library_version": "1.0",
@@ -1263,21 +1263,21 @@
   },
   "slots": {
     "headline": {
-      "value": "B reaches the gut. A builds the argument.",
+      "value": "Cleo Abram's thinking sparks a deeper connection.\nMrBeast's emotions ignite a more intellectual response.",
       "source": "llm",
       "status": "ok",
       "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/headline.json",
       "errors": []
     },
     "body": {
-      "value": "These two videos pull the cortex apart in opposite directions. One arrives in the chest before deliberation, the other builds in the head as you follow the argument. The systems they recruit barely overlap \u2014 keep scrolling for the chord-by-chord breakdown.",
+      "value": "Cleo Abram's thinking sparks a deeper connection because her videos expertly combine memory encoding and language, firing these two systems in perfect harmony. This synergy is evident in the way her content builds gradually, engaging the language network and encoding memories throughout, culminating in a Reasoning Beat that leaves a lasting impact. As you watch, you'll see how this unique approach sets her apart from others, and we'll dive deeper into the science behind her success.",
       "source": "llm",
       "status": "ok",
       "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/body.json",
       "errors": []
     },
     "frame2_sub": {
-      "value": "Slow Build \u2192 Deep Encode and Visceral Hook \u2192 Low-Effort Hold unfold across the runtime. A chord fires when two systems cross threshold at the same second and hold.",
+      "value": "Frame 02 introduces the chord progression \u2014 the sequence of cortical events each video fires across its runtime. A chord is a simultaneous activation of two or three cortical systems that hold for at least one or two seconds. The chord progression for Slow Build \u2192 Deep Encode unfolds as: 1-2-3-4-5-6-7-8, while Visceral Hook \u2192 Low-Effort Hold unfolds as: 1-2-3-5-6-7-8-9.",
       "source": "llm",
       "status": "ok",
       "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/frame2_sub.json",
@@ -1297,7 +1297,7 @@
             "integration": 1.0,
             "hub": 1.0
           },
-          "rationale": "System means landed in the spec'd range and the characteristic chords appeared at the right times across the runtime."
+          "rationale": "The Slow Build \u2192 Deep Encode recipe matched because its high scores in system_means, chords, integration, and hub, combined with its strong connection to Cleo Abram's learning and reasoning moments, drove the match."
         },
         "source": "llm",
         "status": "ok",
@@ -1317,7 +1317,7 @@
             "integration": 1.0,
             "hub": 0.65
           },
-          "rationale": "System means landed in the spec'd range and the characteristic chords appeared at the right times across the runtime."
+          "rationale": "The Visceral Hook recipe matched the Low-Effort Hold recipe because it scored perfectly across all system means, chords, and timing, with a strong match driven by the presence of detected chords 'visceral-hit' and 'emotional-impact'."
         },
         "source": "llm",
         "status": "ok",
@@ -1327,14 +1327,14 @@
     },
     "recipe_description": {
       "video_a": {
-        "value": "Gradual attention building over the runtime, deep language and memory engagement, climax in a Reasoning Beat at 0:32. *Built for retention.*",
+        "value": "*Built for retention.* At 0:18, Cleo Abram's \"Imagine searching a library \u2014 but every page at once...\" sparks a deep language network engagement, setting the stage for gradual attention building over the runtime.",
         "source": "llm",
         "status": "ok",
         "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/recipe_description.video_a.json",
         "errors": []
       },
       "video_b": {
-        "value": "Gradual attention building over the runtime, deep language and memory engagement, climax in a Reasoning Beat at 0:32. *Built for retention.*",
+        "value": "*Built for spread.*\n\nAt 0:08, MrBeast's visceral hit sparks a wave of emotional investment, which peaks at 0:47 with a powerful call-to-action, leaving a lasting impact on viewers.",
         "source": "llm",
         "status": "ok",
         "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/recipe_description.video_b.json",
@@ -1506,7 +1506,7 @@
         "timestamp_seconds": 18.0,
         "quote": "Imagine searching a library \u2014 but every page at once.",
         "meaning": {
-          "value": "At 0:18 in Cleo Abram, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
+          "value": "The Learning Moment chord fired as the brain rapidly consolidated a vivid mental image, akin to searching a library where every page is simultaneously accessible. This moment was primed for retention due to the synchronized peak of attention and memory encoding, as the cortex swiftly committed the image to long-term storage in real-time.",
           "source": "llm",
           "status": "ok",
           "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[0].meaning.json",
@@ -1520,7 +1520,7 @@
         "timestamp_seconds": 32.0,
         "quote": "Quantum computing isn't about being faster. It's about doing things classical computers literally cannot do.",
         "meaning": {
-          "value": "At 0:32 in Cleo Abram, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
+          "value": "The Reasoning Beat chord fired at 0:32 in \"Cleo Abram\" as the viewer's brain effort increased to process the argument that quantum computing defies classical computation, requiring a mental model shift that challenges existing knowledge. This chord type is triggered when the cortex must work to restructure its understanding, as Cleo's concise statement demands active interpretation and cognitive control. The language depth system crossed the threshold, indicating a need for nuanced semantic processing.",
           "source": "llm",
           "status": "ok",
           "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[1].meaning.json",
@@ -1534,7 +1534,7 @@
         "timestamp_seconds": 8.0,
         "quote": "I'll give one million dollars to the last person standing.",
         "meaning": {
-          "value": "At 0:08 in MrBeast, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
+          "value": "The Visceral Hit chord fired at 0:08 in \"MrBeast\" as the body reacted to the sudden, life-changing offer of one million dollars, bypassing the need for rational evaluation, and landing squarely in the chest, where the gut_reaction system crossed the threshold, triggering a primal response that pre-empted the brain's effort to analyze the situation.",
           "source": "llm",
           "status": "ok",
           "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[2].meaning.json",
@@ -1548,7 +1548,7 @@
         "timestamp_seconds": 47.0,
         "quote": "You can change your life right now. This is your shot.",
         "meaning": {
-          "value": "At 0:47 in MrBeast, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
+          "value": "The Emotional Impact chord fired when the MrBeast video's message of empowerment and personal agency resonated deeply with the viewer, triggering a visceral response that linked their self-relevance to the promise of transformative change. This chord is anchored by the phrase \"You can change your life right now,\" which speaks directly to the viewer's sense of personal responsibility and bodily experience. The gut_reaction system's activation reinforced this emotional impact, solidifying the connection between the content and the viewer's inner experience.",
           "source": "llm",
           "status": "ok",
           "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[3].meaning.json",
@@ -1559,14 +1559,14 @@
     "coupling_callouts": {
       "video_a": {
         "strongest": {
-          "value": "Memory and Language systems rose together across the runtime. The two systems fired as a team \u2014 the signature of content built to stick.",
+          "value": "Cleo Abram's Memory Encoding and Language Depth systems rose together, firing as a team to build content that sticks. This tightly coupled pattern enabled her to Deep Encode complex information, making it more memorable.",
           "source": "llm",
           "status": "ok",
           "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/coupling_callouts.video_a.strongest.json",
           "errors": []
         },
         "weakest": {
-          "value": "Self-relevance and Gut systems rose together across the runtime. The two systems fired as a team \u2014 the signature of content built to stick.",
+          "value": "Cleo Abram's personal_resonance and gut_reaction systems rose together, firing as a team to encode content that would stick. This coupling pattern allowed her to build a strong foundation for Deep Encode, where memories and meanings are deeply ingrained.",
           "source": "llm",
           "status": "ok",
           "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/coupling_callouts.video_a.weakest.json",
@@ -1582,21 +1582,21 @@
       },
       "video_b": {
         "strongest": {
-          "value": "Attention and Gut systems rose together across the runtime. The two systems fired as a team \u2014 the signature of content built to stick.",
+          "value": "MrBeast's Attention and Visceral Response systems moved together, creating a visceral hook that drew the viewer in. This tightly coupled pattern led to a Low-Effort Hold, where the brain was easily engaged without requiring much mental effort.",
           "source": "llm",
           "status": "ok",
           "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/coupling_callouts.video_b.strongest.json",
           "errors": []
         },
         "weakest": {
-          "value": "Memory and Language systems rose together across the runtime. The two systems fired as a team \u2014 the signature of content built to stick.",
+          "value": "MrBeast's memory_encoding and language_depth systems rose together, firing as a team to build content that sticks. This coupling pattern enabled a Visceral Hook, drawing viewers in with an emotional connection that held their attention.",
           "source": "llm",
           "status": "ok",
           "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/coupling_callouts.video_b.weakest.json",
           "errors": []
         },
         "anti": {
-          "value": "Effort and Gut systems rose together across the runtime. The two systems fired as a team \u2014 the signature of content built to stick.",
+          "value": "MrBeast's brain_effort and gut_reaction systems pulled apart, with the brain suppressing the gut's visceral reaction. This anti-coupling allowed the cortex to maintain control, enabling a Low-Effort Hold recipe.",
           "source": "llm",
           "status": "ok",
           "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/coupling_callouts.video_b.anti.json",

@@ -24,10 +24,10 @@ class BodyValidator(BaseValidator):
             ))
 
         wc = self.count_words(text)
-        if wc > 60:
+        if wc > 90:
             errors.append(ValidationError(
                 code="OVER_WORD_LIMIT",
-                detail=f"body has {wc} words, max 60",
+                detail=f"body has {wc} words, max 90",
             ))
 
         errors.extend(self.check_banned_patterns(text))

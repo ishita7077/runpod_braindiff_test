@@ -2,11 +2,11 @@
   "schema_version": "raw_slot.v1",
   "slot": "frame2_sub",
   "comparison_id": "6b4cf129dfb0bd3a",
-  "run_id": "181631f8-5fe6-452d-b2b3-778a00d7a8f4",
-  "generated_at": "2026-05-04T05:47:24.913752+00:00",
+  "run_id": "ccd04925-4674-4190-a51a-61598cf52e2f",
+  "generated_at": "2026-05-04T07:10:23.347371+00:00",
   "model": {
-    "model_id": "stub-llama-3.2-3b-instruct",
-    "model_revision": "stub-v0",
+    "model_id": "meta-llama/Llama-3.2-3B-Instruct",
+    "model_revision": "meta-llama/Llama-3.2-3B-Instruct",
     "seed": 2527580254,
     "do_sample": false,
     "temperature": 0.4,
@@ -20,13 +20,13 @@
   },
   "prompt_rendered": "You are writing the sub-paragraph below the Frame 02 heading on a Brain Diff\nresults page.\n\nFrame 02 introduces the chord progression — the sequence of cortical events\neach video fires across its runtime. The sub-paragraph's job: name both\nrecipes, explain what a chord is in plain language, set up the timeline below.\n\nFormat: 2-3 sentences, ≤ 50 words. Must reference both recipe names.\nMust define what \"chord\" means in one phrase. No anatomical jargon.\nNo percentages. No citations. No winner/loser framing.\n\nInputs:\n- Recipe A name: Slow Build → Deep Encode\n- Recipe B name: Visceral Hook → Low-Effort Hold\n- Total chords detected (combined): 4\n- Runtime: 60s\n\nVoice exemplars:\n  1. A chord fires when two or three cortical systems cross threshold at the same second and hold for at least two seconds. Each video unfolds as a sequence of these. Click any pin below to see the moment of impact, slowed down — and what the other video was doing at the very same second.\n  2. Cleo's Slow Build → Deep Encode and MrBeast's Visceral Hook → Low-Effort Hold are built from the same seven cortical systems — but coupled differently and pulled at different times. Below: each video's chord progression, beat by beat.\n  3. Two recipes unfold across the runtime. A chord fires when two systems cross threshold at the same second and hold for at least one or two more. Watch where each video's chords land — the timing IS the strategy.\n  4. Slow Build → Deep Encode versus Visceral Hook → Low-Effort Hold. Same ingredients, different recipes. The chord progression below shows when each play makes its moves.\n\nGenerate 2 candidates. Select the one that most clearly distinguishes the\ntwo recipes. Output only the selected paragraph. No explanation.\n",
   "candidates": [
-    "Slow Build → Deep Encode and Visceral Hook → Low-Effort Hold unfold across the runtime. A chord fires when two systems cross threshold at the same second and hold."
+    "Frame 02 introduces the chord progression — the sequence of cortical events each video fires across its runtime. A chord is a simultaneous activation of two or three cortical systems that hold for at least one or two seconds. The chord progression for Slow Build → Deep Encode unfolds as: 1-2-3-4-5-6-7-8, while Visceral Hook → Low-Effort Hold unfolds as: 1-2-3-5-6-7-8-9."
   ],
-  "selected": "Slow Build → Deep Encode and Visceral Hook → Low-Effort Hold unfold across the runtime. A chord fires when two systems cross threshold at the same second and hold.",
+  "selected": "Frame 02 introduces the chord progression — the sequence of cortical events each video fires across its runtime. A chord is a simultaneous activation of two or three cortical systems that hold for at least one or two seconds. The chord progression for Slow Build → Deep Encode unfolds as: 1-2-3-4-5-6-7-8, while Visceral Hook → Low-Effort Hold unfolds as: 1-2-3-5-6-7-8-9.",
   "attempts": 1,
   "validation": {
     "passed": true,
     "errors": []
   },
-  "latency_ms": 21
+  "latency_ms": 60110
 }

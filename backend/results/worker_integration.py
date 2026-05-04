@@ -27,7 +27,7 @@ from typing import Any
 
 from .lib.audit_log import AuditLogger
 from .lib.content_assembler import assemble_content
-from .lib.ids import comparison_id, run_id as new_run_id, input_hash as _none  # noqa: F401
+from .lib.ids import comparison_id, run_id as new_run_id
 from .lib.input_normalizer import (
     CANONICAL_SYSTEMS,
     ChordEvent,
@@ -242,15 +242,27 @@ def _percentile(values: list[float], p: float) -> float:
 def _detect_chords(
     ts: dict[str, list[float]],
     transcript_segments: list[dict[str, Any]],
+    *,
+    min_gap_seconds: int = 6,
+    max_per_chord_type: int = 3,
+    max_total: int = 8,
 ) -> list[dict[str, Any]]:
-    """Detect chords from per-second timeseries. Per-clip percentiles."""
+    """Detect chords from per-second timeseries with sane caps.
+
+    - Per-clip 70th/30th percentile thresholds
+    - Each detected run becomes one chord event (start of the run)
+    - Adjacent firings of the SAME chord type within `min_gap_seconds` are
+      collapsed (we keep the strongest)
+    - Cap N per chord type and a total cap so we don't end up with 40+
+      chord events per comparison
+    """
     thresholds = {
         s: {"H": _percentile(ts[s], 70), "L": _percentile(ts[s], 30)}
         for s in CANONICAL_SYSTEMS
     }
 
     n = min(len(v) for v in ts.values())
-    chords: list[dict[str, Any]] = []
+    raw: list[dict[str, Any]] = []
     for chord_id, conditions, min_dur in _CHORD_RULES:
         run_start: int | None = None
         for t in range(n):
@@ -263,11 +275,41 @@ def _detect_chords(
                     run_start = t
             else:
                 if run_start is not None and (t - run_start) >= min_dur:
-                    chords.append(_chord_event(chord_id, run_start, conditions, ts, transcript_segments))
+                    raw.append(_chord_event(chord_id, run_start, conditions, ts, transcript_segments))
                 run_start = None
         if run_start is not None and (n - run_start) >= min_dur:
-            chords.append(_chord_event(chord_id, run_start, conditions, ts, transcript_segments))
-    return chords
+            raw.append(_chord_event(chord_id, run_start, conditions, ts, transcript_segments))
+
+    # Score each event by mean trigger-system value (rough "intensity").
+    def intensity(ev: dict[str, Any]) -> float:
+        vals = list((ev.get("formula_values") or {}).values())
+        return sum(vals) / len(vals) if vals else 0.0
+
+    # Group by chord type, sort by time, then collapse adjacent firings.
+    by_type: dict[str, list[dict[str, Any]]] = {}
+    for ev in sorted(raw, key=lambda e: e["timestamp_seconds"]):
+        by_type.setdefault(ev["chord_id"], []).append(ev)
+
+    collapsed: list[dict[str, Any]] = []
+    for chord_id, events in by_type.items():
+        bucket: list[dict[str, Any]] = []
+        for ev in events:
+            if not bucket or (ev["timestamp_seconds"] - bucket[-1]["timestamp_seconds"]) >= min_gap_seconds:
+                bucket.append(ev)
+            else:
+                # Same chord too close — keep the more intense one.
+                if intensity(ev) > intensity(bucket[-1]):
+                    bucket[-1] = ev
+        # Cap per-type, keeping the most intense N.
+        bucket.sort(key=intensity, reverse=True)
+        collapsed.extend(bucket[:max_per_chord_type])
+
+    # Final cap across all types — most intense first.
+    collapsed.sort(key=intensity, reverse=True)
+    collapsed = collapsed[:max_total]
+    # Return chronologically.
+    collapsed.sort(key=lambda e: e["timestamp_seconds"])
+    return collapsed
 
 
 def _chord_event(

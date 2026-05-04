@@ -2,11 +2,11 @@
   "schema_version": "raw_slot.v1",
   "slot": "headline",
   "comparison_id": "6b4cf129dfb0bd3a",
-  "run_id": "181631f8-5fe6-452d-b2b3-778a00d7a8f4",
-  "generated_at": "2026-05-04T05:47:24.900243+00:00",
+  "run_id": "ccd04925-4674-4190-a51a-61598cf52e2f",
+  "generated_at": "2026-05-04T07:09:35.723106+00:00",
   "model": {
-    "model_id": "stub-llama-3.2-3b-instruct",
-    "model_revision": "stub-v0",
+    "model_id": "meta-llama/Llama-3.2-3B-Instruct",
+    "model_revision": "meta-llama/Llama-3.2-3B-Instruct",
     "seed": 1651980540,
     "do_sample": false,
     "temperature": 0.4,
@@ -20,13 +20,13 @@
   },
   "prompt_rendered": "You are writing the hero headline for a Brain Diff results page.\n\nBrain Diff compares two videos by predicting cortical activation in 7 systems\nand identifying their cognitive recipes. Every page is a STRATEGY comparison.\nNever winner-vs-loser. Never \"X wins Y\" framing.\n\nThe headline LEADS WITH THE SHARPEST INSIGHT FROM THE COUPLING ANALYSIS.\nThe strongest coupling pattern across both videos has already been identified\ndeterministically. Your job: write 2 short declarative sentences that name\nthat contrast in plain English, using the video TITLES (no creator names).\n\nFormat: 2 short sentences. Each sentence ≤ 10 words. The two sentences should\nmirror each other in structure — same verb pattern, opposite content. Use\nplain English. Never use anatomical terms (no \"insula,\" no \"cortex,\" no\n\"prefrontal,\" no system jargon). Never include numeric percentages, r-values,\ncitations, or year stamps.\n\nInputs:\n- Video A title: Cleo Abram\n- Video B title: MrBeast\n- THE LEAD INSIGHT (the strongest coupling pattern, drives the headline):\n  - In Cleo Abram, Memory encoding and Language rose together across the runtime (r = +0.65) — these two systems fired as a team.\n- Top 3 system-mean deltas (raw signal, no axis-labels):\n  - memory_encoding: -0.34 (A higher)\n  - language_depth: -0.31 (A higher)\n  - gut_reaction: +0.27 (B higher)\n\nVoice exemplars (study these carefully):\n  1. \"MrBeast hits the body, fast. Cleo holds the head, deep.\"\n  2. \"B reaches the gut. A builds the argument.\"\n  3. \"One lands viscerally. The other lands intellectually.\"\n  4. \"MrBeast triggers feeling. Cleo triggers thinking.\"\n  5. \"B aims at the chest. A aims at the chair.\"\n  6. \"Cleo wires the cortex for tomorrow. MrBeast wires it for now.\"\n\nGenerate 5 candidate headlines following this pattern. Then select the one\nwith strongest contrast, sharpest plain-language framing, and clearest line\nto the lead insight. Output only the selected headline as a single string.\nNo explanation. No quotes around it.\n",
   "candidates": [
-    "B reaches the gut. A builds the argument."
+    "Cleo Abram's thinking sparks a deeper connection.\nMrBeast's emotions ignite a more intellectual response."
   ],
-  "selected": "B reaches the gut. A builds the argument.",
+  "selected": "Cleo Abram's thinking sparks a deeper connection.\nMrBeast's emotions ignite a more intellectual response.",
   "attempts": 1,
   "validation": {
     "passed": true,
     "errors": []
   },
-  "latency_ms": 9
+  "latency_ms": 12487
 }
