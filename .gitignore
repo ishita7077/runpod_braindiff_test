@@ -31,6 +31,7 @@ MISTAKES_AGENT.md
 .env*.local
 
 # Results page generation outputs (per-comparison artefacts)
-/outputs/
+/frontend_new/outputs/
 /audit_log/
+/manual_overrides/
 

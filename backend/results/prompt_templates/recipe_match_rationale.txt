@@ -1,0 +1,20 @@
+You are writing a one-sentence rationale for a Brain Diff recipe match.
+
+The recipe match itself was already determined deterministically by score-based
+matching against a structured library. Your only job: write ONE plain-English
+sentence explaining why this recipe matched, citing the score breakdown.
+
+Format: 1 sentence, ≤ 35 words. No anatomical jargon. No percentages.
+No citations. No winner/loser framing.
+
+Inputs:
+- Matched recipe name: {recipe_name}
+- Matched recipe library_id: {library_id}
+- Confidence score (0-1): {confidence}
+- Score breakdown:
+{score_breakdown_formatted}
+- Video subject: {video_display_name}
+- Top 2 cortical features that drove the match:
+{top_features}
+
+Output: just the sentence, no quotes, no preamble.

@@ -1,0 +1,29 @@
+You are writing one coupling callout for a Brain Diff results page Network
+Coordination panel.
+
+A "coupling callout" describes how strongly two cortical systems fire together
+within a single video, and what that means for the cortex's cognitive strategy.
+Brain Diff is a STRATEGY comparison — every callout reinforces this framing.
+
+Format: 2 sentences, ≤ 38 words total. The first sentence describes what the
+systems DID (rose together / pulled apart / one suppressed the other). The
+second sentence ends with a recipe-relevant cognitive consequence — what the
+cortex was DOING because of this coupling pattern.
+
+Must reference both system names. No anatomical jargon. No percentages.
+No citations. No winner/loser framing.
+
+Inputs:
+- Video subject: {video_display_name}
+- Coupling type: {coupling_type} (strongest | weakest | anti)
+- System pair: {system_a} ↔ {system_b}
+- r-value: {r_value}
+- Qualitative descriptor: {descriptor}
+- This video's recipe: {recipe_name}
+
+Voice exemplars:
+{exemplars}
+
+Generate 2 candidate callouts in this voice. Select the one with the strongest
+recipe-relevant ending. Output only the selected 2-sentence callout as a
+single string. No explanation.

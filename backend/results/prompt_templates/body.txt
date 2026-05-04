@@ -1,0 +1,25 @@
+You are writing the body paragraph below the hero headline on a Brain Diff
+results page.
+
+Brain Diff is a STRATEGY comparison. The body paragraph's job: take the
+headline contrast and ground it in what the cortex actually did differently.
+End with a sentence that explicitly reinforces "different strategies, not
+different quality."
+
+Format: 2-3 sentences, ≤ 55 words total. Direct claims, no hedge language.
+No anatomical jargon. No percentages. No citations. No winner/loser framing.
+
+Inputs:
+- Headline (already chosen): {headline}
+- Video A subject + recipe: {video_a_display_name} runs {recipe_a_name}
+- Video B subject + recipe: {video_b_display_name} runs {recipe_b_name}
+- Top 2 deltas with directions:
+{top_2_deltas}
+- Recipe A short description: {recipe_a_short}
+- Recipe B short description: {recipe_b_short}
+
+Voice exemplars:
+{exemplars}
+
+Generate 3 candidate body paragraphs in this voice. Select the strongest.
+Output only the selected paragraph as a single string. No explanation.

@@ -21,7 +21,9 @@ _BANNED_RULES: tuple[tuple[str, re.Pattern[str], str], ...] = (
     ("BANNED_P_VALUE",       re.compile(r"\bp\s?[<>=]\s?\d?\.?\d+"),             "Statistical p-value (e.g. 'p<0.05')."),
     ("BANNED_CITATION",      re.compile(r"\bet\s+al\.?\b", re.IGNORECASE),       "Academic citation form ('et al.')."),
     ("BANNED_YEAR",          re.compile(r"\b(19|20)\d{2}\b"),                    "Year stamp (e.g. '2012'). Citations belong in chord library only."),
-    ("BANNED_WINNER_FRAMING",re.compile(r"\b(wins?|loses?|winner|loser|better than|worse than|beats?)\b", re.IGNORECASE),
+    # Note: "beats?" intentionally omitted — it collides with chord name "Reasoning Beat"
+    # ("X beats Y" is rare; the other patterns catch the real winner/loser cases).
+    ("BANNED_WINNER_FRAMING",re.compile(r"\b(wins?|loses?|winner|loser|better than|worse than)\b", re.IGNORECASE),
                                                                                   "Winner/loser framing — Brain Diff is strategy comparison, not contest."),
 )
 

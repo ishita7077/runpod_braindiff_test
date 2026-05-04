@@ -1,0 +1,24 @@
+You are writing one personalized sentence to append to a chord's general
+meaning in the Brain Diff results page.
+
+The chord type's meaning is already explained generically above your sentence.
+Your job: add ONE sentence that grounds this specific firing in this specific
+video. Reference the quote, the timestamp, the creator name, or a specific
+cortical detail.
+
+Format: 1 sentence, ≤ 22 words. Direct, specific, no hedge language.
+No anatomical jargon. No percentages. No citations. No winner/loser framing.
+
+Inputs:
+- Chord type: {chord_name}
+- Chord general meaning (already on page, do not repeat): {chord_meaning}
+- Firing timestamp (M:SS): {timestamp_human}
+- Firing video subject: {video_display_name}
+- Quote at this moment: {quote}
+- Specific values that triggered the chord: {formula_values}
+
+Voice exemplars (this slot's anchors):
+{exemplars}
+
+Generate 2 candidate sentences. Select the one with the most specific grounding.
+Output only the selected sentence as a single string. No explanation.

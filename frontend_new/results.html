@@ -1,2519 +1,545 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta name="theme-color" content="#f7f4ec" />
-<title>BrainDiff — Results (reveal preview)</title>
+<title>Brain Diff — Results</title>
+<meta name="description" content="A Brain Diff comparison: two videos, two cortical recipes, no winner." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@300;400;500;600;700&family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..400;1,6..72,300..400&family=Fraunces:ital,opsz,wght@0,9..144,300..500;1,9..144,300..500&family=JetBrains+Mono:wght@300;400;500&family=Inter+Tight:wght@300;400;500;600&display=swap" rel="stylesheet" />
 <script>(function(){var r=document.documentElement;try{var t=localStorage.getItem('braindiff-theme');if(t==='dark')r.setAttribute('data-theme','dark');}catch(e){}})();</script>
+<link rel="icon" href="data:," />
 <style>
-/* ============================================================
-   BrainDiff · Results · tokens
-   Light is default. Dark is opt-in via data-theme="dark".
-   Vermillion (B-stronger) + slate blue (A-stronger) — Nature diverging.
-   ============================================================ */
-:root{
-  color-scheme:light;
-  --bg:#f7f4ec; --bg-2:#efeadf; --bg-3:#e7e2d4;
-  --surface:#ffffff; --panel:#ffffff; --panel-2:#f1ecde;
-  --line:#e2ddcf; --line-2:#cbc5b4;
-  --ink:#17171a; --ink-dim:#3d3d42; --ink-mute:#77736b;
-  --accent:#c1272d; --accent-2:#d94a4e; --accent-3:#f8e9e6;
-  --good:#2a5583; --good-2:#4a78ab; --good-3:#e6edf6;
-  --brain-stage:#ebe6da; --brain-stage-2:#e0d9ca; --brain-stage-glow:rgba(150,160,185,0.18);
-  --serif:'Fraunces','Source Serif 4',Georgia,serif;
-  --shadow-sm:0 1px 2px rgba(20,20,25,0.04), 0 1px 3px rgba(20,20,25,0.05);
-  --shadow-md:0 1px 2px rgba(20,20,25,0.04), 0 8px 24px rgba(20,20,25,0.06);
+/* ── THEME VARS ───────────────────────────────────────────── */
+:root {
+  color-scheme: light;
+  --shell-max: 1200px;
+  --shell-pad-x: clamp(20px, 4.5vw, 52px);
+
+  --bg: #f7f4ec; --bg-2: #efeadf; --bg-3: #e7e2d4;
+  --surface: #ffffff; --panel: #ffffff; --panel-2: #f1ecde;
+  --line: #e2ddcf; --line-2: #cbc5b4;
+  --ink: #17171a; --ink-dim: #3d3d42; --ink-mute: #77736b;
+  --accent: #c1272d; --accent-2: #d94a4e; --accent-dim: rgba(193,39,45,0.10);
+  --good: #2a5583; --good-2: #4a78ab; --good-dim: rgba(42,85,131,0.10);
+  --a-col: #3a7fa8; --b-col: #c1272d;
+  --shadow-sm: 0 1px 2px rgba(20,20,25,.04), 0 1px 3px rgba(20,20,25,.05);
+  --shadow-md: 0 1px 2px rgba(20,20,25,.04), 0 8px 24px rgba(20,20,25,.08);
 }
-:root[data-theme="dark"]{
-  color-scheme:dark;
-  --bg:#0b0c0f; --bg-2:#101116; --bg-3:#15171c;
-  --surface:#15171c; --panel:rgba(20,22,28,0.72); --panel-2:rgba(28,31,38,0.58);
-  --line:rgba(255,255,255,0.07); --line-2:rgba(255,255,255,0.13);
-  --ink:#e8e4db; --ink-dim:#b6b1a6; --ink-mute:#7f7a70;
-  --accent:#e04a2e; --accent-2:#f27455; --accent-3:rgba(224,74,46,0.12);
-  --good:#6a97c9; --good-2:#8db2d4; --good-3:rgba(106,151,201,0.12);
-  --brain-stage:#07080b; --brain-stage-2:#050608; --brain-stage-glow:rgba(40,60,100,0.18);
-  --shadow-sm:0 1px 2px rgba(0,0,0,0.35);
-  --shadow-md:0 12px 32px rgba(0,0,0,0.45);
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0b0c0f; --bg-2: #101116; --bg-3: #15171c;
+  --surface: #15171c; --panel: rgba(20,22,28,.72); --panel-2: rgba(28,31,38,.58);
+  --line: rgba(255,255,255,.07); --line-2: rgba(255,255,255,.14);
+  --ink: #e8e4db; --ink-dim: #b6b1a6; --ink-mute: #7f7a70;
+  --accent: #e04a2e; --accent-2: #f27455; --accent-dim: rgba(224,74,46,.12);
+  --good: #6a97c9; --good-2: #8db2d4; --good-dim: rgba(106,151,201,.12);
+  --a-col: #7FB3C6; --b-col: #E25B43;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.35);
+  --shadow-md: 0 12px 32px rgba(0,0,0,.45);
 }
 
-*{box-sizing:border-box}
-html,body{margin:0;padding:0}
-body{
+/* ── BASE ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+body {
   background:
-    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 6%, transparent), transparent 55%),
-    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 6%, transparent), transparent 55%),
+    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 5%, transparent), transparent 55%),
+    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 5%, transparent), transparent 55%),
     var(--bg);
-  color:var(--ink);
-  font-family:'Inter Tight', system-ui, -apple-system, sans-serif;
-  font-feature-settings:"cv11","ss01";
-  -webkit-font-smoothing:antialiased;
-  line-height:1.6;
-  min-height:100vh;
+  color: var(--ink);
+  font-family: 'Newsreader', Georgia, serif;
+  font-size: 17px;
+  line-height: 1.78;
+  font-weight: 300;
+  -webkit-font-smoothing: antialiased;
 }
-:root[data-theme="dark"] body{
+:root[data-theme="dark"] body {
   background:
-    radial-gradient(1400px 700px at 78% -8%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 55%),
-    radial-gradient(1100px 600px at 12% 108%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+    radial-gradient(1200px 600px at 78% -10%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 55%),
+    radial-gradient(900px 500px at 12% 110%, color-mix(in srgb, var(--good) 10%, transparent), transparent 55%),
     var(--bg);
 }
-a{color:inherit;text-decoration:none}
+strong { color: var(--ink); font-weight: 400; }
+em { font-style: italic; color: var(--ink); }
+code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--good); background: var(--good-dim); padding: 1px 5px; border-radius: 2px; }
+.shell { max-width: var(--shell-max); margin: 0 auto; padding: 0 var(--shell-pad-x); }
 
-/* THEME TOGGLE */
-.theme-switcher{position:fixed;top:14px;right:20px;z-index:60}
-.theme-toggle{
-  width:34px;height:34px;border-radius:8px;
-  background:var(--surface);border:1px solid var(--line-2);color:var(--ink-dim);
-  cursor:pointer;font-size:14px;display:grid;place-items:center;
-  box-shadow:var(--shadow-sm);font-family:inherit;transition:color .15s ease, border-color .15s ease;
-}
-.theme-toggle:hover{color:var(--accent);border-color:var(--accent)}
-.theme-toggle .tt-moon{display:inline}
-.theme-toggle .tt-sun{display:none}
-:root[data-theme="dark"] .theme-toggle .tt-sun{display:inline}
-:root[data-theme="dark"] .theme-toggle .tt-moon{display:none}
+/* ── THEME TOGGLE ─────────────────────────────────────────── */
+.theme-switcher { position: fixed; top: 14px; right: 20px; z-index: 200; }
+.theme-toggle { width: 34px; height: 34px; border-radius: 8px; background: var(--surface); border: 1px solid var(--line-2); color: var(--ink-mute); cursor: pointer; font-size: 14px; display: grid; place-items: center; box-shadow: var(--shadow-sm); font-family: inherit; transition: color .15s, border-color .15s; }
+.theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.theme-toggle .tt-moon { display: inline; } .theme-toggle .tt-sun { display: none; }
+:root[data-theme="dark"] .theme-toggle .tt-sun { display: inline; }
+:root[data-theme="dark"] .theme-toggle .tt-moon { display: none; }
 
+/* ── TOPBAR ───────────────────────────────────────────────── */
+.topbar { display: flex; align-items: center; justify-content: space-between; padding: 22px var(--shell-pad-x); max-width: var(--shell-max); margin: 0 auto; position: sticky; top: 0; z-index: 20; background: color-mix(in srgb, var(--bg) 84%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border-bottom: 1px solid var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 500; letter-spacing: -.022em; font-size: 15px; color: var(--ink); font-family: 'Inter Tight', system-ui, sans-serif; text-decoration: none; }
+.brand-logo { height: 24px; width: auto; display: block; border-radius: 4px; }
+.brand-word b { font-weight: 600; }
+.nav { display: flex; gap: 28px; align-items: center; font-size: 13.5px; color: var(--ink-mute); font-family: 'Inter Tight', system-ui, sans-serif; }
+.nav a { color: inherit; border: none; transition: color .15s; text-decoration: none; }
+.nav a:hover { color: var(--ink); }
+.nav-cta { padding: 8px 16px; border: 1px solid var(--line-2) !important; border-radius: 8px; color: var(--ink) !important; background: var(--surface); font-weight: 500; font-size: 13px; transition: all .15s !important; box-shadow: var(--shadow-sm); }
+.nav-cta:hover { border-color: var(--accent) !important; color: var(--accent) !important; }
+@media (max-width: 700px) { .nav a:not(.nav-cta) { display: none; } }
 
+/* ── PAGE WRAPPER ─────────────────────────────────────────── */
+.page { padding: 64px var(--shell-pad-x) 120px; max-width: var(--shell-max); margin: 0 auto; }
 
-/* TOP BAR */
-.topbar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:22px 36px;
-  max-width:1280px;margin:0 auto;
-  position:sticky;top:0;z-index:20;
-  background:color-mix(in srgb, var(--bg) 84%, transparent);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--line);
-}
-.brand{display:flex;align-items:center;gap:10px;font-weight:500;letter-spacing:-0.022em;font-size:15px;color:var(--ink)}
-.brand-mark{
-  width:24px;height:24px;border-radius:6px;
-  background:var(--accent);
-  display:grid;place-items:center;color:#fff;font-size:12px;font-weight:700;
-  font-family:'JetBrains Mono',monospace;
-}
-.brand-logo{height:24px;width:auto;display:block;border-radius:4px}
-.topbar-right { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--ink-dim); position: relative; }
-.top-btn {
-  background: var(--surface); border: 1px solid var(--line-2); color: var(--ink);
-  font-family: inherit; font-size: 12.5px; padding: 7px 14px; border-radius: 8px; cursor: pointer;
-  display: inline-flex; align-items: center; gap: 6px; box-shadow: var(--shadow-sm);
-  transition: border-color .15s, color .15s, background .15s;
-}
-.top-btn:hover { border-color: var(--accent); color: var(--accent); }
-.top-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
-.top-btn.primary:hover { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
-.top-btn .caret { font-size: 9px; opacity: 0.7; }
+/* ── HERO ─────────────────────────────────────────────────── */
+.hero { padding: 24px 0 56px; }
+.hero-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--accent); margin-bottom: 22px; display: flex; align-items: center; gap: 14px; }
+.hero-eyebrow .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.hero-headline { font-family: 'Fraunces', serif; font-size: clamp(34px, 5vw, 60px); font-weight: 300; line-height: 1.06; letter-spacing: -0.018em; color: var(--ink); margin-bottom: 28px; max-width: 18ch; }
+.hero-headline em { font-style: italic; color: var(--accent); }
+.hero-body { font-size: 18px; line-height: 1.75; color: var(--ink-dim); max-width: 60ch; }
+.hero-versus { display: flex; gap: 36px; align-items: baseline; margin-top: 36px; font-family: 'Inter Tight', system-ui, sans-serif; font-size: 14px; color: var(--ink-mute); flex-wrap: wrap; }
+.hero-versus b { color: var(--ink); font-weight: 500; letter-spacing: -.005em; }
+.hero-versus .vs { color: var(--ink-mute); font-style: italic; font-family: 'Fraunces', serif; }
 
-/* Dropdowns */
-.dropdown { position: relative; }
-.dropdown-menu {
-  position: absolute; top: calc(100% + 6px); right: 0; min-width: 220px;
-  background: var(--surface); border: 1px solid var(--line-2); border-radius: 10px;
-  padding: 6px; display: none; z-index: 50;
-  box-shadow: var(--shadow-md);
-}
-.dropdown.open .dropdown-menu { display: block; }
-.dropdown-item {
-  display: flex; align-items: center; justify-content: space-between; gap: 12px;
-  padding: 9px 12px; border-radius: 6px; font-size: 13px; color: var(--ink);
-  cursor: pointer;
-}
-.dropdown-item:hover { background: var(--accent-3); color: var(--accent); }
-.dropdown-item .item-sub { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute); }
-.dropdown-divider { height: 1px; background: var(--line); margin: 4px 2px; }
-.dropdown-head {
-  padding: 6px 12px 4px; font-family: 'JetBrains Mono', monospace; font-size: 9.5px;
-  color: var(--ink-mute); letter-spacing: 0.1em; text-transform: uppercase;
-}
+/* ── SECTION ──────────────────────────────────────────────── */
+.section { margin-top: 96px; }
+.section-eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 14px; display: flex; align-items: center; gap: 12px; }
+.section-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.section-h2 { font-family: 'Fraunces', serif; font-size: clamp(26px, 3.4vw, 36px); font-weight: 400; line-height: 1.18; color: var(--ink); margin-bottom: 12px; max-width: 30ch; }
+.section-h2 em { font-style: italic; color: var(--accent); }
+.section-sub { color: var(--ink-dim); font-size: 16px; line-height: 1.7; max-width: 60ch; margin-bottom: 36px; }
 
-main { max-width: 1280px; margin: 0 auto; padding: 28px 36px 80px; }
+/* ── STRATEGY INSIGHT (Frame 01: recipe match + description per video) */
+.strategy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 760px) { .strategy-grid { grid-template-columns: 1fr; } }
+.strategy-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 28px 28px 24px; box-shadow: var(--shadow-sm); position: relative; }
+.strategy-card.video-a { border-top: 3px solid var(--a-col); }
+.strategy-card.video-b { border-top: 3px solid var(--b-col); }
+.sc-creator { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 8px; }
+.sc-recipe-name { font-family: 'Fraunces', serif; font-style: italic; font-size: 22px; line-height: 1.18; color: var(--ink); margin-bottom: 4px; }
+.sc-built-for { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 18px; }
+.sc-confidence { float: right; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-mute); padding: 2px 8px; border: 1px solid var(--line); border-radius: 999px; }
+.sc-description { color: var(--ink-dim); font-size: 15px; line-height: 1.7; }
+.sc-description em { color: var(--accent); font-style: italic; font-weight: 400; }
 
-/* ---------- A/B recall card ---------- */
-.recall {
-  background: var(--panel); border: 1px solid var(--line);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-radius: 10px; padding: 12px 16px; margin-bottom: 24px;
-  display: flex; align-items: center; gap: 16px; font-size: 13px;
-  transition: padding 0.2s; box-shadow: var(--shadow-sm);
-}
-.recall.expanded { align-items: flex-start; padding: 20px 22px; }
-.recall-col { flex: 1; min-width: 0; }
-.recall-tag {
-  display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 10px;
-  color: var(--good); background: var(--good-3); padding: 2px 7px; border-radius: 3px;
-  margin-right: 8px; letter-spacing: 0.08em; vertical-align: middle; font-weight: 500;
-  border: 1px solid color-mix(in srgb, var(--good) 30%, transparent);
-}
-.recall-col.b .recall-tag { color: var(--accent); background: var(--accent-3); border-color: color-mix(in srgb, var(--accent) 30%, transparent); }
-.recall-preview {
-  color: var(--ink-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  display: inline-block; max-width: calc(100% - 60px); vertical-align: middle;
-}
-.recall.expanded .recall-preview {
-  white-space: normal; max-width: 100%; display: block; margin-top: 8px; line-height: 1.55;
-}
-.recall-divider { width: 1px; height: 22px; background: var(--line-2); }
-.recall.expanded .recall-divider { height: auto; align-self: stretch; }
-.recall-expand {
-  background: none; border: none; color: var(--ink-mute); cursor: pointer;
-  font-family: 'JetBrains Mono', monospace; font-size: 11px; white-space: nowrap;
-  padding: 4px 6px; border-radius: 4px;
-}
-.recall-expand:hover { color: var(--accent); }
+/* ── CHORD MEANINGS LIBRARY (Frame 02) ─────────────────────── */
+.chord-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+@media (max-width: 760px) { .chord-grid { grid-template-columns: 1fr; } }
+.chord-card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 22px 24px 20px; box-shadow: var(--shadow-sm); position: relative; }
+.cc-header { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px; gap: 12px; }
+.cc-name { font-family: 'Fraunces', serif; font-style: italic; font-size: 19px; color: var(--ink); }
+.cc-micro { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+.cc-formula { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--good); background: var(--good-dim); padding: 6px 10px; border-radius: 4px; margin-bottom: 12px; }
+.cc-meaning { color: var(--ink-dim); font-size: 14.5px; line-height: 1.65; }
 
-/* ---------- The money shot: brain + verdict ---------- */
-.money-shot {
-  display: grid; grid-template-columns: 1.25fr 1fr; gap: 0;
-  background: var(--panel); border: 1px solid var(--line);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-radius: 18px; padding: 0; overflow: hidden; margin-bottom: 28px;
-  box-shadow: var(--shadow-md);
-}
-.brain-stage {
-  position: relative;
-  background:
-    radial-gradient(ellipse at 50% 40%, rgba(224,74,46,0.08), transparent 60%),
-    var(--brain-stage);
-  border-right: 1px solid var(--line);
-  min-height: 540px; display: grid; place-items: center; padding: 24px;
-}
-.brain-canvas { width: 100%; height: 100%; max-height: 520px; display: block; }
+/* ── CHORD MOMENTS (per-firing context, Frame 03) ──────────── */
+.moments-grid { display: grid; grid-template-columns: 1fr; gap: 14px; }
+.moment-card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; padding: 16px 22px; display: grid; grid-template-columns: 110px 1fr 220px; gap: 18px; align-items: center; position: relative; }
+@media (max-width: 760px) { .moment-card { grid-template-columns: 1fr; } }
+.moment-card.video-a { border-left: 3px solid var(--a-col); }
+.moment-card.video-b { border-left: 3px solid var(--b-col); }
+.moment-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--ink-mute); letter-spacing: .15em; text-transform: uppercase; line-height: 1.5; }
+.moment-meta b { color: var(--ink); display: block; font-size: 11px; margin-top: 2px; letter-spacing: .12em; }
+.moment-context { color: var(--ink-dim); font-size: 15px; line-height: 1.65; }
+.moment-quote { font-family: 'Fraunces', serif; font-style: italic; font-size: 13px; color: var(--ink-mute); border-left: 2px solid var(--line-2); padding-left: 12px; }
 
-/* Toolbar over the brain */
-.brain-toolbar {
-  position: absolute; top: 18px; left: 18px; right: 18px;
-  display: flex; justify-content: space-between; align-items: center; gap: 12px;
-  z-index: 5;
-}
-.view-group {
-  display: inline-flex; background: rgba(10,13,18,0.72); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 8px; padding: 3px; gap: 2px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-}
-.view-group button {
-  background: transparent; border: none; color: #cfcabf;
-  font-family: inherit; font-size: 12px; font-weight: 500;
-  padding: 6px 12px; border-radius: 6px; cursor: pointer; position: relative;
-  transition: background .15s, color .15s;
-}
-.view-group button.active { background: color-mix(in srgb, var(--accent) 80%, transparent); color: #fff; }
-.view-group button[data-tip]:hover::after {
-  content: attr(data-tip);
-  position: absolute; top: calc(100% + 8px); left: 50%; transform: translateX(-50%);
-  background: #10141b; border: 1px solid rgba(255,255,255,0.14); border-radius: 6px;
-  padding: 8px 10px; font-size: 11.5px; color: #d6d3cd; white-space: nowrap;
-  font-weight: 400; letter-spacing: 0; z-index: 10; pointer-events: none;
-}
-.brain-extras { display: inline-flex; gap: 6px; }
-.icon-btn {
-  width: 32px; height: 32px; border-radius: 8px;
-  background: rgba(10,13,18,0.72); border: 1px solid rgba(255,255,255,0.1);
-  color: #cfcabf; display: grid; place-items: center; cursor: pointer;
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); font-size: 13px;
-  transition: color .15s, border-color .15s;
-}
-.icon-btn:hover { color: #fff; border-color: var(--accent); }
+/* ── COUPLING CALLOUTS (Frame 04: network coordination) ───── */
+.callouts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+@media (max-width: 760px) { .callouts-grid { grid-template-columns: 1fr; } }
+.callout-col { display: flex; flex-direction: column; gap: 14px; }
+.callout-col-header { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 4px; }
+.callout-col.video-a .callout-col-header b { color: var(--a-col); }
+.callout-col.video-b .callout-col-header b { color: var(--b-col); }
+.callout-card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 20px; box-shadow: var(--shadow-sm); position: relative; }
+.callout-tag { font-family: 'JetBrains Mono', monospace; font-size: 9px; letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
+.callout-card.weakest .callout-tag { color: var(--good); }
+.callout-card.anti .callout-tag { color: var(--ink-mute); }
+.callout-text { color: var(--ink-dim); font-size: 14.5px; line-height: 1.65; }
+.callout-reveal-btn { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--ink-mute); background: transparent; border: 1px dashed var(--line-2); border-radius: 6px; padding: 10px 14px; cursor: pointer; transition: color .15s, border-color .15s; }
+.callout-reveal-btn:hover { color: var(--accent); border-color: var(--accent); border-style: solid; }
+.callout-card.is-hidden { display: none; }
 
-/* Accessibility toggle for color-independent channel */
-.a11y-toggle {
-  position: absolute; top: 60px; right: 18px; z-index: 5;
-  background: rgba(10,13,18,0.72); border: 1px solid rgba(255,255,255,0.1);
-  color: #cfcabf; font-family: 'JetBrains Mono', monospace;
-  font-size: 10px; letter-spacing: 0.06em; padding: 6px 10px;
-  border-radius: 6px; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); cursor: pointer;
-  text-transform: uppercase;
-  transition: color .15s, border-color .15s, background .15s;
-}
-.a11y-toggle:hover { color: #fff; border-color: var(--accent); }
-.a11y-toggle.on { background: color-mix(in srgb, var(--accent) 70%, transparent); color: #fff; border-color: var(--accent); }
+/* ── SOURCE BADGES (dev mode only) ────────────────────────── */
+.has-badge { position: relative; }
+.src-badge { position: absolute; top: 6px; right: 8px; font-family: 'JetBrains Mono', monospace; font-size: 8px; letter-spacing: .14em; text-transform: uppercase; padding: 2px 6px; border-radius: 3px; color: white; pointer-events: none; opacity: .82; z-index: 1; }
+.src-badge.src-llm      { background: var(--good); }
+.src-badge.src-override { background: #7a5a9a; }
+.src-badge.src-fallback { background: var(--ink-mute); }
+.src-badge.src-library  { background: var(--accent); }
+body:not(.dev-mode) .src-badge { display: none; }
 
-/* Scale legend */
-.scale-legend {
-  position: absolute; bottom: 18px; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 12px; font-family: 'JetBrains Mono', monospace;
-  font-size: 10.5px; color: #cfcabf; letter-spacing: 0.06em;
-  background: rgba(10,13,18,0.58); padding: 6px 14px; border-radius: 999px;
-  border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-}
-.scale-bar {
-  width: 140px; height: 6px; border-radius: 3px;
-  background: linear-gradient(90deg, #6a97c9 0%, #2a2d35 50%, #e04a2e 100%);
-}
-.scale-legend b { color: #8db2d4; font-weight: 500; }
-.scale-legend i { font-style: normal; color: #f27455; }
+/* ── DEV BANNER ───────────────────────────────────────────── */
+.dev-banner { display: none; }
+body.dev-mode .dev-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; max-width: var(--shell-max); margin: 16px auto; padding: 10px 16px; background: color-mix(in srgb, var(--accent) 10%, var(--bg)); border: 1px solid var(--accent); border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink); }
+.dev-banner code { background: transparent; color: var(--accent); }
 
-.brain-hint {
-  position: absolute; top: 50%; right: 22px; transform: translateY(-50%);
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
-  color: #7f7a70; letter-spacing: 0.06em; text-transform: uppercase;
-  writing-mode: vertical-rl; text-orientation: mixed;
-}
+/* ── ERROR / LOADING STATES ───────────────────────────────── */
+.state-card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 36px 30px; box-shadow: var(--shadow-sm); margin: 64px auto; max-width: 600px; text-align: center; }
+.state-card h3 { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 400; color: var(--ink); margin-bottom: 12px; }
+.state-card p { color: var(--ink-dim); font-size: 15px; line-height: 1.65; }
+.state-card.error h3 { color: var(--accent); }
+.state-card code { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--ink); background: var(--bg-2); padding: 2px 8px; border-radius: 3px; }
 
-/* Verdict side */
-.verdict {
-  padding: 32px 36px; display: flex; flex-direction: column;
-  background: var(--panel);
-}
-.verdict-eyebrow {
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
-  color: var(--accent); letter-spacing: 0.14em; text-transform: uppercase;
-  margin-bottom: 14px;
-}
-.verdict-headline {
-  font-family: 'Fraunces', 'Source Serif 4', Georgia, serif; font-size: 38px; line-height: 1.12;
-  font-weight: 400; font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
-  letter-spacing: -0.018em; margin: 0 0 10px; color: var(--ink);
-}
-.verdict-headline em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0; }
-.verdict-caption {
-  font-size: 11.5px; color: var(--ink-mute); margin: 0 0 20px;
-  display: flex; align-items: center; gap: 6px;
-}
-.verdict-caption::before {
-  content: ''; width: 4px; height: 4px; border-radius: 50%;
-  background: var(--ink-mute); display: inline-block;
-}
-.verdict-sub {
-  font-size: 15px; line-height: 1.6; color: var(--ink-dim); margin: 0 0 14px;
-}
-.biggest-shift {
-  background: var(--panel-2); border: 1px solid var(--line);
-  border-radius: 10px; padding: 16px 18px; margin-bottom: 16px;
-  cursor: pointer; transition: border-color 0.15s, background 0.15s;
-}
-.biggest-shift:hover { border-color: var(--accent); background: var(--accent-3); }
-.biggest-shift-label {
-  font-size: 12px; color: var(--ink-mute); margin-bottom: 6px;
-  display: flex; align-items: center; gap: 8px;
-}
-.biggest-shift-label::before { content: 'Δ'; font-family: var(--serif); font-style: italic; color: var(--accent); margin-right: 0.4em; }
-.biggest-shift-title { font-size: 17px; font-weight: 600; margin: 0 0 4px; color: var(--ink); }
-.biggest-shift-body { font-size: 13.5px; color: var(--ink-dim); line-height: 1.55; margin: 0; }
-.biggest-shift-hover {
-  margin-top: 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px;
-  color: var(--accent); letter-spacing: 0.06em;
-}
-.biggest-shift-hover .desktop { display: inline; }
-.biggest-shift-hover .mobile { display: none; }
+/* ── REVEAL ANIMATIONS ────────────────────────────────────── */
+.reveal { opacity: 0; transform: translateY(22px); transition: opacity 0.58s cubic-bezier(.22,.8,.34,1), transform 0.58s cubic-bezier(.22,.8,.34,1); }
+.reveal.is-vis { opacity: 1; transform: translateY(0); }
+.reveal-delay-1 { transition-delay: 0.08s; }
+.reveal-delay-2 { transition-delay: 0.16s; }
+.reveal-delay-3 { transition-delay: 0.24s; }
 
-.quick-facts {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: auto;
-  padding-top: 20px; border-top: 1px solid var(--line);
-}
-.fact { font-size: 13px; position: relative; }
-.fact-k {
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
-  color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px;
-  display: flex; align-items: center; gap: 5px;
-}
-.fact-k .info-dot {
-  width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--ink-mute);
-  color: var(--ink-mute); font-size: 8px; line-height: 10px; text-align: center;
-  cursor: help; font-family: 'Inter Tight', sans-serif; font-weight: 600;
-}
-.fact-v { color: var(--ink); font-weight: 500; }
-.fact-v .delta-up { color: var(--accent); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-.fact-v .delta-down { color: var(--good); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
-.fact-v .mag { font-family: 'JetBrains Mono', monospace; color: var(--ink-mute); font-size: 11.5px; margin-left: 4px; }
+/* ── FOOTER ───────────────────────────────────────────────── */
+.footer { border-top: 1px solid var(--line); margin-top: 120px; padding: 32px 0; text-align: center; color: var(--ink-mute); font-family: 'Inter Tight', system-ui, sans-serif; font-size: 13px; }
+.footer a { color: var(--ink-mute); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--ink-mute) 40%, transparent); transition: color .15s; }
+.footer a:hover { color: var(--accent); }
+.footer .meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: .14em; color: var(--ink-mute); margin-top: 10px; }
 
-/* Tooltip (shared) */
-.tip {
-  position: absolute; bottom: calc(100% + 8px); left: 0;
-  min-width: 240px; max-width: 300px;
-  background: var(--surface); border: 1px solid var(--line-2); border-radius: 8px;
-  padding: 12px 14px; font-size: 12px; line-height: 1.5; color: var(--ink-dim);
-  font-family: 'Inter Tight', sans-serif; font-weight: 400; letter-spacing: 0;
-  text-transform: none;
-  opacity: 0; visibility: hidden; transform: translateY(4px);
-  transition: all 0.15s; z-index: 10; pointer-events: none;
-  box-shadow: var(--shadow-md);
-}
-.fact:hover .tip { opacity: 1; visibility: visible; transform: translateY(0); }
-.tip h5 { margin: 0 0 8px; font-size: 11px; color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; }
-.tip-row {
-  display: flex; justify-content: space-between; gap: 10px;
-  padding: 3px 0; font-family: 'JetBrains Mono', monospace; font-size: 11px;
-}
-.tip-row .label { color: var(--ink); }
-.tip-row .range { color: var(--ink-mute); }
-.tip-row.active .label { color: var(--accent); }
-.tip-row.active .range { color: var(--accent); }
-
-/* ---------- Iterate strip ---------- */
-.iterate-strip {
-  display: flex; gap: 10px; margin-bottom: 24px;
-  justify-content: flex-end; flex-wrap: wrap;
-}
-.iterate-strip .mini-btn {
-  background: var(--surface); border: 1px dashed var(--line-2); color: var(--ink-dim);
-  font-family: inherit; font-size: 12.5px; padding: 7px 14px; border-radius: 8px;
-  cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
-  transition: border-color .15s, color .15s, background .15s;
-}
-.iterate-strip .mini-btn:hover { border-style: solid; border-color: var(--accent); color: var(--accent); }
-.mini-btn.b-lead { border-color: color-mix(in srgb, var(--accent) 35%, transparent); color: var(--accent); }
-.mini-btn.b-lead:hover { border-style: solid; border-color: var(--accent); color: var(--accent); background: var(--accent-3); }
-
-/* ---------- Core trade-off axis ---------- */
-.tradeoff {
-  background: var(--panel); border: 1px solid var(--line);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px; padding: 32px 36px; margin-bottom: 28px;
-  box-shadow: var(--shadow-sm);
-}
-.section-head {
-  display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 24px;
-  gap: 20px;
-}
-.section-head h2 {
-  font-family: 'Fraunces', serif; font-size: 26px; font-weight: 400;
-  font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
-  letter-spacing: -0.015em; margin: 0; color: var(--ink);
-}
-.section-head h2 em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0; }
-.section-head p {
-  font-size: 13px; color: var(--ink-dim); margin: 0; max-width: 380px; text-align: right;
-  line-height: 1.55;
-}
-
-.axis-wrap {
-  position: relative; padding: 40px 20px 30px;
-}
-.axis-line {
-  position: relative; height: 3px;
-  background: linear-gradient(90deg, var(--good) 0%, var(--line-2) 50%, var(--accent) 100%);
-  border-radius: 2px;
-}
-.axis-mid {
-  position: absolute; top: -6px; left: 50%; transform: translateX(-50%);
-  width: 2px; height: 14px; background: var(--ink-mute);
-}
-.axis-label-l, .axis-label-r {
-  position: absolute; top: -30px; font-size: 13px; font-weight: 600;
-}
-.axis-label-l { left: 0; color: var(--good); }
-.axis-label-r { right: 0; color: var(--accent); text-align: right; }
-.axis-sub { font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute); display: block; font-weight: 400; letter-spacing: 0.08em; margin-top: 2px; }
-
-.axis-points {
-  position: relative; height: 72px; margin-top: 20px;
-}
-.axis-dot-wrap {
-  position: absolute; top: 8px;
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  transform: translateX(-50%);
-}
-.axis-dot {
-  display: block; border-radius: 50%;
-  box-shadow: 0 0 0 3px var(--bg);
-  transition: transform .15s ease;
-}
-.axis-dot-wrap:hover .axis-dot { transform: scale(1.15); }
-.axis-dot.cool { background: var(--good); }
-.axis-dot.warm { background: var(--accent); }
-.axis-dot.neutral { background: var(--ink-mute); opacity: 0.55; }
-.axis-label-pill {
-  display: inline-block; padding: 4px 9px; border-radius: 999px;
-  font-size: 11.5px; font-weight: 500; white-space: nowrap;
-  background: var(--surface); border: 1px solid var(--line-2);
-  color: var(--ink); letter-spacing: -0.005em;
-  font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums;
-}
-.axis-label-pill.warm { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, var(--line-2)); }
-.axis-label-pill.cool { color: var(--good);  border-color: color-mix(in srgb, var(--good) 45%, var(--line-2)); }
-
-.tradeoff-takeaway {
-  margin-top: 18px; padding: 14px 18px; background: var(--panel-2);
-  border-left: 2px solid var(--accent); border-radius: 0 8px 8px 0;
-  font-size: 14px; line-height: 1.6; color: var(--ink-dim);
-}
-.tradeoff-takeaway strong { color: var(--ink); font-weight: 600; }
-.tradeoff-takeaway em { color: var(--accent); font-style: italic; font-family: 'Fraunces', serif; font-variation-settings: "opsz" 48, "SOFT" 0, "WONK" 0; }
-.tradeoff-explainer {
-  margin: 14px 0 0; padding: 14px 18px;
-  background: color-mix(in srgb, var(--ink-mute) 6%, transparent);
-  border: 1px solid var(--line); border-radius: 10px;
-  font-size: 12.5px; line-height: 1.65; color: var(--ink-dim);
-}
-.tradeoff-explainer strong { color: var(--ink); font-weight: 500; }
-.tradeoff-explainer em { color: var(--accent); font-style: italic; }
-
-/* ---------- Dimension graphs — per-dimension horizontal bars with a
-              B−A · B · A toggle. Same 7 metrics as the trade-off axis. ---------- */
-.dim-graphs {
-  background: var(--panel); border: 1px solid var(--line);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px; padding: 32px 36px; margin-bottom: 28px;
-  box-shadow: var(--shadow-sm);
-}
-.dim-graphs .view-group {
-  display: inline-flex; background: var(--surface); border: 1px solid var(--line);
-  border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 18px;
-  box-shadow: var(--shadow-sm);
-}
-.dim-graphs .view-group button {
-  background: transparent; border: none; color: var(--ink-dim);
-  font-family: inherit; font-size: 12.5px; font-weight: 500;
-  padding: 6px 14px; border-radius: 6px; cursor: pointer;
-}
-.dim-graphs .view-group button.active { background: var(--accent); color: #ffffff; }
-.dim-graph-legend {
-  margin: 4px 0 14px; font-size: 12.5px; color: var(--ink-dim); line-height: 1.6;
-  background: color-mix(in srgb, var(--ink-mute) 5%, transparent);
-  border: 1px solid var(--line); border-radius: 8px;
-  padding: 10px 14px;
-}
-.dim-graph-legend strong { color: var(--ink); font-weight: 500; }
-
-/* Toggle chips — one per dimension, coloured to match its line. Clicking a
-   chip hides/shows that line on the combined chart. */
-.dim-graph-chips {
-  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px;
-}
-.dim-chip {
-  display: inline-flex; align-items: center; gap: 7px;
-  padding: 6px 12px 6px 10px; border-radius: 999px;
-  border: 1px solid var(--line-2); background: var(--surface);
-  color: var(--ink-dim); cursor: pointer;
-  font-family: inherit; font-size: 12.5px; font-weight: 500; letter-spacing: -0.005em;
-  transition: opacity .15s ease, border-color .15s ease, background .15s ease;
-}
-.dim-chip:hover { border-color: var(--ink-mute); }
-.dim-chip.is-off { opacity: 0.38; background: transparent; }
-.dim-chip-dot {
-  width: 10px; height: 10px; border-radius: 50%; display: inline-block;
-  box-shadow: 0 0 0 2px var(--surface);
-}
-.dim-chip.is-off .dim-chip-dot { opacity: 0.4; }
-
-/* The combined chart — single SVG containing up to 7 overlaid lines. */
-.dim-graph-canvas {
-  position: relative;
-  background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
-  padding: 14px 14px 8px; min-height: 260px;
-}
-.dim-graph-canvas svg { display: block; width: 100%; height: 260px; overflow: visible; }
-.dim-graph-canvas .empty {
-  padding: 60px 20px; text-align: center; color: var(--ink-mute); font-size: 13px;
-}
-.dim-graph-axes-label {
-  display: flex; justify-content: space-between; margin-top: 6px;
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px; color: var(--ink-mute);
-  letter-spacing: 0.04em;
-}
-@media (max-width: 720px) {
-  .dim-graphs { padding: 24px 20px; }
-  .dim-graph-canvas svg { height: 200px; }
-}
-
-/* ---------- Media results console ---------- */
-.media-results-only { display: none; }
-body.media-results .media-results-only { display: block; }
-.media-console {
-  position: relative; overflow: hidden;
-  background:
-    radial-gradient(900px 340px at 7% -10%, color-mix(in srgb, var(--good) 12%, transparent), transparent 60%),
-    radial-gradient(900px 360px at 100% 120%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 62%),
-    var(--panel);
-  border: 1px solid var(--line); border-radius: 18px;
-  padding: 30px 34px 34px; margin-bottom: 28px; box-shadow: var(--shadow-md);
-}
-.media-console::before {
-  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0.28;
-  background-image:
-    linear-gradient(color-mix(in srgb, var(--ink-mute) 12%, transparent) 1px, transparent 1px),
-    linear-gradient(90deg, color-mix(in srgb, var(--ink-mute) 10%, transparent) 1px, transparent 1px);
-  background-size: 36px 36px;
-  mask-image: radial-gradient(circle at 22% 10%, black, transparent 58%);
-}
-.media-console > * { position: relative; z-index: 1; }
-.media-stage {
-  display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
-  gap: 24px; align-items: stretch;
-}
-.media-screen {
-  background: color-mix(in srgb, var(--surface) 84%, transparent);
-  border: 1px solid var(--line); border-radius: 16px; padding: 18px;
-  box-shadow: var(--shadow-sm);
-}
-.media-screen-head {
-  display:flex; justify-content:space-between; align-items:flex-start; gap:18px; margin-bottom:14px;
-}
-.media-kicker {
-  font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:.16em;
-  text-transform:uppercase; color:var(--accent); margin-bottom:8px;
-}
-.media-now-title {
-  font-family:var(--serif); font-size:clamp(28px, 4vw, 46px); line-height:1.02;
-  letter-spacing:-.025em; margin:0; font-weight:400; color:var(--ink);
-}
-.media-now-title em { color:var(--accent); font-style:italic; }
-.media-now-body { margin:12px 0 0; color:var(--ink-dim); max-width:680px; font-size:15px; line-height:1.62; }
-.media-readout {
-  min-width:150px; text-align:right; font-family:'JetBrains Mono',monospace;
-  color:var(--ink-mute); font-size:11px; letter-spacing:.07em; text-transform:uppercase;
-}
-.media-readout strong { display:block; color:var(--ink); font-size:28px; line-height:1; letter-spacing:-.04em; margin-bottom:7px; }
-.media-controls {
-  display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center; margin:18px 0 14px;
-}
-.media-play {
-  width:42px; height:42px; border-radius:50%; border:1px solid var(--line-2);
-  background:var(--ink); color:var(--bg); display:grid; place-items:center;
-  font-family:'JetBrains Mono',monospace; cursor:pointer;
-}
-.media-scrubber {
-  width:100%; accent-color:var(--accent); cursor:pointer;
-}
-.media-scrubber-label {
-  font-family:'JetBrains Mono',monospace; color:var(--ink-mute); font-size:11px;
-  min-width:78px; text-align:right;
-}
-.media-timeline {
-  border:1px solid var(--line); border-radius:12px; background:var(--surface);
-  padding:14px 14px 8px; overflow:hidden;
-}
-.media-timeline svg { display:block; width:100%; height:220px; overflow:visible; }
-.media-legend {
-  display:flex; justify-content:space-between; gap:12px; margin-top:10px;
-  font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-mute); letter-spacing:.05em;
-}
-.media-side-stack { display:grid; grid-template-rows:auto 1fr auto; gap:14px; }
-.media-samples {
-  display:grid; grid-template-columns:1fr 1fr; gap:10px;
-}
-.media-sample-card {
-  border:1px solid var(--line); border-radius:12px; background:var(--surface);
-  padding:13px 14px; min-width:0;
-}
-.media-sample-card b {
-  font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:.12em;
-  display:block; margin-bottom:6px; text-transform:uppercase;
-}
-.media-sample-card.a b { color:var(--good); }
-.media-sample-card.b b { color:var(--accent); }
-.media-sample-card span {
-  display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  color:var(--ink); font-size:13px;
-}
-.media-moments {
-  display:grid; gap:10px;
-}
-.moment-card {
-  width:100%; text-align:left; border:1px solid var(--line); border-radius:13px;
-  background:var(--surface); padding:14px 15px; cursor:pointer;
-  display:grid; grid-template-columns:auto 1fr auto; gap:12px; align-items:center;
-  color:var(--ink); transition:border-color .15s, background .15s, transform .15s;
-}
-.moment-card:hover, .moment-card.active {
-  border-color:color-mix(in srgb, var(--accent) 55%, var(--line));
-  background:color-mix(in srgb, var(--accent-3) 72%, var(--surface));
-  transform:translateY(-1px);
-}
-.moment-time {
-  font-family:'JetBrains Mono',monospace; color:var(--ink-mute); font-size:11px;
-  min-width:42px;
-}
-.moment-main strong { display:block; font-size:14px; margin-bottom:2px; }
-.moment-main span { display:block; color:var(--ink-dim); font-size:12.5px; line-height:1.35; }
-.moment-delta {
-  font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--accent);
-}
-.moment-delta.a { color:var(--good); }
-.media-action-grid {
-  display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:18px;
-}
-.media-action {
-  border:1px solid var(--line); border-radius:13px; background:var(--surface);
-  padding:15px 16px;
-}
-.media-action h4 {
-  margin:0 0 8px; font-family:'JetBrains Mono',monospace; font-size:10.5px;
-  letter-spacing:.12em; text-transform:uppercase; color:var(--accent);
-}
-.media-action p { margin:0; color:var(--ink-dim); font-size:13.5px; line-height:1.55; }
-.media-evidence {
-  margin-top:14px; border-left:2px solid var(--accent); padding:11px 0 11px 14px;
-  color:var(--ink-dim); font-size:13px; line-height:1.55;
-}
-@media (max-width: 960px) {
-  .media-console { padding:24px 20px; }
-  .media-stage { grid-template-columns:1fr; }
-  .media-screen-head { flex-direction:column; }
-  .media-readout { text-align:left; }
-  .media-action-grid { grid-template-columns:1fr; }
-}
-
-/* ---------- Final sign-off line, sits below everything in small type ---------- */
-.report-signoff{
-  text-align:center;margin:40px 0 60px;
-  font-family:'JetBrains Mono',monospace;font-size:11.5px;
-  letter-spacing:0.18em;text-transform:uppercase;color:var(--ink-mute);
-}
-.report-signoff em{font-style:italic;color:var(--accent);font-family:'Fraunces',serif;text-transform:none;font-size:13px;letter-spacing:0;font-variation-settings:"opsz" 48}
-
-/* ---------- End-of-report CTA (stronger primary action + framing copy) ---------- */
-.report-cta {
-  margin: 0 0 60px;
-  padding: 40px 44px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background:
-    radial-gradient(1200px 400px at 10% -30%, color-mix(in srgb, var(--accent) 10%, transparent), transparent 60%),
-    radial-gradient(900px 500px at 110% 120%, color-mix(in srgb, var(--good) 10%, transparent), transparent 60%),
-    var(--panel);
-  box-shadow: var(--shadow-md);
-  display: grid; grid-template-columns: 1.3fr auto; gap: 32px; align-items: center;
-}
-.report-cta-head { max-width: 560px; }
-.report-cta-title {
-  font-family: 'Fraunces', serif; font-weight: 400;
-  font-variation-settings: "opsz" 144, "SOFT" 0, "WONK" 0;
-  font-size: clamp(26px, 3.2vw, 38px); line-height: 1.08; letter-spacing: -0.02em;
-  margin: 0 0 10px; color: var(--ink);
-}
-.report-cta-title em { font-style: italic; color: var(--accent); }
-.report-cta-sub { font-size: 14.5px; line-height: 1.6; color: var(--ink-dim); margin: 0; }
-.report-cta-sub em { font-style: italic; color: var(--ink); font-weight: 500; }
-.report-cta-actions {
-  display: flex; flex-direction: column; gap: 10px; align-items: stretch;
-}
-.btn-cta-primary {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  padding: 14px 22px; border-radius: 10px;
-  background: var(--accent); color: #fff;
-  font-family: inherit; font-size: 15px; font-weight: 500; letter-spacing: -0.005em;
-  border: none; cursor: pointer; text-decoration: none;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 35%, transparent);
-  transition: transform .15s ease, box-shadow .2s ease, background .15s ease;
-  white-space: nowrap;
-}
-.btn-cta-primary:hover { transform: translateY(-1px); background: color-mix(in srgb, var(--accent) 88%, black); box-shadow: 0 8px 22px color-mix(in srgb, var(--accent) 45%, transparent); }
-.btn-cta-primary span { font-family: 'JetBrains Mono', monospace; font-size: 14px; }
-.btn-cta-ghost {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  padding: 10px 18px; border-radius: 10px;
-  background: var(--surface); color: var(--ink-dim);
-  font-family: inherit; font-size: 13.5px; font-weight: 500;
-  border: 1px solid var(--line-2); cursor: pointer;
-  transition: color .15s ease, border-color .15s ease;
-}
-.btn-cta-ghost:hover { color: var(--ink); border-color: var(--accent); }
-.report-cta-actions .dropdown-menu { right: 0; left: auto; top: auto; bottom: calc(100% + 8px); min-width: 220px; }
-@media (max-width: 720px) {
-  .report-cta { grid-template-columns: 1fr; padding: 26px 22px; gap: 22px; }
-  .report-cta-actions { flex-direction: row; flex-wrap: wrap; }
-  .btn-cta-primary { flex: 1 1 100%; }
-  .btn-cta-ghost { flex: 1; }
-}
-
-/* ---------- Per-metric expander cards (Dimensions · dig in) ---------- */
-.metric-detail-section {
-  background: var(--panel); border: 1px solid var(--line);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px; padding: 32px 36px; margin-bottom: 28px;
-  box-shadow: var(--shadow-sm);
-}
-.metric-cards { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
-.metric-card {
-  border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
-  transition: border-color .15s ease, background .15s ease;
-}
-.metric-card:hover { border-color: var(--line-2); }
-.metric-card[open] { background: var(--panel-2); border-color: var(--line-2); }
-.metric-summary {
-  display: grid; grid-template-columns: 1fr auto auto 18px; gap: 14px; align-items: center;
-  padding: 14px 18px; cursor: pointer; user-select: none; list-style: none;
-}
-.metric-summary::-webkit-details-marker { display: none; }
-.metric-name { font-size: 14.5px; color: var(--ink); font-weight: 500; letter-spacing: -0.005em; }
-.metric-value { font-family: 'JetBrains Mono', monospace; font-size: 13px; min-width: 60px; text-align: right; }
-.metric-value.b { color: var(--accent); }
-.metric-value.a { color: var(--good); }
-.metric-value.neutral { color: var(--ink-mute); }
-.metric-region {
-  font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--ink-mute);
-  letter-spacing: 0.04em; text-align: right; max-width: 220px;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.metric-chevron { color: var(--ink-mute); font-size: 12px; transition: transform .2s ease; justify-self: end; }
-.metric-card[open] .metric-chevron { transform: rotate(180deg); }
-.metric-body {
-  padding: 16px 18px 20px; display: flex; flex-direction: column; gap: 14px;
-  border-top: 1px solid var(--line);
-}
-.metric-row { display: grid; grid-template-columns: 150px 1fr; gap: 16px; align-items: baseline; }
-.metric-row-label {
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
-  letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-mute);
-}
-.metric-row-text { font-size: 13.5px; color: var(--ink); line-height: 1.55; }
-.metric-row-text strong { color: var(--accent); font-weight: 500; }
-
-/* ---------- Supporting card ---------- */
-.deep-card {
-  background: var(--panel); border: 1px solid var(--line);
-  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border-radius: 16px; padding: 32px 36px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 36px; align-items: start;
-  box-shadow: var(--shadow-sm);
-}
-.deep-card h3 {
-  font-family: 'Fraunces', serif; font-size: 20px; font-weight: 400;
-  font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0;
-  letter-spacing: -0.01em; margin: 0 0 10px; color: var(--ink);
-}
-.deep-card h3 em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0; }
-.deep-card p { font-size: 14px; line-height: 1.65; color: var(--ink-dim); margin: 0 0 14px; }
-.dim-list { list-style: none; padding: 0; margin: 0; }
-.dim-list li {
-  display: grid; grid-template-columns: 1fr auto auto; gap: 12px; align-items: center;
-  padding: 11px 0; border-top: 1px solid var(--line);
-}
-.dim-list li:first-child { border-top: none; }
-.dim-name { font-size: 13.5px; color: var(--ink); }
-.dim-bar {
-  width: 160px; height: 6px; border-radius: 3px; background: var(--line-2);
-  position: relative; overflow: hidden;
-}
-.dim-bar-fill { position: absolute; top: 0; bottom: 0; left: 50%; border-radius: 3px; }
-.dim-bar-fill.b { background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
-.dim-bar-fill.a { background: linear-gradient(90deg, var(--good), var(--good-2)); }
-.dim-val {
-  font-family: 'JetBrains Mono', monospace; font-size: 11.5px;
-  min-width: 48px; text-align: right;
-}
-.dim-val.b { color: var(--accent); }
-.dim-val.a { color: var(--good); }
-.dim-val.neutral { color: var(--ink-mute); }
-
-/* Low-contrast empty-state variant (hidden by default, shown when confidence = too_close_to_call) */
-.empty-state {
-  display: none;
-  text-align: center; padding: 40px 20px;
-  font-family: 'Fraunces', serif; font-size: 24px; line-height: 1.35;
-  font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0;
-  color: var(--ink-dim);
-}
-.empty-state em { font-style: italic; color: var(--accent); font-variation-settings: "opsz" 96, "SOFT" 0, "WONK" 0; }
-.empty-state-sub {
-  font-family: 'Inter Tight', sans-serif; font-size: 13.5px;
-  color: var(--ink-mute); margin-top: 10px;
-}
-body.low-contrast .money-shot .verdict-headline,
-body.low-contrast .money-shot .verdict-sub,
-body.low-contrast .biggest-shift { display: none; }
-body.low-contrast .money-shot .empty-state { display: block; }
-
-/* Mobile */
-@media (max-width: 960px) {
-  main { padding: 20px; }
-  .money-shot { grid-template-columns: 1fr; }
-  .brain-stage { border-right: none; border-bottom: 1px solid var(--line); min-height: 380px; }
-  .verdict { padding: 28px; }
-  .verdict-headline { font-size: 30px; }
-  .deep-card { grid-template-columns: 1fr; }
-  .section-head { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .section-head p { text-align: left; }
-  .brain-hint { display: none; }
-  .metric-detail-section { padding: 24px 20px; }
-  .metric-summary { grid-template-columns: 1fr auto 18px; gap: 10px; }
-  .metric-region { display: none; }
-  .metric-row { grid-template-columns: 1fr; gap: 4px; }
-  .metric-row-label { font-size: 10px; }
-  .recall { flex-direction: column; align-items: stretch; gap: 8px; }
-  .recall-divider { display: none; }
-  .recall-preview { max-width: 100%; }
-  .biggest-shift-hover .desktop { display: none; }
-  .biggest-shift-hover .mobile { display: inline; }
-  .iterate-strip { justify-content: flex-start; }
-  .topbar { padding: 14px 20px; flex-wrap: wrap; gap: 10px; }
-  .topbar-right { flex-wrap: wrap; }
-  .theme-switcher { right: 14px; top: 10px; }
-}
-
-/* ============================================================
-   CINEMATIC REVEAL (first paint only)
-   Gated behind `body.reveal`. JS applies the class on load unless
-   prefers-reduced-motion is set. All animations are additive.
-   ============================================================ */
-body.reveal .verdict-eyebrow,
-body.reveal .verdict-headline,
-body.reveal .verdict-caption,
-body.reveal .verdict-sub,
-body.reveal .biggest-shift,
-body.reveal .quick-facts > .fact,
-body.reveal .scale-legend,
-body.reveal .brain-toolbar,
-body.reveal .a11y-toggle,
-body.reveal .brain-hint {
-  opacity: 0;
-  transform: translateY(10px);
-  animation: bdReveal 620ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
-}
-
-/* staggered delays — feels earned, not mechanical */
-body.reveal .brain-toolbar    { animation-delay: 0.20s; transform: translateY(-8px); }
-body.reveal .a11y-toggle      { animation-delay: 0.45s; transform: translateY(-8px); }
-body.reveal .scale-legend     { animation-delay: 2.10s; transform: translateY(8px); }
-body.reveal .brain-hint       { animation-delay: 2.40s; transform: translateY(0); }
-body.reveal .verdict-eyebrow  { animation-delay: 2.20s; }
-body.reveal .verdict-headline { animation-delay: 2.55s; }
-body.reveal .verdict-caption  { animation-delay: 3.10s; }
-body.reveal .verdict-sub      { animation-delay: 3.25s; }
-body.reveal .biggest-shift    { animation-delay: 3.55s; }
-body.reveal .quick-facts > .fact:nth-child(1) { animation-delay: 3.85s; }
-body.reveal .quick-facts > .fact:nth-child(2) { animation-delay: 3.95s; }
-body.reveal .quick-facts > .fact:nth-child(3) { animation-delay: 4.05s; }
-body.reveal .quick-facts > .fact:nth-child(4) { animation-delay: 4.15s; }
-
-@keyframes bdReveal {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Brain stage soft glow during the bloom — fades out as cortex comes in */
-body.reveal .brain-stage::before {
-  content: '';
-  position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(ellipse at 50% 50%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 60%);
-  opacity: 0;
-  animation: bdBloom 2.2s cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
-  z-index: 2;
-}
-@keyframes bdBloom {
-  0%   { opacity: 0; }
-  40%  { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* ---------- Axis dots settle (fires after the cinematic reveal) ----------
-   The 7 trade-off points scale up from 0 and drift into place, one per ~70ms,
-   following the axis left-to-right. Axis line itself sweeps in underneath.
-   ---------------------------------------------------------------------- */
-body.reveal .axis-line {
-  clip-path: inset(0 100% 0 0);
-  animation: bdAxisLine 700ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
-  animation-delay: 4.55s;
-}
-@keyframes bdAxisLine { to { clip-path: inset(0 0 0 0); } }
-
-body.reveal .axis-point {
-  opacity: 0;
-  transform: translateY(6px) scale(0.6);
-  animation: bdAxisPoint 480ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
-}
-@keyframes bdAxisPoint { to { opacity: 1; transform: translateY(0) scale(1); } }
-
-/* Left-to-right order — matches DOM; axis points are positioned with `left:X%` so
-   staggered delays feel like a gentle wave across the axis */
-body.reveal .axis-points > .axis-point:nth-child(1)  { animation-delay: 5.05s; } /* 88% */
-body.reveal .axis-points > .axis-point:nth-child(2)  { animation-delay: 4.95s; } /* 72% */
-body.reveal .axis-points > .axis-point:nth-child(3)  { animation-delay: 4.85s; } /* 58% */
-body.reveal .axis-points > .axis-point:nth-child(4)  { animation-delay: 4.80s; } /* 52% row2 */
-body.reveal .axis-points > .axis-point:nth-child(5)  { animation-delay: 4.78s; } /* 48% */
-body.reveal .axis-points > .axis-point:nth-child(6)  { animation-delay: 4.76s; } /* 44% row2 */
-body.reveal .axis-points > .axis-point:nth-child(7)  { animation-delay: 4.70s; } /* 22% */
-
-body.reveal .axis-scale,
-body.reveal .tradeoff-takeaway {
-  opacity: 0; transform: translateY(6px);
-  animation: bdReveal 620ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
-}
-body.reveal .axis-scale          { animation-delay: 5.40s; }
-body.reveal .tradeoff-takeaway   { animation-delay: 5.55s; }
-
-/* Preview-only chrome: demo badge + replay button (remove for production) */
-.demo-chrome {
-  position: fixed; top: 58px; right: 14px; z-index: 70;
-  display: flex; align-items: center; gap: 8px;
-  font-family: 'JetBrains Mono', monospace; font-size: 10.5px;
-  color: var(--ink-mute); letter-spacing: 0.08em; text-transform: uppercase;
-  background: var(--surface); border: 1px solid var(--line-2);
-  padding: 6px 10px; border-radius: 8px; box-shadow: var(--shadow-sm);
-}
-.demo-chrome .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: bdPulse 1.6s ease-in-out infinite; }
-.demo-chrome button {
-  background: transparent; border: 1px solid var(--line-2); color: var(--ink-dim);
-  font-family: inherit; font-size: 10.5px; letter-spacing: 0.08em;
-  padding: 3px 8px; border-radius: 5px; cursor: pointer; text-transform: uppercase;
-}
-.demo-chrome button:hover { color: var(--accent); border-color: var(--accent); }
-@keyframes bdPulse { 50% { opacity: 0.35; } }
-
-@media (prefers-reduced-motion: reduce) {
-  body.reveal .verdict-eyebrow,
-  body.reveal .verdict-headline,
-  body.reveal .verdict-caption,
-  body.reveal .verdict-sub,
-  body.reveal .biggest-shift,
-  body.reveal .quick-facts > .fact,
-  body.reveal .scale-legend,
-  body.reveal .brain-toolbar,
-  body.reveal .a11y-toggle,
-  body.reveal .brain-hint,
-  body.reveal .brain-stage::before,
-  body.reveal .axis-line,
-  body.reveal .axis-point,
-  body.reveal .axis-scale,
-  body.reveal .tradeoff-takeaway {
-    animation: none !important;
-    opacity: 1 !important;
-    transform: none !important;
-    clip-path: none !important;
-  }
-}
 </style>
 </head>
 <body>
+
 <div class="theme-switcher">
-  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme" title="Toggle light/dark"><span class="tt-sun">☀</span><span class="tt-moon">☾</span></button>
+  <button class="theme-toggle" onclick="toggleTheme()" aria-label="Toggle theme">
+    <span class="tt-sun">☀</span><span class="tt-moon">☾</span>
+  </button>
 </div>
 
 <header class="topbar">
-  <a class="brand" href="./"><img class="brand-logo" src="/assets/braindiff-logo.png" alt="BrainDiff logo" /><span class="brand-word">Brain<b>Diff</b></span></a>
-  <div class="topbar-right">
-    <!-- Share dropdown -->
-    <div class="dropdown" id="shareDrop">
-      <button class="top-btn" onclick="toggleDrop('shareDrop')">Share <span class="caret">▾</span></button>
-      <div class="dropdown-menu">
-        <div class="dropdown-head">Link</div>
-        <div class="dropdown-item">Copy public link <span class="item-sub">anyone with link</span></div>
-        <div class="dropdown-item">Copy private link <span class="item-sub">only you</span></div>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-head">Send</div>
-        <div class="dropdown-item">Email a summary</div>
-        <div class="dropdown-item">Copy to clipboard</div>
-      </div>
-    </div>
-
-    <!-- Export dropdown -->
-    <div class="dropdown" id="exportDrop">
-      <button class="top-btn" onclick="toggleDrop('exportDrop')">Export <span class="caret">▾</span></button>
-      <div class="dropdown-menu">
-        <div class="dropdown-item">PDF report <span class="item-sub">.pdf</span></div>
-        <div class="dropdown-item">Brain snapshot <span class="item-sub">.png</span></div>
-        <div class="dropdown-item">Raw scores <span class="item-sub">.json</span></div>
-        <div class="dropdown-divider"></div>
-        <div class="dropdown-item">Copy embed code <span class="item-sub">&lt;iframe&gt;</span></div>
-      </div>
-    </div>
-
-    <a href="/launch" class="top-btn primary">New comparison</a>
-  </div>
+  <a href="/" class="brand">
+    <img class="brand-logo" src="./assets/braindiff-logo.png" alt="BrainDiff logo" />
+    <span class="brand-word">Brain<b>Diff</b></span>
+  </a>
+  <nav class="nav">
+    <a href="/research">Research</a>
+    <a href="/methodology">Methodology</a>
+    <a href="/launch" class="nav-cta">Launch →</a>
+  </nav>
 </header>
 
-<main>
+<div class="dev-banner">
+  <span>DEV MODE — source badges visible. <code id="dev-comparison-id"></code></span>
+  <span>Append <code>?dev=0</code> to hide.</span>
+</div>
 
-  <!-- A/B recall — text previews for text jobs, input filenames for media jobs. -->
-  <div class="recall" id="recallCard">
-    <div class="recall-col a">
-      <span class="recall-tag">A</span>
-      <span class="recall-preview" id="recallA">—</span>
-    </div>
-    <div class="recall-divider"></div>
-    <div class="recall-col b">
-      <span class="recall-tag">B</span>
-      <span class="recall-preview" id="recallB">—</span>
-    </div>
-    <button class="recall-expand" onclick="toggleRecall()" id="recallToggle">Show both in full ↓</button>
+<main class="page" id="page-root">
+  <div class="state-card" id="loading">
+    <h3>Loading comparison…</h3>
+    <p>Reading <code id="loading-path">content.json</code></p>
   </div>
-
-  <!-- THE MONEY SHOT -->
-  <section class="money-shot">
-    <div class="brain-stage">
-      <div class="brain-toolbar">
-        <div class="view-group" role="tablist" id="brainViewGroup">
-          <button class="active" data-view="diff" data-tip="Where B activates more (vermillion) or less (slate) than A.">B − A</button>
-          <button data-view="b"    data-tip="Sample B's predicted cortical response, on its own.">Just B</button>
-          <button data-view="a"    data-tip="Sample A's predicted cortical response, on its own.">Just A</button>
-        </div>
-        <div class="brain-extras">
-          <button class="icon-btn" title="Rotate">⟳</button>
-          <button class="icon-btn" title="Reset view">⌂</button>
-          <button class="icon-btn" title="Fullscreen">⛶</button>
-        </div>
-      </div>
-
-      <canvas class="brain-canvas" id="resultBrain"></canvas>
-
-      <div class="brain-hint">hover regions · click to inspect</div>
-
-      <div class="scale-legend">
-        <b>A stronger</b>
-        <span class="scale-bar"></span>
-        <i>B stronger</i>
-      </div>
-    </div>
-
-    <div class="verdict">
-      <div class="verdict-eyebrow" id="verdictEyebrow">Result</div>
-      <h1 class="verdict-headline" id="verdictHeadline">Comparison complete</h1>
-      <p class="verdict-caption">Model interpretation · based on this run's cortical contrast pattern.</p>
-      <p class="verdict-sub" id="verdictSub"></p>
-
-      <!-- Empty state — appears only when confidence == too_close_to_call -->
-      <div class="empty-state">
-        These two land in <em>nearly the same place.</em>
-        <div class="empty-state-sub">Peak contrast below the 0.005 detection floor. Try swapping in a more different version of B.</div>
-      </div>
-
-      <div class="biggest-shift" id="biggestShift">
-        <div class="biggest-shift-label">Biggest shift</div>
-        <h3 class="biggest-shift-title" id="biggestTitle">—</h3>
-        <p class="biggest-shift-body" id="biggestBody">Strongest signed contrast in this run (HCP atlas region).</p>
-        <div class="biggest-shift-hover">
-          <span class="desktop">→ highlight on brain</span>
-          <span class="mobile">Tap to highlight</span>
-        </div>
-      </div>
-
-      <div class="quick-facts">
-        <div class="fact">
-          <div class="fact-k">Winner</div>
-          <div class="fact-v" id="factWinner">—</div>
-        </div>
-        <div class="fact">
-          <div class="fact-k">Peak contrast</div>
-          <div class="fact-v" id="factPeak">—</div>
-        </div>
-        <div class="fact">
-          <div class="fact-k">Similarity</div>
-          <div class="fact-v" id="factSimilarity">—</div>
-        </div>
-        <div class="fact">
-          <div class="fact-k">Confidence <span class="info-dot">i</span></div>
-          <div class="fact-v" id="factConfidence">—</div>
-          <div class="tip">
-            <h5>How confidence is scored</h5>
-            <div class="tip-row" data-tier="too_close"><span class="label">Too close to call</span><span class="range">|Δ| &lt; 0.005</span></div>
-            <div class="tip-row" data-tier="directional"><span class="label">Directional signal</span><span class="range">0.005 – 0.02</span></div>
-            <div class="tip-row" data-tier="clear"><span class="label">Clear signal</span><span class="range">≥ 0.02</span></div>
-            <div style="margin-top:8px; color:var(--ink-mute); font-size:11px;">
-              Based on the magnitude of the largest regional Δ. Your peak: <b id="peakVal" style="color:var(--accent)">—</b>.
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section class="media-console media-results-only" id="mediaConsole" hidden>
-    <div class="section-head">
-      <h2>Media <em>response console</em></h2>
-      <p>Scrub the run like a clip: which moment changed the predicted cortical response, which system moved, and which sample drove it.</p>
-    </div>
-
-    <div class="media-stage">
-      <div class="media-screen">
-        <div class="media-screen-head">
-          <div>
-            <div class="media-kicker">Current neural frame</div>
-            <h2 class="media-now-title" id="mediaMomentTitle">Finding the strongest moment…</h2>
-            <p class="media-now-body" id="mediaMomentBody">The timeline uses the seven TRIBE v2 system tracks from this run.</p>
-          </div>
-          <div class="media-readout">
-            <strong id="mediaFrameLabel">0s</strong>
-            <span id="mediaDominant">—</span>
-          </div>
-        </div>
-        <div class="media-controls">
-          <button class="media-play" id="mediaPlay" type="button" aria-label="Play neural timeline">▶</button>
-          <input class="media-scrubber" id="mediaScrubber" type="range" min="0" max="1" value="0" step="1" />
-          <div class="media-scrubber-label" id="mediaIntensity">Δ —</div>
-        </div>
-        <div class="media-timeline" id="mediaTimeline"></div>
-        <div class="media-legend">
-          <span>A stronger = slate</span>
-          <span>B stronger = vermillion</span>
-        </div>
-      </div>
-
-      <aside class="media-side-stack">
-        <div class="media-samples">
-          <div class="media-sample-card a"><b>Sample A</b><span id="mediaSampleA">—</span></div>
-          <div class="media-sample-card b"><b>Sample B</b><span id="mediaSampleB">—</span></div>
-        </div>
-        <div class="media-moments" id="mediaMomentCards"></div>
-        <div class="media-evidence" id="mediaEvidence">This console is generated from per-timestep cortical predictions. It is a response map, not a literal edit decision.</div>
-      </aside>
-    </div>
-
-    <div class="media-action-grid" id="mediaRecommendations"></div>
-  </section>
-
-  <!-- CORE TRADE-OFF -->
-  <section class="tradeoff">
-    <div class="section-head">
-      <h2>Core <em>trade-off</em></h2>
-      <p>All seven dimensions, placed on the axis between "A stronger" and "B stronger."</p>
-    </div>
-
-    <div class="axis-wrap">
-      <div class="axis-line">
-        <div class="axis-mid"></div>
-        <span class="axis-label-l">A stronger <span class="axis-sub">−0.30 ← 0</span></span>
-        <span class="axis-label-r">B stronger <span class="axis-sub">0 → +0.30</span></span>
-      </div>
-      <div class="axis-points" id="axisPoints"></div>
-    </div>
-
-    <div class="tradeoff-takeaway" id="tradeoffTakeaway">
-      <strong>Strongest contrast:</strong> <span id="tradeoffLine">—</span>
-    </div>
-
-    <p class="tradeoff-explainer">
-      <strong>How to read this.</strong> <strong>+0.30</strong> means B's response in this system was about <em>30% of the run's strongest signal</em> stronger than A's. The bigger the number, the bigger the difference. <strong>A bigger number means one side pushed a cortical system harder — not that that version is better. That call is yours.</strong>
-    </p>
-  </section>
-
-  <!-- DIMENSION GRAPHS — per-dimension time-series. Each sample gets run
-       through TRIBE v2 timestep-by-timestep; the dimension
-       series is that dimension's average activation at each timestep. Three
-       views: B−A difference over time, B alone, A alone. -->
-  <section class="dim-graphs">
-    <div class="section-head">
-      <h2>Dimension <em>graphs</em></h2>
-      <p id="dimGraphIntro">Each line is the activation of one cortical system <em>across the duration of the sample</em>. TRIBE v2 predicts 20,484 vertex values per second; we average the ones in that system's mask.</p>
-    </div>
-    <div class="view-group" role="tablist" id="dimGraphViewGroup">
-      <button class="active" data-view="diff">B − A</button>
-      <button data-view="b">Just B</button>
-      <button data-view="a">Just A</button>
-    </div>
-    <p class="dim-graph-legend" id="dimGraphLegend"></p>
-    <div class="dim-graph-chips" id="dimGraphChips"></div>
-    <div class="dim-graph-canvas" id="dimGraphCanvas"></div>
-  </section>
-
-  <!-- DIMENSIONS · DIG IN — per-metric expander cards. Replaces the old
-       "what changed / what stayed" two-column. Each card opens to show:
-       what we measured · where · what your number means · lab science ·
-       real-world use. -->
-  <section class="metric-detail-section">
-    <div class="section-head">
-      <h2>Each dimension, <em>explained</em></h2>
-      <p>Click any one to see the region, what your number implies, and the published study behind it.</p>
-    </div>
-    <div class="metric-cards" id="metricCards"></div>
-  </section>
-
-  <!-- End-of-report CTA. Primary action = another comparison; secondary
-       actions = share + export. Mirrors the topbar dropdowns so the user
-       doesn't have to scroll back up. -->
-  <section class="report-cta">
-    <div class="report-cta-head">
-      <h2 class="report-cta-title">Try <em>another</em> comparison.</h2>
-      <p class="report-cta-sub">
-        The interesting pairs are ones that <em>say</em> the same thing but land differently. Pick a new A and B and re-run — or save this one.
-      </p>
-    </div>
-    <div class="report-cta-actions">
-      <a class="btn-cta-primary" href="/launch">+ Run another comparison <span aria-hidden="true">→</span></a>
-      <div class="dropdown" id="shareDropEnd">
-        <button class="btn-cta-ghost" onclick="toggleDrop('shareDropEnd')">Share <span class="caret">▾</span></button>
-        <div class="dropdown-menu">
-          <div class="dropdown-head">Link</div>
-          <div class="dropdown-item" onclick="copyShareLink(true)">Copy public link <span class="item-sub">anyone with link</span></div>
-          <div class="dropdown-item" onclick="copyShareLink(false)">Copy private link <span class="item-sub">only you</span></div>
-          <div class="dropdown-divider"></div>
-          <div class="dropdown-head">Send</div>
-          <div class="dropdown-item">Email a summary</div>
-          <div class="dropdown-item">Copy to clipboard</div>
-        </div>
-      </div>
-      <div class="dropdown" id="exportDropEnd">
-        <button class="btn-cta-ghost" onclick="toggleDrop('exportDropEnd')">Export <span class="caret">▾</span></button>
-        <div class="dropdown-menu">
-          <div class="dropdown-item">PDF report <span class="item-sub">.pdf</span></div>
-          <div class="dropdown-item">Brain snapshot <span class="item-sub">.png</span></div>
-          <div class="dropdown-item">Raw scores <span class="item-sub">.json</span></div>
-          <div class="dropdown-divider"></div>
-          <div class="dropdown-item">Copy embed code <span class="item-sub">&lt;iframe&gt;</span></div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <p class="report-signoff">TRIBE v2 predicts. <em>You decide.</em></p>
-
 </main>
 
+<footer class="footer">
+  <span>Brain Diff</span>
+  <span> · </span>
+  <a href="/methodology">Methodology</a>
+  <span> · </span>
+  <a href="/research">Research</a>
+  <div class="meta" id="footer-meta"></div>
+</footer>
+
 <script>
-  function toggleTheme(){
-    var r=document.documentElement;
-    var next=r.getAttribute('data-theme')==='dark'?'light':'dark';
-    if(next==='dark') r.setAttribute('data-theme','dark');
-    else r.removeAttribute('data-theme');
-    try{localStorage.setItem('braindiff-theme',next);}catch(e){}
-    window.dispatchEvent(new CustomEvent('braindiff:theme',{detail:{theme:next}}));
-  }
-
-  // Dropdown toggles
-  function toggleDrop(id) {
-    document.querySelectorAll('.dropdown').forEach(d => {
-      if (d.id !== id) d.classList.remove('open');
-    });
-    document.getElementById(id).classList.toggle('open');
-  }
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.dropdown')) {
-      document.querySelectorAll('.dropdown').forEach(d => d.classList.remove('open'));
-    }
-  });
-
-  // A/B recall expand
-  function toggleRecall() {
-    const card = document.getElementById('recallCard');
-    const btn = document.getElementById('recallToggle');
-    card.classList.toggle('expanded');
-    btn.textContent = card.classList.contains('expanded') ? 'Collapse ↑' : 'Show both in full ↓';
-  }
-
-  // Pattern-mode toggle removed.
-
-  // Share helpers used by both the topbar and end-of-report dropdowns.
-  function copyShareLink(publicLink){
-    const url = location.origin + location.pathname + '?job=' +
-      encodeURIComponent((new URLSearchParams(location.search)).get('job') || '');
-    navigator.clipboard && navigator.clipboard.writeText(url).then(() => {
-      // Minimal inline feedback — avoids pulling in a toast library here.
-      const el = document.createElement('div');
-      el.textContent = publicLink ? 'Public link copied' : 'Private link copied';
-      el.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:rgba(20,22,28,0.96);color:#e8e4db;padding:10px 18px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);box-shadow:0 10px 24px rgba(0,0,0,0.5);font-size:13px;z-index:200';
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 2000);
-    });
-  }
-
-  // Toggle low-contrast empty state with ?low=1 (for demo)
-  if (new URLSearchParams(location.search).get('low') === '1') {
-    document.body.classList.add('low-contrast');
-  }
-
-  /* ============================================================
-     CINEMATIC REVEAL orchestration
-     - Sets window.__revealProgress from 0 → 1 over BLOOM_MS.
-     - The Three.js repaint() multiplies vertex intensity by this,
-       so the cortex blooms in from pewter to vermillion/slate.
-     - CSS handles the rest (text + UI elements, staggered).
-     - Respects prefers-reduced-motion: instant final state.
-     - Fires once per session unless ?reveal=1 forces replay.
-     ============================================================ */
-  const REVEAL_KEY = 'braindiff-reveal-seen';
-  const BLOOM_START_MS = 400;   // brain holds pewter for a beat
-  const BLOOM_MS       = 1700;  // then colors bloom in
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  function runReveal() {
-    if (reduceMotion) {
-      window.__revealProgress = 1;
-      window.dispatchEvent(new Event('brain:repaint'));
-      return;
-    }
-    document.body.classList.add('reveal');
-    window.__revealProgress = 0;
-    window.dispatchEvent(new Event('brain:repaint'));
-
-    const t0 = performance.now();
-    function tick(now) {
-      const elapsed = now - t0;
-      if (elapsed < BLOOM_START_MS) {
-        window.__revealProgress = 0;
-      } else {
-        const t = Math.min(1, (elapsed - BLOOM_START_MS) / BLOOM_MS);
-        // easeOutCubic for a natural settle
-        window.__revealProgress = 1 - Math.pow(1 - t, 3);
-      }
-      window.dispatchEvent(new Event('brain:repaint'));
-      if (window.__revealProgress < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-
-    // Clean up the class once the CSS animations have completed
-    setTimeout(() => { document.body.classList.remove('reveal'); }, 5200);
-  }
-
-  function replayReveal() {
-    // Reset elements to hidden state, then re-run
-    document.body.classList.remove('reveal');
-    // Force reflow so re-adding the class restarts the keyframes
-    void document.body.offsetWidth;
-    runReveal();
-  }
-  window.replayReveal = replayReveal;
-
-  // Decide whether to play on first load
-  const forceReveal = new URLSearchParams(location.search).get('reveal') === '1';
-  const hasSeen = (() => { try { return sessionStorage.getItem(REVEAL_KEY) === '1'; } catch(e) { return false; } })();
-  if (forceReveal || !hasSeen) {
-    // Defer one frame so Three.js has a chance to mount before we hook repaint
-    requestAnimationFrame(() => requestAnimationFrame(runReveal));
-    try { sessionStorage.setItem(REVEAL_KEY, '1'); } catch(e) {}
-  } else {
-    window.__revealProgress = 1;
-  }
-</script>
-
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
-  }
-}
-</script>
-<script type="module">
-/* =====================================================================
-   Results page — real data wiring.
-   Fetches job status + fsaverage5 mesh, populates all copy/facts/axis/
-   deep-card from the API, and mounts the cortex with the real signed
-   vertex_delta intensity. Reuses the existing `window.__revealProgress`
-   bloom driver and `window.__patternMode` toggle from the <script> above.
-   ===================================================================== */
-import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
-
-const params = new URLSearchParams(location.search);
-const JOB_ID = params.get('job');
-if (!JOB_ID){
-  window.location.replace('/launch');
+// ────────────────────────────────────────────────────────────
+// Theme toggle
+// ────────────────────────────────────────────────────────────
+function toggleTheme() {
+  var r = document.documentElement;
+  var next = r.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  if (next === 'dark') r.setAttribute('data-theme', 'dark');
+  else r.removeAttribute('data-theme');
+  try { localStorage.setItem('braindiff-theme', next); } catch(e) {}
 }
 
-/* ---------- tiny helpers ---------- */
-const fmtDelta = (v) => (v >= 0 ? '+' : '') + (Number(v) || 0).toFixed(2);
-const esc = (s) => String(s ?? '').replace(/[<>&]/g, (c) => ({'<':'&lt;','>':'&gt;','&':'&amp;'})[c]);
-const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+// ────────────────────────────────────────────────────────────
+// URL params: ?id={comparison_id}&dev=1
+// ────────────────────────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+const COMPARISON_ID = params.get('id');
+const DEV_MODE = params.get('dev') !== '0';  // dev on by default until production deploy
+if (DEV_MODE) document.body.classList.add('dev-mode');
 
-function decodeFloat32B64(b64){
-  if (!b64) return new Float32Array(20484);
-  const bin = atob(b64);
-  const buf = new ArrayBuffer(bin.length);
-  const view = new Uint8Array(buf);
-  for (let i = 0; i < bin.length; i++) view[i] = bin.charCodeAt(i);
-  return new Float32Array(buf);
-}
+// content.json source. /outputs/* served statically by Vercel rewrite.
+const CONTENT_URL = COMPARISON_ID ? `/outputs/${COMPARISON_ID}/content.json` : null;
 
-function percentileAbs(arr, p){
-  const a = new Float64Array(arr.length);
-  for (let i = 0; i < arr.length; i++) a[i] = Math.abs(arr[i]);
-  a.sort();
-  const idx = Math.min(a.length - 1, Math.floor((p / 100) * a.length));
-  return Math.max(a[idx], 1e-6);
-}
+// ────────────────────────────────────────────────────────────
+// Boot
+// ────────────────────────────────────────────────────────────
+async function loadAndRender() {
+  if (!COMPARISON_ID) {
+    return renderError(
+      'No comparison ID in URL',
+      `Add <code>?id=&lt;comparison_id&gt;</code>. Example: <code>/results.html?id=6b4cf129dfb0bd3a</code>`
+    );
+  }
 
-function confidenceTier(peakAbs){
-  if (peakAbs < 0.005) return 'too_close';
-  if (peakAbs < 0.02) return 'directional';
-  return 'clear';
-}
-function confidenceLabel(tier){
-  return tier === 'clear' ? 'Clear signal'
-       : tier === 'directional' ? 'Directional signal'
-       : 'Too close to call';
-}
+  document.getElementById('loading-path').textContent = CONTENT_URL;
 
-function similarityString(delta){
-  if (!delta || !delta.length) return '—';
-  let low = 0;
-  for (let i = 0; i < delta.length; i++) if (Math.abs(delta[i]) < 0.05) low++;
-  return Math.round(100 * low / delta.length) + '% of the surface barely moved';
-}
-
-/* ---------- fetch job + mesh in parallel ---------- */
-async function getJob(){
-  const res = await fetch('/api/diff/status/' + encodeURIComponent(JOB_ID), { cache: 'no-store' });
-  if (res.status === 404){ throw { kind:'notfound' }; }
-  if (!res.ok){ throw { kind:'http', status: res.status }; }
-  return res.json();
-}
-async function getMesh(){
+  let content;
   try {
-    const res = await fetch('/api/brain-mesh', { cache: 'force-cache' });
-    if (!res.ok) return null;
-    return res.json();
-  } catch(_){ return null; }
-}
-
-const [job, meshPayload] = await Promise.all([
-  getJob().catch(err => ({ __err: err })),
-  getMesh(),
-]);
-
-if (job.__err){
-  if (job.__err.kind === 'notfound'){
-    window.location.replace('/launch');
-  }
-  // any other error: fall through; UI will just show "—" placeholders.
-}
-
-// If the job isn't done yet, bounce back to the run page so the user watches it finish.
-if (job && job.status && job.status !== 'done'){
-  window.location.replace('./run.html?job=' + encodeURIComponent(JOB_ID));
-}
-
-/* ---------- Populate result copy. Media jobs produce cortical predictions
-              from audio/video samples, not text-copy advice. Keep that mode
-              visible even when the backend headline is legacy text wording. ---------- */
-const result = (job && job.result) || null;
-const meta = (result && result.meta) || {};
-const insights = (result && result.insights) || {};
-const dimensions = (result && result.dimensions) || [];
-
-function storedModality(){
-  try { return sessionStorage.getItem('braindiff:modality:' + JOB_ID) || ''; } catch(_) { return ''; }
-}
-const RUN_MODE = String(meta.modality || storedModality() || 'text').toLowerCase();
-const IS_VIDEO = RUN_MODE === 'video';
-const IS_AUDIO = RUN_MODE === 'audio';
-const IS_MEDIA = IS_VIDEO || IS_AUDIO || RUN_MODE === 'media';
-const SAMPLE_KIND = IS_VIDEO ? 'video' : IS_AUDIO ? 'audio file' : 'sample';
-const SAMPLE_KIND_PLURAL = IS_VIDEO ? 'videos' : IS_AUDIO ? 'audio files' : 'samples';
-const SIDE_WORD = IS_MEDIA ? 'Sample' : 'Version';
-document.body.classList.toggle('media-results', IS_MEDIA);
-
-function cleanMediaName(value, fallback){
-  const raw = String(value || '').trim();
-  if (!raw) return fallback;
-  let name;
-  try { name = decodeURIComponent(raw.split('/').pop()); } catch(_) { name = raw.split('/').pop(); }
-  return name
-    .replace(/^[ab]-\d+-/i, '')
-    .replace(/-[A-Za-z0-9]{16,}(?=\.[^.]+$)/, '');
-}
-function sideLabel(side){
-  return IS_MEDIA ? SAMPLE_KIND.charAt(0).toUpperCase() + SAMPLE_KIND.slice(1) + ' ' + side : 'Text ' + side;
-}
-function whoFromDelta(delta){
-  return delta > 0 ? SIDE_WORD + ' B' : SIDE_WORD + ' A';
-}
-function topDimension(){
-  if (!dimensions.length) return null;
-  return [...dimensions].sort((a,b) => Math.abs(b.delta || 0) - Math.abs(a.delta || 0))[0];
-}
-function mediaHeadline(){
-  const top = topDimension();
-  if (!top || Math.abs(top.delta || 0) < 0.005) return 'The two ' + SAMPLE_KIND_PLURAL + ' produce nearly identical predicted brain responses';
-  return whoFromDelta(top.delta) + ' drives stronger ' + String(top.label || 'cortical response').toLowerCase();
-}
-function mediaSubhead(){
-  const top = topDimension();
-  if (!top) return 'This result compares predicted cortical responses from the uploaded ' + SAMPLE_KIND_PLURAL + '.';
-  return 'Strongest shift: ' + String(top.label || 'cortical response').toLowerCase() + '. This is a media-response comparison, not a text-copy diagnosis.';
-}
-
-try {
-  const stash = JSON.parse(sessionStorage.getItem('braindiff:texts:' + JOB_ID) || 'null');
-  const aEl = document.getElementById('recallA');
-  const bEl = document.getElementById('recallB');
-  const toggle = document.getElementById('recallToggle');
-  const textA = IS_MEDIA
-    ? sideLabel('A') + ' · ' + cleanMediaName(meta.media_name_a, 'uploaded ' + SAMPLE_KIND)
-    : ((stash && stash.a) || meta.text_a || ('Text A · ' + (meta.text_a_length || 0) + ' chars'));
-  const textB = IS_MEDIA
-    ? sideLabel('B') + ' · ' + cleanMediaName(meta.media_name_b, 'uploaded ' + SAMPLE_KIND)
-    : ((stash && stash.b) || meta.text_b || ('Text B · ' + (meta.text_b_length || 0) + ' chars'));
-  if (aEl) aEl.textContent = textA;
-  if (bEl) bEl.textContent = textB;
-  if (toggle && IS_MEDIA) toggle.textContent = 'Input files';
-} catch(_){}
-
-/* ---------- Populate verdict / facts / axis / deep-card ---------- */
-const rawDelta = decodeFloat32B64(result && result.vertex_delta_b64);
-
-const atlasPeak = meta.atlas_peak || null;
-
-// Peak magnitude: prefer atlas_peak.abs_delta, else max dimension magnitude.
-const peakAbs = (atlasPeak && typeof atlasPeak.abs_delta === 'number')
-  ? atlasPeak.abs_delta
-  : (dimensions.length ? Math.max(...dimensions.map(d => Math.abs(d.magnitude || 0))) : 0);
-
-const signedAtPeak = (atlasPeak && typeof atlasPeak.vertex_index_flat === 'number'
-                      && rawDelta.length > atlasPeak.vertex_index_flat)
-  ? rawDelta[atlasPeak.vertex_index_flat]
-  : (dimensions[0] ? dimensions[0].delta : 0);
-
-// Winner summary
-const ws = meta.winner_summary || { a_wins: 0, b_wins: 0, tied: 0 };
-const dimCount = dimensions.length || 7;
-let winnerLine = '—';
-let winnerEyebrow = 'Result';
-if (ws.b_wins > ws.a_wins){
-  winnerLine = 'B — on ' + ws.b_wins + ' of ' + dimCount + ' dimensions';
-  winnerEyebrow = SIDE_WORD + ' B lands harder';
-} else if (ws.a_wins > ws.b_wins){
-  winnerLine = 'A — on ' + ws.a_wins + ' of ' + dimCount + ' dimensions';
-  winnerEyebrow = SIDE_WORD + ' A lands harder';
-} else {
-  winnerLine = 'Split — ' + (ws.tied || 0) + ' neutral';
-  winnerEyebrow = 'A and B land close';
-}
-
-// Verdict block
-document.getElementById('verdictEyebrow').textContent = winnerEyebrow;
-document.getElementById('verdictHeadline').innerHTML = esc(IS_MEDIA ? mediaHeadline() : (insights.headline || meta.headline || 'Comparison complete'));
-const subEl = document.getElementById('verdictSub');
-if (IS_MEDIA) subEl.textContent = mediaSubhead();
-else if (insights.subhead) subEl.textContent = insights.subhead;
-else subEl.style.display = 'none';
-
-const dimGraphIntro = document.getElementById('dimGraphIntro');
-if (dimGraphIntro && IS_MEDIA) {
-  dimGraphIntro.innerHTML = "Each line is the activation of one cortical system <em>across the duration of the uploaded " + SAMPLE_KIND_PLURAL + "</em>. TRIBE v2 predicts 20,484 vertex values per second; we average the ones in that system's mask.";
-}
-
-// Biggest shift card
-// Expand HCP-MMP atlas codes (L_V2_ROI → "Left V2 (secondary visual)") so
-// the user isn't staring at raw region IDs. For unknown areas, just strip
-// the L_/R_/_ROI noise so it reads as "Left <area>" at minimum.
-const HCP_AREA_NAMES = {
-  'V1':'V1 (primary visual)','V2':'V2 (secondary visual)','V3':'V3','V4':'V4 (color)','V6':'V6 (peripheral)','V7':'V7','V8':'V8',
-  'MT':'MT (motion)','MST':'MST (motion + self-motion)','LO1':'LO1 (object form)','LO2':'LO2 (object form)','LO3':'LO3 (object form)',
-  'A1':'A1 (primary auditory)','A4':'A4 (auditory)','A5':'A5 (auditory)','RI':'RI (auditory)','LBelt':'LBelt (auditory belt)','MBelt':'MBelt (auditory belt)',
-  '4':'M1 (primary motor)','3a':'S1 (somatosensory)','3b':'S1 (somatosensory)','1':'S1 (somatosensory)','2':'S1 (somatosensory)',
-  '8Av':'8Av (frontal eye field)','FEF':'FEF (frontal eye field)','PEF':'PEF (parietal eye field)',
-  'IPS1':'IPS1 (parietal attention)','LIPv':'LIPv (parietal attention)','LIPd':'LIPd (parietal attention)','MIP':'MIP (parietal)','VIP':'VIP (parietal)','AIP':'AIP (parietal)',
-  '7Pm':'7Pm (precuneus)','7m':'7m (precuneus)','POS1':'POS1 (parieto-occipital)','POS2':'POS2 (parieto-occipital)',
-  'p32':'p32 (anterior cingulate)','a32pr':'a32pr (anterior cingulate)','p32pr':'p32pr (anterior cingulate)','d32':'d32 (anterior cingulate)','s32':'s32 (anterior cingulate)','25':'25 (subgenual)',
-  '9m':'9m (medial prefrontal)','10v':'10v (orbitofrontal)','10r':'10r (medial OFC)','10d':'10d (medial PFC)','14m':'14m (medial PFC)','11l':'11l (lateral OFC)','13l':'13l (lateral OFC)',
-  'IFSp':'IFSp (inferior frontal sulcus)','IFJp':'IFJp (inferior frontal junction)','IFJa':'IFJa (inferior frontal junction)','IFSa':'IFSa (inferior frontal sulcus)',
-  '44':'Broca 44 (language)','45':'Broca 45 (language)','47l':'47l (lateral OFC)','47m':'47m (medial OFC)',
-  'STSdp':'STSdp (superior temporal sulcus)','STSva':'STSva (superior temporal sulcus)','STSvp':'STSvp (superior temporal sulcus)','STSda':'STSda (superior temporal sulcus)',
-  'TPOJ1':'TPOJ1 (temporo-parieto-occipital junction)','TPOJ2':'TPOJ2 (TPOJ)','TPOJ3':'TPOJ3 (TPOJ)',
-  'TE1a':'TE1a (anterior temporal)','TE1m':'TE1m (mid temporal)','TE1p':'TE1p (posterior temporal)','TE2a':'TE2a (temporal)','TE2p':'TE2p (temporal)',
-  'PFm':'PFm (Wernicke region)','PGi':'PGi (angular gyrus)','PGs':'PGs (angular gyrus)',
-  'AAIC':'AAIC (anterior insula)','MI':'MI (insula)','PoI1':'PoI1 (posterior insula)','PoI2':'PoI2 (posterior insula)','Ig':'Ig (insular gyri)',
-  'SFL':'SFL (superior frontal)','SCEF':'SCEF (supplementary motor)','6ma':'6ma (premotor)','6mp':'6mp (premotor)','6r':'6r (premotor)','6d':'6d (premotor)','6v':'6v (premotor)',
-  '46':'46 (dlPFC working memory)','9-46d':'9-46d (dlPFC)','a9-46v':'a9-46v (dlPFC)','p9-46v':'p9-46v (dlPFC)',
-};
-function expandRoi(label){
-  if (!label) return '—';
-  const m = String(label).match(/^([LR])_(.+?)(_ROI)?$/);
-  if (!m) return label;
-  const side = m[1] === 'L' ? 'Left' : 'Right';
-  const code = m[2];
-  return side + ' ' + (HCP_AREA_NAMES[code] || code);
-}
-
-document.getElementById('biggestTitle').textContent =
-  (atlasPeak && atlasPeak.label ? expandRoi(atlasPeak.label) : (dimensions[0] ? dimensions[0].label : 'Cortex'))
-  + ' · ' + fmtDelta(signedAtPeak);
-document.getElementById('biggestBody').textContent =
-  'Strongest signed contrast in this run (HCP atlas region).';
-
-// Quick facts
-document.getElementById('factWinner').textContent = winnerLine;
-const peakFact = document.getElementById('factPeak');
-peakFact.innerHTML = '<span class="' + (signedAtPeak >= 0 ? 'delta-up' : 'delta-down') + '">'
-  + esc(fmtDelta(signedAtPeak)) + '</span> · ' + esc(atlasPeak && atlasPeak.label ? expandRoi(atlasPeak.label) : '—');
-document.getElementById('factSimilarity').textContent = similarityString(rawDelta);
-
-const tier = confidenceTier(peakAbs);
-document.getElementById('factConfidence').innerHTML =
-  esc(confidenceLabel(tier)) + ' <span class="mag">· ±' + peakAbs.toFixed(2) + '</span>';
-document.getElementById('peakVal').textContent = peakAbs.toFixed(2);
-document.querySelectorAll('.tip-row[data-tier]').forEach(r => {
-  r.classList.toggle('active', r.dataset.tier === tier);
-});
-
-// Low-contrast empty state
-if (tier === 'too_close' || params.get('low') === '1'){
-  document.body.classList.add('low-contrast');
-}
-
-/* ---------- Axis (trade-off) — minimalist redesign.
-   Seven dots positioned by delta, sized by magnitude. Only the two strongest
-   (one per side if present, else top two) carry labels. Individual dimension
-   detail lives in the "Dimension graphs" section below — the axis is about
-   showing the SPREAD of the seven, not identifying every point. ---------- */
-const axisEl = document.getElementById('axisPoints');
-axisEl.innerHTML = '';
-const sortedForAxis = [...dimensions].sort((a,b) => a.delta - b.delta);
-const labelWinners = (function pickLabelWinners(){
-  // Prefer the single most-extreme on each side. If one side has nothing
-  // strong enough (all deltas on one side of 0), label the top two by |Δ|.
-  const labeled = new Set();
-  const mostA = sortedForAxis[0];                                 // most negative
-  const mostB = sortedForAxis[sortedForAxis.length - 1];           // most positive
-  if (mostA && mostA.delta < -0.02) labeled.add(mostA);
-  if (mostB && mostB.delta >  0.02) labeled.add(mostB);
-  if (labeled.size < 2){
-    const byMag = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
-    for (const r of byMag){ labeled.add(r); if (labeled.size >= 2) break; }
-  }
-  return labeled;
-})();
-sortedForAxis.forEach((row) => {
-  const pct = clamp((row.delta + 0.3) / 0.6, 0, 1) * 100;
-  const absMag = Math.abs(row.delta);
-  const isNeutral = row.low_confidence || absMag < 0.05;
-  const dotCls = isNeutral ? 'neutral' : (row.delta > 0 ? 'warm' : 'cool');
-  const point = document.createElement('div');
-  const isLabeled = labelWinners.has(row);
-  point.className = 'axis-dot-wrap' + (isLabeled ? ' is-labeled' : '');
-  point.style.left = pct.toFixed(1) + '%';
-  // Scale dot size by magnitude so the eye sees the distribution even without labels.
-  const dotPx = Math.round(8 + Math.min(12, absMag * 28));
-  point.innerHTML =
-    '<span class="axis-dot ' + dotCls + '" style="width:' + dotPx + 'px;height:' + dotPx + 'px;"></span>' +
-    (isLabeled
-      ? '<span class="axis-label-pill ' + dotCls + '">' + esc(row.label) + ' ' + esc(fmtDelta(row.delta)) + '</span>'
-      : '');
-  axisEl.appendChild(point);
-});
-
-// Trade-off takeaway line
-const tradeoffLineEl = document.getElementById('tradeoffLine');
-if (insights.subhead && !IS_MEDIA){
-  tradeoffLineEl.innerHTML = insights.subhead;
-} else if (dimensions.length){
-  const sortedAbs = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
-  const top = sortedAbs[0];
-  tradeoffLineEl.textContent =
-    (top.direction === 'B_higher' ? SIDE_WORD + ' B' : top.direction === 'A_higher' ? SIDE_WORD + ' A' : 'Neither side') +
-    ' leads on ' + top.label.toLowerCase() + '. Other dimensions are smaller contrasts.';
-} else {
-  tradeoffLineEl.textContent = '—';
-}
-
-/* ---------- Per-metric expander cards. Each dimension opens to:
-     · what we measured  · where (anatomy)  · what your number means
-     · lab science (citation)  · real-world use (concrete example) ---------- */
-const METRIC_DETAILS = {
-  attention_salience: {
-    region: 'Dorsal attention network',
-    whatMeasured: "How strongly each text commands and holds the reader's attention — the cortical signature of pulled focus.",
-    whereLong: 'Bilateral parietal cortex and frontal eye fields — the dorsal attention system, on both sides, toward the top-back of the brain.',
-    interpret(delta){
-      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
-      const mag = abs > 0.30 ? 'dramatically more' : abs > 0.15 ? 'meaningfully more' : abs > 0.05 ? 'modestly more' : 'about the same';
-      return who + ' commands ' + mag + ' attention. The contrast of ' + fmtDelta(delta) + ' corresponds to roughly a ' + Math.round(abs * 100) + '% difference in predicted dorsal-attention activation between the two texts.';
-    },
-    labScience: 'Corbetta & Shulman (2002), "Control of goal-directed and stimulus-driven attention in the brain". Dorsal-attention activity tracks moment-by-moment engagement with narrative content.',
-    realWorld: 'Super Bowl ad testing. Nielsen and Neuro-Insight measure attention this way before brands commit $8M per airing.'
-  },
-  memory_encoding: {
-    region: 'Left ventrolateral prefrontal cortex (vlPFC)',
-    whatMeasured: 'How likely each text is to be remembered tomorrow — not just felt now.',
-    whereLong: 'Left inferior frontal gyrus — front of the brain on the left side, roughly behind the temple.',
-    interpret(delta){
-      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
-      const mag = abs > 0.30 ? 'much more' : abs > 0.15 ? 'meaningfully more' : abs > 0.05 ? 'somewhat more' : 'similarly';
-      return who + ' is ' + mag + ' likely to stick. A ' + fmtDelta(delta) + ' contrast on this axis is the model\'s bet that a reader recalling either text in 24 hours would' + (abs > 0.15 ? ' clearly remember ' + who.toLowerCase() + '\'s wording better.' : ' show only a small preference.');
-    },
-    labScience: 'Paller & Wagner (2002), "Observing the transformation of experience into memory". Left-vlPFC activation during exposure predicts later recall.',
-    realWorld: 'Mars, Mondelez, Coca-Cola test ads on this metric — it correlates with real sales 6 months out, far above self-reported "I liked it".'
-  },
-  personal_resonance: {
-    region: 'Medial prefrontal cortex (mPFC)',
-    whatMeasured: "How strongly each text reads as 'about me' to the population-average reader.",
-    whereLong: 'Medial prefrontal cortex — along the midline of the frontal lobe, just above the eyes.',
-    interpret(delta){
-      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
-      const mag = abs > 0.30 ? 'dramatically' : abs > 0.15 ? 'meaningfully' : abs > 0.05 ? 'modestly' : 'barely';
-      return who + ' lands ' + mag + ' more personally. A ' + fmtDelta(delta) + ' value is roughly a ' + Math.round(abs * 100) + '% shift in mPFC activation — the same signal Falk\'s lab showed predicts real behavioural change at population scale.';
-    },
-    labScience: 'Falk, Berkman & Lieberman (2012). mPFC activity in 30 smokers predicted which anti-smoking ads drove real call volume nationally — self-report missed it entirely.',
-    realWorld: 'Anti-smoking PSAs · pharma direct-to-patient · financial disclosures — anywhere a message has to feel personally relevant to drive action.'
-  },
-  gut_reaction: {
-    region: 'Anterior insula',
-    whatMeasured: 'The visceral, bodily reaction a text provokes — the response that arrives before language catches up.',
-    whereLong: 'Anterior insula — tucked deep inside the lateral fold of the brain, on both sides. Tracks the felt, bodily edge of experience.',
-    interpret(delta){
-      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
-      const mag = abs > 0.30 ? 'far stronger' : abs > 0.15 ? 'noticeably stronger' : abs > 0.05 ? 'slightly stronger' : 'roughly equal';
-      return who + ' elicits a ' + mag + ' visceral response. The contrast of ' + fmtDelta(delta) + ' suggests one of the two pulls the reader\'s gut more than the other — useful when urgency and stakes matter.';
-    },
-    labScience: 'Craig (2009), "How do you feel — now? The anterior insula and human awareness". Anterior-insula activity tracks felt salience.',
-    realWorld: 'WHO public-health fear appeals · insurance urgency campaigns (Allstate "Mayhem").'
-  },
-  social_thinking: {
-    region: 'Temporoparietal junction (TPJ)',
-    whatMeasured: "How much each text recruits the reader's social-reasoning circuitry — figuring out intent, relationship, what someone else is thinking.",
-    whereLong: 'Temporoparietal junction — where the temporal and parietal lobes meet, on both sides of the brain behind the ears.',
-    interpret(delta){
-      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
-      const mag = abs > 0.30 ? 'much harder' : abs > 0.15 ? 'meaningfully harder' : abs > 0.05 ? 'modestly harder' : 'about the same';
-      return who + ' pulls ' + mag + ' on the social-reasoning network. ' + fmtDelta(delta) + ' on this axis means the reader is doing ' + (abs > 0.15 ? 'noticeably' : 'somewhat') + ' more theory-of-mind work on one side than the other.';
-    },
-    labScience: 'Saxe & Kanwisher (2003), "People thinking about thinking people". TPJ activates when attributing mental states to others.',
-    realWorld: 'Netflix thumbnail and trailer testing — which shot makes viewers infer character intent fastest.'
-  },
-  language_depth: {
-    region: "Broca's + Wernicke's networks",
-    whatMeasured: 'How deeply meaning is being extracted from the text itself — structural and semantic richness, not word count.',
-    whereLong: "Broca's area (left frontal, behind the temple) and Wernicke's area (left temporal, behind the ear) — the brain's main language network.",
-    interpret(delta){
-      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
-      const mag = abs > 0.30 ? 'far' : abs > 0.15 ? 'meaningfully' : abs > 0.05 ? 'somewhat' : 'barely';
-      return who + ' is being parsed ' + mag + ' more deeply. A ' + fmtDelta(delta) + ' contrast usually means one version is structurally richer — denser syntax or semantics — not just longer.';
-    },
-    labScience: 'Fedorenko et al. (2010), "New method for fMRI investigations of language". Broca + Wernicke responses scale with linguistic richness.',
-    realWorld: 'Pharma consent-form comprehension testing · legal disclosure A/B testing.'
-  },
-  brain_effort: {
-    region: 'Dorsolateral prefrontal cortex (dlPFC)',
-    whatMeasured: "How much processing effort each text demands. Higher isn't always worse — depends on whether the payoff justifies it.",
-    whereLong: 'Dorsolateral prefrontal cortex — upper-outer surface of the frontal lobe, on both sides. The brain\'s cognitive-control workhorse.',
-    interpret(delta){
-      const abs = Math.abs(delta), who = delta > 0 ? 'Version B' : 'Version A';
-      const mag = abs > 0.30 ? 'much harder' : abs > 0.15 ? 'noticeably harder' : abs > 0.05 ? 'somewhat harder' : 'about the same';
-      return who + ' is ' + mag + ' to process. A ' + fmtDelta(delta) + ' contrast means readers spend more cognitive effort on one side — costly when they can just leave, fine when the payoff is big.';
-    },
-    labScience: 'Owen et al. (2005), "N-back working memory paradigm". dlPFC activation reliably tracks cognitive load.',
-    realWorld: 'CFPB mortgage-form simplification · financial disclosure UX testing.'
-  },
-};
-
-/* ---------- Dimension graphs — ONE combined time-series chart.
-   All seven cortical systems on one x-axis (text timestep), one y-axis
-   (activation / contrast). Toggle chips above the chart show/hide each
-   line. Three view modes:
-     diff → B − A at every timestep (zero line dashed)
-     b    → Version B's activation at every timestep
-     a    → Version A's activation at every timestep
-   Data source: dimensions[i].timeseries_a / .timeseries_b from the backend.
-   Dimensions are ordered to match the landing-page hierarchy. ---------- */
-
-// Landing-page order (same everywhere): Attention → Memory → Personal
-// relevance → Gut reaction → Social reasoning → Language depth → Processing
-// effort. Matches modes/ and index.html's pill order.
-const DIM_ORDER = [
-  'attention_salience','memory_encoding','personal_resonance','gut_reaction',
-  'social_thinking','language_depth','brain_effort',
-];
-// One distinguishable colour per dimension — tuned to stay legible on both
-// the cream (light) and charcoal (dark) result surfaces.
-const DIM_COLORS = {
-  attention_salience: '#e04a2e',  // brand vermillion
-  memory_encoding:    '#4fb3a1',  // teal
-  personal_resonance: '#eab447',  // warm gold
-  gut_reaction:       '#c4543b',  // deep orange-red
-  social_thinking:    '#6a97c9',  // brand slate blue
-  language_depth:     '#a572d9',  // violet
-  brain_effort:       '#87a85c',  // olive
-};
-
-const dimGraphCanvas  = document.getElementById('dimGraphCanvas');
-const dimGraphChips   = document.getElementById('dimGraphChips');
-const dimGraphView    = document.getElementById('dimGraphViewGroup');
-const dimGraphLegend  = document.getElementById('dimGraphLegend');
-let dimGraphMode = 'diff';
-// Per-dimension show/hide state. All on by default.
-const dimVisible = {};
-DIM_ORDER.forEach(function(k){ dimVisible[k] = true; });
-
-function resampleSeries(series, targetLen){
-  if (!series || !series.length) return new Array(targetLen).fill(0);
-  if (series.length === targetLen) return series.slice();
-  const out = new Array(targetLen);
-  const n = series.length;
-  for (let i = 0; i < targetLen; i++){
-    const t = i / Math.max(1, targetLen - 1) * (n - 1);
-    const lo = Math.floor(t), hi = Math.min(n - 1, lo + 1), f = t - lo;
-    out[i] = series[lo] * (1 - f) + series[hi] * f;
-  }
-  return out;
-}
-function buildDimViewSeries(row, mode){
-  const a = (row.timeseries_a || []).map(Number);
-  const b = (row.timeseries_b || []).map(Number);
-  if (!a.length && !b.length) return null;
-  if (mode === 'a') return a;
-  if (mode === 'b') return b;
-  const n = Math.max(a.length, b.length);
-  const A = resampleSeries(a, n);
-  const B = resampleSeries(b, n);
-  const out = new Array(n);
-  for (let i = 0; i < n; i++) out[i] = B[i] - A[i];
-  return out;
-}
-
-function legendCopy(mode){
-  if (mode === 'diff'){
-    return 'Each line is one cortical system\'s <strong>B&nbsp;−&nbsp;A</strong> contrast at every timestep of the ' + (IS_MEDIA ? SAMPLE_KIND : 'sample') + '. <strong>Above&nbsp;0</strong> = B\'s signal is stronger there; <strong>below</strong> = A is. Toggle systems on or off to de-clutter.';
-  }
-  if (mode === 'b') return 'Each line is one cortical system\'s predicted activation while <strong>' + SIDE_WORD + '&nbsp;B</strong> plays, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
-  return         'Each line is one cortical system\'s predicted activation while <strong>' + SIDE_WORD + '&nbsp;A</strong> plays, timestep by timestep. Higher = that system is engaging more relative to the whole-brain median.';
-}
-
-function renderDimChips(){
-  if (!dimGraphChips) return;
-  // Build chips in DIM_ORDER. A dimension that isn't in the result set is
-  // skipped (shouldn't happen with TRIBE v2's 7, but defensive).
-  const byKey = {};
-  dimensions.forEach(function(d){ byKey[d.key] = d; });
-  dimGraphChips.innerHTML = DIM_ORDER
-    .filter(function(k){ return byKey[k]; })
-    .map(function(k){
-      const d = byKey[k];
-      const on = dimVisible[k];
-      return '<button type="button" class="dim-chip' + (on ? '' : ' is-off') +
-        '" data-key="' + k + '" aria-pressed="' + (on ? 'true' : 'false') + '">' +
-        '<span class="dim-chip-dot" style="background:' + DIM_COLORS[k] + '"></span>' +
-        esc(d.label) +
-      '</button>';
-    }).join('');
-}
-
-function renderDimGraphs(mode){
-  dimGraphMode = mode;
-  if (dimGraphLegend) dimGraphLegend.innerHTML = legendCopy(mode);
-  if (!dimGraphCanvas) return;
-
-  // Build (and resample to common length) a series per dim, keyed.
-  const byKey = {};
-  dimensions.forEach(function(d){ byKey[d.key] = d; });
-  let maxLen = 0;
-  const rawSeries = {};
-  DIM_ORDER.forEach(function(k){
-    const d = byKey[k];
-    if (!d) return;
-    const s = buildDimViewSeries(d, mode);
-    if (s && s.length){ rawSeries[k] = s; if (s.length > maxLen) maxLen = s.length; }
-  });
-  if (maxLen < 2){
-    dimGraphCanvas.innerHTML = '<div class="empty">No time-series data yet — this usually means the run hasn\'t finished computing per-dimension scores.</div>';
-    return;
-  }
-  const lines = {};
-  DIM_ORDER.forEach(function(k){
-    if (rawSeries[k]) lines[k] = resampleSeries(rawSeries[k], maxLen);
-  });
-
-  // Y-axis range: include all currently-visible dimensions.
-  const visibleKeys = DIM_ORDER.filter(function(k){ return lines[k] && dimVisible[k]; });
-  let yMin, yMax;
-  if (mode === 'diff'){
-    let peak = 0;
-    visibleKeys.forEach(function(k){
-      for (const v of lines[k]){ const a = Math.abs(v); if (a > peak) peak = a; }
-    });
-    peak = Math.max(0.1, peak);
-    yMin = -peak; yMax = peak;
-  } else {
-    let lo = Infinity, hi = -Infinity;
-    visibleKeys.forEach(function(k){
-      for (const v of lines[k]){ if (v < lo) lo = v; if (v > hi) hi = v; }
-    });
-    if (!isFinite(lo) || !isFinite(hi) || lo === hi){ lo = -0.1; hi = 0.1; }
-    const padY = (hi - lo) * 0.1;
-    yMin = lo - padY; yMax = hi + padY;
-  }
-
-  // SVG layout constants.
-  const W = 1000, H = 260;                        // viewBox units
-  const padL = 42, padR = 12, padT = 10, padB = 28;
-  const plotW = W - padL - padR;
-  const plotH = H - padT - padB;
-  function xToPx(i){ return padL + (i / (maxLen - 1)) * plotW; }
-  function yToPx(v){ return padT + (1 - (v - yMin) / (yMax - yMin)) * plotH; }
-
-  // Grid: 4 horizontal lines inside the plot area + left Y-axis tick labels.
-  const gridStops = 4;
-  let grid = '';
-  for (let g = 0; g <= gridStops; g++){
-    const v = yMin + (yMax - yMin) * (g / gridStops);
-    const y = yToPx(v);
-    const isZero = mode === 'diff' && Math.abs(v) < 1e-6;
-    grid +=
-      '<line x1="' + padL + '" x2="' + (W - padR) + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) +
-        '" stroke="' + (isZero ? 'var(--ink-mute)' : 'var(--line)') +
-        '" stroke-opacity="' + (isZero ? '0.55' : '0.8') +
-        '"' + (isZero ? ' stroke-dasharray="3 3"' : '') + '/>' +
-      '<text x="' + (padL - 6) + '" y="' + (y + 3).toFixed(1) +
-        '" text-anchor="end" fill="var(--ink-mute)" font-size="10" font-family="\'JetBrains Mono\',monospace">' +
-        (v >= 0 ? '+' : '') + v.toFixed(2) + '</text>';
-  }
-  // X-axis ticks (start / middle / end).
-  const xTicks = [
-    { i: 0,             label: '0s (start)' },
-    { i: maxLen >> 1,   label: 'mid' },
-    { i: maxLen - 1,    label: 'end' },
-  ];
-  xTicks.forEach(function(t){
-    const x = xToPx(t.i);
-    grid += '<text x="' + x.toFixed(1) + '" y="' + (H - padB + 18) +
-      '" text-anchor="' + (t.i === 0 ? 'start' : t.i === maxLen - 1 ? 'end' : 'middle') +
-      '" fill="var(--ink-mute)" font-size="10" font-family="\'JetBrains Mono\',monospace">' +
-      t.label + '</text>';
-  });
-
-  // Paths per visible dimension.
-  let paths = '';
-  DIM_ORDER.forEach(function(k){
-    const s = lines[k]; if (!s) return;
-    const color = DIM_COLORS[k] || '#999';
-    const opacity = dimVisible[k] ? 1 : 0.08;
-    const width = dimVisible[k] ? 2 : 1;
-    let d = '';
-    for (let i = 0; i < s.length; i++){
-      d += (i === 0 ? 'M' : 'L') + xToPx(i).toFixed(1) + ' ' + yToPx(s[i]).toFixed(1) + ' ';
+    const res = await fetch(CONTENT_URL, { cache: 'no-cache' });
+    if (!res.ok) {
+      return renderError(
+        'content.json not found',
+        `Got HTTP ${res.status} from <code>${CONTENT_URL}</code>. Has the generator been run for this comparison?`
+      );
     }
-    paths += '<path d="' + d + '" fill="none" stroke="' + color +
-      '" stroke-width="' + width + '" stroke-opacity="' + opacity +
-      '" stroke-linejoin="round" stroke-linecap="round"/>';
-  });
+    content = await res.json();
+  } catch (err) {
+    return renderError('Failed to load content.json', `<code>${err.message}</code>`);
+  }
 
-  dimGraphCanvas.innerHTML =
-    '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
-      grid + paths +
-    '</svg>';
-  renderDimChips();
-}
-renderDimChips();
-renderDimGraphs('diff');
+  if (content.schema_version !== 'results_content.v1') {
+    return renderError(
+      'Schema version mismatch',
+      `Expected <code>results_content.v1</code>, got <code>${content.schema_version}</code>. Frontend and backend are out of sync.`
+    );
+  }
 
-if (dimGraphView){
-  dimGraphView.addEventListener('click', function(e){
-    const btn = e.target.closest('button[data-view]');
-    if (!btn) return;
-    const v = btn.dataset.view;
-    if (v === dimGraphMode) return;
-    dimGraphView.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
-    btn.classList.add('active');
-    renderDimGraphs(v);
-  });
-}
-if (dimGraphChips){
-  dimGraphChips.addEventListener('click', function(e){
-    const chip = e.target.closest('.dim-chip');
-    if (!chip) return;
-    const k = chip.dataset.key;
-    if (!k) return;
-    dimVisible[k] = !dimVisible[k];
-    renderDimGraphs(dimGraphMode);  // re-renders both chips + chart
-  });
+  document.getElementById('dev-comparison-id').textContent =
+    `comparison_id=${content.comparison_id} · run_id=${content.run_id.slice(0, 8)}…`;
+
+  renderPage(content);
+  initRevealAnimations();
 }
 
-/* ---------- Media response console. Uses the real per-timestep TRIBE tracks
-              already present in dimensions[].timeseries_a/b. ---------- */
-function setupMediaConsole(){
-  if (!IS_MEDIA) return;
-  const consoleEl = document.getElementById('mediaConsole');
-  if (!consoleEl) return;
-  consoleEl.hidden = false;
+function renderError(title, html) {
+  document.getElementById('page-root').innerHTML = `
+    <div class="state-card error">
+      <h3>${escapeHtml(title)}</h3>
+      <p>${html}</p>
+    </div>`;
+}
 
-  const sampleA = document.getElementById('mediaSampleA');
-  const sampleB = document.getElementById('mediaSampleB');
-  if (sampleA) sampleA.textContent = cleanMediaName(meta.media_name_a, 'uploaded ' + SAMPLE_KIND);
-  if (sampleB) sampleB.textContent = cleanMediaName(meta.media_name_b, 'uploaded ' + SAMPLE_KIND);
+// ────────────────────────────────────────────────────────────
+// Page renderer
+// ────────────────────────────────────────────────────────────
+function renderPage(c) {
+  const root = document.getElementById('page-root');
+  const va = c.videos.video_a;
+  const vb = c.videos.video_b;
 
-  const byKey = {};
-  dimensions.forEach(function(d){ byKey[d.key] = d; });
-  let maxLen = 0;
-  const rawLines = {};
-  DIM_ORDER.forEach(function(k){
-    const row = byKey[k];
-    if (!row) return;
-    const s = buildDimViewSeries(row, 'diff');
-    if (s && s.length){
-      rawLines[k] = s;
-      if (s.length > maxLen) maxLen = s.length;
-    }
-  });
-  if (maxLen < 2){
-    consoleEl.hidden = true;
-    return;
-  }
+  root.innerHTML = `
+    ${renderHero(c, va, vb)}
+    ${renderStrategy(c, va, vb)}
+    ${renderChordLibrary(c)}
+    ${renderChordMoments(c, va, vb)}
+    ${renderCouplingCallouts(c, va, vb)}
+  `;
 
-  const lines = {};
-  DIM_ORDER.forEach(function(k){
-    if (rawLines[k]) lines[k] = resampleSeries(rawLines[k], maxLen);
-  });
+  document.getElementById('footer-meta').textContent =
+    `comparison_id=${c.comparison_id} · ${c.analysis_version} · voice_hash=${c.assets.voice_exemplars_hash}`;
 
-  const frames = [];
-  let peakAbs = 0;
-  for (let i = 0; i < maxLen; i++){
-    let topKey = '', topVal = 0, totalAbs = 0;
-    DIM_ORDER.forEach(function(k){
-      const s = lines[k];
-      if (!s) return;
-      const v = Number(s[i] || 0);
-      const a = Math.abs(v);
-      totalAbs += a;
-      if (a > Math.abs(topVal)){ topVal = v; topKey = k; }
-    });
-    peakAbs = Math.max(peakAbs, Math.abs(topVal));
-    const row = byKey[topKey] || {};
-    frames.push({
-      index: i,
-      label: row.label || 'Cortical response',
-      key: topKey,
-      value: topVal,
-      totalAbs: totalAbs,
-      side: topVal >= 0 ? 'B' : 'A'
-    });
-  }
-  peakAbs = Math.max(peakAbs, 1e-6);
-
-  const sorted = frames
-    .filter(function(f){ return Math.abs(f.value) > 1e-6; })
-    .sort(function(a,b){ return Math.abs(b.value) - Math.abs(a.value); });
-  const minGap = Math.max(2, Math.round(maxLen / 7));
-  const moments = [];
-  sorted.forEach(function(f){
-    if (moments.length >= 4) return;
-    const tooClose = moments.some(function(m){ return Math.abs(m.index - f.index) < minGap; });
-    if (!tooClose) moments.push(f);
-  });
-  if (!moments.length) moments.push(frames[0]);
-  moments.sort(function(a,b){ return a.index - b.index; });
-
-  const timelineEl = document.getElementById('mediaTimeline');
-  const frameLabel = document.getElementById('mediaFrameLabel');
-  const dominantEl = document.getElementById('mediaDominant');
-  const titleEl = document.getElementById('mediaMomentTitle');
-  const bodyEl = document.getElementById('mediaMomentBody');
-  const intensityEl = document.getElementById('mediaIntensity');
-  const scrubber = document.getElementById('mediaScrubber');
-  const playBtn = document.getElementById('mediaPlay');
-  const cardsEl = document.getElementById('mediaMomentCards');
-  const recEl = document.getElementById('mediaRecommendations');
-  const evidenceEl = document.getElementById('mediaEvidence');
-
-  function secLabel(i){ return String(Math.max(0, i)) + 's'; }
-  function sideName(side){ return SIDE_WORD + ' ' + side; }
-  function momentSentence(f){
-    const magnitude = Math.abs(f.value) >= 0.22 ? 'strongly' : Math.abs(f.value) >= 0.08 ? 'clearly' : 'slightly';
-    return sideName(f.side) + ' ' + magnitude + ' leads on ' + String(f.label).toLowerCase() + ' at this point in the ' + SAMPLE_KIND + '.';
-  }
-  function momentTitle(f){
-    return sideName(f.side) + ' spikes on <em>' + esc(f.label) + '</em>';
-  }
-
-  function renderCards(activeIndex){
-    if (!cardsEl) return;
-    cardsEl.innerHTML = moments.map(function(m, idx){
-      const active = Math.abs(m.index - activeIndex) < Math.max(1, minGap / 2);
-      const deltaCls = m.side === 'A' ? ' a' : '';
-      return '<button class="moment-card' + (active ? ' active' : '') + '" type="button" data-index="' + m.index + '">' +
-        '<span class="moment-time">' + esc(secLabel(m.index)) + '</span>' +
-        '<span class="moment-main"><strong>' + esc(m.label) + '</strong><span>' + esc(sideName(m.side)) + ' leads here</span></span>' +
-        '<span class="moment-delta' + deltaCls + '">' + esc(fmtDelta(m.value)) + '</span>' +
-      '</button>';
-    }).join('');
-  }
-
-  function renderTimeline(activeIndex){
-    if (!timelineEl) return;
-    const W = 1000, H = 220;
-    const padL = 116, padR = 12, padT = 8, padB = 22;
-    const keys = DIM_ORDER.filter(function(k){ return lines[k]; });
-    const rowH = (H - padT - padB) / Math.max(1, keys.length);
-    const plotW = W - padL - padR;
-    const stepW = plotW / maxLen;
-    const cursorX = padL + (activeIndex / Math.max(1, maxLen - 1)) * plotW;
-    let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">';
-    keys.forEach(function(k, rowIndex){
-      const y = padT + rowIndex * rowH;
-      const row = byKey[k] || {};
-      svg += '<text x="0" y="' + (y + rowH * 0.62).toFixed(1) + '" fill="var(--ink-mute)" font-size="10" font-family="JetBrains Mono,monospace">' + esc(row.label || k) + '</text>';
-      for (let i = 0; i < maxLen; i++){
-        const v = lines[k][i] || 0;
-        const a = Math.min(1, Math.abs(v) / peakAbs);
-        const fill = v >= 0 ? 'var(--accent)' : 'var(--good)';
-        const opacity = (0.10 + a * 0.86).toFixed(3);
-        svg += '<rect x="' + (padL + i * stepW).toFixed(2) + '" y="' + (y + 2).toFixed(1) +
-          '" width="' + Math.max(1, stepW + 0.5).toFixed(2) + '" height="' + Math.max(2, rowH - 4).toFixed(1) +
-          '" rx="2" fill="' + fill + '" fill-opacity="' + opacity + '"/>';
+  document.querySelectorAll('.callout-reveal-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const target = document.getElementById(btn.dataset.target);
+      if (target) {
+        target.classList.remove('is-hidden');
+        btn.style.display = 'none';
       }
     });
-    moments.forEach(function(m){
-      const x = padL + (m.index / Math.max(1, maxLen - 1)) * plotW;
-      svg += '<line x1="' + x.toFixed(1) + '" x2="' + x.toFixed(1) + '" y1="' + padT + '" y2="' + (H - padB) +
-        '" stroke="var(--ink)" stroke-opacity=".22" stroke-dasharray="3 4"/>';
-    });
-    svg += '<line x1="' + cursorX.toFixed(1) + '" x2="' + cursorX.toFixed(1) + '" y1="' + (padT - 3) + '" y2="' + (H - padB + 3) +
-      '" stroke="var(--ink)" stroke-width="2"/>';
-    svg += '<text x="' + padL + '" y="' + (H - 3) + '" fill="var(--ink-mute)" font-size="10" font-family="JetBrains Mono,monospace">0s</text>';
-    svg += '<text x="' + (W - padR) + '" y="' + (H - 3) + '" text-anchor="end" fill="var(--ink-mute)" font-size="10" font-family="JetBrains Mono,monospace">' + esc(secLabel(maxLen - 1)) + '</text>';
-    svg += '</svg>';
-    timelineEl.innerHTML = svg;
-  }
-
-  function renderRecommendations(){
-    if (!recEl) return;
-    const top = sorted[0] || frames[0];
-    const second = sorted.find(function(f){ return f.side !== top.side; }) || moments[moments.length - 1] || top;
-    const stable = frames.slice().sort(function(a,b){ return a.totalAbs - b.totalAbs; })[0] || frames[0];
-    recEl.innerHTML = [
-      {
-        title: 'Edit decision',
-        body: 'Start by reviewing ' + secLabel(top.index) + '. That is where ' + sideName(top.side) + ' creates the sharpest neural divergence on ' + String(top.label).toLowerCase() + '.'
-      },
-      {
-        title: 'Counterbalance',
-        body: second && second.side !== top.side
-          ? sideName(second.side) + ' has its strongest counter-moment around ' + secLabel(second.index) + ' on ' + String(second.label).toLowerCase() + '. Keep that if it serves the brief.'
-          : 'One side dominates most of the major moments. If that was not intended, test a more different alternate cut.'
-      },
-      {
-        title: 'Do not over-read',
-        body: 'The calmest section is around ' + secLabel(stable.index) + '. Similar response there means the decision probably lives in the high-divergence moments, not the whole clip.'
-      }
-    ].map(function(card){
-      return '<article class="media-action"><h4>' + esc(card.title) + '</h4><p>' + esc(card.body) + '</p></article>';
-    }).join('');
-  }
-
-  function setFrame(index){
-    const i = Math.max(0, Math.min(maxLen - 1, Number(index) || 0));
-    const f = frames[i] || frames[0];
-    if (scrubber) scrubber.value = String(i);
-    if (frameLabel) frameLabel.textContent = secLabel(i);
-    if (dominantEl) dominantEl.textContent = f.label + ' · ' + sideName(f.side);
-    if (titleEl) titleEl.innerHTML = momentTitle(f);
-    if (bodyEl) bodyEl.textContent = momentSentence(f) + ' Use the heatstrip below to see whether this is a single spike or part of a sustained response.';
-    if (intensityEl) intensityEl.textContent = 'Δ ' + fmtDelta(f.value);
-    if (evidenceEl) evidenceEl.textContent = 'At ' + secLabel(i) + ', the dominant dimension is ' + f.label + '. The colour intensity is scaled against the strongest frame in this run, so a brighter bar means a larger A/B cortical split.';
-    window.__mediaMomentBoost = 0.72 + Math.min(1.85, Math.abs(f.value) / peakAbs * 1.45);
-    renderTimeline(i);
-    renderCards(i);
-    window.dispatchEvent(new Event('brain:repaint'));
-  }
-
-  if (scrubber){
-    scrubber.max = String(maxLen - 1);
-    scrubber.addEventListener('input', function(){ setFrame(scrubber.value); });
-  }
-  let timer = 0;
-  function stop(){
-    if (timer) clearInterval(timer);
-    timer = 0;
-    if (playBtn) playBtn.textContent = '▶';
-  }
-  function play(){
-    if (!scrubber) return;
-    if (timer){ stop(); return; }
-    if (playBtn) playBtn.textContent = 'Ⅱ';
-    timer = setInterval(function(){
-      const next = Math.min(maxLen - 1, (Number(scrubber.value) || 0) + 1);
-      setFrame(next);
-      if (next >= maxLen - 1) stop();
-    }, 700);
-  }
-  if (playBtn) playBtn.addEventListener('click', play);
-  if (cardsEl){
-    cardsEl.addEventListener('click', function(e){
-      const btn = e.target.closest('button[data-index]');
-      if (!btn) return;
-      stop();
-      setFrame(btn.dataset.index);
-    });
-  }
-
-  renderRecommendations();
-  setFrame((moments[0] && moments[0].index) || 0);
-}
-setupMediaConsole();
-
-const metricCardsEl = document.getElementById('metricCards');
-const sortedDims = [...dimensions].sort((a,b) => Math.abs(b.delta) - Math.abs(a.delta));
-
-function mediaMeasured(row){
-  const label = String(row.label || 'this cortical system').toLowerCase();
-  return 'How strongly each ' + SAMPLE_KIND + ' engages ' + label + ' over time. This is computed from the uploaded media signal after transcription/audio-video feature extraction, not from typed text.';
-}
-function mediaInterpret(row){
-  const abs = Math.abs(row.delta || 0);
-  const who = whoFromDelta(row.delta || 0);
-  const mag = abs > 0.30 ? 'much stronger' : abs > 0.15 ? 'meaningfully stronger' : abs > 0.05 ? 'somewhat stronger' : 'similar';
-  return who + ' shows a ' + mag + ' predicted response on ' + String(row.label || 'this dimension').toLowerCase() + '. Treat this as a directional media contrast, not a claim that either file is objectively better.';
-}
-function mediaRealWorld(){
-  return 'Use this to compare two cuts, voiceovers, clips, or audio variants by their predicted cortical response pattern. The result says where they diverge; product judgment decides which divergence is useful.';
-}
-
-metricCardsEl.innerHTML = sortedDims.map(function(d){
-  const detail = METRIC_DETAILS[d.key] || {};
-  const isNeutral = d.low_confidence || Math.abs(d.delta) < 0.005;
-  const sign = isNeutral ? 'neutral' : (d.delta > 0 ? 'b' : 'a');
-  const region = detail.region || '';
-  const measured = IS_MEDIA ? mediaMeasured(d) : (detail.whatMeasured || '—');
-  const interpreted = IS_MEDIA ? mediaInterpret(d) : (detail.interpret ? detail.interpret(d.delta) : '—');
-  const realWorld = IS_MEDIA ? mediaRealWorld() : (detail.realWorld || '—');
-  return '<details class="metric-card metric-card-' + sign + '">' +
-    '<summary class="metric-summary">' +
-      '<span class="metric-name">' + esc(d.label) + '</span>' +
-      '<span class="metric-value ' + sign + '">' + esc(fmtDelta(d.delta)) + '</span>' +
-      '<span class="metric-region">' + esc(region) + '</span>' +
-      '<span class="metric-chevron" aria-hidden="true">▾</span>' +
-    '</summary>' +
-    '<div class="metric-body">' +
-      '<div class="metric-row"><span class="metric-row-label">What we measured</span><span class="metric-row-text">' + esc(measured) + '</span></div>' +
-      '<div class="metric-row"><span class="metric-row-label">Where</span><span class="metric-row-text">' + esc(detail.whereLong || '—') + '</span></div>' +
-      '<div class="metric-row"><span class="metric-row-label">What ' + esc(fmtDelta(d.delta)) + ' means</span><span class="metric-row-text">' + esc(interpreted) + '</span></div>' +
-      '<div class="metric-row"><span class="metric-row-label">Academic basis</span><span class="metric-row-text">' + esc(detail.labScience || '—') + '</span></div>' +
-      '<div class="metric-row"><span class="metric-row-label">Real world</span><span class="metric-row-text">' + esc(realWorld) + '</span></div>' +
-    '</div>' +
-  '</details>';
-}).join('');
-
-/* =====================================================================
-   Brain viewer — real fsaverage5 mesh (merged LH+RH) with real intensity.
-   Falls back to a procedural deformed sphere if /api/brain-mesh failed.
-   ===================================================================== */
-
-function buildMeshGeometry(payload){
-  const lh = Array.isArray(payload.lh_coord[0]) ? payload.lh_coord.flat() : payload.lh_coord;
-  const rh = Array.isArray(payload.rh_coord[0]) ? payload.rh_coord.flat() : payload.rh_coord;
-  const lhArr = Float32Array.from(lh);
-  const rhArr = Float32Array.from(rh);
-  const lhVerts = lhArr.length / 3;
-  const positions = new Float32Array(lhArr.length + rhArr.length);
-  positions.set(lhArr, 0);
-  positions.set(rhArr, lhArr.length);
-
-  const lhF = Array.isArray(payload.lh_faces[0]) ? payload.lh_faces.flat() : payload.lh_faces;
-  const rhF = Array.isArray(payload.rh_faces[0]) ? payload.rh_faces.flat() : payload.rh_faces;
-  const idx = new Uint32Array(lhF.length + rhF.length);
-  idx.set(lhF, 0);
-  for (let i = 0; i < rhF.length; i++) idx[lhF.length + i] = rhF[i] + lhVerts;
-
-  const g = new THREE.BufferGeometry();
-  g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  g.setIndex(new THREE.BufferAttribute(idx, 1));
-  g.computeVertexNormals();
-
-  // Center + scale so the view camera still frames it like the procedural sphere did.
-  g.computeBoundingSphere();
-  const sphere = g.boundingSphere;
-  if (sphere){
-    const p = g.attributes.position;
-    const s = 1.7 / Math.max(sphere.radius, 1e-6);
-    const cx = sphere.center.x, cy = sphere.center.y, cz = sphere.center.z;
-    for (let i = 0; i < p.count; i++){
-      p.setXYZ(i, (p.getX(i) - cx) * s, (p.getY(i) - cy) * s, (p.getZ(i) - cz) * s);
-    }
-    p.needsUpdate = true;
-    g.computeVertexNormals();
-    g.computeBoundingSphere();
-  }
-  return { geometry: g, vertexCount: positions.length / 3 };
-}
-
-function buildFallbackGeometry(){
-  const g = new THREE.SphereGeometry(1.55, 128, 96);
-  const p = g.attributes.position;
-  for (let i = 0; i < p.count; i++){
-    const x = p.getX(i), y = p.getY(i), z = p.getZ(i);
-    const r = Math.hypot(x,y,z);
-    const nx = x/r, ny = y/r, nz = z/r;
-    const gyrus = 0.07 * Math.sin(nx*9) * Math.cos(ny*9) + 0.05 * Math.sin(nz*11+ny*6);
-    p.setXYZ(i, nx*(1.55+gyrus), ny*(1.55+gyrus)*1.08, nz*(1.55+gyrus)*1.15);
-  }
-  g.computeVertexNormals();
-  return { geometry: g, vertexCount: p.count };
-}
-
-function resampleIntensity(src, targetCount){
-  if (src.length === targetCount) return src;
-  const out = new Float32Array(targetCount);
-  if (!src.length) return out;
-  for (let i = 0; i < targetCount; i++){
-    out[i] = src[Math.floor(i / targetCount * src.length)];
-  }
-  return out;
-}
-
-function mountResultBrain(){
-  const canvas = document.getElementById('resultBrain');
-  const parent = canvas.parentElement;
-  const w = parent.clientWidth, h = parent.clientHeight;
-  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  renderer.setSize(w, h, false);
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(30, w/h, 0.05, 100);
-  camera.position.set(0.2, 0.2, 7.6);
-
-  scene.add(new THREE.AmbientLight(0xffffff, 0.38));
-  const keyL = new THREE.DirectionalLight(0xffe7bd, 1.0); keyL.position.set(3, 2.5, 4); scene.add(keyL);
-  const rimL = new THREE.DirectionalLight(0x6a97c9, 0.55); rimL.position.set(-3, 1, -2); scene.add(rimL);
-  const fillL = new THREE.DirectionalLight(0xffffff, 0.22); fillL.position.set(0, -3, 1); scene.add(fillL);
-
-  const { geometry, vertexCount } = (meshPayload ? buildMeshGeometry(meshPayload) : buildFallbackGeometry());
-  const pos = geometry.attributes.position;
-
-  // Decode all three vertex buffers — the brain view toolbar switches
-  // between them: B−A signed contrast (default), Just B (vermillion only),
-  // Just A (slate only). Backend ships all three from /api/diff/status.
-  const rawA = decodeFloat32B64(result && result.vertex_a_b64);
-  const rawB = decodeFloat32B64(result && result.vertex_b_b64);
-
-  function buildSignedIntensity(buf){
-    if (!buf || !buf.length) return new Float32Array(vertexCount);
-    let maxAbs = 0;
-    for (let i = 0; i < buf.length; i++){
-      const v = Math.abs(buf[i]); if (v > maxAbs) maxAbs = v;
-    }
-    if (maxAbs < 1e-6) return new Float32Array(vertexCount);
-    const scale = percentileAbs(buf, 98);
-    const normed = new Float32Array(buf.length);
-    for (let i = 0; i < buf.length; i++) normed[i] = buf[i] / scale;
-    return resampleIntensity(normed, vertexCount);
-  }
-  function buildOneSidedIntensity(buf, signMul){
-    // Map a positive activation buffer to a single side of the signed
-    // colour palette by giving it a constant sign. signMul = +1 → B/vermillion,
-    // -1 → A/slate. We take |buf| so prediction noise (which can be slightly
-    // negative) doesn't bleed into the wrong colour band.
-    if (!buf || !buf.length) return new Float32Array(vertexCount);
-    let maxAbs = 0;
-    for (let i = 0; i < buf.length; i++){
-      const v = Math.abs(buf[i]); if (v > maxAbs) maxAbs = v;
-    }
-    if (maxAbs < 1e-6) return new Float32Array(vertexCount);
-    const scale = percentileAbs(buf, 98);
-    const normed = new Float32Array(buf.length);
-    for (let i = 0; i < buf.length; i++) normed[i] = signMul * Math.abs(buf[i]) / scale;
-    return resampleIntensity(normed, vertexCount);
-  }
-
-  const VIEW_INTENSITY = {
-    diff: buildSignedIntensity(rawDelta),
-    b:    buildOneSidedIntensity(rawB, +1),
-    a:    buildOneSidedIntensity(rawA, -1),
-  };
-  let currentView = 'diff';
-  let intensity = VIEW_INTENSITY[currentView];
-
-  // Palette (matches CSS tokens / scale-legend gradient).
-  // Theme-aware palette. The base flips between cream (dark theme, light
-  // brain on near-black stage) and warm gray (light theme, darker brain on
-  // cream stage) so the highlight always has 30%+ luminance contrast.
-  // B = vermillion, A = deep slate blue. Both saturated for visibility.
-  const B_R = 0.92, B_G = 0.26, B_B = 0.15;
-  const A_R = 0.20, A_G = 0.42, A_B = 0.74;
-  let BASE_R, BASE_G, BASE_B;
-  function applyBrainBase(){
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    if (isDark){ BASE_R = 0.83; BASE_G = 0.80; BASE_B = 0.73; }   // cream on dark stage
-    else       { BASE_R = 0.55; BASE_G = 0.52; BASE_B = 0.47; }   // warm gray on cream stage
-  }
-  applyBrainBase();
-
-  const colors = new Float32Array(vertexCount * 3);
-
-  function repaint(){
-    const pattern = !!window.__patternMode;
-    const reveal = window.__revealProgress == null ? 1 : Math.max(0, Math.min(1, window.__revealProgress));
-    const mediaBoost = IS_MEDIA ? (window.__mediaMomentBoost || 1) : 1;
-    for (let i = 0; i < vertexCount; i++){
-      const s0 = intensity[i] * reveal * mediaBoost;
-      const s = Math.max(-1, Math.min(1, s0));
-      const mag = Math.abs(s);
-      let r = BASE_R, g = BASE_G, b = BASE_B;
-      // Use a softer gamma (0.7) so weak-but-real signals don't get
-      // crushed flat — the user complained colors were invisible.
-      if (s > 0){
-        const t = Math.pow(s, 0.7);
-        r = r + t * (B_R - r); g = g + t * (B_G - g); b = b + t * (B_B - b);
-      } else if (s < 0){
-        const t = Math.pow(-s, 0.7);
-        r = r + t * (A_R - r); g = g + t * (A_G - g); b = b + t * (A_B - b);
-      }
-      if (pattern){
-        const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
-        const stipple = (Math.sin(x*37.1 + y*29.7 + z*41.3) * 43758.5453) % 1;
-        const d = mag > 0.12 && (stipple < (mag - 0.12) * 2.2) ? 1.2 : 1.0;
-        const lum = 0.35 + mag * 0.9;
-        const bright = s >= 0 ? lum : (1.0 - mag * 0.6);
-        r = Math.min(1, r * bright * d);
-        g = Math.min(1, g * bright * d);
-        b = Math.min(1, b * bright * d);
-      }
-      colors[i*3] = r; colors[i*3+1] = g; colors[i*3+2] = b;
-    }
-    if (geometry.attributes.color) geometry.attributes.color.needsUpdate = true;
-  }
-
-  geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-  repaint();
-  window.addEventListener('brain:repaint', repaint);
-
-  // Brain view toolbar (B−A · Just B · Just A) — switches the intensity
-  // buffer in place and triggers a repaint. Three buffers were decoded above.
-  const viewGroupEl = document.getElementById('brainViewGroup');
-  if (viewGroupEl){
-    viewGroupEl.addEventListener('click', function(e){
-      const btn = e.target.closest('button[data-view]');
-      if (!btn) return;
-      const v = btn.dataset.view;
-      if (!VIEW_INTENSITY[v] || v === currentView) return;
-      viewGroupEl.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
-      currentView = v;
-      intensity = VIEW_INTENSITY[v];
-      repaint();
-    });
-  }
-
-  const mat = new THREE.MeshPhysicalMaterial({
-    vertexColors: true, roughness: 0.55, metalness: 0.08,
-    clearcoat: 0.4, clearcoatRoughness: 0.5,
-    sheen: 0.3, sheenColor: new THREE.Color(0xffd4b5),
   });
-  const mesh = new THREE.Mesh(geometry, mat);
-  scene.add(mesh);
-
-  // OrbitControls — user can drag to rotate, scroll to zoom. Pan disabled
-  // so the brain stays centred. Damping = silky inertia after a flick.
-  // Initial slight rotation so they land on a 3/4 view, not dead-on dorsal.
-  mesh.rotation.set(0.05, -0.35, 0);
-  const controls = new OrbitControls(camera, renderer.domElement);
-  controls.enableDamping = true;
-  controls.dampingFactor = 0.08;
-  controls.enablePan = false;
-  controls.minDistance = 3.2;
-  controls.maxDistance = 12;
-  controls.target.set(0, 0, 0);
-  controls.rotateSpeed = 0.8;
-  controls.zoomSpeed = 2.2;   // was 0.6 — user said scroll-zoom was too slow
-
-  // Repaint whenever the theme changes so the base palette flips with it.
-  window.addEventListener('braindiff:theme', function(){
-    applyBrainBase();
-    repaint();
-  });
-
-  let raf = 0;
-  function loop(){
-    controls.update();
-    renderer.render(scene, camera);
-    raf = requestAnimationFrame(loop);
-  }
-  loop();
-
-  const ro = new ResizeObserver(() => {
-    const W = parent.clientWidth, H = parent.clientHeight;
-    renderer.setSize(W, H, false);
-    camera.aspect = W/H; camera.updateProjectionMatrix();
-  });
-  ro.observe(parent);
-
-  // Biggest-shift → rotate toward the real peak vertex (atlas_peak.vertex_index_flat).
-  const biggest = document.getElementById('biggestShift');
-  if (biggest){
-    biggest.addEventListener('click', () => {
-      if (atlasPeak && typeof atlasPeak.vertex_index_flat === 'number'
-          && atlasPeak.vertex_index_flat < pos.count){
-        const vi = atlasPeak.vertex_index_flat;
-        const x = pos.getX(vi), y = pos.getY(vi), z = pos.getZ(vi);
-        targetY = clamp(-Math.atan2(x, z), -1.1, 1.1);
-        targetX = clamp(Math.atan2(y, Math.hypot(x, z)), -0.75, 0.75);
-      } else {
-        targetY = -0.15; targetX = -0.1;
-      }
-    });
-  }
 }
 
-mountResultBrain();
+// ────────────────────────────────────────────────────────────
+// Sections
+// ────────────────────────────────────────────────────────────
+function renderHero(c, va, vb) {
+  const headline = c.slots.headline;
+  const body = c.slots.body;
+  return `
+    <section class="hero">
+      <div class="hero-eyebrow reveal"><span class="dot"></span><span>A Brain Diff comparison</span></div>
+      <h1 class="hero-headline reveal reveal-delay-1 has-badge">
+        ${badge(headline)}${escapeHtml(headline.value)}
+      </h1>
+      <p class="hero-body reveal reveal-delay-2 has-badge">
+        ${badge(body)}${escapeHtml(body.value)}
+      </p>
+      <div class="hero-versus reveal reveal-delay-3">
+        <span><b>${escapeHtml(va.display_name)}</b></span>
+        <span class="vs">— vs —</span>
+        <span><b>${escapeHtml(vb.display_name)}</b></span>
+        <span> · ${va.duration_seconds || 60}s runtime</span>
+      </div>
+    </section>`;
+}
+
+function renderStrategy(c, va, vb) {
+  return `
+    <section class="section">
+      <div class="section-eyebrow reveal"><span>01</span> Strategy insight</div>
+      <h2 class="section-h2 reveal reveal-delay-1">The recipe each <em>video</em> is running.</h2>
+      <p class="section-sub reveal reveal-delay-2">Each video's cortical signature was matched to a recipe in the Brain Diff library. Same brain, different plays.</p>
+      <div class="strategy-grid">
+        ${strategyCard('a', va, c.slots.recipe_match.video_a, c.slots.recipe_description.video_a)}
+        ${strategyCard('b', vb, c.slots.recipe_match.video_b, c.slots.recipe_description.video_b)}
+      </div>
+    </section>`;
+}
+
+function strategyCard(letter, video, matchSlot, descSlot) {
+  const m = matchSlot.value;
+  const builtFor = m.built_for_tag || (m.library_id === 'uncategorized' ? 'novel pattern' : 'this play');
+  return `
+    <div class="strategy-card video-${letter} reveal reveal-delay-${letter === 'a' ? 1 : 2} has-badge">
+      ${badge(matchSlot)}
+      <div class="sc-creator">${escapeHtml(video.display_name || video.id)}</div>
+      <div>
+        <span class="sc-confidence">conf ${(m.confidence * 100).toFixed(0)}%</span>
+        <div class="sc-recipe-name">${escapeHtml(m.name || m.library_id)}</div>
+      </div>
+      <div class="sc-built-for">→ Built for ${escapeHtml(builtFor)}</div>
+      <p class="sc-description has-badge" style="position:relative">${badge(descSlot)}${richText(descSlot.value)}</p>
+    </div>`;
+}
+
+function renderChordLibrary(c) {
+  const meanings = Object.values(c.slots.chord_meanings || {});
+  if (!meanings.length) return '';
+  return `
+    <section class="section">
+      <div class="section-eyebrow reveal"><span>02</span> Chord library</div>
+      <h2 class="section-h2 reveal reveal-delay-1">The <em>moves</em> the cortex makes.</h2>
+      <p class="section-sub reveal reveal-delay-2">A chord fires when two cortical systems cross threshold together for at least a second or two. Below: the chord types Brain Diff detects.</p>
+      <div class="chord-grid">
+        ${meanings.map((m, i) => chordCard(m, i)).join('')}
+      </div>
+    </section>`;
+}
+
+function chordCard(meaningSlot, i) {
+  const m = meaningSlot.value;
+  return `
+    <div class="chord-card reveal reveal-delay-${(i % 3) + 1} has-badge">
+      ${badge(meaningSlot)}
+      <div class="cc-header">
+        <span class="cc-name">${escapeHtml(m.name)}</span>
+        <span class="cc-micro">${escapeHtml(m.micro_label)}</span>
+      </div>
+      <div class="cc-formula">${escapeHtml(m.formula_human)}</div>
+      <p class="cc-meaning">${escapeHtml(m.meaning)}</p>
+    </div>`;
+}
+
+function renderChordMoments(c, va, vb) {
+  const moments = c.slots.chord_moments || [];
+  if (!moments.length) return '';
+  const ordered = [...moments].sort((p, q) => p.timestamp_seconds - q.timestamp_seconds);
+  const meanings = c.slots.chord_meanings || {};
+
+  return `
+    <section class="section">
+      <div class="section-eyebrow reveal"><span>03</span> Chord progression</div>
+      <h2 class="section-h2 reveal reveal-delay-1">The <em>chords</em> each video fires.</h2>
+      <p class="section-sub reveal reveal-delay-2 has-badge" style="position:relative">
+        ${badge(c.slots.frame2_sub)}${escapeHtml(c.slots.frame2_sub.value)}
+      </p>
+      <div class="moments-grid">
+        ${ordered.map((mom, i) => momentCard(mom, meanings, va, vb, i)).join('')}
+      </div>
+    </section>`;
+}
+
+function momentCard(mom, meanings, va, vb, i) {
+  const meaning = (meanings[mom.chord_id] && meanings[mom.chord_id].value) || { name: mom.chord_id };
+  const video = mom.video === 'video_a' ? va : vb;
+  return `
+    <div class="moment-card video-${mom.video.slice(-1)} reveal reveal-delay-${(i % 3) + 1} has-badge">
+      ${badge(mom.context)}
+      <div class="moment-meta">
+        <b>${escapeHtml(meaning.name)}</b>
+        ${escapeHtml(video.display_name || video.id)}<br>
+        ${formatTime(mom.timestamp_seconds)}
+      </div>
+      <div class="moment-context">${escapeHtml(mom.context.value)}</div>
+      ${mom.quote ? `<div class="moment-quote">"${escapeHtml(mom.quote)}"</div>` : '<div></div>'}
+    </div>`;
+}
+
+function renderCouplingCallouts(c, va, vb) {
+  const callouts = c.slots.coupling_callouts || {};
+  return `
+    <section class="section">
+      <div class="section-eyebrow reveal"><span>04</span> Network coordination</div>
+      <h2 class="section-h2 reveal reveal-delay-1">How each <em>recipe</em> wires the network.</h2>
+      <p class="section-sub reveal reveal-delay-2">Within each video, some cortical systems rose together; others stayed independent or actively suppressed each other. The pattern IS the strategy.</p>
+      <div class="callouts-grid">
+        ${calloutColumn('a', va, callouts.video_a)}
+        ${calloutColumn('b', vb, callouts.video_b)}
+      </div>
+    </section>`;
+}
+
+function calloutColumn(letter, video, pair) {
+  if (!pair) return '<div></div>';
+  const hidId = `callout-anti-${letter}`;
+  return `
+    <div class="callout-col video-${letter}">
+      <div class="callout-col-header reveal">${escapeHtml(video.display_name || video.id)} — <b>coupling pattern</b></div>
+      ${calloutCard('strongest', 'Strongest coupling', pair.strongest, false, '', 1)}
+      ${calloutCard('weakest', 'Weakest coupling', pair.weakest, false, '', 2)}
+      ${calloutCard('anti', 'Anti-coupling', pair.anti, true, hidId, 3)}
+      <button class="callout-reveal-btn" data-target="${hidId}">Reveal anti-coupling →</button>
+    </div>`;
+}
+
+function calloutCard(klass, tag, slot, hidden, idAttr, delay) {
+  if (!slot) return '';
+  return `
+    <div class="callout-card ${klass} ${hidden ? 'is-hidden' : ''} reveal reveal-delay-${delay} has-badge"${idAttr ? ` id="${idAttr}"` : ''}>
+      ${badge(slot)}
+      <div class="callout-tag">${escapeHtml(tag)}</div>
+      <div class="callout-text">${escapeHtml(slot.value)}</div>
+    </div>`;
+}
+
+// ────────────────────────────────────────────────────────────
+// Helpers
+// ────────────────────────────────────────────────────────────
+function badge(slot) {
+  if (!slot || !slot.source) return '';
+  return `<span class="src-badge src-${slot.source}">${slot.source}</span>`;
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function richText(s) {
+  if (s == null) return '';
+  let safe = escapeHtml(s);
+  safe = safe.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  return safe;
+}
+
+function formatTime(seconds) {
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+// ────────────────────────────────────────────────────────────
+// Scroll reveal (matches methodology + research)
+// ────────────────────────────────────────────────────────────
+function initRevealAnimations() {
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-vis');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.15, rootMargin: '0px 0px -60px 0px' });
+
+  document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+}
+
+loadAndRender();
 </script>
+
 </body>
 </html>

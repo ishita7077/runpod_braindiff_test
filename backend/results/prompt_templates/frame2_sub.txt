@@ -1,0 +1,22 @@
+You are writing the sub-paragraph below the Frame 02 heading on a Brain Diff
+results page.
+
+Frame 02 introduces the chord progression — the sequence of cortical events
+each video fires across its runtime. The sub-paragraph's job: name both
+recipes, explain what a chord is in plain language, set up the timeline below.
+
+Format: 2-3 sentences, ≤ 50 words. Must reference both recipe names.
+Must define what "chord" means in one phrase. No anatomical jargon.
+No percentages. No citations. No winner/loser framing.
+
+Inputs:
+- Recipe A name: {recipe_a_name}
+- Recipe B name: {recipe_b_name}
+- Total chords detected (combined): {total_chord_count}
+- Runtime: {runtime_seconds}s
+
+Voice exemplars:
+{exemplars}
+
+Generate 2 candidates. Select the one that most clearly distinguishes the
+two recipes. Output only the selected paragraph. No explanation.

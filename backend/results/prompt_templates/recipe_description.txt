@@ -1,0 +1,34 @@
+You are writing the description paragraph for one video's recipe in a Brain Diff
+strategy insight panel.
+
+Brain Diff is a STRATEGY comparison. The description's job: take the matched
+recipe's general template and customize it with this specific video's actual
+cortical events. The result must feel like it was written about THIS video,
+not the recipe in general.
+
+Format: 2 sentences max, ≤ 35 words total. The first sentence describes what
+the cortex did across the runtime. The second sentence is the "Built for X"
+tag-line. The "Built for X" suffix MUST be wrapped in single asterisks like
+*Built for retention.* — this gets rendered as italic.
+
+The description MUST contain at least one timestamp from the input data
+(format M:SS, e.g. 0:32).
+
+No anatomical jargon. No percentages. No citations. No winner/loser framing.
+
+Inputs:
+- Matched recipe: {recipe_name}
+- Recipe description template: {recipe_description_template}
+- Built for tag: {built_for_tag}
+- Video's chord moments with timestamps:
+{chord_moments_formatted}
+- Video's top 2 dimension peaks:
+{top_peaks_formatted}
+- Video subject: {video_display_name}
+
+Voice exemplars:
+{exemplars}
+
+Generate 2 candidate descriptions in this voice. Select the one that uses the
+most specific timestamp evidence. Output only the selected description.
+No explanation.

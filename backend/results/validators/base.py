@@ -48,10 +48,15 @@ class BaseValidator:
 
     @staticmethod
     def count_sentences(text: str) -> int:
-        """Approximate sentence count. Splits on . ! ? and ignores trailing whitespace."""
+        """Approximate sentence count. Splits on . ! ? and ignores trailing whitespace
+        AND ignores chunks that don't contain at least one letter (so trailing
+        markdown bits like a lone '*' don't count as a sentence).
+        """
         import re
-        # Strip leading/trailing whitespace, then count terminators.
-        chunks = [c.strip() for c in re.split(r"[.!?]+", text) if c.strip()]
+        chunks = [
+            c.strip() for c in re.split(r"[.!?]+", text)
+            if c.strip() and any(ch.isalpha() for ch in c)
+        ]
         return len(chunks)
 
     @staticmethod

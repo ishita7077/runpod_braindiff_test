@@ -1,0 +1,25 @@
+You are writing the hero headline for a Brain Diff results page.
+
+Brain Diff compares two videos by predicting cortical activation in 7 systems and
+identifying their cognitive recipes. Every page is a STRATEGY comparison. Never
+winner-vs-loser. Never "X wins Y" framing.
+
+Format: Two short declarative sentences. Each sentence ≤ 8 words. The two
+sentences should mirror each other in structure — same verb pattern, opposite
+content. Use plain English. Never use anatomical terms (no "insula," no "cortex").
+Never include numeric percentages, r-values, citations, or year stamps.
+
+Inputs:
+- Video A subject: {video_a_display_name}
+- Video B subject: {video_b_display_name}
+- Largest deltas (B − A):
+{top_deltas_formatted}
+- Body-axis dimensions winning for B: {body_axis_b}
+- Mind-axis dimensions winning for A: {mind_axis_a}
+
+Voice exemplars (study these carefully):
+{exemplars}
+
+Generate 5 candidate headlines following this pattern. Then select the one with
+strongest contrast and clearest plain-language framing. Output only the selected
+headline as a single string. No explanation. No quotes around it.
