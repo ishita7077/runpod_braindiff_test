@@ -205,7 +205,11 @@ def _generate_results_content(
         )
         return result
     except Exception as exc:  # noqa: BLE001
-        # Don't break the existing flow if content gen fails.
+        # Don't break the existing flow if content gen fails. Log to stderr so
+        # the failure surfaces in worker logs even though the soft-fail keeps
+        # the user-facing brain payload alive.
+        import traceback
+        log.error("CONTENT_GEN_FAILED: %s: %s\n%s", type(exc).__name__, exc, traceback.format_exc())
         try:
             if progress:
                 progress.emit(
@@ -214,7 +218,7 @@ def _generate_results_content(
                 )
         except Exception:
             pass
-        return None
+        return {"comparison_id": "", "content": None, "error": f"{type(exc).__name__}: {exc}"}
 
 
 def _build_response(
@@ -321,6 +325,13 @@ def _build_response(
     if results_content and results_content.get("content"):
         response["results_content"] = results_content["content"]
         meta["results_comparison_id"] = results_content.get("comparison_id")
+    # Surface failure reason from the LLM pipeline into the response so the
+    # frontend (or a curl-debug session) can see why Gemma didn't produce copy
+    # without having to scrape worker logs.
+    if results_content and results_content.get("error"):
+        meta["results_content_error"] = results_content["error"]
+    elif results_content is None:
+        meta["results_content_error"] = "content_pipeline_returned_none"
     return response
 
 

@@ -504,11 +504,11 @@ async function bootFromJob(){
       const content = data.result && data.result.results_content;
       RESULT = data.result || null;
       if (!content) {
+        const reason = (RESULT && RESULT.meta && RESULT.meta.results_content_error) || 'unknown';
         return errCard(
           'Worker finished but no results content',
           'The job completed but the worker did not return the new results-page content. ' +
-          'This usually means the worker is running an older version that does not include the LLaMA content step. ' +
-          'Rebuild and redeploy the worker.',
+          'Reason from worker: <code>' + escapeHtmlText(reason) + '</code>',
         );
       }
       return acceptContent(content);
@@ -724,8 +724,12 @@ function renderFrame2(c, va, vb){
   // dominant brain system per word. Source data: full worker response (RESULT)
   // contains per-second 7-system timeseries. We map each word to its timestep
   // and pick the dominant system at that timestep.
-  const textA = (RESULT && RESULT.transcript_a) || (va.transcript || '');
-  const textB = (RESULT && RESULT.transcript_b) || (vb.transcript || '');
+  // Worker stores the original text in result.meta.text_a/b for text mode
+  // (kept there for legacy recall-card consumers). Fall back to transcript_*
+  // for media modes that copy through to the same field name.
+  const meta = (RESULT && RESULT.meta) || {};
+  const textA = meta.text_a || (RESULT && RESULT.transcript_a) || (va.transcript || '');
+  const textB = meta.text_b || (RESULT && RESULT.transcript_b) || (vb.transcript || '');
   const dimensions = (RESULT && RESULT.dimensions) || [];
 
   return `
