@@ -808,6 +808,7 @@ function toggleTheme(){
   const RUN_DONE_COPY = RUN_MODE === 'text' ? 'Two texts, one cortex.' : 'Two media samples, one cortex.';
   function resultsPageForMode(){
     if (RUN_MODE === 'audio') return './audio-results.html';
+    if (RUN_MODE === 'text')  return './text-results.html';
     return './results.html';
   }
 
