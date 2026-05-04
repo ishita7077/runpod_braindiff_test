@@ -866,8 +866,8 @@ function renderFrame3(c, va, vb){
       </div>
       <div class="export-row">
         <span class="export-label">Export</span>
-        <a class="export-btn" href="${CONTENT_URL}" download>Full content.json</a>
-        <a class="export-btn" href="/outputs/${COMPARISON_ID}/inputs.json" download>Inputs.json</a>
+        <a class="export-btn" href="/outputs/${esc(c.comparison_id)}/content.json" download>Full content.json</a>
+        <a class="export-btn" href="/outputs/${esc(c.comparison_id)}/inputs.json" download>Inputs.json</a>
         <a class="export-btn" href="/methodology">Methodology</a>
       </div>
     </div>
