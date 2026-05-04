@@ -2,8 +2,8 @@
   "schema_version": "raw_slot.v1",
   "slot": "coupling_callouts.video_a.weakest",
   "comparison_id": "f8e6953993dda569",
-  "run_id": "7df3d6da-4ef9-424b-a83c-97339f1f4c2d",
-  "generated_at": "2026-05-04T04:24:43.049107+00:00",
+  "run_id": "63513683-2e88-487f-a6ec-4d77d17d4f07",
+  "generated_at": "2026-05-04T05:12:12.076592+00:00",
   "model": {
     "model_id": "stub-llama-3.2-3b-instruct",
     "model_revision": "stub-v0",
@@ -23,7 +23,7 @@
     "passed": true,
     "errors": []
   },
-  "latency_ms": 33,
+  "latency_ms": 27,
   "pair": {
     "system_a": "personal_resonance",
     "system_b": "gut_reaction",

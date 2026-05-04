@@ -1,15 +1,15 @@
 {
   "schema_version": "results_content.v1",
   "comparison_id": "6b4cf129dfb0bd3a",
-  "run_id": "cd49c08e-9723-4917-a027-da9cd13139ef",
+  "run_id": "ac1236dd-43db-4b0b-9081-98e752ecb290",
   "analysis_version": "tribev2.2026.05",
-  "generated_at": "2026-05-04T04:24:42.970105+00:00",
+  "generated_at": "2026-05-04T05:12:12.006095+00:00",
   "assets": {
     "recipe_library_version": "1.0",
     "chord_library_version": "1.0",
     "voice_exemplars_hash": "1f0417fa2af2",
-    "prompt_templates_hash": "9d5b8d3e132b",
-    "slot_defaults_hash": "1bf38d36293b"
+    "prompt_templates_hash": "eb99837b00af",
+    "slot_defaults_hash": "41c69c37a43a"
   },
   "videos": {
     "video_a": {
@@ -1270,7 +1270,7 @@
       "errors": []
     },
     "body": {
-      "value": "B reaches the gut. A builds the argument.",
+      "value": "These two videos pull the cortex apart in opposite directions. One arrives in the chest before deliberation, the other builds in the head as you follow the argument. The systems they recruit barely overlap \u2014 keep scrolling for the chord-by-chord breakdown.",
       "source": "llm",
       "status": "ok",
       "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/body.json",
@@ -1505,11 +1505,11 @@
         "chord_id": "learning-moment",
         "timestamp_seconds": 18.0,
         "quote": "Imagine searching a library \u2014 but every page at once.",
-        "context": {
-          "value": "The viewer's body responds at 0:18 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:18 in Cleo Abram, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[0].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[0].meaning.json",
           "errors": []
         }
       },
@@ -1519,11 +1519,11 @@
         "chord_id": "reasoning-beat",
         "timestamp_seconds": 32.0,
         "quote": "Quantum computing isn't about being faster. It's about doing things classical computers literally cannot do.",
-        "context": {
-          "value": "The viewer's body responds at 0:32 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:32 in Cleo Abram, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[1].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[1].meaning.json",
           "errors": []
         }
       },
@@ -1533,11 +1533,11 @@
         "chord_id": "visceral-hit",
         "timestamp_seconds": 8.0,
         "quote": "I'll give one million dollars to the last person standing.",
-        "context": {
-          "value": "The viewer's body responds at 0:08 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:08 in MrBeast, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[2].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[2].meaning.json",
           "errors": []
         }
       },
@@ -1547,11 +1547,11 @@
         "chord_id": "emotional-impact",
         "timestamp_seconds": 47.0,
         "quote": "You can change your life right now. This is your shot.",
-        "context": {
-          "value": "The viewer's body responds at 0:47 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:47 in MrBeast, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[3].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/6b4cf129dfb0bd3a/raw/chord_moments[3].meaning.json",
           "errors": []
         }
       }

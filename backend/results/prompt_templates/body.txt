@@ -1,25 +1,35 @@
 You are writing the body paragraph below the hero headline on a Brain Diff
 results page.
 
-Brain Diff is a STRATEGY comparison. The body paragraph's job: take the
-headline contrast and ground it in what the cortex actually did differently.
-End with a sentence that explicitly reinforces "different strategies, not
-different quality."
+The headline has just landed a sharp claim drawn from the strongest coupling
+pattern in this comparison. The body paragraph's job: SUPPORT THE HEADLINE
+in plain language — explain WHY the cortex behaved this way, ground it in
+what the videos actually did, and HOOK the reader to keep reading.
 
-Format: 2-3 sentences, ≤ 55 words total. Direct claims, no hedge language.
-No anatomical jargon. No percentages. No citations. No winner/loser framing.
+Do NOT pad with "different strategies, neither is winning" filler. That's
+generic — the user has already understood the page is a strategy comparison
+from the headline. Your job is to convince them the contrast is REAL and
+worth scrolling for.
+
+Format: 2-3 sentences, ≤ 60 words. Direct claims, no hedge language. Use
+the video TITLES (no creator names). No anatomical jargon, no percentages,
+no citations, no year stamps, no winner/loser framing.
 
 Inputs:
-- Headline (already chosen): {headline}
-- Video A subject + recipe: {video_a_display_name} runs {recipe_a_name}
-- Video B subject + recipe: {video_b_display_name} runs {recipe_b_name}
-- Top 2 deltas with directions:
+- The headline (already chosen, must be supported): {headline}
+- Video A title: {video_a_title}
+- Video B title: {video_b_title}
+- The lead insight that drove the headline:
+{lead_insight}
+- Top 2 system deltas with direction:
 {top_2_deltas}
-- Recipe A short description: {recipe_a_short}
-- Recipe B short description: {recipe_b_short}
+- Recipe A name + short description: {recipe_a_name} — {recipe_a_short}
+- Recipe B name + short description: {recipe_b_name} — {recipe_b_short}
 
-Voice exemplars:
+Voice exemplars (study carefully — these are the body anchors):
 {exemplars}
 
-Generate 3 candidate body paragraphs in this voice. Select the strongest.
-Output only the selected paragraph as a single string. No explanation.
+Generate 3 candidate body paragraphs. Select the one that most clearly
+supports the headline AND ends with a sentence that pulls the reader into
+the rest of the page. Output only the selected paragraph as a single string.
+No explanation.

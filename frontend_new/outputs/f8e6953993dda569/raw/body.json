@@ -2,8 +2,8 @@
   "schema_version": "raw_slot.v1",
   "slot": "body",
   "comparison_id": "f8e6953993dda569",
-  "run_id": "7df3d6da-4ef9-424b-a83c-97339f1f4c2d",
-  "generated_at": "2026-05-04T04:24:43.023630+00:00",
+  "run_id": "63513683-2e88-487f-a6ec-4d77d17d4f07",
+  "generated_at": "2026-05-04T05:12:12.109935+00:00",
   "model": {
     "model_id": "stub-llama-3.2-3b-instruct",
     "model_revision": "stub-v0",
@@ -11,22 +11,22 @@
     "do_sample": false,
     "temperature": 0.4,
     "top_p": 0.9,
-    "max_new_tokens": 160
+    "max_new_tokens": 180
   },
   "asset_hashes": {
     "voice_exemplars_hash": "1f0417fa2af2",
     "recipe_library_version": "1.0",
     "chord_library_version": "1.0"
   },
-  "prompt_rendered": "You are writing the body paragraph below the hero headline on a Brain Diff\nresults page.\n\nBrain Diff is a STRATEGY comparison. The body paragraph's job: take the\nheadline contrast and ground it in what the cortex actually did differently.\nEnd with a sentence that explicitly reinforces \"different strategies, not\ndifferent quality.\"\n\nFormat: 2-3 sentences, ≤ 55 words total. Direct claims, no hedge language.\nNo anatomical jargon. No percentages. No citations. No winner/loser framing.\n\nInputs:\n- Headline (already chosen): (see headline above)\n- Video A subject + recipe: Veritasium runs Slow Build → Deep Encode\n- Video B subject + recipe: Dude Perfect runs Visceral Hook → Low-Effort Hold\n- Top 2 deltas with directions:\n  - gut_reaction: +0.49 (B higher)\n  - brain_effort: -0.43 (A higher)\n- Recipe A short description: Gradual attention building over the runtime, deep language network engagement, memory encoding throughout, climax in a R\n- Recipe B short description: Immediate anterior insula spike in the opening seconds, sustained low cognitive effort across the middle, late Emotional\n\nVoice exemplars:\n  1. Two videos that look similar in the wild and feel different to watch. The cortex shows why. Each runs a distinct cognitive recipe — different systems pulled, different timing, different cortical fingerprints. Neither is winning. They're playing different games.\n  2. Same length, same upload week, same thumbnail energy. The brain receives them as opposites. MrBeast pulls the body before the mind catches up. Cleo builds the mind without ever asking the body. Different objectives, different machinery.\n  3. Both videos open with what creators call hooks. The cortex disagrees about what 'hook' means. One arrives in the gut at second eight. The other arrives in the language network at second twenty. They're optimizing for different cortical outcomes.\n  4. The cortex doesn't grade content. It runs whatever is presented through whatever systems are necessary. MrBeast presents stakes; the anterior insula responds. Cleo presents claims; the language and memory networks respond. Two videos, two recruitment patterns, no contest.\n\nGenerate 3 candidate body paragraphs in this voice. Select the strongest.\nOutput only the selected paragraph as a single string. No explanation.\n",
+  "prompt_rendered": "You are writing the body paragraph below the hero headline on a Brain Diff\nresults page.\n\nThe headline has just landed a sharp claim drawn from the strongest coupling\npattern in this comparison. The body paragraph's job: SUPPORT THE HEADLINE\nin plain language — explain WHY the cortex behaved this way, ground it in\nwhat the videos actually did, and HOOK the reader to keep reading.\n\nDo NOT pad with \"different strategies, neither is winning\" filler. That's\ngeneric — the user has already understood the page is a strategy comparison\nfrom the headline. Your job is to convince them the contrast is REAL and\nworth scrolling for.\n\nFormat: 2-3 sentences, ≤ 60 words. Direct claims, no hedge language. Use\nthe video TITLES (no creator names). No anatomical jargon, no percentages,\nno citations, no year stamps, no winner/loser framing.\n\nInputs:\n- The headline (already chosen, must be supported): B reaches the gut. A builds the argument.\n- Video A title: Veritasium\n- Video B title: Dude Perfect\n- The lead insight that drove the headline:\n  - In Dude Perfect, Attention and Visceral response rose together across the runtime (r = +0.74) — these two systems fired as a team.\n- Top 2 system deltas with direction:\n  - gut_reaction: +0.49 (B higher)\n  - brain_effort: -0.43 (A higher)\n- Recipe A name + short description: Slow Build → Deep Encode — Gradual attention building over the runtime, deep language network engagement, memory encoding throughout, climax in a Reasoning Beat in the\n- Recipe B name + short description: Visceral Hook → Low-Effort Hold — Immediate anterior insula spike in the opening seconds, sustained low cognitive effort across the middle, late Emotional Impact in the closi\n\nVoice exemplars (study carefully — these are the body anchors):\n  1. Two videos that look similar in the wild and feel different to watch. The cortex shows why. Each runs a distinct cognitive recipe — different systems pulled, different timing, different cortical fingerprints. Neither is winning. They're playing different games.\n  2. Same length, same upload week, same thumbnail energy. The brain receives them as opposites. MrBeast pulls the body before the mind catches up. Cleo builds the mind without ever asking the body. Different objectives, different machinery.\n  3. Both videos open with what creators call hooks. The cortex disagrees about what 'hook' means. One arrives in the gut at second eight. The other arrives in the language network at second twenty. They're optimizing for different cortical outcomes.\n  4. The cortex doesn't grade content. It runs whatever is presented through whatever systems are necessary. MrBeast presents stakes; the anterior insula responds. Cleo presents claims; the language and memory networks respond. Two videos, two recruitment patterns, no contest.\n\nGenerate 3 candidate body paragraphs. Select the one that most clearly\nsupports the headline AND ends with a sentence that pulls the reader into\nthe rest of the page. Output only the selected paragraph as a single string.\nNo explanation.\n",
   "candidates": [
-    "B reaches the gut. A builds the argument."
+    "These two videos pull the cortex apart in opposite directions. One arrives in the chest before deliberation, the other builds in the head as you follow the argument. The systems they recruit barely overlap — keep scrolling for the chord-by-chord breakdown."
   ],
-  "selected": "B reaches the gut. A builds the argument.",
+  "selected": "These two videos pull the cortex apart in opposite directions. One arrives in the chest before deliberation, the other builds in the head as you follow the argument. The systems they recruit barely overlap — keep scrolling for the chord-by-chord breakdown.",
   "attempts": 1,
   "validation": {
     "passed": true,
     "errors": []
   },
-  "latency_ms": 8
+  "latency_ms": 6
 }

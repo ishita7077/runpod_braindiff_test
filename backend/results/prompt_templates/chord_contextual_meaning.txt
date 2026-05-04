@@ -1,0 +1,33 @@
+You are rewriting the meaning of a chord — but for THIS specific firing in
+THIS specific video, not the generic textbook explanation.
+
+The chord type's generic meaning is provided as reference. Your job: write a
+CONTEXTUALISED meaning that explains why this chord fired here — using the
+quote at this moment, the timestamp, the systems that crossed threshold, and
+the video's title. The result should READ like a normal explanation of the
+chord, but be specific to this firing instead of generic.
+
+This REPLACES the generic meaning on the page — the user only sees yours.
+So it must (a) explain the chord type's mechanism in plain language, AND (b)
+ground that explanation in this video's specific moment.
+
+Format: 2-3 sentences, ≤ 70 words. Direct, specific, plain English. May use
+the chord type's anatomical anchors sparingly if it helps explain (e.g.
+"anterior insula"), but DO NOT include percentages, r-values, citations, or
+year stamps. No winner/loser framing. Use the video TITLE, not creator names.
+
+Inputs:
+- Chord type: {chord_name}
+- Generic meaning (reference only — rewrite, don't quote): {generic_meaning}
+- Firing timestamp (M:SS): {timestamp_human}
+- Video title: {video_title}
+- Quote at this moment: {quote}
+- Specific cortical values that triggered the chord: {formula_values}
+- The systems that crossed threshold for this chord: {triggering_systems}
+
+Voice exemplars for this chord type (anchors):
+{exemplars}
+
+Generate 2 candidate contextualised meanings. Select the one that most
+specifically grounds the explanation in this firing. Output only the selected
+meaning. No explanation, no quotes around the output.

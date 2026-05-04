@@ -1,15 +1,15 @@
 {
   "schema_version": "results_content.v1",
   "comparison_id": "f8e6953993dda569",
-  "run_id": "7df3d6da-4ef9-424b-a83c-97339f1f4c2d",
+  "run_id": "63513683-2e88-487f-a6ec-4d77d17d4f07",
   "analysis_version": "tribev2.2026.05",
-  "generated_at": "2026-05-04T04:24:43.070806+00:00",
+  "generated_at": "2026-05-04T05:12:12.111106+00:00",
   "assets": {
     "recipe_library_version": "1.0",
     "chord_library_version": "1.0",
     "voice_exemplars_hash": "1f0417fa2af2",
-    "prompt_templates_hash": "9d5b8d3e132b",
-    "slot_defaults_hash": "1bf38d36293b"
+    "prompt_templates_hash": "eb99837b00af",
+    "slot_defaults_hash": "41c69c37a43a"
   },
   "videos": {
     "video_a": {
@@ -1204,7 +1204,7 @@
       "errors": []
     },
     "body": {
-      "value": "B reaches the gut. A builds the argument.",
+      "value": "These two videos pull the cortex apart in opposite directions. One arrives in the chest before deliberation, the other builds in the head as you follow the argument. The systems they recruit barely overlap \u2014 keep scrolling for the chord-by-chord breakdown.",
       "source": "llm",
       "status": "ok",
       "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/body.json",
@@ -1439,11 +1439,11 @@
         "chord_id": "reasoning-beat",
         "timestamp_seconds": 38.0,
         "quote": "It turned out the answer had been hiding in plain sight...",
-        "context": {
-          "value": "The viewer's body responds at 0:38 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:38 in Veritasium, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[0].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[0].meaning.json",
           "errors": []
         }
       },
@@ -1453,11 +1453,11 @@
         "chord_id": "learning-moment",
         "timestamp_seconds": 24.0,
         "quote": "Imagine integrating along this curve...",
-        "context": {
-          "value": "The viewer's body responds at 0:24 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:24 in Veritasium, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[1].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[1].meaning.json",
           "errors": []
         }
       },
@@ -1467,11 +1467,11 @@
         "chord_id": "visceral-hit",
         "timestamp_seconds": 7.0,
         "quote": "No way that just went in...",
-        "context": {
-          "value": "The viewer's body responds at 0:07 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:07 in Dude Perfect, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[2].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[2].meaning.json",
           "errors": []
         }
       },
@@ -1481,11 +1481,11 @@
         "chord_id": "emotional-impact",
         "timestamp_seconds": 52.0,
         "quote": "Boom! Champion!",
-        "context": {
-          "value": "The viewer's body responds at 0:52 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:52 in Dude Perfect, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[3].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/f8e6953993dda569/raw/chord_moments[3].meaning.json",
           "errors": []
         }
       }

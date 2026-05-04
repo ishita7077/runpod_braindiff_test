@@ -2,8 +2,8 @@
   "schema_version": "raw_slot.v1",
   "slot": "recipe_match.video_a",
   "comparison_id": "6b4cf129dfb0bd3a",
-  "run_id": "cd49c08e-9723-4917-a027-da9cd13139ef",
-  "generated_at": "2026-05-04T04:24:42.928518+00:00",
+  "run_id": "ac1236dd-43db-4b0b-9081-98e752ecb290",
+  "generated_at": "2026-05-04T05:12:11.953199+00:00",
   "model": {
     "model_id": "stub-llama-3.2-3b-instruct",
     "model_revision": "stub-v0",
@@ -36,7 +36,7 @@
     "passed": true,
     "errors": []
   },
-  "latency_ms": 14,
+  "latency_ms": 8,
   "deterministic_match": {
     "library_id": "slow-build-deep-encode",
     "confidence": 0.925,

@@ -302,21 +302,27 @@ def assemble_content(
             "status": "ok",
         }
 
-    # chord_moments — one entry per chord firing across both videos. Phase 1+
-    # populates context.value via chord_context slot. Phase 0 fills with fallback.
+    # chord_moments — one entry per chord firing across both videos.
+    # Each carries a contextualised meaning (LLM-written, replaces the generic
+    # library meaning). Generic meaning still ships in chord_meanings as fallback.
     chord_moments: list[dict[str, Any]] = []
     for vid_key in ("video_a", "video_b"):
         vid = inputs[vid_key]
         for i, ev in enumerate(vid.get("chord_events", [])):
-            slot_addr = f"chord_moments[{len(chord_moments)}].context"
-            resolved = asm.resolve_scalar(slot_addr, fallback_key="chord_context")
+            slot_addr = f"chord_moments[{len(chord_moments)}].meaning"
+            resolved = asm.resolve_scalar(slot_addr, fallback_key="chord_contextual_meaning")
+            # Fallback to generic library meaning if both override and LLM failed.
+            if resolved.source == "fallback":
+                generic = chord_meanings.get(ev["chord_id"], {}).get("value", {}).get("meaning")
+                if generic:
+                    resolved.value = generic
             chord_moments.append({
                 "index": len(chord_moments),
                 "video": vid_key,
                 "chord_id": ev["chord_id"],
                 "timestamp_seconds": ev["timestamp_seconds"],
                 "quote": ev.get("quote"),
-                "context": _slot_to_dict(resolved),
+                "meaning": _slot_to_dict(resolved),
             })
 
     content = {

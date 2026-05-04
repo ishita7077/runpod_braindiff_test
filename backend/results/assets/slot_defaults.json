@@ -37,6 +37,11 @@
     "source": "fallback",
     "status": "generic"
   },
+  "chord_contextual_meaning": {
+    "value": "This chord fired at this moment because the systems involved crossed threshold together. The cortex was doing what this chord type generally captures, but no contextualised explanation could be generated for this specific firing.",
+    "source": "fallback",
+    "status": "generic"
+  },
   "coupling_callout": {
     "value": "The two systems show a measurable correlation across this video's runtime. The pattern reflects how this content recruits the cortex.",
     "source": "fallback",

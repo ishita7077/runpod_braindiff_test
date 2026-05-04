@@ -33,15 +33,16 @@ from ..lib.input_normalizer import (
     normalize_inputs,
 )
 from ..lib.model_manager import get_model_manager
+from ..lib.lead_insight import select_lead_insight
+from ..lib.library_matcher import match_recipe
 from ..slots.base import Slot, SlotResult
 from ..slots.headline import HeadlineSlot
 from ..slots.recipe_match import RecipeMatchSlot
 from ..slots.recipe_description import RecipeDescriptionSlot
-from ..slots.chord_context import ChordContextSlot
+from ..slots.chord_contextual_meaning import ChordContextualMeaningSlot
 from ..slots.body import BodySlot
 from ..slots.frame2_sub import Frame2SubSlot
 from ..slots.coupling_callout import CouplingCalloutSlot
-from ..lib.library_matcher import match_recipe
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
@@ -400,12 +401,35 @@ def run(
     overrides_dir = OVERRIDES_ROOT / cmp_id
     overrides_dir.mkdir(parents=True, exist_ok=True)
 
-    # Run all enabled slots through the model manager (parallel where possible).
+    # Pipeline:
+    #   1. Pick the lead coupling insight (deterministic — drives headline + body).
+    #   2. Run wave-one slots in parallel (headline included; body excluded).
+    #   3. Read the headline output.
+    #   4. Run wave-two slots (body) using the headline as input.
     manager = get_model_manager()
     audit.emit("model_manager_started", data={"backend": manager.backend.model_id})
-    slots: list[Slot] = _enabled_slots(inputs)
-    if slots:
-        asyncio.run(_run_slots(slots, inputs, cmp_id, rid, out_dir, manager, audit))
+
+    lead = select_lead_insight(inputs)
+    audit.emit(
+        "input_normalized",
+        data={"lead_insight": {
+            "video": lead.video_key,
+            "system_a": lead.system_a, "system_b": lead.system_b,
+            "r": lead.r, "score": lead.score,
+        }},
+    )
+
+    wave1 = _wave_one_slots(inputs, lead)
+    wave1_results = asyncio.run(_run_slots(wave1, inputs, cmp_id, rid, out_dir, manager, audit))
+    headline_result = next((r for r in wave1_results if r.slot_address == "headline"), None)
+    headline_text = (
+        headline_result.selected
+        if headline_result and headline_result.succeeded and isinstance(headline_result.selected, str)
+        else "(headline unavailable — body using lead-insight only)"
+    )
+
+    wave2 = _wave_two_slots(inputs, lead, headline_text)
+    asyncio.run(_run_slots(wave2, inputs, cmp_id, rid, out_dir, manager, audit))
 
     content = assemble_content(
         comparison_id=cmp_id,
@@ -424,40 +448,43 @@ def run(
     return content_path
 
 
-def _enabled_slots(inputs: NormalizedInputs | None = None) -> list[Slot]:
-    """Every slot the pipeline runs. Order doesn't matter — they run in parallel."""
+def _wave_one_slots(inputs: NormalizedInputs, lead_insight) -> list[Slot]:
+    """First wave — every slot whose only inputs are the deterministic data
+    (NormalizedInputs + lead_insight). Runs in parallel.
+
+    Body depends on the headline output, so it lives in wave two."""
+    match_a = match_recipe(inputs.video_a)
+    match_b = match_recipe(inputs.video_b)
+
     slots: list[Slot] = [
-        HeadlineSlot(),
-        BodySlot(),
+        HeadlineSlot(lead_insight=lead_insight),
         RecipeMatchSlot(video_key="video_a"),
         RecipeMatchSlot(video_key="video_b"),
         RecipeDescriptionSlot(video_key="video_a"),
         RecipeDescriptionSlot(video_key="video_b"),
+        Frame2SubSlot(recipe_a_name=match_a.name, recipe_b_name=match_b.name),
     ]
-    if inputs is not None:
-        match_a = match_recipe(inputs.video_a)
-        match_b = match_recipe(inputs.video_b)
-        slots.append(Frame2SubSlot(
-            recipe_a_name=match_a.name,
-            recipe_b_name=match_b.name,
-        ))
-        # One coupling callout slot per (video, type).
-        for vid_key in ("video_a", "video_b"):
-            for ctype in ("strongest", "weakest", "anti"):
-                slots.append(CouplingCalloutSlot(video_key=vid_key, coupling_type=ctype))
+    for vid_key in ("video_a", "video_b"):
+        for ctype in ("strongest", "weakest", "anti"):
+            slots.append(CouplingCalloutSlot(video_key=vid_key, coupling_type=ctype))
 
-        # Per-firing chord context slots — global firing index across both videos.
-        firing_index = 0
-        for vid_key in ("video_a", "video_b"):
-            video = getattr(inputs, vid_key)
-            for ev in video.chord_events:
-                slots.append(ChordContextSlot(
-                    firing_index=firing_index,
-                    video_key=vid_key,
-                    event=ev,
-                ))
-                firing_index += 1
+    # Per-firing chord contextual-meaning slots — global firing index across both videos.
+    firing_index = 0
+    for vid_key in ("video_a", "video_b"):
+        video = getattr(inputs, vid_key)
+        for ev in video.chord_events:
+            slots.append(ChordContextualMeaningSlot(
+                firing_index=firing_index,
+                video_key=vid_key,
+                event=ev,
+            ))
+            firing_index += 1
     return slots
+
+
+def _wave_two_slots(inputs: NormalizedInputs, lead_insight, headline_text: str) -> list[Slot]:
+    """Second wave — slots that need wave-one outputs as input. Just body for now."""
+    return [BodySlot(headline_text=headline_text, lead_insight=lead_insight)]
 
 
 async def _run_slots(

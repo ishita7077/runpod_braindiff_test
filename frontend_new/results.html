@@ -1005,16 +1005,16 @@ function initChordPins(){
 function renderChordDetail(globalIndex){
   const moments = (CONTENT.slots.chord_moments||[]).slice().sort((a,b)=>a.timestamp_seconds-b.timestamp_seconds);
   const m = moments[globalIndex]; if (!m) return;
-  const meaning = (CONTENT.slots.chord_meanings||{})[m.chord_id]?.value;
-  if (!meaning) return;
+  // Generic library entry — used for name/micro-label/formula only. The MEANING shown
+  // is the per-firing contextualised one (m.meaning), not the generic library text.
+  const lib = (CONTENT.slots.chord_meanings||{})[m.chord_id]?.value;
+  if (!lib) return;
   const video = m.video === 'video_a' ? CONTENT.videos.video_a : CONTENT.videos.video_b;
   const sideClass = m.video === 'video_a' ? 'a' : 'b';
   const sideLabel = (video.display_name||'').toUpperCase();
   const el = document.getElementById('chord-detail');
   el.classList.add('swapping');
   setTimeout(() => {
-    // Spectrogram — pull ±2s around firing time from this video's timeseries for the systems involved.
-    // Identify the systems from the chord's formula (parse the formula_human or fall back to 2 hub systems).
     const spectrumSystems = pickSpectrumSystems(m.chord_id, video);
     const t = Math.round(m.timestamp_seconds);
     const rowsHTML = spectrumSystems.map(sys => {
@@ -1031,16 +1031,15 @@ function renderChordDetail(globalIndex){
     el.innerHTML = `
     <div class="cdm-grid">
       <div class="cdm-left">
-        <span class="cdm-eyebrow">${esc(meaning.micro_label).toUpperCase()}</span>
+        <span class="cdm-eyebrow">${esc(lib.micro_label).toUpperCase()}</span>
         <span class="cdm-time">${fmtTime(m.timestamp_seconds)} · <span class="side-${sideClass}">${esc(sideLabel)}</span></span>
-        <h3 class="cdm-name">${esc(meaning.name)}</h3>
-        <div class="cdm-formula">${esc(meaning.formula_human)}</div>
-        <p class="cdm-meaning">${esc(meaning.meaning)}</p>
-        <div class="cdm-content-section">
+        <h3 class="cdm-name">${esc(lib.name)}</h3>
+        <div class="cdm-formula">${esc(lib.formula_human)}</div>
+        <p class="cdm-meaning has-badge" style="position:relative">${badge(m.meaning)}${esc((m.meaning && m.meaning.value) || lib.meaning)}</p>
+        ${m.quote ? `<div class="cdm-content-section">
           <span class="cdm-content-label">Content at this moment</span>
-          ${m.quote ? `<div class="cdm-quote ${sideClass}"><span class="cdm-quote-tag">${esc(sideLabel)}</span>${esc(m.quote)}</div>` : ''}
-          <p class="cdm-context has-badge" style="position:relative">${badge(m.context)}${esc(m.context.value||'')}</p>
-        </div>
+          <div class="cdm-quote ${sideClass}"><span class="cdm-quote-tag">${esc(sideLabel)}</span>${esc(m.quote)}</div>
+        </div>` : ''}
       </div>
       <div class="cdm-right">
         <span class="cdm-eyebrow">The Cortex Around This Moment</span>

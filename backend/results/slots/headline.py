@@ -1,18 +1,14 @@
-"""Headline slot — first end-to-end slot (Phase 1)."""
+"""Headline slot — driven by the lead coupling insight (no body/mind axis,
+no creator names, video titles only)."""
 
 from __future__ import annotations
 
-import json
 from typing import Any
 
 from ..lib.input_normalizer import CANONICAL_SYSTEMS, NormalizedInputs
+from ..lib.lead_insight import LeadInsight
 from ..validators.headline import HeadlineValidator
 from .base import Slot, voice_exemplars
-
-
-# Which systems sit on the body axis vs the mind axis.
-_BODY_AXIS = {"gut_reaction", "personal_resonance"}
-_MIND_AXIS = {"language_depth", "memory_encoding", "brain_effort"}
 
 
 class HeadlineSlot(Slot):
@@ -20,44 +16,30 @@ class HeadlineSlot(Slot):
     template_name = "headline.txt"
     max_new_tokens = 120
 
-    def __init__(self) -> None:
+    def __init__(self, *, lead_insight: LeadInsight) -> None:
         super().__init__(validator=HeadlineValidator())
+        self.lead_insight = lead_insight
 
     def build_template_context(self, inputs: NormalizedInputs) -> dict[str, Any]:
-        a = inputs.video_a
-        b = inputs.video_b
+        a, b = inputs.video_a, inputs.video_b
 
-        # Top deltas (B - A) — sorted by magnitude.
         deltas = sorted(
             [(s, b.system_means[s] - a.system_means[s]) for s in CANONICAL_SYSTEMS],
             key=lambda kv: abs(kv[1]),
             reverse=True,
         )[:3]
         top_deltas = "\n".join(
-            f"  - {sys}: {delta:+.2f} ({'B higher' if delta > 0 else 'A higher'})"
-            for sys, delta in deltas
+            f"  - {s}: {d:+.2f} ({'B higher' if d > 0 else 'A higher'})"
+            for s, d in deltas
         )
-
-        # Which body-axis systems are higher in B.
-        body_axis_b = ", ".join(
-            sys for sys in _BODY_AXIS
-            if b.system_means[sys] > a.system_means[sys]
-        ) or "none"
-
-        # Which mind-axis systems are higher in A.
-        mind_axis_a = ", ".join(
-            sys for sys in _MIND_AXIS
-            if a.system_means[sys] > b.system_means[sys]
-        ) or "none"
 
         exemplars = voice_exemplars().get("headline", [])
         exemplar_block = "\n".join(f"  {i+1}. \"{e}\"" for i, e in enumerate(exemplars[:6]))
 
         return {
-            "video_a_display_name": a.display_name,
-            "video_b_display_name": b.display_name,
-            "top_deltas_formatted": top_deltas,
-            "body_axis_b":          body_axis_b,
-            "mind_axis_a":          mind_axis_a,
-            "exemplars":            exemplar_block,
+            "video_a_title": a.display_name,
+            "video_b_title": b.display_name,
+            "lead_insight":  f"  - {self.lead_insight.plain_summary}",
+            "top_deltas":    top_deltas,
+            "exemplars":     exemplar_block,
         }

@@ -1,0 +1,32 @@
+{
+  "schema_version": "raw_slot.v1",
+  "slot": "chord_moments[1].meaning",
+  "comparison_id": "f8e6953993dda569",
+  "run_id": "63513683-2e88-487f-a6ec-4d77d17d4f07",
+  "generated_at": "2026-05-04T05:12:12.096525+00:00",
+  "model": {
+    "model_id": "stub-llama-3.2-3b-instruct",
+    "model_revision": "stub-v0",
+    "seed": 1602509065,
+    "do_sample": false,
+    "temperature": 0.4,
+    "top_p": 0.9,
+    "max_new_tokens": 220
+  },
+  "asset_hashes": {
+    "voice_exemplars_hash": "1f0417fa2af2",
+    "recipe_library_version": "1.0",
+    "chord_library_version": "1.0"
+  },
+  "prompt_rendered": "You are rewriting the meaning of a chord — but for THIS specific firing in\nTHIS specific video, not the generic textbook explanation.\n\nThe chord type's generic meaning is provided as reference. Your job: write a\nCONTEXTUALISED meaning that explains why this chord fired here — using the\nquote at this moment, the timestamp, the systems that crossed threshold, and\nthe video's title. The result should READ like a normal explanation of the\nchord, but be specific to this firing instead of generic.\n\nThis REPLACES the generic meaning on the page — the user only sees yours.\nSo it must (a) explain the chord type's mechanism in plain language, AND (b)\nground that explanation in this video's specific moment.\n\nFormat: 2-3 sentences, ≤ 70 words. Direct, specific, plain English. May use\nthe chord type's anatomical anchors sparingly if it helps explain (e.g.\n\"anterior insula\"), but DO NOT include percentages, r-values, citations, or\nyear stamps. No winner/loser framing. Use the video TITLE, not creator names.\n\nInputs:\n- Chord type: Learning Moment\n- Generic meaning (reference only — rewrite, don't quote): The cortex is encoding what will be remembered. The dorsal attention network and the left ventrolateral prefrontal cortex co-activate — sustained attention plus the subsequent-memory effect (Wagner 1998) firing together. When these two systems peak together, the brain is doing more than processing: it is committing the moment to long-term storage. The signature of content built to stick.\n- Firing timestamp (M:SS): 0:24\n- Video title: Veritasium\n- Quote at this moment: Imagine integrating along this curve...\n- Specific cortical values that triggered the chord: (not provided)\n- The systems that crossed threshold for this chord: attention, memory_encoding\n\nVoice exemplars for this chord type (anchors):\n  - The metaphor lands because attention and memory peak together — a moment built to be remembered tomorrow.\n  - The metaphor sticks because attention and memory peak together — exactly when the subsequent-memory effect predicts retention.\n  - The cortex is committing this image to long-term storage in real time.\n\nGenerate 2 candidate contextualised meanings. Select the one that most\nspecifically grounds the explanation in this firing. Output only the selected\nmeaning. No explanation, no quotes around the output.\n",
+  "candidates": [
+    "At 0:24 in Veritasium, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet — a moment that lands in the chest before the brain has decided whether to care."
+  ],
+  "selected": "At 0:24 in Veritasium, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet — a moment that lands in the chest before the brain has decided whether to care.",
+  "attempts": 1,
+  "validation": {
+    "passed": true,
+    "errors": []
+  },
+  "latency_ms": 46
+}

@@ -2,8 +2,8 @@
   "schema_version": "raw_slot.v1",
   "slot": "coupling_callouts.video_a.strongest",
   "comparison_id": "f8e6953993dda569",
-  "run_id": "7df3d6da-4ef9-424b-a83c-97339f1f4c2d",
-  "generated_at": "2026-05-04T04:24:43.042886+00:00",
+  "run_id": "63513683-2e88-487f-a6ec-4d77d17d4f07",
+  "generated_at": "2026-05-04T05:12:12.076382+00:00",
   "model": {
     "model_id": "stub-llama-3.2-3b-instruct",
     "model_revision": "stub-v0",

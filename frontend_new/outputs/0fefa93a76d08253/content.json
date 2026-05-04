@@ -1,15 +1,15 @@
 {
   "schema_version": "results_content.v1",
   "comparison_id": "0fefa93a76d08253",
-  "run_id": "f6cc3910-35df-41c9-ba16-abdb5625248b",
+  "run_id": "01a85ff8-9cd6-4238-aeb5-1716313310ae",
   "analysis_version": "tribev2.2026.05",
-  "generated_at": "2026-05-04T04:24:43.169343+00:00",
+  "generated_at": "2026-05-04T05:12:12.208034+00:00",
   "assets": {
     "recipe_library_version": "1.0",
     "chord_library_version": "1.0",
     "voice_exemplars_hash": "1f0417fa2af2",
-    "prompt_templates_hash": "9d5b8d3e132b",
-    "slot_defaults_hash": "1bf38d36293b"
+    "prompt_templates_hash": "eb99837b00af",
+    "slot_defaults_hash": "41c69c37a43a"
   },
   "videos": {
     "video_a": {
@@ -1197,7 +1197,7 @@
       "errors": []
     },
     "body": {
-      "value": "B reaches the gut. A builds the argument.",
+      "value": "These two videos pull the cortex apart in opposite directions. One arrives in the chest before deliberation, the other builds in the head as you follow the argument. The systems they recruit barely overlap \u2014 keep scrolling for the chord-by-chord breakdown.",
       "source": "llm",
       "status": "ok",
       "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/0fefa93a76d08253/raw/body.json",
@@ -1432,11 +1432,11 @@
         "chord_id": "story-integration",
         "timestamp_seconds": 28.0,
         "quote": "And then a strange pattern emerged...",
-        "context": {
-          "value": "The viewer's body responds at 0:28 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:28 in Vox, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/0fefa93a76d08253/raw/chord_moments[0].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/0fefa93a76d08253/raw/chord_moments[0].meaning.json",
           "errors": []
         }
       },
@@ -1446,11 +1446,11 @@
         "chord_id": "social-resonance",
         "timestamp_seconds": 22.0,
         "quote": "Carl Sagan wrote about this...",
-        "context": {
-          "value": "The viewer's body responds at 0:22 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:22 in Vox, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/0fefa93a76d08253/raw/chord_moments[1].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/0fefa93a76d08253/raw/chord_moments[1].meaning.json",
           "errors": []
         }
       },
@@ -1460,11 +1460,11 @@
         "chord_id": "visceral-hit",
         "timestamp_seconds": 4.0,
         "quote": "...what happened next was unbelievable",
-        "context": {
-          "value": "The viewer's body responds at 0:04 before deciding whether to care.",
+        "meaning": {
+          "value": "At 0:04 in Shock Channel, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet \u2014 a moment that lands in the chest before the brain has decided whether to care.",
           "source": "llm",
           "status": "ok",
-          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/0fefa93a76d08253/raw/chord_moments[2].context.json",
+          "raw_path": "/Users/ishita/Downloads/Work code/Brain Diff - all in/braindiff_v2/frontend_new/outputs/0fefa93a76d08253/raw/chord_moments[2].meaning.json",
           "errors": []
         }
       }

@@ -166,14 +166,14 @@
     },
     "chordMomentSlot": {
       "type": "object",
-      "required": ["index", "video", "chord_id", "timestamp_seconds", "context"],
+      "required": ["index", "video", "chord_id", "timestamp_seconds", "meaning"],
       "properties": {
         "index":              {"type": "integer"},
         "video":              {"type": "string", "enum": ["video_a", "video_b"]},
         "chord_id":           {"type": "string"},
         "timestamp_seconds":  {"type": "number"},
         "quote":              {"type": ["string", "null"]},
-        "context":            {"$ref": "#/$defs/scalarSlot"}
+        "meaning":            {"$ref": "#/$defs/scalarSlot"}
       }
     },
     "couplingCalloutPair": {

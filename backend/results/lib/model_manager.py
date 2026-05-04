@@ -94,21 +94,22 @@ class StubBackend:
     model_id = "stub-llama-3.2-3b-instruct"
     model_revision = "stub-v0"
 
-    # Slot-detection markers (substring match against the prompt). Order matters.
+    # Slot-detection markers — unique generation-line phrases that appear in
+    # exactly one slot prompt. Stops cross-matching across slots (where a body
+    # prompt mentions "hero headline" in its description).
     _STUB_FIXTURES: tuple[tuple[str, str], ...] = (
-        # Headline (Slot 1): 2 short sentences, ≤8 words each, no anatomical terms.
-        ("hero headline",                    "B reaches the gut. A builds the argument."),
-        # Body (Slot 2): 2-3 sentences, ≤55 words.
-        ("body paragraph below the hero",    "Two videos that look similar in the wild and feel different to watch. Each runs a distinct cognitive recipe — different systems pulled, different timing. Neither is winning. They're playing different games."),
-        # Frame 02 sub (Slot 7): 2-3 sentences, names recipes, defines chord.
+        # Headline: 2 short sentences, ≤10 words each.
+        ("Generate 5 candidate headlines",   "B reaches the gut. A builds the argument."),
+        # Body: 2-3 sentences, ≤60 words, supports headline + hooks the reader.
+        ("Generate 3 candidate body",        "These two videos pull the cortex apart in opposite directions. One arrives in the chest before deliberation, the other builds in the head as you follow the argument. The systems they recruit barely overlap — keep scrolling for the chord-by-chord breakdown."),
+        # Frame 02 sub.
         ("Frame 02",                          "Two recipes unfold across the runtime. A chord fires when two systems cross threshold at the same second and hold for at least one or two more. Watch where each video's chords land — the timing IS the strategy."),
-        # Recipe match rationale (Slot 3 — text only; deterministic match handled separately).
-        ("rationale for a Brain Diff recipe", "System means landed in the spec'd range and the characteristic chords appeared at the right times across the runtime."),
-        # Recipe description (Slot 4): 2 sentences, ≤35 words, ends with *Built for X.*
-        ("description paragraph for one video's recipe", "Gradual attention building over the runtime, deep language and memory engagement, climax in a Reasoning Beat at 0:32. *Built for retention.*"),
-        # Chord context (Slot 5): handled specially below — needs timestamp injection.
-        # Coupling callout (Slot 6): 2 sentences, ≤38 words.
-        ("coupling callout",                  "Memory and Language systems rose together across the runtime. The two systems fired as a team — the signature of content built to stick."),
+        # Recipe match rationale (deterministic match writes the rationale).
+        ("rationale for a Brain Diff recipe","System means landed in the spec'd range and the characteristic chords appeared at the right times across the runtime."),
+        # Recipe description: 2 sentences, ≤35 words, ends with *Built for X.*
+        ("Generate 2 candidate descriptions","Gradual attention building over the runtime, deep language and memory engagement, climax in a Reasoning Beat at 0:32. *Built for retention.*"),
+        # Coupling callout: 2 sentences, ≤38 words.
+        ("Generate 2 candidate callouts",    "Memory and Language systems rose together across the runtime. The two systems fired as a team — the signature of content built to stick."),
     )
 
     async def generate(self, req: GenerationRequest) -> GenerationResponse:
@@ -130,7 +131,20 @@ class StubBackend:
     def _fixture_for_prompt(self, prompt: str) -> str:
         import re
 
-        # Chord context: must reference the firing timestamp.
+        # Chord contextual meaning: 2-3 sentences ≤70 words, references the firing.
+        if "rewriting the meaning of a chord" in prompt.lower():
+            ts_m = re.search(r"Firing timestamp \(M:SS\): (\d+:\d{2})", prompt)
+            title_m = re.search(r"Video title: (.+)", prompt)
+            ts = ts_m.group(1) if ts_m else "0:08"
+            title = title_m.group(1).strip() if title_m else "this video"
+            return (
+                f"At {ts} in {title}, the body reacts before the mind catches up. "
+                f"The systems involved cross threshold together while cognitive control stays quiet — "
+                f"a moment that lands in the chest before the brain has decided whether to care."
+            )
+
+        # OLD chord_context marker (now removed — kept as fallback so legacy
+        # prompts don't crash if invoked).
         if "personalized sentence to append to a chord" in prompt.lower():
             ts_m = re.search(r"Firing timestamp \(M:SS\): (\d+:\d{2})", prompt)
             ts = ts_m.group(1) if ts_m else "0:08"
@@ -254,3 +268,184 @@ def set_model_manager(mgr: ModelManager) -> None:
     """Override the singleton. Phase 1 calls this with the real backend."""
     global _singleton
     _singleton = mgr
+
+
+# ────────────────────────────────────────────────────────────
+# LoadedTransformersBackend — real LLaMA via transformers.generate()
+# ────────────────────────────────────────────────────────────
+#
+# This is the backend used in production (Mode B). The worker imports it,
+# loads LLaMA-3.2-3B-Instruct from the SAME HuggingFace cache TRIBE uses
+# (./cache, populated when TRIBE first ran), and points ModelManager at it.
+#
+# Loading is lazy — first call materialises the model, subsequent calls reuse
+# it. Inside the runpod_worker's long-lived process, this means one cold load
+# per container lifecycle (~30s on first comparison, milliseconds thereafter).
+#
+# Memory: ~6GB VRAM for Llama-3.2-3B fp16. On a 24GB+ GPU this sits alongside
+# TRIBE comfortably. On smaller GPUs we should switch to the shared-instance
+# path (use TRIBE's already-loaded text encoder + add the LM head). That's a
+# follow-up — for now this is the simplest correct thing.
+
+class LoadedTransformersBackend:
+    """Real LLaMA backend. Uses transformers.AutoModelForCausalLM."""
+
+    model_id = "meta-llama/Llama-3.2-3B-Instruct"
+
+    def __init__(
+        self,
+        *,
+        model_name: str = "meta-llama/Llama-3.2-3B-Instruct",
+        cache_folder: str = "./cache",
+        device: str | None = None,
+        dtype: str = "float16",
+    ) -> None:
+        self.model_name = model_name
+        self.cache_folder = cache_folder
+        self._device = device
+        self._dtype_str = dtype
+        self._model = None
+        self._tokenizer = None
+        self.model_revision: str | None = None
+
+    def _ensure_loaded(self) -> None:
+        if self._model is not None:
+            return
+        log.info("LoadedTransformersBackend: loading %s (cache=%s)", self.model_name, self.cache_folder)
+        import torch  # type: ignore
+        from transformers import AutoModelForCausalLM, AutoTokenizer  # type: ignore
+
+        # Pick device.
+        if self._device is None:
+            if torch.cuda.is_available():
+                self._device = "cuda"
+            elif getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+                self._device = "mps"
+            else:
+                self._device = "cpu"
+
+        dtype = {
+            "float16": torch.float16,
+            "bfloat16": torch.bfloat16,
+            "float32": torch.float32,
+        }.get(self._dtype_str, torch.float16)
+
+        self._tokenizer = AutoTokenizer.from_pretrained(
+            self.model_name, cache_dir=self.cache_folder,
+        )
+        if self._tokenizer.pad_token_id is None:
+            self._tokenizer.pad_token_id = self._tokenizer.eos_token_id
+
+        self._model = AutoModelForCausalLM.from_pretrained(
+            self.model_name,
+            cache_dir=self.cache_folder,
+            torch_dtype=dtype,
+            device_map=self._device if self._device != "cpu" else None,
+        )
+        if self._device == "cpu":
+            self._model = self._model.to("cpu")
+        self._model.eval()
+        try:
+            self.model_revision = self._model.config._name_or_path  # noqa: SLF001
+        except Exception:
+            self.model_revision = None
+        log.info("LoadedTransformersBackend: ready on device=%s dtype=%s", self._device, self._dtype_str)
+
+    async def generate(self, req: GenerationRequest) -> GenerationResponse:
+        # Run the blocking transformers call in a thread so other slots can
+        # progress concurrently if the ModelManager Semaphore allows.
+        import asyncio
+        return await asyncio.get_event_loop().run_in_executor(None, self._generate_sync, req)
+
+    def _generate_sync(self, req: GenerationRequest) -> GenerationResponse:
+        self._ensure_loaded()
+        import torch  # type: ignore
+
+        start = time.perf_counter()
+        torch.manual_seed(req.seed)
+        # Llama-3.2-Instruct chat formatting: wrap as a single user turn.
+        messages = [{"role": "user", "content": req.prompt}]
+        chat_input = self._tokenizer.apply_chat_template(
+            messages, add_generation_prompt=True, return_tensors="pt",
+        )
+        if self._device != "cpu":
+            chat_input = chat_input.to(self._device)
+        input_len = chat_input.shape[1]
+
+        gen_kwargs = {
+            "max_new_tokens": req.max_new_tokens,
+            "do_sample": req.do_sample,
+            "pad_token_id": self._tokenizer.pad_token_id,
+        }
+        if req.do_sample:
+            gen_kwargs["temperature"] = req.temperature
+            gen_kwargs["top_p"] = req.top_p
+        with torch.inference_mode():
+            output_ids = self._model.generate(chat_input, **gen_kwargs)
+
+        new_tokens = output_ids[0, input_len:]
+        text = self._tokenizer.decode(new_tokens, skip_special_tokens=True).strip()
+        latency_ms = int((time.perf_counter() - start) * 1000)
+
+        try:
+            import transformers as _tf  # type: ignore
+            tf_ver = _tf.__version__
+        except Exception:
+            tf_ver = None
+        try:
+            torch_ver = torch.__version__
+        except Exception:
+            torch_ver = None
+
+        return GenerationResponse(
+            text=text,
+            latency_ms=latency_ms,
+            tokens_input=int(input_len),
+            tokens_output=int(new_tokens.shape[0]),
+            model_id=self.model_id,
+            model_revision=self.model_revision,
+            transformers_version=tf_ver,
+            torch_version=torch_ver,
+        )
+
+    def vram_peak_mb(self) -> float | None:
+        try:
+            import torch  # type: ignore
+            if self._device == "cuda":
+                return torch.cuda.max_memory_allocated() / (1024 * 1024)
+        except Exception:
+            pass
+        return None
+
+    def reset_vram_peak(self) -> None:
+        try:
+            import torch  # type: ignore
+            if self._device == "cuda":
+                torch.cuda.reset_peak_memory_stats()
+        except Exception:
+            pass
+
+
+def use_real_llama(
+    *,
+    cache_folder: str = "./cache",
+    device: str | None = None,
+    max_parallel: int = 1,
+    per_slot_timeout_seconds: float = 30.0,
+) -> ModelManager:
+    """Convenience: swap the singleton to a LoadedTransformersBackend.
+
+    Call this once at worker startup (or anywhere we want real LLaMA instead
+    of the stub). Returns the new manager.
+
+    max_parallel=1 by default — generation is GPU-bound; running >1 in
+    parallel only helps if VRAM has headroom for KV-cache duplication.
+    """
+    backend = LoadedTransformersBackend(cache_folder=cache_folder, device=device)
+    mgr = ModelManager(
+        backend,
+        max_parallel=max_parallel,
+        per_slot_timeout_seconds=per_slot_timeout_seconds,
+    )
+    set_model_manager(mgr)
+    return mgr

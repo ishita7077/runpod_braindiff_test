@@ -51,9 +51,9 @@ class HeadlineValidator(BaseValidator):
         sentences = [s.strip() for s in re.split(r"[.!?]+", text) if s.strip()]
         for i, sent in enumerate(sentences):
             wc = self.count_words(sent)
-            if wc > 8:
+            if wc > 10:
                 errors.append(ValidationError(
-                    code="SENTENCE_OVER_8_WORDS",
+                    code="SENTENCE_OVER_10_WORDS",
                     detail=f"sentence #{i+1} has {wc} words: {sent!r}",
                 ))
 

@@ -1,0 +1,32 @@
+{
+  "schema_version": "raw_slot.v1",
+  "slot": "chord_moments[3].meaning",
+  "comparison_id": "6b4cf129dfb0bd3a",
+  "run_id": "ac1236dd-43db-4b0b-9081-98e752ecb290",
+  "generated_at": "2026-05-04T05:12:11.998274+00:00",
+  "model": {
+    "model_id": "stub-llama-3.2-3b-instruct",
+    "model_revision": "stub-v0",
+    "seed": 3249119275,
+    "do_sample": false,
+    "temperature": 0.4,
+    "top_p": 0.9,
+    "max_new_tokens": 220
+  },
+  "asset_hashes": {
+    "voice_exemplars_hash": "1f0417fa2af2",
+    "recipe_library_version": "1.0",
+    "chord_library_version": "1.0"
+  },
+  "prompt_rendered": "You are rewriting the meaning of a chord — but for THIS specific firing in\nTHIS specific video, not the generic textbook explanation.\n\nThe chord type's generic meaning is provided as reference. Your job: write a\nCONTEXTUALISED meaning that explains why this chord fired here — using the\nquote at this moment, the timestamp, the systems that crossed threshold, and\nthe video's title. The result should READ like a normal explanation of the\nchord, but be specific to this firing instead of generic.\n\nThis REPLACES the generic meaning on the page — the user only sees yours.\nSo it must (a) explain the chord type's mechanism in plain language, AND (b)\nground that explanation in this video's specific moment.\n\nFormat: 2-3 sentences, ≤ 70 words. Direct, specific, plain English. May use\nthe chord type's anatomical anchors sparingly if it helps explain (e.g.\n\"anterior insula\"), but DO NOT include percentages, r-values, citations, or\nyear stamps. No winner/loser framing. Use the video TITLE, not creator names.\n\nInputs:\n- Chord type: Emotional Impact\n- Generic meaning (reference only — rewrite, don't quote): The medial prefrontal cortex (mPFC) and the anterior insula co-activate — self-relevance and visceral response firing simultaneously. The cortex is saying \"this matters to me, in my body.\" This is the exact pattern Falk and colleagues found in 2012 predicted population-level behavior change at r=0.87 in their anti-smoking ad study. The signature of content that doesn't just inform but lands.\n- Firing timestamp (M:SS): 0:47\n- Video title: MrBeast\n- Quote at this moment: You can change your life right now. This is your shot.\n- Specific cortical values that triggered the chord: (not provided)\n- The systems that crossed threshold for this chord: personal_resonance, gut_reaction\n\nVoice exemplars for this chord type (anchors):\n  - The promise is personal AND felt — the cortical pattern that drives behavior change.\n  - Self-relevance and visceral response fire together — the moment the content stops being information and becomes meaning.\n  - The cortex is saying 'this matters to me, in my body' — the signature of content that doesn't just inform but lands.\n\nGenerate 2 candidate contextualised meanings. Select the one that most\nspecifically grounds the explanation in this firing. Output only the selected\nmeaning. No explanation, no quotes around the output.\n",
+  "candidates": [
+    "At 0:47 in MrBeast, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet — a moment that lands in the chest before the brain has decided whether to care."
+  ],
+  "selected": "At 0:47 in MrBeast, the body reacts before the mind catches up. The systems involved cross threshold together while cognitive control stays quiet — a moment that lands in the chest before the brain has decided whether to care.",
+  "attempts": 1,
+  "validation": {
+    "passed": true,
+    "errors": []
+  },
+  "latency_ms": 51
+}
