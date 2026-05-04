@@ -41,9 +41,10 @@ class GenerationRequest:
     """One model call. Slot runner builds these."""
     prompt: str
     max_new_tokens: int
-    temperature: float = 0.4
-    top_p: float = 0.9
-    do_sample: bool = False  # default False = deterministic; sampling is opt-in
+    temperature: float = 1.0   # Gemma 3: low temp increases format failures; 1.0 is recommended
+    top_p: float = 0.95
+    top_k: int = 64            # Gemma 3 official recommended sampling config
+    do_sample: bool = True     # Gemma 3: greedy decoding triggers looping/failures
     seed: int = 0
     stop: list[str] = field(default_factory=list)
 
@@ -288,17 +289,17 @@ def set_model_manager(mgr: ModelManager) -> None:
 # follow-up — for now this is the simplest correct thing.
 
 class LoadedTransformersBackend:
-    """Real LLaMA backend. Uses transformers.AutoModelForCausalLM."""
+    """Real Gemma backend. Uses transformers.AutoModelForCausalLM."""
 
-    model_id = "meta-llama/Llama-3.2-3B-Instruct"
+    model_id = "google/gemma-3-4b-it"
 
     def __init__(
         self,
         *,
-        model_name: str = "meta-llama/Llama-3.2-3B-Instruct",
+        model_name: str = "google/gemma-3-4b-it",
         cache_folder: str | None = None,    # None = use HF default (HF_HOME / ~/.cache/huggingface)
         device: str | None = None,
-        dtype: str = "float16",
+        dtype: str = "bfloat16",            # Gemma 3: float16 overflows and produces empty output
     ) -> None:
         self.model_name = model_name
         self.cache_folder = cache_folder
@@ -400,6 +401,7 @@ class LoadedTransformersBackend:
         if req.do_sample:
             gen_kwargs["temperature"] = req.temperature
             gen_kwargs["top_p"] = req.top_p
+            gen_kwargs["top_k"] = req.top_k
         with torch.inference_mode():
             output_ids = self._model.generate(input_ids, **gen_kwargs)
 
@@ -455,12 +457,14 @@ def use_real_llama(
 ) -> ModelManager:
     """Convenience: swap the singleton to a LoadedTransformersBackend.
 
-    Call this once at worker startup (or anywhere we want real LLaMA instead
-    of the stub). Returns the new manager.
-
-    max_parallel=1 by default — generation is GPU-bound; running >1 in
-    parallel only helps if VRAM has headroom for KV-cache duplication.
+    Idempotent: if the singleton is already a real backend, returns it
+    without re-creating it. This makes it safe to call from both the
+    background warmup thread and generate_content_for_worker without
+    triggering a second model download/load.
     """
+    current = get_model_manager()
+    if isinstance(current.backend, LoadedTransformersBackend):
+        return current
     backend = LoadedTransformersBackend(cache_folder=cache_folder, device=device)
     mgr = ModelManager(
         backend,

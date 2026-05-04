@@ -1,9 +1,13 @@
+import logging
 import os
 import tempfile
+import threading
 import time
 import uuid
 from typing import Any
 from urllib.parse import unquote, urlparse
+
+log = logging.getLogger("braindiff.handler")
 
 import httpx
 import numpy as np
@@ -77,6 +81,21 @@ def _warm_start() -> None:
     global masks
     masks = build_vertex_masks(atlas_dir=ATLAS_DIR)
     tribe_service.load()
+
+
+def _warm_llm_background() -> None:
+    """Load Gemma into GPU memory in a background thread while TRIBE warms up.
+
+    By the time TRIBE finishes loading (several minutes on cold start), Gemma
+    is already in memory. generate_content_for_worker sees a ready model and
+    adds zero extra wait for the user.
+    """
+    try:
+        from backend.results.lib.model_manager import use_real_llama
+        use_real_llama(per_slot_timeout_seconds=600.0)
+        log.info("LLM warmup: Gemma loaded and ready")
+    except Exception as exc:
+        log.warning("LLM warmup failed (non-fatal, will retry on first job): %s: %s", type(exc).__name__, exc)
 
 
 def _download_to_temp(url: str, blob_token: str = "") -> str:
@@ -675,5 +694,9 @@ def handler(event: dict[str, Any]) -> dict[str, Any]:
 
 
 if os.getenv("BRAIN_DIFF_RUNPOD_SKIP_WARMUP", "0") != "1":
+    # Start Gemma download/load in background while TRIBE loads on the main thread.
+    # Both happen simultaneously — Gemma is ready by the time the first job arrives.
+    _llm_thread = threading.Thread(target=_warm_llm_background, daemon=True, name="llm-warmup")
+    _llm_thread.start()
     _warm_start()
 runpod.serverless.start({"handler": handler})
