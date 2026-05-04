@@ -290,12 +290,12 @@ def set_model_manager(mgr: ModelManager) -> None:
 class LoadedTransformersBackend:
     """Real LLaMA backend. Uses transformers.AutoModelForCausalLM."""
 
-    model_id = "meta-llama/Llama-3.2-3B-Instruct"
+    model_id = "meta-llama/Llama-3.2-3B"
 
     def __init__(
         self,
         *,
-        model_name: str = "meta-llama/Llama-3.2-3B-Instruct",
+        model_name: str = "meta-llama/Llama-3.2-3B",
         cache_folder: str | None = None,    # None = use HF default (HF_HOME / ~/.cache/huggingface)
         device: str | None = None,
         dtype: str = "float16",
