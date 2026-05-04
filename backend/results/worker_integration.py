@@ -393,7 +393,7 @@ def generate_content_for_worker(
     # Switch ModelManager to real LLaMA unless stubbed.
     if not use_stub:
         try:
-            use_real_llama()
+            use_real_llama(per_slot_timeout_seconds=600.0)
         except Exception as exc:
             audit.emit("model_manager_failed", error_code="LLAMA_LOAD_FAILED",
                        error_detail=f"{type(exc).__name__}: {exc}")
