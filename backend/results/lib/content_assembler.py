@@ -366,11 +366,11 @@ def assemble_content(
 
 
 def _video_meta(v: dict[str, Any]) -> dict[str, Any]:
-    """Strip a normalised VideoSignature down to schema-conforming videoMeta.
+    """Project the normalised video signature into the shape the frontend reads.
 
-    The full signature (system_means, peaks, chord_events, couplings) is kept
-    in inputs.json for the frontend to pull when it needs charts. content.json
-    only carries display metadata.
+    Includes everything the v7-faithful frontend needs to render the timeline
+    scrubber, network SVG, dimension chart, spectrogram, and brain — all
+    keyed on the same canonical system order.
     """
     return {
         "id":               v["id"],
@@ -378,6 +378,16 @@ def _video_meta(v: dict[str, Any]) -> dict[str, Any]:
         "creator":          v.get("creator"),
         "title":            v.get("title"),
         "duration_seconds": v.get("duration_seconds"),
+        "poster_path":      v.get("poster_path"),
+        "system_means":     v.get("system_means", {}),
+        "system_peaks":     v.get("system_peaks", {}),
+        "chord_events":     v.get("chord_events", []),
+        "integration_score": v.get("integration_score"),
+        "hub_node":         v.get("hub_node"),
+        "timeseries":       v.get("timeseries", {}),
+        "coupling_matrix":  v.get("coupling_matrix", []),
+        "couplings":        v.get("couplings", []),
+        "transcript":       v.get("transcript", []),
     }
 
 

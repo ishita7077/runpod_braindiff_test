@@ -2,8 +2,8 @@
   "schema_version": "raw_slot.v1",
   "slot": "frame2_sub",
   "comparison_id": "0fefa93a76d08253",
-  "run_id": "8655f395-a111-4aa8-b5c8-eec543119091",
-  "generated_at": "2026-05-04T03:42:02.979720+00:00",
+  "run_id": "f6cc3910-35df-41c9-ba16-abdb5625248b",
+  "generated_at": "2026-05-04T04:24:43.142354+00:00",
   "model": {
     "model_id": "stub-llama-3.2-3b-instruct",
     "model_revision": "stub-v0",
@@ -14,11 +14,11 @@
     "max_new_tokens": 130
   },
   "asset_hashes": {
-    "voice_exemplars_hash": "0d3b1a744d6d",
+    "voice_exemplars_hash": "1f0417fa2af2",
     "recipe_library_version": "1.0",
     "chord_library_version": "1.0"
   },
-  "prompt_rendered": "You are writing the sub-paragraph below the Frame 02 heading on a Brain Diff\nresults page.\n\nFrame 02 introduces the chord progression — the sequence of cortical events\neach video fires across its runtime. The sub-paragraph's job: name both\nrecipes, explain what a chord is in plain language, set up the timeline below.\n\nFormat: 2-3 sentences, ≤ 50 words. Must reference both recipe names.\nMust define what \"chord\" means in one phrase. No anatomical jargon.\nNo percentages. No citations. No winner/loser framing.\n\nInputs:\n- Recipe A name: Cinematic Build\n- Recipe B name: Empty Calories\n- Total chords detected (combined): 3\n- Runtime: 60s\n\nVoice exemplars:\n  1. Cleo's Slow Build → Deep Encode and MrBeast's Visceral Hook → Low-Effort Hold are built from the same seven cortical systems — but coupled differently and pulled at different times. Below: each video's chord progression, beat by beat.\n  2. Two recipes unfold across the runtime. A chord fires when two cortical systems cross threshold at the same second and hold for at least one or two more. Watch where each video's chords land — the timing IS the strategy.\n  3. Slow Build → Deep Encode versus Visceral Hook → Low-Effort Hold. Same ingredients, different recipes. The chord progression below shows when each play makes its moves.\n  4. Two videos, sixty seconds, twelve chord events between them. Below: when each chord fires, what cortical systems crossed threshold together, and what the firing means for the recipe each video is running.\n\nGenerate 2 candidates. Select the one that most clearly distinguishes the\ntwo recipes. Output only the selected paragraph. No explanation.\n",
+  "prompt_rendered": "You are writing the sub-paragraph below the Frame 02 heading on a Brain Diff\nresults page.\n\nFrame 02 introduces the chord progression — the sequence of cortical events\neach video fires across its runtime. The sub-paragraph's job: name both\nrecipes, explain what a chord is in plain language, set up the timeline below.\n\nFormat: 2-3 sentences, ≤ 50 words. Must reference both recipe names.\nMust define what \"chord\" means in one phrase. No anatomical jargon.\nNo percentages. No citations. No winner/loser framing.\n\nInputs:\n- Recipe A name: Cinematic Build\n- Recipe B name: Empty Calories\n- Total chords detected (combined): 3\n- Runtime: 60s\n\nVoice exemplars:\n  1. A chord fires when two or three cortical systems cross threshold at the same second and hold for at least two seconds. Each video unfolds as a sequence of these. Click any pin below to see the moment of impact, slowed down — and what the other video was doing at the very same second.\n  2. Cleo's Slow Build → Deep Encode and MrBeast's Visceral Hook → Low-Effort Hold are built from the same seven cortical systems — but coupled differently and pulled at different times. Below: each video's chord progression, beat by beat.\n  3. Two recipes unfold across the runtime. A chord fires when two systems cross threshold at the same second and hold for at least one or two more. Watch where each video's chords land — the timing IS the strategy.\n  4. Slow Build → Deep Encode versus Visceral Hook → Low-Effort Hold. Same ingredients, different recipes. The chord progression below shows when each play makes its moves.\n\nGenerate 2 candidates. Select the one that most clearly distinguishes the\ntwo recipes. Output only the selected paragraph. No explanation.\n",
   "candidates": [
     "Cinematic Build and Empty Calories unfold across the runtime. A chord fires when two systems cross threshold at the same second and hold."
   ],

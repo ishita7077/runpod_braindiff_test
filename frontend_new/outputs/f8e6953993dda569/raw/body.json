@@ -2,8 +2,8 @@
   "schema_version": "raw_slot.v1",
   "slot": "body",
   "comparison_id": "f8e6953993dda569",
-  "run_id": "af31f6d6-9f7e-4a73-a3db-5b30c1dac80c",
-  "generated_at": "2026-05-04T03:42:02.863424+00:00",
+  "run_id": "7df3d6da-4ef9-424b-a83c-97339f1f4c2d",
+  "generated_at": "2026-05-04T04:24:43.023630+00:00",
   "model": {
     "model_id": "stub-llama-3.2-3b-instruct",
     "model_revision": "stub-v0",
@@ -14,7 +14,7 @@
     "max_new_tokens": 160
   },
   "asset_hashes": {
-    "voice_exemplars_hash": "0d3b1a744d6d",
+    "voice_exemplars_hash": "1f0417fa2af2",
     "recipe_library_version": "1.0",
     "chord_library_version": "1.0"
   },

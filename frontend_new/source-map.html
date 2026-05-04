@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BrainDiff — Results Page Source Map</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #08080F;
+    --bg-2: #111118;
+    --bg-3: #1a1a26;
+    --ink: #e8e4dc;
+    --ink-2: #9b9890;
+    --line: #2a2a38;
+    --accent: #e25b43;
+    --good: #7FB3C6;
+    --a-col: #7FB3C6;
+    --b-col: #e25b43;
+    --font: system-ui, -apple-system, sans-serif;
+    --mono: "JetBrains Mono", monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 1.5;
+    padding-bottom: 80px;
+  }
+
+  /* ── LEGEND BAR ── */
+  .legend-bar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 1000;
+    background: #0c0c16;
+    border-bottom: 1px solid var(--line);
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+  .legend-bar .legend-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-right: 8px;
+  }
+  .legend-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .legend-dot .dot {
+    width: 10px; height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .src-hard    { background: #555568; }
+  .src-worker  { background: #2a6fa8; }
+  .src-client  { background: #3a8a4a; }
+  .src-fallback{ background: #8a5a2a; }
+  .src-mixed   { background: #6a3a8a; }
+
+  /* ── TOOLTIP ── */
+  #tt {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    max-width: 360px;
+    background: #1a1a2e;
+    border: 1px solid #3a3a5a;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 12px;
+    line-height: 1.55;
+    box-shadow: 0 8px 32px rgba(0,0,0,.7);
+    display: none;
+  }
+  #tt .tt-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  #tt .tt-dot {
+    width: 8px; height: 8px;
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+  #tt .tt-what {
+    color: var(--ink);
+    margin-bottom: 4px;
+    font-weight: 600;
+  }
+  #tt .tt-source {
+    color: #7fb3c6;
+    font-family: var(--mono);
+    font-size: 10px;
+    word-break: break-all;
+    margin-bottom: 3px;
+  }
+  #tt .tt-path {
+    color: var(--ink-2);
+    font-family: var(--mono);
+    font-size: 10px;
+    word-break: break-all;
+  }
+  #tt .tt-note {
+    color: #c8a87a;
+    font-size: 11px;
+    margin-top: 5px;
+    padding-top: 5px;
+    border-top: 1px solid #2a2a3e;
+  }
+
+  /* ── ANNOTATED ELEMENTS ── */
+  [data-src] {
+    cursor: pointer;
+    position: relative;
+    transition: outline .1s;
+  }
+  [data-src]:hover {
+    outline: 1.5px dashed rgba(127,179,198,.55);
+    outline-offset: 2px;
+  }
+  [data-src-type="hard"]:hover    { outline-color: rgba(85,85,104,.9); }
+  [data-src-type="worker"]:hover  { outline-color: rgba(42,111,168,.9); }
+  [data-src-type="client"]:hover  { outline-color: rgba(58,138,74,.9); }
+  [data-src-type="fallback"]:hover{ outline-color: rgba(138,90,42,.9); }
+  [data-src-type="mixed"]:hover   { outline-color: rgba(106,58,138,.9); }
+
+  /* tiny badge so you can see the type at a glance */
+  [data-src]::after {
+    content: "";
+    position: absolute;
+    top: 2px; right: 2px;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: .6;
+  }
+  [data-src-type="hard"]::after    { background: #555568; }
+  [data-src-type="worker"]::after  { background: #2a6fa8; }
+  [data-src-type="client"]::after  { background: #3a8a4a; }
+  [data-src-type="fallback"]::after{ background: #8a5a2a; }
+  [data-src-type="mixed"]::after   { background: #6a3a8a; }
+
+  /* ── PAGE CHROME ── */
+  .page-wrap { padding-top: 44px; }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-2);
+  }
+  .brand {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--ink);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .brand em { color: var(--accent); font-style: normal; }
+  .brand-logo-placeholder {
+    width: 28px; height: 28px;
+    background: var(--accent);
+    border-radius: 4px;
+    display: inline-block;
+    opacity: .7;
+  }
+  .topbar-meta {
+    display: flex; gap: 8px; flex: 1;
+  }
+  .stat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 11px;
+    color: var(--ink-2);
+  }
+  .stat-pill strong { color: var(--ink); }
+  .topbar-actions { display: flex; gap: 8px; }
+  .top-btn {
+    padding: 5px 14px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    text-decoration: none;
+  }
+
+  /* ── HEADLINE ── */
+  .headline-section {
+    padding: 40px 24px 32px;
+    max-width: 820px;
+  }
+  .eyebrow {
+    font-size: 11px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-bottom: 8px;
+  }
+  .headline {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    line-height: 1.2;
+  }
+  .headline-dek {
+    font-size: 15px;
+    color: var(--ink-2);
+    margin-bottom: 20px;
+  }
+  .input-meta-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .input-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 8px 14px;
+  }
+  .input-card-badge {
+    font-weight: 800;
+    font-size: 12px;
+    padding: 2px 7px;
+    border-radius: 3px;
+  }
+  .input-card.a .input-card-badge { background: rgba(127,179,198,.2); color: var(--a-col); }
+  .input-card.b .input-card-badge { background: rgba(226,91,67,.2); color: var(--b-col); }
+  .input-card-name { font-weight: 600; font-size: 13px; }
+  .input-card-stats { color: var(--ink-2); font-size: 11px; display: block; }
+  .input-card-vs { color: var(--ink-2); font-size: 13px; }
+
+  /* ── SECTIONS ── */
+  .section {
+    padding: 40px 24px;
+    border-top: 1px solid var(--line);
+    max-width: 1100px;
+  }
+  .section-header {
+    margin-bottom: 24px;
+  }
+  .section-num {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+  }
+  .section-num strong { color: var(--ink); }
+  .section-title {
+    font-size: 22px;
+    font-weight: 700;
+  }
+  .section-title em { color: var(--accent); font-style: normal; }
+
+  /* ── BRAIN SECTION ── */
+  .brain-stage {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 24px;
+  }
+  .brain-canvas-wrap {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    height: 260px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-2);
+    font-size: 12px;
+  }
+  .brain-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .brain-view-btns { display: flex; gap: 4px; }
+  .brain-view-btn {
+    padding: 4px 10px;
+    background: transparent;
+    border: 1px solid var(--line);
+    color: var(--ink-2);
+    border-radius: 3px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .brain-view-btn.active { background: var(--bg-3); color: var(--ink); }
+  .brain-legend { display: flex; gap: 10px; font-size: 11px; color: var(--ink-2); }
+  .legend-dot-small {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    vertical-align: middle;
+    margin-right: 3px;
+  }
+  .ldot-a { background: var(--a-col); }
+  .ldot-b { background: var(--b-col); }
+  .ghost-btn {
+    font-size: 11px;
+    color: var(--ink-2);
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+  .brain-caption { font-size: 11px; color: var(--ink-2); margin-top: 6px; }
+
+  .decision-inline {
+    padding: 18px;
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .micro {
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+  }
+  .decision-inline h3 {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    line-height: 1.3;
+  }
+  .recommendations { list-style: none; }
+  .recommendations li {
+    font-size: 12px;
+    color: var(--ink-2);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--line);
+    line-height: 1.4;
+  }
+  .recommendations li:last-child { border-bottom: none; }
+  .recommendations strong { color: var(--ink); }
+
+  /* ── SAMPLE CARDS ── */
+  .sample-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+  .sample-card {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .sample-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .sample-badge {
+    font-weight: 800;
+    font-size: 12px;
+    padding: 3px 8px;
+    border-radius: 3px;
+  }
+  .badge-a { background: rgba(127,179,198,.2); color: var(--a-col); }
+  .badge-b { background: rgba(226,91,67,.2); color: var(--b-col); }
+  .sample-name { font-weight: 600; font-size: 13px; }
+  .sample-meta { font-size: 11px; color: var(--ink-2); }
+  .keyframe-strip {
+    display: flex;
+    gap: 2px;
+    padding: 8px;
+    background: var(--bg);
+    overflow-x: auto;
+  }
+  .keyframe {
+    flex-shrink: 0;
+    width: 72px;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    overflow: hidden;
+    cursor: pointer;
+    font-size: 10px;
+    color: var(--ink-2);
+    padding: 2px;
+    text-align: center;
+  }
+  .keyframe-img {
+    width: 68px;
+    height: 40px;
+    background: var(--line);
+    border-radius: 2px;
+    margin-bottom: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: var(--ink-2);
+  }
+  .sample-fallback {
+    padding: 14px;
+  }
+  .sample-fallback-note { font-size: 11px; color: var(--ink-2); margin-bottom: 8px; }
+  .sample-fallback-list { list-style: none; }
+  .sample-fallback-list li {
+    font-size: 12px;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sample-fallback-vals { color: var(--ink-2); font-size: 11px; margin-left: 6px; font-family: var(--mono); }
+  .transcript-details {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+  .transcript-details summary { cursor: pointer; color: var(--ink-2); }
+
+  /* ── TIMELINE ── */
+  .timeline-console {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .timeline-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+  .timeline-sub { font-size: 12px; color: var(--ink-2); }
+  .play-btn {
+    padding: 5px 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .scrubber { width: 100%; margin-bottom: 6px; }
+  .time-readout { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-2); font-family: var(--mono); margin-bottom: 12px; }
+  .tracks { display: flex; flex-direction: column; gap: 2px; }
+  .track-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 8px;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+  }
+  .track-label { flex: 0 0 160px; }
+  .track-label strong { font-size: 12px; display: block; }
+  .track-label span { font-size: 10px; color: var(--ink-2); }
+  .track-bars { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .track-line { display: block; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
+  .track-line.a span { display: block; height: 100%; background: var(--a-col); }
+  .track-line.b span { display: block; height: 100%; background: var(--b-col); }
+  .track-score { flex: 0 0 56px; text-align: right; font-family: var(--mono); }
+  .track-score strong { font-size: 12px; }
+  .track-score span { font-size: 10px; color: var(--ink-2); display: block; }
+
+  /* ── SPECTROGRAM placeholder ── */
+  .spectro-placeholder {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .spectro-head { padding: 16px; border-bottom: 1px solid var(--line); }
+  .spectro-head h2 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .spectro-head p { font-size: 12px; color: var(--ink-2); }
+  .spectro-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 0;
+  }
+  .spectro-labels { padding: 8px 0; }
+  .spectro-label-row {
+    height: 26px;
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: 10px;
+    color: var(--ink-2);
+    border-bottom: 1px solid var(--line);
+  }
+  .spectro-cells-col { padding: 8px 0; }
+  .spectro-cell-row {
+    height: 26px;
+    display: flex;
+    gap: 1px;
+    border-bottom: 1px solid var(--line);
+  }
+  .spectro-cell {
+    flex: 1;
+    border-radius: 0;
+  }
+  .spectro-side-label {
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-3);
+  }
+  .badge {
+    display: inline-block;
+    padding: 1px 5px;
+    border-radius: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    margin-right: 4px;
+  }
+  .badge.a { background: rgba(127,179,198,.2); color: var(--a-col); }
+  .badge.b { background: rgba(226,91,67,.2); color: var(--b-col); }
+
+  /* ── PATTERNS ── */
+  .patterns-head { margin-bottom: 12px; }
+  .patterns-head h3 { font-size: 16px; font-weight: 700; margin-bottom: 4px; }
+  .patterns-head p { font-size: 12px; color: var(--ink-2); }
+  .patterns-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .patterns-side-head {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-2);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .pattern-strip {
+    height: 28px;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+  }
+  .pattern-block-demo {
+    position: absolute;
+    top: 4px; bottom: 4px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255,255,255,.8);
+  }
+
+  /* ── CHORD SECTION ── */
+  .chord-placeholder {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+  }
+  .chord-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .chord-side-head {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-2);
+    margin-bottom: 8px;
+  }
+  .chord-strip {
+    height: 36px;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .chord-block-demo {
+    position: absolute;
+    top: 3px; bottom: 3px;
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    padding: 0 5px;
+    font-size: 9px;
+    font-weight: 700;
+    color: rgba(255,255,255,.85);
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .chord-summary {
+    font-size: 11px;
+    color: var(--ink-2);
+    margin-top: 6px;
+    font-style: italic;
+  }
+  .chord-cards { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chord-card {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 11px;
+  }
+  .chord-card-name { font-weight: 700; font-size: 12px; margin-bottom: 2px; }
+  .chord-card-rule { color: var(--ink-2); font-size: 10px; font-family: var(--mono); }
+
+  /* ── MOMENTS ── */
+  .lower-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .panel {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px;
+  }
+  .moment-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+  .moment-card {
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .moment-thumb-placeholder {
+    width: 100%;
+    height: 70px;
+    background: var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--ink-2);
+  }
+  .moment-meta { padding: 6px 8px 0; font-size: 10px; color: var(--ink-2); display: flex; justify-content: space-between; }
+  .moment-card h3 { padding: 2px 8px; font-size: 11px; font-weight: 700; }
+  .moment-card p { padding: 2px 8px 8px; font-size: 10px; color: var(--ink-2); }
+
+  .scene-map { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .scene-pair { display: flex; gap: 6px; }
+  .scene-box {
+    flex: 1;
+    background: var(--bg-3);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .scene-box-img {
+    width: 100%; height: 60px;
+    background: var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--ink-2);
+  }
+  .scene-time {
+    padding: 3px 6px;
+    font-size: 10px;
+    color: var(--ink-2);
+    font-family: var(--mono);
+  }
+
+  /* ── CONNECTIVITY / SKELETON placeholders ── */
+  .blank-panel {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+    color: var(--ink-2);
+    font-size: 12px;
+    text-align: center;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .blank-panel strong { color: var(--ink); font-size: 13px; }
+
+  /* ── EMPTY STATES ── */
+  .empty-strip {
+    padding: 14px;
+    color: var(--ink-2);
+    font-size: 11px;
+    font-style: italic;
+    text-align: center;
+  }
+
+  /* ── COMPARISON CHART placeholder ── */
+  .cmp-placeholder {
+    background: var(--bg-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .cmp-legend { display: flex; gap: 16px; font-size: 11px; }
+  .cmp-chart-area {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+    padding: 10px 0;
+  }
+  .cmp-line-a, .cmp-line-b {
+    flex: 1;
+    border-radius: 2px;
+  }
+  .cmp-line-a { background: var(--a-col); opacity: .4; }
+  .cmp-line-b { background: var(--b-col); opacity: .4; }
+</style>
+</head>
+<body>
+
+<!-- ── LEGEND ── -->
+<div class="legend-bar">
+  <span class="legend-title">Hover anything to see its source</span>
+  <span class="legend-dot"><span class="dot src-hard"></span>Hardcoded in HTML/JS</span>
+  <span class="legend-dot"><span class="dot src-worker"></span>From RunPod worker JSON</span>
+  <span class="legend-dot"><span class="dot src-client"></span>Classified client-side from timeseries</span>
+  <span class="legend-dot"><span class="dot src-fallback"></span>Hardcoded fallback when worker returns nothing</span>
+  <span class="legend-dot"><span class="dot src-mixed"></span>Mixed: template + worker value</span>
+</div>
+
+<!-- ── TOOLTIP ── -->
+<div id="tt"></div>
+
+<div class="page-wrap">
+
+<!-- ── TOPBAR ── -->
+<header class="topbar">
+  <a class="brand"
+     data-src="Hard" data-src-type="hard"
+     data-what="Brand lockup"
+     data-source-detail="Hardcoded HTML in video-results.html:24-28. The word 'Brain' is plain text; 'Diff' is wrapped in &lt;em&gt;. Logo img tag points to ./assets/braindiff-logo.png. Always static."
+     >
+    <span class="brand-logo-placeholder"></span>
+    Brain<em>Diff</em>
+  </a>
+
+  <div class="topbar-meta">
+    <span class="stat-pill"
+      data-src="renderHeroStats" data-src-type="hard"
+      data-what="Mode pill"
+      data-source-detail="renderHeroStats() line 301. Label 'Mode' is hardcoded. Value 'video' is hardcoded (the kind is set at page load, never from data)."
+      ><span>Mode</span><strong>video</strong></span>
+
+    <span class="stat-pill"
+      data-src="renderHeroStats" data-src-type="mixed"
+      data-what="Job pill"
+      data-source-detail="renderHeroStats() line 304. Label 'Job' is hardcoded. Value = first 8 chars of data.job_id ← job.job_id from RunPod response. In demo mode shows literal string 'demo'."
+      data-note="short(data.job_id) = job.job_id.slice(0,8)"
+      ><span>Job</span><strong>abc12345</strong></span>
+
+    <span class="stat-pill"
+      data-src="renderHeroStats" data-src-type="mixed"
+      data-what="A duration pill"
+      data-source-detail="renderHeroStats() line 305. Label 'A' is hardcoded. Value = fmtTime(data.samples.a.duration) ← Number(meta.media_duration_a_s) from worker. Only shown when duration > 0."
+      data-note="fmtTime(result.meta.media_duration_a_s)"
+      ><span>A</span><strong>0:30</strong></span>
+
+    <span class="stat-pill"
+      data-src="renderHeroStats" data-src-type="mixed"
+      data-what="B duration pill"
+      data-source-detail="renderHeroStats() line 306. Same as A pill but for media_duration_b_s."
+      ><span>B</span><strong>0:28</strong></span>
+  </div>
+
+  <nav class="topbar-actions">
+    <a class="top-btn"
+      data-src="HTML" data-src-type="hard"
+      data-what="New comparison link"
+      data-source-detail="Hardcoded in video-results.html:32. href='./launch'. Always static."
+      >New comparison</a>
+
+    <button class="top-btn"
+      data-src="wireShare()" data-src-type="hard"
+      data-what="Share button"
+      data-source-detail="wireShare() line 684. Text 'Share' is hardcoded. On click: navigator.clipboard.writeText(location.href). Text flips to 'Copied' for 1200ms then back. No data-driven content."
+      >Share</button>
+  </nav>
+</header>
+
+<!-- ── HEADLINE SECTION ── -->
+<div class="headline-section">
+  <p class="eyebrow"
+    data-src="HTML" data-src-type="hard"
+    data-what="Eyebrow label"
+    data-source-detail="Hardcoded string in video-results.html:37. Always reads 'Video comparison'. Never changes."
+    >Video comparison</p>
+
+  <h1 class="headline"
+    data-src="adaptResult / meta.headline" data-src-type="worker"
+    data-what="Page headline (H1)"
+    data-source-detail="Set at render() line 177: $('#pageHeadline').textContent = data.headline. data.headline ← adaptResult() line 140: result.meta.headline. If worker returns no headline, fallback = 'Video comparison complete.' (hardcoded)."
+    data-note="result.meta.headline || 'Video comparison complete.'"
+    >Cut A lands harder on the visceral cortex.</h1>
+
+  <p class="headline-dek"
+    data-src="insightSubhead() / result.insights.headline" data-src-type="mixed"
+    data-what="Dek / subheadline paragraph"
+    data-source-detail="Set at render() line 178: $('#pageDek').textContent = data.sub. data.sub ← insightSubhead(result) line 171 = result.insights.headline. Fallback: 'Two cuts, one cortex. Scrub the timeline to inspect where the response shifts.' (hardcoded in insightSubhead())."
+    data-note="result.insights.headline || hardcoded fallback sentence"
+    >Two cuts, one cortex. Scrub the timeline to inspect where the response shifts.</p>
+
+  <div class="input-meta-row">
+    <div class="input-card a">
+      <span class="input-card-badge">A</span>
+      <div class="input-card-info">
+        <span class="input-card-name"
+          data-src="cleanMediaName(meta.media_name_a)" data-src-type="worker"
+          data-what="Sample A filename"
+          data-source-detail="Set at render() line 183. data.samples.a.name ← cleanMediaName(meta.media_name_a || meta.media_filename_a, 'Sample A'). cleanMediaName() strips: https:// URLs to last path segment, 'uploads/' prefix, slot timestamp prefix [ab]-NNNNNN-, '_medium-' prefix, Vercel Blob random suffix -XYZabc.ext. Truncates at 38 chars. Fallback: 'Sample A'."
+          data-note="cleanMediaName(meta.media_name_a || meta.media_filename_a)"
+          >my-ad-cut-a.mp4</span>
+        <span class="input-card-stats"
+          data-src="fmtTime(meta.media_duration_a_s)" data-src-type="mixed"
+          data-what="Sample A duration"
+          data-source-detail="Set at render() line 187. fmtTime(data.samples.a.duration) ← Number(meta.media_duration_a_s). Shows '—' when duration is 0 or missing."
+          >0:30</span>
+      </div>
+    </div>
+    <div class="input-card-vs">vs</div>
+    <div class="input-card b">
+      <span class="input-card-badge">B</span>
+      <div class="input-card-info">
+        <span class="input-card-name"
+          data-src="cleanMediaName(meta.media_name_b)" data-src-type="worker"
+          data-what="Sample B filename"
+          data-source-detail="Same as A: cleanMediaName(meta.media_name_b || meta.media_filename_b, 'Sample B')."
+          >my-ad-cut-b.mp4</span>
+        <span class="input-card-stats"
+          data-src="fmtTime(meta.media_duration_b_s)" data-src-type="mixed"
+          data-what="Sample B duration"
+          data-source-detail="fmtTime(data.samples.b.duration) ← Number(meta.media_duration_b_s). Shows '—' when 0."
+          >0:28</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SECTION 01 — BRAIN ── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num"
+      data-src="HTML" data-src-type="hard"
+      data-what="Section number label"
+      data-source-detail="Hardcoded in video-results.html:64. All section numbers (01–07) are static strings in the HTML. They never change."
+      ><strong>01</strong> / BRAIN</div>
+    <h2 class="section-title"
+      data-src="HTML" data-src-type="hard"
+      data-what="Section title"
+      data-source-detail="Hardcoded in video-results.html:65. 'Cortical' is plain text, 'surface' is wrapped in &lt;em&gt; for the accent colour. Always static."
+      >Cortical <em>surface</em></h2>
+  </div>
+
+  <div class="brain-stage">
+    <div>
+      <div class="brain-canvas-wrap"
+        data-src="mountCortex() / vertex_delta_b64" data-src-type="worker"
+        data-what="3D brain canvas (Three.js)"
+        data-source-detail="Rendered by mountCortex() in assets/cortex-viewer.js. Takes vertex_delta_b64, vertex_a_b64, vertex_b_b64 from result.vertex_delta_b64 / vertex_a_b64 / vertex_b_b64 (worker output). If these are empty strings (no backend), cortex.isReal = false and a different caption is shown. roiHighlight is hardcoded to 'visual' for the video page."
+        data-note="result.vertex_delta_b64, vertex_a_b64, vertex_b_b64"
+        >[ Three.js WebGL brain — vertex deltas from worker ]</div>
+
+      <div class="brain-controls">
+        <div class="brain-view-btns">
+          <button class="brain-view-btn active"
+            data-src="HTML + cortex.setView()" data-src-type="hard"
+            data-what="Brain view toggle buttons"
+            data-source-detail="Labels 'A vs B', 'A only', 'B only' are hardcoded in HTML:74-77. Click handler calls cortex.setView('diff'|'a'|'b'). Active state toggled by JS. No worker data."
+            >A vs B</button>
+          <button class="brain-view-btn">A only</button>
+          <button class="brain-view-btn">B only</button>
+        </div>
+        <div class="brain-legend"
+          data-src="render() line 200 / sample names" data-src-type="mixed"
+          data-what="Brain legend labels"
+          data-source-detail="Dots are hardcoded CSS classes (.legend-dot.a / .legend-dot.b). Text starts as 'Cut A' / 'Cut B' in HTML but is overwritten at render() line 201-203 to data.samples.a.name / data.samples.b.name (cleaned worker filenames). The dot itself is always static; only the label text is dynamic."
+          >
+          <span><span class="legend-dot-small ldot-a"></span>my-ad-cut-a.mp4</span>
+          <span><span class="legend-dot-small ldot-b"></span>my-ad-cut-b.mp4</span>
+        </div>
+        <button class="ghost-btn"
+          data-src="state.cortex.reset()" data-src-type="hard"
+          data-what="Reset view button"
+          data-source-detail="Hardcoded label 'Reset view' in HTML:82. Click calls state.cortex.reset(). No data content."
+          >Reset view</button>
+      </div>
+
+      <p class="brain-caption"
+        data-src="boot() / cortex.isReal check" data-src-type="mixed"
+        data-what="Brain caption text"
+        data-source-detail="Default (hardcoded in HTML:84): 'Drag to rotate · scroll to zoom · scrub the timeline below to repaint contrast'. If cortex.isReal is false after mountCortex() returns (line 61), JS overwrites it with: 'Cortical surface requires the production backend — vertex-level contrast unavailable here.'"
+        >Drag to rotate · scroll to zoom · scrub the timeline below to repaint contrast</p>
+    </div>
+
+    <div class="decision-inline">
+      <p class="micro"
+        data-src="HTML" data-src-type="hard"
+        data-what="Summary micro label"
+        data-source-detail="Hardcoded string in video-results.html:87. Always reads 'Summary'."
+        >Summary</p>
+
+      <h3
+        data-src="renderRecommendations() / insights.actionables" data-src-type="mixed"
+        data-what="Decision title"
+        data-source-detail="renderRecommendations() line 311. If insights.actionables has items: 'What changed between A and B.' (hardcoded). If empty: 'Largest shifts between cut A and cut B.' (hardcoded). Both strings are static; only the condition switches between them."
+        >What changed between A and B.</h3>
+
+      <ol class="recommendations">
+        <li
+          data-src="result.insights.actionables[]" data-src-type="worker"
+          data-what="Insight bullet"
+          data-source-detail="renderRecommendations() line 322. Up to 4 items from result.insights.actionables[]. Each item: &lt;strong&gt;a.title&lt;/strong&gt; — a.body. Both title and body are raw worker-generated text. If array is empty, a single &lt;li class='empty-line'&gt; 'No actionable insights available for this run yet.' (hardcoded fallback) is shown instead."
+          data-note="result.insights.actionables[].title + body"
+          ><strong>Cut A triggers stronger gut response</strong> — Insula activation 0.18 higher in the first 8 seconds.</li>
+        <li
+          data-src="result.insights.actionables[]" data-src-type="worker"
+          data-what="Insight bullet"
+          data-source-detail="Same as above. Worker text verbatim."
+          ><strong>Memory encoding flips at 0:12</strong> — vlPFC switches to favour Cut B after the product reveal.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ── SECTION 02 — WATCH ── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num" data-src="HTML" data-src-type="hard" data-what="Section number" data-source-detail="Hardcoded '02 / WATCH' in HTML:96."><strong>02</strong> / WATCH</div>
+    <h2 class="section-title" data-src="HTML" data-src-type="hard" data-what="Section title" data-source-detail="Hardcoded 'The video' in HTML:98. 'video' is in &lt;em&gt;.">The <em>video</em></h2>
+  </div>
+
+  <div class="sample-grid">
+    <!-- Sample card A -->
+    <article class="sample-card">
+      <div class="sample-head">
+        <div class="sample-badge badge-a"
+          data-src="sample.label" data-src-type="worker"
+          data-what="Sample badge letter"
+          data-source-detail="renderSample() line 406. sample.label = 'A' set in adaptResult() line 143. Always 'A' for the first side."
+          >A</div>
+        <div>
+          <div class="sample-name"
+            data-src="cleanMediaName(meta.media_name_a)" data-src-type="worker"
+            data-what="Sample A name"
+            data-source-detail="renderSample() line 408. sample.name ← cleanMediaName(meta.media_name_a || meta.media_filename_a, 'Sample A'). This is the cleaned version of the raw worker filename."
+            >my-ad-cut-a.mp4</div>
+          <div class="sample-meta"
+            data-src="sample.duration + keyframes.length" data-src-type="worker"
+            data-what="Sample A meta (duration + keyframe count)"
+            data-source-detail="renderSample() line 401-404. summaryBits array: pushes fmtTime(sample.duration) if duration exists, pushes 'N keyframes' if keyframes.length > 0. Joined by ' · '. Shows '—' if both absent."
+            data-note="fmtTime(meta.media_duration_a_s) + keyframes_a.length"
+            >0:30 · 8 keyframes</div>
+        </div>
+      </div>
+
+      <div class="keyframe-strip"
+        data-src="meta.media_features.keyframes_a[]" data-src-type="worker"
+        data-what="Keyframe strip"
+        data-source-detail="renderSample() line 376. If sample.keyframes.length > 0: renders a strip of &lt;button&gt; elements. Each button: data-time=kf.time, &lt;img src='data:image/jpeg;base64,{kf.image_base64}'&gt;, label fmtTime(kf.time). Clicking any keyframe fires wireTimeline's click handler which moves the scrubber to that time. If keyframes array is empty, renderSampleNoKeyframes() is called instead."
+        data-note="meta.media_features.keyframes_a[].image_base64 + time"
+        >
+        <div class="keyframe" data-src="kf.image_base64 + kf.time" data-src-type="worker" data-what="Individual keyframe thumbnail" data-source-detail="Each keyframe: image_base64 = base64-encoded JPEG from ffmpeg scene detection in the worker. time = seconds offset from start. The timestamp label fmtTime(kf.time) is computed client-side.">
+          <div class="keyframe-img">JPEG base64</div>
+          <span>0:03</span>
+        </div>
+        <div class="keyframe" data-src="kf.image_base64 + kf.time" data-src-type="worker" data-what="Individual keyframe thumbnail" data-source-detail="Same as above.">
+          <div class="keyframe-img">JPEG base64</div>
+          <span>0:08</span>
+        </div>
+        <div class="keyframe" data-src="kf.image_base64 + kf.time" data-src-type="worker" data-what="Individual keyframe thumbnail" data-source-detail="Same as above.">
+          <div class="keyframe-img">JPEG base64</div>
+          <span>0:15</span>
+        </div>
+      </div>
+
+      <div class="transcript-details"
+        data-src="meta.transcript_segments_a[]" data-src-type="worker"
+        data-what="Transcript accordion"
+        data-source-detail="renderSample() line 388. If sample.transcript_segments.length > 0: renders &lt;details&gt; with summary 'Transcript (N phrases)' (N = array length). Each phrase: &lt;button data-time=seg.start&gt;fmtTime(seg.start) · seg.text&lt;/button&gt;. Clicking a phrase moves the scrubber to seg.start. If array is empty, this entire block is omitted."
+        data-note="meta.transcript_segments_a[].start + text"
+        >
+        <details>
+          <summary>Transcript (12 phrases)</summary>
+        </details>
+      </div>
+    </article>
+
+    <!-- Sample card B (no keyframes fallback) -->
+    <article class="sample-card">
+      <div class="sample-head">
+        <div class="sample-badge badge-b"
+          data-src="sample.label" data-src-type="worker"
+          data-what="Sample badge letter"
+          data-source-detail="sample.label = 'B' set in adaptResult() line 150."
+          >B</div>
+        <div>
+          <div class="sample-name"
+            data-src="cleanMediaName(meta.media_name_b)" data-src-type="worker"
+            data-what="Sample B name"
+            data-source-detail="cleanMediaName(meta.media_name_b || meta.media_filename_b, 'Sample B')."
+            >my-ad-cut-b.mp4</div>
+          <div class="sample-meta"
+            data-src="sample.duration" data-src-type="worker"
+            data-what="Sample B meta"
+            data-source-detail="fmtTime(meta.media_duration_b_s). No keyframes in this example."
+            >0:28</div>
+        </div>
+      </div>
+
+      <div class="sample-fallback"
+        data-src="renderSampleNoKeyframes()" data-src-type="client"
+        data-what="No-keyframes fallback panel"
+        data-source-detail="renderSampleNoKeyframes() line 331 — fires when sample.keyframes.length === 0. Note text 'Keyframes not returned by the worker for this clip. Top three cortical systems by mean activation:' is hardcoded. The list items are computed: for each dimension, compute mean(timeseries_b), find peak index → peakSec = (peakIdx / (ts.length-1)) * duration. Ranks all 7 dims by mean, takes top 3. Label from dim.label, values from timeseries arrays."
+        data-note="mean(timeseries_b) + argmax(timeseries_b) — no worker prose"
+        >
+        <p class="sample-fallback-note"
+          data-src="Hardcoded" data-src-type="hard"
+          data-what="Fallback note text"
+          data-source-detail="This entire sentence is hardcoded in renderSampleNoKeyframes() line 367. It fires any time keyframes_b is empty array."
+          >Keyframes not returned by the worker for this clip. Top three cortical systems by mean activation:</p>
+        <ol class="sample-fallback-list">
+          <li
+            data-src="mean(timeseries_b) + peak index" data-src-type="client"
+            data-what="Fallback dimension row"
+            data-source-detail="Label: dim.label (from worker). Values: mean(timeseries_b) formatted to .toFixed(2), peak value = max(timeseries_b) at peakIdx, peakSec = peakIdx/ts.length * duration. All computed from raw timeseries array client-side. The template 'mean NN · peak NN at M:SS' is hardcoded."
+            data-note="dim.label + mean(timeseries_b) + argmax → formatted"
+            ><strong>Attention &amp; Salience</strong><span class="sample-fallback-vals">mean 0.61 · peak 0.84 at 0:12</span></li>
+          <li
+            data-src="mean(timeseries_b) + peak index" data-src-type="client"
+            data-what="Fallback dimension row"
+            data-source-detail="Same computation, second-ranked by mean."
+            ><strong>Personal Resonance</strong><span class="sample-fallback-vals">mean 0.54 · peak 0.78 at 0:19</span></li>
+        </ol>
+      </div>
+    </article>
+  </div>
+
+  <!-- Timeline console -->
+  <div class="timeline-console">
+    <div class="timeline-head">
+      <div>
+        <p class="micro"
+          data-src="HTML" data-src-type="hard"
+          data-what="Timeline micro label"
+          data-source-detail="Hardcoded 'Scrub by time' in video-results.html:107."
+          >Scrub by time</p>
+        <p class="timeline-sub"
+          data-src="HTML" data-src-type="hard"
+          data-what="Timeline subtitle"
+          data-source-detail="Hardcoded 'Cortical contrast over the video' in HTML:108."
+          >Cortical contrast over the video</p>
+      </div>
+      <button class="play-btn"
+        data-src="togglePlay()" data-src-type="hard"
+        data-what="Play/Pause button"
+        data-source-detail="wireTimeline() line 595 attaches click to togglePlay(). Text 'Play' is hardcoded in HTML:110. JS sets it to 'Pause' when playing, 'Play' when paused. State stored in state.playing."
+        >Play</button>
+    </div>
+
+    <input class="scrubber" type="range" min="0" max="100" value="0"
+      data-src="wireTimeline() → updatePlayhead()" data-src-type="hard"
+      data-what="Scrubber range input"
+      data-source-detail="HTML range input (line 112), min=0 max=100 value=0 hardcoded. input event fires updatePlayhead(value/100). Clicking any [data-time] element also moves it: scrubber.value = round(t/maxDuration*100). Play mode ticks it via setInterval every 200ms by stepPct = 100/(duration*5)." />
+
+    <div class="time-readout">
+      <span
+        data-src="updatePlayhead()" data-src-type="client"
+        data-what="A time readout"
+        data-source-detail="updatePlayhead() line 631. aTime = data.samples.a.duration * state.progress. Text: 'A {fmtTime(aTime)}'. Updated on every scrubber input event and play tick. Duration from meta.media_duration_a_s."
+        data-note="'A ' + fmtTime(duration_a * scrubberProgress)"
+        >A 0:00</span>
+      <span
+        data-src="updatePlayhead()" data-src-type="client"
+        data-what="B time readout"
+        data-source-detail="Same as A: 'B {fmtTime(bTime)}' where bTime = duration_b * state.progress."
+        >B 0:00</span>
+    </div>
+
+    <div class="tracks">
+      <button class="track-row"
+        data-src="renderTracks() / dim.label + mean(timeseries)" data-src-type="mixed"
+        data-what="Dimension track row"
+        data-source-detail="renderTracks() line 417. One row per entry in result.dimensions[]. Label: dim.label || dim.key (from worker). Region: dim.region (from worker). Bar widths: --w CSS var = mean(timeseries_a) and mean(timeseries_b) respectively — computed client-side from the raw array. Delta: signed(mean_b - mean_a) with 'B-A' label hardcoded."
+        data-note="dim.label (worker) + mean(timeseries_a/b) (client-computed)"
+        >
+        <span class="track-label">
+          <strong
+            data-src="dim.label || dim.key" data-src-type="worker"
+            data-what="Track label (dimension name)"
+            data-source-detail="dim.label from result.dimensions[]. Assigned by TRIBEv2 worker. Falls back to dim.key if label missing."
+            >Attention &amp; Salience</strong>
+          <span
+            data-src="dim.region" data-src-type="worker"
+            data-what="Track region label"
+            data-source-detail="dim.region from result.dimensions[]. Anatomical region name from TRIBEv2 (e.g. 'Dorsal Attention Network'). Empty string if missing."
+            >Dorsal Attention Network</span>
+        </span>
+        <span class="track-bars">
+          <span class="track-line a"
+            data-src="mean(timeseries_a)" data-src-type="client"
+            data-what="Track A bar width"
+            data-source-detail="CSS --w var = mean(timeseries_a). mean() sums all finite values in the array and divides by count. Bar width is rendered as a proportion 0..1 via CSS width: calc(var(--w) * 100%)."
+            data-note="mean(result.dimensions[i].timeseries_a)"
+            ><span style="--w:0.58; display:block; height:100%; background:var(--a-col); width:calc(var(--w)*100%)"></span></span>
+          <span class="track-line b"
+            data-src="mean(timeseries_b)" data-src-type="client"
+            data-what="Track B bar width"
+            data-source-detail="Same: mean(timeseries_b)."
+            ><span style="--w:0.42; display:block; height:100%; background:var(--b-col); width:calc(var(--w)*100%)"></span></span>
+        </span>
+        <span class="track-score">
+          <strong
+            data-src="signed(mean_b - mean_a)" data-src-type="client"
+            data-what="Delta score"
+            data-source-detail="signed(delta) = (b >= 0 ? '+' : '') + delta.toFixed(2) where delta = mean(timeseries_b) - mean(timeseries_a). Entirely client-computed. The 'B-A' label is hardcoded."
+            data-note="signed(mean(timeseries_b) - mean(timeseries_a))"
+            >-0.16</strong>
+          <span data-src="HTML" data-src-type="hard" data-what="'B-A' label" data-source-detail="Hardcoded string 'B-A' in renderTracks() line 442.">B-A</span>
+        </span>
+      </button>
+      <button class="track-row" style="opacity:.6">
+        <span class="track-label"><strong>Personal Resonance</strong><span>mPFC</span></span>
+        <span class="track-bars">
+          <span class="track-line a"><span style="--w:0.44; display:block; height:100%; background:var(--a-col); width:calc(var(--w)*100%)"></span></span>
+          <span class="track-line b"><span style="--w:0.61; display:block; height:100%; background:var(--b-col); width:calc(var(--w)*100%)"></span></span>
+        </span>
+        <span class="track-score"><strong>+0.17</strong><span>B-A</span></span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ── SECTION 03 — WHEN IT HAPPENED ── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num" data-src="HTML" data-src-type="hard" data-what="Section number" data-source-detail="Hardcoded '03 / WHEN IT HAPPENED' in HTML:119."><strong>03</strong> / WHEN IT HAPPENED</div>
+    <h2 class="section-title" data-src="HTML" data-src-type="hard" data-what="Section title" data-source-detail="Hardcoded 'Time map' in HTML:121. 'map' in &lt;em&gt;.">Time <em>map</em></h2>
+  </div>
+
+  <div class="spectro-placeholder">
+    <div class="spectro-head">
+      <h2
+        data-src="spectrogram.js (hardcoded)" data-src-type="hard"
+        data-what="Spectrogram heading"
+        data-source-detail="Hardcoded string in renderSpectrogram() inside assets/spectrogram.js:238. Always reads 'Seven cortical systems, second by second'."
+        >Seven cortical systems, second by second</h2>
+      <p
+        data-src="spectrogram.js (hardcoded)" data-src-type="hard"
+        data-what="Spectrogram explanation text"
+        data-source-detail="Hardcoded prose in assets/spectrogram.js:239-243. Reads 'Each row is one cortical system. Each column is one second. Color encodes the population-average predicted activation. Co-activation patterns sit below each video as labeled blocks.' Never changes."
+        >Each row is one cortical system. Each column is one second. Color encodes the population-average predicted activation.</p>
+    </div>
+
+    <div class="spectro-side-label"
+      data-src="spectrogram.js / sample name" data-src-type="mixed"
+      data-what="Spectrogram side header (A)"
+      data-source-detail="renderOneSide() in assets/spectrogram.js:187. HTML template: badge (hardcoded A/B), then data.label (labelA passed from renderPatterns() = data.samples.a.name || 'Cut A'). The badge class is hardcoded; the name is from cleanMediaName()."
+      ><span class="badge a">A</span> my-ad-cut-a.mp4</div>
+
+    <div class="spectro-grid">
+      <div class="spectro-labels">
+        <div class="spectro-label-row"
+          data-src="dim.label + dim.region (worker)" data-src-type="worker"
+          data-what="Spectrogram row label"
+          data-source-detail="buildSpectrogramSVG() in assets/spectrogram.js:117-127. Rows rendered in DIM_ORDER fixed array (7 keys). Labels: row.label || row.key (from worker). Region: row.region (from worker). Both from result.dimensions[]. The order is fixed: personal_resonance, attention_salience, brain_effort, gut_reaction, memory_encoding, social_thinking, language_depth."
+          data-note="DIM_ORDER fixed in spectrogram.js:16 — labels from result.dimensions[].label"
+          >Attention &amp; Salience · DAN</div>
+        <div class="spectro-label-row" data-src="dim.label" data-src-type="worker" data-what="Spectrogram row label" data-source-detail="Same as above.">Personal Resonance · mPFC</div>
+        <div class="spectro-label-row" data-src="dim.label" data-src-type="worker" data-what="Spectrogram row label" data-source-detail="Same as above.">Brain Effort · dlPFC</div>
+      </div>
+      <div class="spectro-cells-col">
+        <div class="spectro-cell-row"
+          data-src="timeseries_a[i] → colorForValue()" data-src-type="client"
+          data-what="Spectrogram cell row (one dimension)"
+          data-source-detail="buildSpectrogramSVG() line 101-115. Each cell: fill = colorForValue(v) where v = timeseries_a[ti]. colorForValue() does linear interpolation between paletteStops(). isDarkTheme() reads document.documentElement data-theme at render time. Dark: cool blue (low) → dark mid [40,40,60] → coral (high). Light: slate [42,85,131] → cream [200,192,174] → vermillion [193,39,45]. Hover tooltip: 'dim.label · fmtTime(ti) · value.toFixed(2)' — all assembled client-side."
+          data-note="colorForValue(timeseries_a[i]) = interpolated RGB between theme palette stops"
+          >
+          <span class="spectro-cell" style="flex:1;background:rgb(127,179,198)"></span>
+          <span class="spectro-cell" style="flex:1;background:rgb(100,130,160)"></span>
+          <span class="spectro-cell" style="flex:1;background:rgb(150,80,70)"></span>
+          <span class="spectro-cell" style="flex:1;background:rgb(226,91,67)"></span>
+          <span class="spectro-cell" style="flex:1;background:rgb(180,100,80)"></span>
+          <span class="spectro-cell" style="flex:1;background:rgb(80,80,100)"></span>
+        </div>
+        <div class="spectro-cell-row" style="opacity:.7">
+          <span class="spectro-cell" style="flex:1;background:rgb(80,100,130)"></span>
+          <span class="spectro-cell" style="flex:1;background:rgb(60,60,80)"></span>
+          <span class="spectro-cell" style="flex:1;background:rgb(226,91,67)"></span>
+          <span class="spectro-cell" style="flex:1;background:rgb(200,80,60)"></span>
+          <span class="spectro-cell" style="flex:1;background:rgb(40,40,60)"></span>
+          <span class="spectro-cell" style="flex:1;background:rgb(127,179,198)"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="patterns-section" style="margin-top:24px">
+    <div class="patterns-head">
+      <p class="micro"
+        data-src="HTML" data-src-type="hard"
+        data-what="Patterns micro label"
+        data-source-detail="Hardcoded 'Co-activation patterns' in HTML:127."
+        >Co-activation patterns</p>
+      <h3
+        data-src="HTML" data-src-type="hard"
+        data-what="Patterns heading"
+        data-source-detail="Hardcoded 'Where two cortical systems light up together' in HTML:128."
+        >Where two cortical systems light up together</h3>
+      <p
+        data-src="HTML" data-src-type="hard"
+        data-what="Patterns explanation"
+        data-source-detail="Hardcoded in HTML:129. 'Each block marks a window where two systems exceeded their thresholds together — a Learning Moment, Emotional Impact, Reasoning Beat, or Social Resonance.' Always static."
+        style="font-size:12px;color:var(--ink-2);margin-top:4px"
+        >Each block marks a window where two systems exceeded their thresholds together.</p>
+    </div>
+    <div class="patterns-pair">
+      <div>
+        <div class="patterns-side-head"
+          data-src="render() line 204 / sample name" data-src-type="mixed"
+          data-what="Pattern strip side label"
+          data-source-detail="HTML initially has badge 'A' + text 'Cut A'. render() line 204 overwrites the lastChild textContent to ' ' + data.samples.a.name. Badge class is hardcoded."
+          ><span class="badge a">A</span> my-ad-cut-a.mp4</div>
+        <div class="pattern-strip"
+          data-src="media_features.patterns.a[]" data-src-type="worker"
+          data-what="Pattern strip blocks"
+          data-source-detail="renderPatternStrip() in assets/patterns.js. Input: data.patterns.a[] from meta.media_features.patterns.a. Each pattern block: left = pattern.start / totalDuration * 100%, width = pattern.duration / totalDuration * 100%. Pattern type label from pattern.type (worker-assigned). Color from type. If array is empty the strip is blank."
+          data-note="meta.media_features.patterns.a[].start + duration + type"
+          >
+          <div class="pattern-block-demo" style="left:5%;width:20%;background:#2a6fa8">Learning Moment</div>
+          <div class="pattern-block-demo" style="left:55%;width:15%;background:#8a3a2a">Emotional Impact</div>
+        </div>
+      </div>
+      <div>
+        <div class="patterns-side-head"
+          data-src="render() line 205 / sample name" data-src-type="mixed"
+          data-what="Pattern strip B side label"
+          data-source-detail="Same as A: render() overwrites to data.samples.b.name."
+          ><span class="badge b">B</span> my-ad-cut-b.mp4</div>
+        <div class="pattern-strip"
+          data-src="media_features.patterns.b[]" data-src-type="worker"
+          data-what="Pattern strip B blocks"
+          data-source-detail="Same as A strip but from data.patterns.b[] = meta.media_features.patterns.b."
+          >
+          <div class="pattern-block-demo" style="left:10%;width:25%;background:#3a6a3a">Reasoning Beat</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SECTION 03B — CHORDS ── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num" data-src="HTML" data-src-type="hard" data-what="Section number" data-source-detail="Hardcoded '03B / CHORDS' in HTML:147."><strong>03B</strong> / CHORDS</div>
+    <h2 class="section-title" data-src="HTML" data-src-type="hard" data-what="Section title" data-source-detail="Hardcoded 'Cortical chord progression' in HTML:148. 'chord progression' in &lt;em&gt;. The section itself starts with hidden attribute — JS removes it only when ≥2 roles are found.">Cortical <em>chord progression</em></h2>
+  </div>
+
+  <div class="chord-placeholder">
+    <p class="micro"
+      data-src="chord-progression.js (hardcoded)" data-src-type="hard"
+      data-what="Chord section micro label"
+      data-source-detail="Hardcoded in renderChordProgression() in assets/chord-progression.js. The entire chord section header prose is static."
+      >Cortical chord progression</p>
+
+    <div class="chord-pair">
+      <div>
+        <div class="chord-side-head"
+          data-src="chord-progression.js / labelA" data-src-type="mixed"
+          data-what="Chord side A label"
+          data-source-detail="renderChordProgression() in assets/chord-progression.js. labelA is passed from renderPatterns() = data.samples.a.name || 'Cut A'. Badge 'A' is hardcoded; name is from cleanMediaName()."
+          ><span class="badge a">A</span> my-ad-cut-a.mp4</div>
+        <div class="chord-strip"
+          data-src="classifyChords(dimensions, duration, 'a')" data-src-type="client"
+          data-what="Chord strip blocks"
+          data-source-detail="classifyChords() in chord-progression.js. For each second: builds secValues snapshot from the 7 role values at that second. Evaluates all 7 chord rules in priority order (first match wins). Rules use buildThresholds() — thresholds are 70th/30th/50th percentile of THAT system's values in THIS clip. Coalesces consecutive matching seconds into runs, enforces minSec per chord. Block: left = start/duration*100%, width = duration/total*100%."
+          data-note="All classified from timeseries_a[] — no worker prose"
+          >
+          <div class="chord-block-demo" style="left:5%;width:18%;background:#2a6fa8">Learning Moment</div>
+          <div class="chord-block-demo" style="left:35%;width:12%;background:#8a3a6a">Visceral Hit</div>
+          <div class="chord-block-demo" style="left:65%;width:20%;background:#3a6a3a">Reasoning Beat</div>
+        </div>
+        <p class="chord-summary"
+          data-src="progressionString(events)" data-src-type="client"
+          data-what="Chord progression summary sentence"
+          data-source-detail="progressionString() in chord-progression.js. Computes coverage % per chord type from events array. Template: '{dominant} dominates ({N}% of clip). Sequence: {chord1} → {chord2} → ...' All text generated from the classified events — no worker prose. Template strings are hardcoded ('dominates', 'Sequence:', '→', '% of clip')."
+          data-note="progressionString(classifyChords(timeseries_a))"
+          >"Reasoning Beat dominates (38% of clip). Sequence: Learning Moment → Visceral Hit → Reasoning Beat."</p>
+      </div>
+      <div>
+        <div class="chord-side-head"
+          data-src="chord-progression.js / labelB" data-src-type="mixed"
+          data-what="Chord side B label"
+          data-source-detail="Same as A side but with labelB = data.samples.b.name."
+          ><span class="badge b">B</span> my-ad-cut-b.mp4</div>
+        <div class="chord-strip"
+          data-src="classifyChords(dimensions, duration, 'b')" data-src-type="client"
+          data-what="Chord strip B"
+          data-source-detail="Same classification run on timeseries_b[]. Percentile thresholds are recomputed from B's own distribution — high/low/soft are B-relative, not A-relative."
+          >
+          <div class="chord-block-demo" style="left:10%;width:30%;background:#6a3a8a">Emotional Impact</div>
+          <div class="chord-block-demo" style="left:60%;width:15%;background:#3a6a3a">Reasoning Beat</div>
+        </div>
+        <p class="chord-summary"
+          data-src="progressionString(events)" data-src-type="client"
+          data-what="Chord progression summary B"
+          data-source-detail="Same as A side — computed from B's classified events."
+          >"Emotional Impact dominates (30% of clip). Sequence: Emotional Impact → Reasoning Beat."</p>
+      </div>
+    </div>
+
+    <div class="chord-cards" style="margin-top:20px">
+      <div class="chord-card"
+        data-src="chord-progression.js (hardcoded rules)" data-src-type="hard"
+        data-what="Chord definition card"
+        data-source-detail="The chord definition cards (name + rule) are rendered from the CHORDS array hardcoded in chord-progression.js. Each chord has: name, color, rule function, minSec. The text displayed is from chord.name and a prose description of chord.rule — these are hardcoded. The fire counts shown in the ?diag=1 view are computed from the events."
+        >
+        <div class="chord-card-name">Learning Moment</div>
+        <div class="chord-card-rule">attention ≥ p70 AND memory ≥ p70 for ≥1s</div>
+      </div>
+      <div class="chord-card" data-src="chord-progression.js" data-src-type="hard" data-what="Chord definition card" data-source-detail="Same — hardcoded rule definition.">
+        <div class="chord-card-name">Emotional Impact</div>
+        <div class="chord-card-rule">personal ≥ p70 AND gut ≥ p70 for ≥1s</div>
+      </div>
+      <div class="chord-card" data-src="chord-progression.js" data-src-type="hard" data-what="Chord definition card" data-source-detail="Reasoning Beat rule: effort ≥ p70 AND language ≥ p70, minSec 1.">
+        <div class="chord-card-name">Reasoning Beat</div>
+        <div class="chord-card-rule">effort ≥ p70 AND language ≥ p70 for ≥1s</div>
+      </div>
+      <div class="chord-card" data-src="chord-progression.js" data-src-type="hard" data-what="Chord definition card" data-source-detail="Visceral Hit rule: gut ≥ p70 AND effort ≤ p30 (inverse effort), minSec 1.">
+        <div class="chord-card-name">Visceral Hit</div>
+        <div class="chord-card-rule">gut ≥ p70 AND effort ≤ p30 for ≥1s</div>
+      </div>
+      <div class="chord-card" data-src="chord-progression.js" data-src-type="hard" data-what="Chord definition card" data-source-detail="Social Resonance: social ≥ p70 AND personal ≥ p70, minSec 1.">
+        <div class="chord-card-name">Social Resonance</div>
+        <div class="chord-card-rule">social ≥ p70 AND personal ≥ p70 for ≥1s</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SECTION 04 — THE SIGNAL ── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num" data-src="HTML" data-src-type="hard" data-what="Section number" data-source-detail="Hardcoded '04 / THE SIGNAL' in HTML:154."><strong>04</strong> / THE SIGNAL</div>
+    <h2 class="section-title" data-src="HTML" data-src-type="hard" data-what="Section title" data-source-detail="Hardcoded 'Dimension comparison' in HTML:156.">Dimension <em>comparison</em></h2>
+  </div>
+
+  <div class="cmp-placeholder"
+    data-src="renderComparisonChart() / timeseries_a + timeseries_b" data-src-type="client"
+    data-what="Comparison chart (TradingView-style)"
+    data-source-detail="renderComparisonChart() in assets/comparison-chart.js. Hidden entirely if result.dimensions is empty. Input: result.dimensions[].timeseries_a[] and timeseries_b[]. Renders overlapping A/B line curves per dimension. All axis labels, tick marks, and values derived from timeseries data. Section headings inside the chart renderer are hardcoded. Hidden via connRoot.hidden = true when no dimensions."
+    data-note="Drawn entirely from timeseries_a / timeseries_b arrays — no worker prose"
+    >
+    <div class="cmp-legend">
+      <span><span class="legend-dot-small ldot-a"></span> Cut A timeseries</span>
+      <span><span class="legend-dot-small ldot-b"></span> Cut B timeseries</span>
+    </div>
+    <div class="cmp-chart-area">
+      <div class="cmp-line-a" style="height:60%"></div>
+      <div class="cmp-line-b" style="height:40%"></div>
+      <div class="cmp-line-a" style="height:80%"></div>
+      <div class="cmp-line-b" style="height:55%"></div>
+      <div class="cmp-line-a" style="height:45%"></div>
+      <div class="cmp-line-b" style="height:70%"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── SECTION 05 — SYSTEMS ── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num" data-src="HTML" data-src-type="hard" data-what="Section number" data-source-detail="Hardcoded '05 / SYSTEMS' in HTML:163."><strong>05</strong> / SYSTEMS</div>
+    <h2 class="section-title" data-src="HTML" data-src-type="hard" data-what="Section title" data-source-detail="Hardcoded 'Connectivity map' in HTML:165. Hidden via connRoot.hidden = true if data.connectivity is null.">Connectivity <em>map</em></h2>
+  </div>
+
+  <div class="blank-panel"
+    data-src="renderConnectivity() / media_features.connectivity" data-src-type="worker"
+    data-what="Connectivity map panel"
+    data-source-detail="renderConnectivity() in assets/connectivity-graph.js. Input: data.connectivity ← meta.media_features.connectivity. If null (worker didn't produce it), connRoot.hidden = true and this entire section disappears. When present: renders a node-link graph of inter-system co-activation strengths. Node labels from system names (hardcoded in the renderer). Edge weights from connectivity matrix (worker). Section is hidden on most real production runs because the worker doesn't always emit this."
+    data-note="meta.media_features.connectivity — entire section hidden if null"
+    >
+    <strong>Connectivity map</strong>
+    <span>Rendered by assets/connectivity-graph.js from meta.media_features.connectivity.<br>Section hidden (connRoot.hidden = true) when connectivity is null.</span>
+  </div>
+</section>
+
+<!-- ── SECTION 06 — STRUCTURE ── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num" data-src="HTML" data-src-type="hard" data-what="Section number" data-source-detail="Hardcoded '06 / STRUCTURE' in HTML:172."><strong>06</strong> / STRUCTURE</div>
+    <h2 class="section-title" data-src="HTML" data-src-type="hard" data-what="Section title" data-source-detail="Hardcoded 'Structural skeleton' in HTML:174. Hidden via skelRoot.hidden = true when data.skeleton is null.">Structural <em>skeleton</em></h2>
+  </div>
+
+  <div class="blank-panel"
+    data-src="renderSkeleton() / media_features.skeleton" data-src-type="worker"
+    data-what="Structural skeleton panel"
+    data-source-detail="renderSkeleton() in assets/structural-skeleton.js. Input: data.skeleton ← meta.media_features.skeleton. If null, skelRoot.hidden = true and section disappears. When present: renders the content structure (text/visual/audio track breakdown) across the clip timeline. Labels from skeleton data (worker). Timeline axis hardcoded in renderer."
+    data-note="meta.media_features.skeleton — entire section hidden if null"
+    >
+    <strong>Structural skeleton</strong>
+    <span>Rendered by assets/structural-skeleton.js from meta.media_features.skeleton.<br>Section hidden when skeleton is null.</span>
+  </div>
+</section>
+
+<!-- ── SECTION 07 — CONTRAST WINDOWS ── -->
+<section class="section">
+  <div class="section-header">
+    <div class="section-num" data-src="HTML" data-src-type="hard" data-what="Section number" data-source-detail="Hardcoded '07 / CONTRAST WINDOWS' in HTML:180."><strong>07</strong> / CONTRAST WINDOWS</div>
+    <h2 class="section-title" data-src="HTML" data-src-type="hard" data-what="Section title" data-source-detail="Hardcoded 'Largest shifts' in HTML:182.">Largest <em>shifts</em></h2>
+  </div>
+
+  <div class="lower-grid">
+    <div class="panel">
+      <p class="micro"
+        data-src="HTML" data-src-type="hard"
+        data-what="Moments micro label"
+        data-source-detail="Hardcoded 'Peak delta moments' in HTML:188."
+        >Peak delta moments</p>
+
+      <div class="moment-grid">
+        <article class="moment-card"
+          data-src="media_features.moments[]" data-src-type="worker"
+          data-what="Moment card"
+          data-source-detail="renderMoments() line 449. Each moment from data.moments ← meta.media_features.moments[]. Each card: thumbnail = nearest keyframe to m.time (from winning side's keyframes, base64 JPEG — worker). Meta line: m.sample + fmtTime(m.time) — m.sample is 'A' or 'B' from worker, time is worker. Dim label: dim.label from dimensions lookup on m.track (worker). Heading template: '{dimLabel} — stronger in {A/B}' — 'stronger in' is hardcoded. Body: 'Δ {signed(m.delta)} on the {dimLabel.toLowerCase()} system ({region}).' — Δ value from m.delta (worker), label/region from dimensions (worker), template punctuation hardcoded."
+          data-note="m.sample + m.time + m.delta + m.track from worker; template prose hardcoded"
+          >
+          <div class="moment-thumb-placeholder">keyframe JPEG</div>
+          <div class="moment-meta">
+            <span
+              data-src="m.sample + fmtTime(m.time)" data-src-type="worker"
+              data-what="Moment sample + time"
+              data-source-detail="m.sample ('A' or 'B') and m.time (seconds) both from worker media_features.moments[]. fmtTime() formats to 'M:SS' client-side."
+              >B · 0:12</span>
+            <span
+              data-src="dim.label for m.track" data-src-type="worker"
+              data-what="Moment dimension label"
+              data-source-detail="dimMap.get(m.track).label — looks up the dimension by m.track key in the result.dimensions array. dim.label from worker."
+              >Attention &amp; Salience</span>
+          </div>
+          <h3
+            data-src="dim.label + m.sample (worker) + 'stronger in' (hardcoded)" data-src-type="mixed"
+            data-what="Moment card heading"
+            data-source-detail="Template: '{dimLabel} — stronger in {A or B}'. dimLabel from worker dimensions. 'stronger in' is hardcoded in renderMoments() line 478. directionWord = m.sample === 'B' ? 'stronger in B' : 'stronger in A' — both strings hardcoded."
+            >Attention &amp; Salience — stronger in B</h3>
+          <p
+            data-src="m.delta (worker) + dim.label (worker) + template (hardcoded)" data-src-type="mixed"
+            data-what="Moment card body"
+            data-source-detail="Template: 'Δ {signed(m.delta)} on the {dimLabel.toLowerCase()} system ({region}).' m.delta from worker. dimLabel and region from result.dimensions lookup. 'Δ', 'on the', 'system' are hardcoded punctuation. signed() = delta.toFixed(2) with +/- prefix."
+            data-note="m.delta + dim.label + dim.region from worker; template text hardcoded"
+            >Δ +0.23 on the attention &amp; salience system (Dorsal Attention Network).</p>
+        </article>
+
+        <article class="moment-card" style="opacity:.6"
+          data-src="media_features.moments[]" data-src-type="worker"
+          data-what="Moment card (second)"
+          data-source-detail="Same structure as the first card. Each moment in the moments array produces one card."
+          >
+          <div class="moment-thumb-placeholder">keyframe JPEG</div>
+          <div class="moment-meta"><span>A · 0:08</span><span>Gut Reaction</span></div>
+          <h3>Gut Reaction — stronger in A</h3>
+          <p>Δ +0.19 on the gut reaction system (Insula / Interoceptive).</p>
+        </article>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="micro"
+        data-src="HTML" data-src-type="hard"
+        data-what="Scene map micro label"
+        data-source-detail="Hardcoded 'Aligned windows' in HTML:193."
+        >Aligned windows</p>
+
+      <div class="scene-map">
+        <div class="scene-pair"
+          data-src="renderScenePair() / keyframes_a + keyframes_b" data-src-type="worker"
+          data-what="Scene pair row"
+          data-source-detail="renderScenePair() line 498. If both sides have keyframes: pairs them by index i. Each row: frameBox(aFrames[i], 'a') + frameBox(bFrames[i], 'b'). If one side has fewer frames, the missing side shows 'No matched frame' (hardcoded). If BOTH sides have zero keyframes: renderScenePairFallback() is called instead, which shows top-5 peak dimensions per side."
+          data-note="keyframes_a[i] + keyframes_b[i] paired by index"
+          >
+          <div class="scene-box"
+            data-src="kf.image_base64 + kf.time" data-src-type="worker"
+            data-what="Scene box (A frame)"
+            data-source-detail="frameBox() line 569. img src = 'data:image/jpeg;base64,{kf.image_base64}' (worker JPEG). Label: 'A · {fmtTime(kf.time)}' — 'A' hardcoded, time from kf.time (worker). data-time attribute set for scrubber click."
+            >
+            <div class="scene-box-img">base64 JPEG</div>
+            <div class="scene-time"
+              data-src="'A' (hardcoded) + fmtTime(kf.time)" data-src-type="mixed"
+              data-what="Frame time label"
+              data-source-detail="frameBox() line 577: '{side.toUpperCase()} · {fmtTime(kf.time)}'. Side 'A' is hardcoded (the 'a' parameter to frameBox). fmtTime(kf.time) is kf.time from worker, formatted client-side."
+              >A · 0:03</div>
+          </div>
+          <div class="scene-box"
+            data-src="kf.image_base64 + kf.time" data-src-type="worker"
+            data-what="Scene box (B frame)"
+            data-source-detail="Same as A frame but from data.samples.b.keyframes[i]."
+            >
+            <div class="scene-box-img">base64 JPEG</div>
+            <div class="scene-time"
+              data-src="'B' (hardcoded) + fmtTime(kf.time)" data-src-type="mixed"
+              data-what="Frame time label"
+              data-source-detail="'B · {fmtTime(kf.time)}'. Same as A label."
+              >B · 0:03</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /page-wrap -->
+
+<script>
+const TYPES = {
+  hard:     { label: "Hardcoded",              color: "#555568" },
+  worker:   { label: "From RunPod worker",     color: "#2a6fa8" },
+  client:   { label: "Client-classified",      color: "#3a8a4a" },
+  fallback: { label: "Hardcoded fallback",     color: "#8a5a2a" },
+  mixed:    { label: "Mixed: template + data", color: "#6a3a8a" },
+};
+
+const tt = document.getElementById("tt");
+let currentTarget = null;
+
+document.addEventListener("mouseover", (e) => {
+  const el = e.target.closest("[data-src]");
+  if (!el || el === currentTarget) return;
+  currentTarget = el;
+
+  const srcType = el.dataset.srcType || "hard";
+  const type = TYPES[srcType] || TYPES.hard;
+  const what = el.dataset.what || el.dataset.src || "";
+  const sourceDetail = el.dataset.sourceDetail || el.dataset.src || "";
+  const note = el.dataset.note || "";
+  const path = el.dataset.src || "";
+
+  tt.innerHTML = `
+    <div class="tt-label">
+      <span class="tt-dot" style="background:${type.color}"></span>
+      ${type.label}
+    </div>
+    <div class="tt-what">${what}</div>
+    <div class="tt-source">${path}</div>
+    <div class="tt-path">${sourceDetail}</div>
+    ${note ? `<div class="tt-note">→ ${note}</div>` : ""}
+  `;
+  tt.style.display = "block";
+  positionTooltip(e);
+});
+
+document.addEventListener("mousemove", (e) => {
+  if (tt.style.display === "block") positionTooltip(e);
+});
+
+document.addEventListener("mouseout", (e) => {
+  const el = e.target.closest("[data-src]");
+  if (el && !el.contains(e.relatedTarget)) {
+    const stillIn = e.relatedTarget?.closest("[data-src]");
+    if (!stillIn || stillIn !== el) {
+      currentTarget = null;
+      // small delay so child-hover doesn't flicker
+      setTimeout(() => {
+        if (!currentTarget) tt.style.display = "none";
+      }, 80);
+    }
+  }
+});
+
+function positionTooltip(e) {
+  const gap = 14;
+  const ttW = tt.offsetWidth || 360;
+  const ttH = tt.offsetHeight || 120;
+  let x = e.clientX + gap;
+  let y = e.clientY + gap;
+  if (x + ttW > window.innerWidth - 8) x = e.clientX - ttW - gap;
+  if (y + ttH > window.innerHeight - 8) y = e.clientY - ttH - gap;
+  tt.style.left = x + "px";
+  tt.style.top  = y + "px";
+}
+</script>
+</body>
+</html>

@@ -2,8 +2,8 @@
   "schema_version": "raw_slot.v1",
   "slot": "recipe_match.video_b",
   "comparison_id": "6b4cf129dfb0bd3a",
-  "run_id": "a64ebee4-e2e1-4660-b5e5-e3e0be4c02c9",
-  "generated_at": "2026-05-04T03:42:02.772404+00:00",
+  "run_id": "cd49c08e-9723-4917-a027-da9cd13139ef",
+  "generated_at": "2026-05-04T04:24:42.928941+00:00",
   "model": {
     "model_id": "stub-llama-3.2-3b-instruct",
     "model_revision": "stub-v0",
@@ -13,7 +13,7 @@
     "top_p": 0.9,
     "max_new_tokens": 100
   },
-  "prompt_rendered": "You are writing a one-sentence rationale for a Brain Diff recipe match.\n\nThe recipe match itself was already determined deterministically by score-based\nmatching against a structured library. Your only job: write ONE plain-English\nsentence explaining why this recipe matched, citing the score breakdown.\n\nFormat: 1 sentence, ≤ 35 words. No anatomical jargon. No percentages.\nNo citations. No winner/loser framing.\n\nInputs:\n- Matched recipe name: Visceral Hook → Low-Effort Hold\n- Matched recipe library_id: visceral-hook-low-effort-hold\n- Confidence score (0-1): 0.96\n- Score breakdown:\n  - system_means: 1.00\n  - chords: 1.00\n  - timing: 1.00\n  - integration: 1.00\n  - hub: 0.65\n- Video subject: MrBeast\n- Top 2 cortical features that drove the match:\n  - system_means score 1.00 — attention mean = 0.74\n  - chords score 1.00 — detected chords = ['visceral-hit', 'emotional-impact']\n\nOutput: just the sentence, no quotes, no preamble.\n",
+  "prompt_rendered": "You are writing a one-sentence rationale for a Brain Diff recipe match.\n\nThe recipe match itself was already determined deterministically by score-based\nmatching against a structured library. Your only job: write ONE plain-English\nsentence explaining why this recipe matched, citing the score breakdown.\n\nFormat: 1 sentence, ≤ 35 words. No anatomical jargon. No percentages.\nNo citations. No winner/loser framing.\n\nInputs:\n- Matched recipe name: Visceral Hook → Low-Effort Hold\n- Matched recipe library_id: visceral-hook-low-effort-hold\n- Confidence score (0-1): 0.96\n- Score breakdown:\n  - system_means: 1.00\n  - chords: 1.00\n  - timing: 1.00\n  - integration: 1.00\n  - hub: 0.65\n- Video subject: MrBeast\n- Top 2 cortical features that drove the match:\n  - system_means score 1.00 — attention mean = 0.60\n  - chords score 1.00 — detected chords = ['visceral-hit', 'emotional-impact']\n\nOutput: just the sentence, no quotes, no preamble.\n",
   "candidates": [
     "System means landed in the spec'd range and the characteristic chords appeared at the right times across the runtime."
   ],
@@ -36,7 +36,7 @@
     "passed": true,
     "errors": []
   },
-  "latency_ms": 14,
+  "latency_ms": 15,
   "deterministic_match": {
     "library_id": "visceral-hook-low-effort-hold",
     "confidence": 0.965,
