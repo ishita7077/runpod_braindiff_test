@@ -55,6 +55,7 @@ from backend.duration_utils import (
     probe_duration_seconds,
     trim_to_duration,
 )
+from backend.gpu_telemetry import GPUAuditCollector
 from backend.heatmap import compute_vertex_delta, generate_heatmap_artifact
 from backend.insight_engine import build_insight_payload
 from backend.media_features import audio_envelope, peak_moments, video_keyframes
@@ -64,10 +65,19 @@ from backend.result_semantics import enrich_dimension_payload, winner_summary
 from backend.scorer import score_predictions
 from backend.vertex_codec import f32_b64
 
-# New results-page content generation (uses the same LLaMA TRIBE loaded).
+# New results-page content generation. Driven by the Gemma backend declared in
+# backend/results/lib/model_manager.py — the comment used to say "the same
+# LLaMA TRIBE loaded" but TRIBE itself uses a separate text encoder; the
+# content pipeline runs an independent google/gemma-3-1b-it model. Renamed in
+# Phase A.5; the import below stays stable.
 from backend.results.worker_integration import generate_content_for_worker
 
 from runpod_worker.progress import emitter_for
+
+# Process-wide audit collector for boot/warmup snapshots. Per-job snapshots
+# live in a per-call collector inside _run_text/_run_media so the audit on the
+# response is scoped to that job.
+_BOOT_GPU_AUDIT = GPUAuditCollector()
 
 MODEL_REVISION = os.getenv("TRIBEV2_REVISION", "facebook/tribev2")
 ATLAS_DIR = os.getenv("BRAIN_DIFF_ATLAS_DIR", "atlases")
@@ -79,8 +89,10 @@ masks: dict[str, dict[str, Any]] = {}
 
 def _warm_start() -> None:
     global masks
+    _BOOT_GPU_AUDIT.record("worker_boot_pre_tribe_load")
     masks = build_vertex_masks(atlas_dir=ATLAS_DIR)
     tribe_service.load()
+    _BOOT_GPU_AUDIT.record("worker_boot_post_tribe_load")
 
 
 def _warm_llm_background() -> None:
@@ -91,11 +103,14 @@ def _warm_llm_background() -> None:
     adds zero extra wait for the user.
     """
     try:
-        from backend.results.lib.model_manager import use_real_llama
-        use_real_llama(per_slot_timeout_seconds=600.0)
-        log.info("LLM warmup: Gemma loaded and ready")
+        from backend.results.lib.model_manager import use_real_content_model
+        use_real_content_model(per_slot_timeout_seconds=600.0)
+        _BOOT_GPU_AUDIT.record("worker_boot_post_content_model_load")
+        log.info("content_model_warmup: %s loaded and ready",
+                 os.getenv("BRAIN_DIFF_CONTENT_MODEL", "google/gemma-3-1b-it"))
     except Exception as exc:
-        log.warning("LLM warmup failed (non-fatal, will retry on first job): %s: %s", type(exc).__name__, exc)
+        log.warning("content_model_warmup failed (non-fatal, will retry on first job): %s: %s",
+                    type(exc).__name__, exc)
 
 
 def _download_to_temp(url: str, blob_token: str = "") -> str:
@@ -175,7 +190,12 @@ def _generate_results_content(
     title_b: str,
     progress: Any = None,
 ) -> dict[str, Any] | None:
-    """Run the LLaMA-driven content pipeline using the same model TRIBE just used.
+    """Run the content pipeline (Gemma 3 by default).
+
+    Despite the historical name, this does NOT reuse TRIBE's encoder — TRIBE
+    runs its own backbone and the content pipeline runs an independent
+    google/gemma-3-1b-it instance loaded by use_real_content_model. The model
+    can be swapped with the BRAIN_DIFF_CONTENT_MODEL env var.
 
     Soft-fails: if anything goes wrong, returns None and the page falls back to
     its built-in stub copy. The brain prediction payload is still returned to
@@ -247,6 +267,7 @@ def _build_response(
     results_content: dict[str, Any] | None = None,
     display_name_a: str = "",
     display_name_b: str = "",
+    gpu_audit: GPUAuditCollector | None = None,
 ) -> dict[str, Any]:
     request_id = str(uuid.uuid4())
     if not job_id:
@@ -328,10 +349,23 @@ def _build_response(
     }
     # Results-page payload: schema-locked content.json shape so the new
     # results.html can render directly without any extra API call. Only
-    # included when LLaMA-driven content generation succeeded.
+    # included when the Gemma-driven content generation succeeded.
     if results_content and results_content.get("content"):
         response["results_content"] = results_content["content"]
         meta["results_comparison_id"] = results_content.get("comparison_id")
+    # Always surface the audit packet, even when content generation failed,
+    # so the frontend can render a degraded-but-honest state and so a curl
+    # debug session can see source/status distribution per slot without
+    # parsing the audit log JSONL.
+    if results_content:
+        if results_content.get("content_audit"):
+            meta["content_audit"] = results_content["content_audit"]
+        if results_content.get("content_model"):
+            meta["content_model"] = results_content["content_model"]
+        if results_content.get("input_audit") is not None:
+            # input_audit is also embedded in content_audit.input_mapping; we
+            # mirror it at meta level so the legacy frontend path can read it.
+            meta["content_input_audit"] = results_content["input_audit"]
     # Surface failure reason from the LLM pipeline into the response so the
     # frontend (or a curl-debug session) can see why Gemma didn't produce copy
     # without having to scrape worker logs.
@@ -339,6 +373,16 @@ def _build_response(
         meta["results_content_error"] = results_content["error"]
     elif results_content is None:
         meta["results_content_error"] = "content_pipeline_returned_none"
+    if gpu_audit is not None:
+        # Final pre-response snapshot — captures whatever was reclaimed (or
+        # stayed pinned) at the very end of the job.
+        gpu_audit.record("pre_response_return")
+        meta["gpu_audit"] = gpu_audit.to_audit()
+        # Mirror the boot-time snapshots so consumers see the full chronology
+        # without having to chase two different audit objects.
+        boot_snapshots = _BOOT_GPU_AUDIT.to_audit().get("snapshots", [])
+        if boot_snapshots:
+            meta["gpu_audit"]["boot_snapshots"] = boot_snapshots
     return response
 
 
@@ -353,15 +397,19 @@ def _run_text(
     started = time.perf_counter()
     warnings = _warnings_for_text(text_a, text_b)
     progress = emitter_for(job_id)
+    gpu_audit = GPUAuditCollector()
+    gpu_audit.record("job_start_text")
 
     progress.emit("predicting_version_a", "Encoding Version A through TRIBE v2...")
     preds_a, _, timing_a = _coerce_prediction_output(
         tribe_service.text_to_predictions(text_a, progress=progress)
     )
+    gpu_audit.record("post_prediction_a")
     progress.emit("predicting_version_b", "Encoding Version B through TRIBE v2...")
     preds_b, _, timing_b = _coerce_prediction_output(
         tribe_service.text_to_predictions(text_b, progress=progress)
     )
+    gpu_audit.record("post_prediction_b")
 
     progress.emit("computing_brain_contrast", "Computing brain contrast...")
     scores_a, median_a = score_predictions(preds_a, masks)
@@ -414,6 +462,7 @@ def _run_text(
             media_features_payload = {"waveform_a": wf_a, "waveform_b": wf_b}
     except Exception as exc:
         log.warning("Text-mode waveform pipeline unavailable: %s", exc)
+    gpu_audit.record("pre_content_generation")
     results_content = _generate_results_content(
         job_id=job_id or "",
         scores_a=scores_a,
@@ -426,6 +475,7 @@ def _run_text(
         title_b=title_b,
         progress=progress,
     )
+    gpu_audit.record("post_content_generation")
     return _build_response(
         transcript_a=text_a,
         transcript_b=text_b,
@@ -449,6 +499,7 @@ def _run_text(
         results_content=results_content,
         display_name_a=title_a,
         display_name_b=title_b,
+        gpu_audit=gpu_audit,
     )
 
 
@@ -466,6 +517,8 @@ def _run_media(
     started = time.perf_counter()
     warnings: list[str] = []
     progress = emitter_for(job_id)
+    gpu_audit = GPUAuditCollector()
+    gpu_audit.record(f"job_start_{modality}")
 
     # Track every temp file we create so cleanup works regardless of which
     # step fails. ensure_within_max may produce a `.trim` sibling.
@@ -568,16 +621,20 @@ def _run_media(
             preds_a, _, timing_a = _coerce_prediction_output(
                 tribe_service.audio_to_predictions(path_a, progress=progress)
             )
+            gpu_audit.record("post_prediction_a")
             preds_b, _, timing_b = _coerce_prediction_output(
                 tribe_service.audio_to_predictions(path_b, progress=progress)
             )
+            gpu_audit.record("post_prediction_b")
         else:
             preds_a, _, timing_a = _coerce_prediction_output(
                 tribe_service.video_to_predictions(path_a, progress=progress)
             )
+            gpu_audit.record("post_prediction_a")
             preds_b, _, timing_b = _coerce_prediction_output(
                 tribe_service.video_to_predictions(path_b, progress=progress)
             )
+            gpu_audit.record("post_prediction_b")
 
         progress.emit("computing_brain_contrast", "Computing brain contrast...")
         scores_a, median_a = score_predictions(preds_a, masks)
@@ -660,7 +717,7 @@ def _run_media(
             warnings.append(f"Structural skeleton failed: {err}")
 
         processing_time_ms = int((time.perf_counter() - started) * 1000)
-        # LLaMA-driven results-page content (uses TRIBE's per-second per-dim scores).
+        # Content model results-page content (Gemma; uses TRIBE's per-second per-dim scores).
         transcript_text_a = str(timing_a.get("transcript_text", "") or "")
         transcript_text_b = str(timing_b.get("transcript_text", "") or "")
         transcript_segs_a = list(timing_a.get("transcript_segments") or [])
@@ -686,6 +743,7 @@ def _run_media(
             or transcript_text_b[:60]
             or ("Stimulus B" if modality != "video" else "Video B")
         )
+        gpu_audit.record("pre_content_generation")
         results_content = _generate_results_content(
             job_id=job_id or "",
             scores_a=scores_a,
@@ -698,6 +756,7 @@ def _run_media(
             title_b=title_b,
             progress=progress,
         )
+        gpu_audit.record("post_content_generation")
         return _build_response(
             transcript_a=transcript_text_a,
             transcript_b=transcript_text_b,
@@ -723,6 +782,7 @@ def _run_media(
             results_content=results_content,
             display_name_a=title_a,
             display_name_b=title_b,
+            gpu_audit=gpu_audit,
         )
     finally:
         for path in temp_files:

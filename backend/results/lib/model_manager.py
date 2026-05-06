@@ -448,24 +448,45 @@ class LoadedTransformersBackend:
             pass
 
 
-def use_real_llama(
+def use_real_content_model(
     *,
     cache_folder: str = "./cache",
     device: str | None = None,
     max_parallel: int = 1,
     per_slot_timeout_seconds: float = 30.0,
 ) -> ModelManager:
-    """Convenience: swap the singleton to a LoadedTransformersBackend.
+    """Swap the ModelManager singleton onto the configured content model.
+
+    Why "content_model" and not "llama": the content pipeline runs Gemma 3
+    (google/gemma-3-1b-it by default), not LLaMA. The legacy name was
+    misleading and made debugging harder — every log line said LLaMA, every
+    audit said LLaMA, but nvidia-smi showed Gemma. The behaviour is unchanged.
+
+    The model is selected via env at call time:
+        BRAIN_DIFF_CONTENT_MODEL   default "google/gemma-3-1b-it"
+        BRAIN_DIFF_CONTENT_DTYPE   default "bfloat16"
 
     Idempotent: if the singleton is already a real backend, returns it
     without re-creating it. This makes it safe to call from both the
     background warmup thread and generate_content_for_worker without
     triggering a second model download/load.
     """
+    import os
+
     current = get_model_manager()
     if isinstance(current.backend, LoadedTransformersBackend):
         return current
-    backend = LoadedTransformersBackend(cache_folder=cache_folder, device=device)
+    model_name = os.getenv("BRAIN_DIFF_CONTENT_MODEL", "google/gemma-3-1b-it")
+    dtype = os.getenv("BRAIN_DIFF_CONTENT_DTYPE", "bfloat16")
+    backend = LoadedTransformersBackend(
+        model_name=model_name,
+        cache_folder=cache_folder,
+        device=device,
+        dtype=dtype,
+    )
+    # Reflect the env-selected model on the class so the response meta and
+    # audit logs always describe the actual loaded model.
+    backend.model_id = model_name
     mgr = ModelManager(
         backend,
         max_parallel=max_parallel,
@@ -473,3 +494,21 @@ def use_real_llama(
     )
     set_model_manager(mgr)
     return mgr
+
+
+def use_real_llama(*args: Any, **kwargs: Any) -> ModelManager:
+    """Deprecated alias for `use_real_content_model`.
+
+    Kept temporarily so external tooling doesn't break on rename. New code
+    must call `use_real_content_model` directly. The function will be removed
+    once all internal callers migrate (tracked in Phase A.5 of the production
+    fix plan).
+    """
+    import warnings
+
+    warnings.warn(
+        "use_real_llama is deprecated; use use_real_content_model instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return use_real_content_model(*args, **kwargs)

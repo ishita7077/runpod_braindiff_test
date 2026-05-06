@@ -1130,7 +1130,7 @@ function renderChordDetail(globalIndex){
             <div></div>
             <div class="cdm-spec-axis-marks"><span>−2s</span><span>−1s</span><span>0s</span><span>+1s</span><span>+2s</span></div>
           </div>
-          <div class="cdm-spec-note">▲ chord fires at center · sustained ≥ ${meaning.formula_human.match(/at least (\d) second/)?.[1]||'1'}s</div>
+          <div class="cdm-spec-note">▲ chord fires at center · sustained ≥ ${String(lib.formula_human||'').match(/at least (\d) second/)?.[1]||'1'}s</div>
         </div>
       </div>
     </div>`;

@@ -8,7 +8,8 @@ its response payload under `result.content`.
 
 The function:
   1. Converts TRIBE-shape outputs → our NormalizedInputs schema
-  2. Calls `use_real_llama()` (lazy — first call materialises LLaMA from cache)
+  2. Calls `use_real_content_model()` (lazy — first call materialises the
+     content LLM, default google/gemma-3-1b-it, from cache)
   3. Runs the slot pipeline (deterministic lead-insight → wave 1 → wave 2)
   4. Assembles content.json
   5. Returns it to the worker
@@ -39,7 +40,7 @@ from .lib.input_normalizer import (
 )
 from .lib.lead_insight import select_lead_insight
 from .lib.library_matcher import match_recipe
-from .lib.model_manager import use_real_llama
+from .lib.model_manager import use_real_content_model
 from .slots.base import Slot
 from .slots.body import BodySlot
 from .slots.chord_contextual_meaning import ChordContextualMeaningSlot
@@ -55,20 +56,26 @@ log = logging.getLogger(__name__)
 
 # Map from TRIBE dimension keys (whatever shape they ship in) → our 7 canonical systems.
 # TRIBE output uses these strings in `dimension_rows[].dimension`. Adjust if upstream changes.
+#
+# Why every alias is listed explicitly: previously `attention_salience` (the name
+# the legacy backend uses in result_semantics / connectivity / insight_engine)
+# silently fell through and the canonical "attention" series was filled with the
+# 0.5-flat fallback further down. The rich-content audit had no way to see this.
 _TRIBE_DIM_TO_CANONICAL: dict[str, str] = {
-    "personal_resonance": "personal_resonance",
-    "self_relevance":     "personal_resonance",
-    "attention":          "attention",
-    "brain_effort":       "brain_effort",
-    "cognitive_control":  "brain_effort",
-    "gut_reaction":       "gut_reaction",
-    "visceral_response":  "gut_reaction",
-    "memory_encoding":    "memory_encoding",
-    "memory":             "memory_encoding",
-    "social_thinking":    "social_thinking",
-    "theory_of_mind":     "social_thinking",
-    "language_depth":     "language_depth",
-    "language":           "language_depth",
+    "personal_resonance":  "personal_resonance",
+    "self_relevance":      "personal_resonance",
+    "attention":           "attention",
+    "attention_salience":  "attention",
+    "brain_effort":        "brain_effort",
+    "cognitive_control":   "brain_effort",
+    "gut_reaction":        "gut_reaction",
+    "visceral_response":   "gut_reaction",
+    "memory_encoding":     "memory_encoding",
+    "memory":              "memory_encoding",
+    "social_thinking":     "social_thinking",
+    "theory_of_mind":      "social_thinking",
+    "language_depth":      "language_depth",
+    "language":            "language_depth",
 }
 
 
@@ -84,24 +91,52 @@ def _build_video(
     transcript_segments: list[dict[str, Any]],
     timeseries_per_dim: dict[str, list[float]],   # {tribe_dim_name: [v0..vT]}
     chord_events: list[dict[str, Any]] = (),
+    input_audit: dict[str, Any] | None = None,
 ) -> VideoSignature:
     """Convert one video's TRIBE-shape data into a VideoSignature.
 
     `timeseries_per_dim` is the per-second predicted activation per dimension
     (TRIBE's preds aggregated by mask, normalised to 0-1). Length should equal
     int(duration_seconds) + 1.
+
+    `input_audit` (optional): if provided, the function appends per-video
+    notes — which dim names were unmapped, which canonical systems had to be
+    filled with the flat-0.5 fallback. The caller surfaces this into the
+    response's `content_audit.input_mapping` so we can see silent flattening
+    in production rather than guessing from logs.
     """
     canonical_ts: dict[str, list[float]] = {s: [] for s in CANONICAL_SYSTEMS}
+    unmapped_dims: list[str] = []
     for tribe_name, series in timeseries_per_dim.items():
         canonical = _canonicalise_dim(tribe_name)
         if canonical is None:
+            unmapped_dims.append(tribe_name)
             continue
         canonical_ts[canonical] = [float(v) for v in series]
 
-    # Fill any missing system with a flat-mean fallback.
+    # Fill any missing system with a flat-mean fallback. Surface this — a flat
+    # 0.5 for a whole system silently kills coupling/chord detection.
+    filled_flat_systems: list[str] = []
     for s in CANONICAL_SYSTEMS:
         if not canonical_ts[s]:
             canonical_ts[s] = [0.5 for _ in range(int(duration_seconds) + 1)]
+            filled_flat_systems.append(s)
+
+    if input_audit is not None:
+        per_video = input_audit.setdefault(video_id, {})
+        per_video["unmapped_dimensions"] = unmapped_dims
+        per_video["filled_flat_systems"] = filled_flat_systems
+        per_video["input_dim_count"] = len(timeseries_per_dim)
+        if unmapped_dims:
+            log.warning(
+                "content_pipeline.input_audit: video=%s unmapped=%s",
+                video_id, unmapped_dims,
+            )
+        if filled_flat_systems:
+            log.warning(
+                "content_pipeline.input_audit: video=%s flat_filled=%s",
+                video_id, filled_flat_systems,
+            )
 
     # Means + peaks from the timeseries.
     means: dict[str, float] = {}
@@ -367,23 +402,26 @@ def generate_content_for_worker(
     audit = AuditLogger(comparison_id=cmp_id, run_id=rid, log_dir=audit_log_dir)
     audit.emit("comparison_started", data={"analysis_version": analysis_version, "in_worker": True})
 
+    input_audit: dict[str, Any] = {}
     try:
         va = _build_video(
             video_id=video_a_id, display_name=video_a_title,
             duration_seconds=duration_a_s,
             transcript_segments=transcript_segments_a,
             timeseries_per_dim=timeseries_a,
+            input_audit=input_audit,
         )
         vb = _build_video(
             video_id=video_b_id, display_name=video_b_title,
             duration_seconds=duration_b_s,
             transcript_segments=transcript_segments_b,
             timeseries_per_dim=timeseries_b,
+            input_audit=input_audit,
         )
     except Exception as exc:
         audit.emit("input_invalid", error_code="TRIBE_TO_NORMALIZED_FAILED", error_detail=f"{type(exc).__name__}: {exc}")
         audit.emit("comparison_failed")
-        return {"comparison_id": cmp_id, "content": None, "error": str(exc)}
+        return {"comparison_id": cmp_id, "content": None, "error": str(exc), "input_audit": input_audit}
 
     inputs = NormalizedInputs(
         schema_version="normalized_inputs.v1",
@@ -392,14 +430,19 @@ def generate_content_for_worker(
     )
     audit.emit("input_normalized", input_hash=input_hash(inputs))
 
-    # Switch ModelManager to real LLaMA unless stubbed.
+    # Switch ModelManager onto the real content model unless stubbed.
     if not use_stub:
         try:
-            use_real_llama(per_slot_timeout_seconds=600.0)
+            use_real_content_model(per_slot_timeout_seconds=600.0)
         except Exception as exc:
-            audit.emit("model_manager_failed", error_code="LLAMA_LOAD_FAILED",
+            audit.emit("model_manager_failed", error_code="CONTENT_MODEL_LOAD_FAILED",
                        error_detail=f"{type(exc).__name__}: {exc}")
-            return {"comparison_id": cmp_id, "content": None, "error": f"LLaMA load failed: {exc}"}
+            return {
+                "comparison_id": cmp_id,
+                "content": None,
+                "error": f"content_model_load_failed: {exc}",
+                "input_audit": input_audit,
+            }
 
     from .lib.model_manager import get_model_manager
     manager = get_model_manager()
@@ -492,9 +535,121 @@ def generate_content_for_worker(
         inputs=inputs.to_dict(),
         outputs_dir=out_dir, overrides_dir=overrides_dir, audit=audit,
     )
-    audit.emit("comparison_completed")
+
+    content_audit = _summarise_content_sources(content)
+    content_audit["input_mapping"] = input_audit
+    content_model = _describe_content_model(manager)
+
+    audit.emit("comparison_completed", data={"content_audit": content_audit})
     return {
         "comparison_id": cmp_id,
         "content": content,
         "audit_log_path": str(audit_path),
+        "input_audit": input_audit,
+        "content_audit": content_audit,
+        "content_model": content_model,
     }
+
+
+# ────────────────────────────────────────────────────────────
+# content_audit + content_model helpers
+# ────────────────────────────────────────────────────────────
+
+def _walk_slot_sources(slots: dict[str, Any]) -> list[tuple[str, str, str]]:
+    """Yield (slot_address, source, status) for every leaf slot in content.slots.
+
+    Mirrors the structure assemble_content produces: scalar slots at the top
+    level, recipe_match/recipe_description/coupling_callouts nested by video,
+    chord_meanings keyed by chord id, chord_moments as an indexed list.
+    """
+    out: list[tuple[str, str, str]] = []
+
+    def take(addr: str, slot: dict[str, Any] | None) -> None:
+        if not isinstance(slot, dict):
+            return
+        out.append((addr, str(slot.get("source", "missing")), str(slot.get("status", "missing"))))
+
+    for top_key in ("headline", "body", "frame2_sub"):
+        take(top_key, slots.get(top_key))
+
+    for grouping in ("recipe_match", "recipe_description"):
+        for vid in ("video_a", "video_b"):
+            take(f"{grouping}.{vid}", (slots.get(grouping) or {}).get(vid))
+
+    for vid in ("video_a", "video_b"):
+        for kind in ("strongest", "weakest", "anti"):
+            take(
+                f"coupling_callouts.{vid}.{kind}",
+                (slots.get("coupling_callouts") or {}).get(vid, {}).get(kind),
+            )
+
+    for chord_id, slot in (slots.get("chord_meanings") or {}).items():
+        take(f"chord_meanings.{chord_id}", slot)
+
+    for moment in slots.get("chord_moments") or []:
+        meaning = moment.get("meaning")
+        idx = moment.get("index", "?")
+        take(f"chord_moments[{idx}].meaning", meaning)
+
+    return out
+
+
+def _summarise_content_sources(content: dict[str, Any]) -> dict[str, Any]:
+    """Roll up every slot's source/status into a single audit object.
+
+    Shape:
+        {
+          "schema_version": "content_audit.v1",
+          "slots_total": N,
+          "slots_llm": int, "slots_override": int,
+          "slots_library": int, "slots_fallback": int, "slots_missing": int,
+          "fallback_rate": float (0..1),
+          "fallback_slots": [{"slot": "...", "status": "..."}],
+          "input_mapping": {...}        # filled by caller
+        }
+    """
+    slots = content.get("slots") or {}
+    walked = _walk_slot_sources(slots)
+    counts: dict[str, int] = {}
+    fallback_slots: list[dict[str, str]] = []
+    for addr, source, status in walked:
+        counts[source] = counts.get(source, 0) + 1
+        if source == "fallback":
+            fallback_slots.append({"slot": addr, "status": status})
+    total = len(walked)
+    fallback = counts.get("fallback", 0)
+    return {
+        "schema_version": "content_audit.v1",
+        "slots_total": total,
+        "slots_llm": counts.get("llm", 0),
+        "slots_override": counts.get("override", 0),
+        "slots_library": counts.get("library", 0),
+        "slots_fallback": fallback,
+        "slots_missing": counts.get("missing", 0),
+        "fallback_rate": (fallback / total) if total else 0.0,
+        "fallback_slots": fallback_slots,
+    }
+
+
+def _describe_content_model(manager: Any) -> dict[str, Any]:
+    """Best-effort description of the loaded content model.
+
+    The worker forwards this into response.meta.content_model so we can see in
+    the API response which model actually produced the content (instead of
+    grepping logs). Soft-fails on any attribute that isn't there.
+    """
+    backend = getattr(manager, "backend", None)
+    if backend is None:
+        return {"id": "unknown", "runtime": "unknown"}
+    info: dict[str, Any] = {
+        "id": getattr(backend, "model_id", "unknown"),
+        "revision": getattr(backend, "model_revision", None),
+        "runtime": "transformers" if backend.__class__.__name__ == "LoadedTransformersBackend" else backend.__class__.__name__,
+    }
+    dtype = getattr(backend, "_dtype_str", None)
+    if dtype:
+        info["dtype"] = dtype
+    device = getattr(backend, "_device", None)
+    if device:
+        info["device"] = device
+    return info
