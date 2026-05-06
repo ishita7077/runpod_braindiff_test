@@ -409,6 +409,66 @@ footer span{color:var(--red)}
 /* Hide the FALLBACK / LLM source badges in production. They're useful for
    dev (?dev=1) but leak as visible chrome to users in normal viewing. */
 body:not(.dev-mode) .src-badge{display:none !important}
+
+/* ── FRAME 02 — Audio waveform tracks (text/audio mode) ─── */
+.audio-tracks{display:flex;flex-direction:column;gap:1.4rem;margin-top:1.5rem}
+.audio-track{
+  background:var(--cream-2);border:1px solid var(--line);border-radius:8px;
+  padding:1rem 1.25rem 1.25rem;position:relative;overflow:hidden;
+}
+.audio-track--a{border-left:3px solid var(--a)}
+.audio-track--b{border-left:3px solid var(--b)}
+.awv-head{display:flex;align-items:center;gap:.75rem;margin-bottom:.85rem}
+.awv-side-tag{
+  display:inline-grid;place-items:center;width:24px;height:24px;border-radius:3px;
+  font-family:var(--ff-mono);font-weight:600;font-size:11px;
+}
+.awv-side-tag--a{background:var(--a-soft);color:var(--a);border:1px solid color-mix(in srgb,var(--a) 30%,transparent)}
+.awv-side-tag--b{background:var(--b-soft);color:var(--b);border:1px solid color-mix(in srgb,var(--b) 30%,transparent)}
+.awv-side-name{font-family:var(--ff-display);font-size:1.05rem;color:var(--ink);flex:1;min-width:0;font-weight:400}
+.awv-side-meta{font-family:var(--ff-mono);font-size:9.5px;letter-spacing:.05em;color:var(--ink-dim);text-transform:uppercase}
+.awv-stage{position:relative;height:84px;display:flex;align-items:flex-end}
+.awv-bars{display:flex;align-items:flex-end;gap:1px;flex:1;height:100%;padding:0 2px}
+.awv-bar{
+  flex:1;min-width:0;background:color-mix(in srgb,var(--ink) 38%,transparent);
+  border-radius:1px;transition:background-color .15s;
+}
+.audio-track--a .awv-bar{background:color-mix(in srgb,var(--a) 60%,transparent)}
+.audio-track--b .awv-bar{background:color-mix(in srgb,var(--b) 60%,transparent)}
+.awv-pin-layer{position:absolute;inset:0;pointer-events:none}
+.awv-pin{position:absolute;top:0;bottom:0;transform:translateX(-50%);pointer-events:auto;cursor:pointer}
+.awv-pin-stem{position:absolute;top:0;bottom:0;left:50%;width:1.5px;background:var(--red);transform:translateX(-50%);opacity:.55;transition:opacity .15s}
+.awv-pin:hover .awv-pin-stem{opacity:1}
+.awv-pin-label{
+  position:absolute;top:-22px;left:50%;transform:translateX(-50%);
+  font-family:var(--ff-mono);font-size:10px;letter-spacing:.05em;color:var(--ink);
+  background:var(--red);color:#fff;padding:3px 7px;border-radius:3px;
+  white-space:nowrap;opacity:0;transition:opacity .15s;
+}
+.awv-pin:hover .awv-pin-label{opacity:1}
+.awv-pin-ts{opacity:.75;margin-left:6px}
+.chord-empty-note{
+  margin:1.2rem auto 0;max-width:680px;text-align:center;
+  font-family:var(--ff-body);font-size:.95rem;color:var(--ink-dim);
+  font-style:italic;line-height:1.55;
+}
+
+/* Collapsible annotated text — secondary read-along view below the
+   waveform tracks. Closed by default; user opens to inspect words. */
+.annotated-text-details{
+  margin-top:2rem;border-top:1px solid var(--line);padding-top:1.5rem;
+}
+.annotated-text-details > summary{
+  cursor:pointer;list-style:none;
+  font-family:var(--ff-mono);font-size:11px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--red);font-weight:500;
+  padding:.5rem 0;display:flex;align-items:center;gap:.5rem;
+}
+.annotated-text-details > summary::-webkit-details-marker{display:none}
+.annotated-text-details > summary::before{
+  content:'▸';display:inline-block;transition:transform .2s;font-size:13px;
+}
+.annotated-text-details[open] > summary::before{transform:rotate(90deg)}
 </style>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -810,53 +870,123 @@ function renderStrategyInsight(c, va, vb, matchA, matchB, descA, descB){
 }
 
 function renderFrame2(c, va, vb){
-  // ── Frame 02 for TEXT mode: side-by-side annotated text, color-coded by
-  // dominant brain system per word. Source data: full worker response (RESULT)
-  // contains per-second 7-system timeseries. We map each word to its timestep
-  // and pick the dominant system at that timestep.
-  // Worker stores the original text in result.meta.text_a/b for text mode
-  // (kept there for legacy recall-card consumers). Fall back to transcript_*
-  // for media modes that copy through to the same field name.
+  // ── Frame 02 for TEXT / AUDIO mode: waveform + chord progression
+  // (mirroring the video Frame 02), with the annotated text as a
+  // secondary read-along view below.
+  //
+  // Data sources:
+  //   - text/audio waveform: RESULT.meta.media_features?.waveform_a/b
+  //     (200 RMS bins, [0,1], from gTTS audio in text mode or the
+  //     original audio in audio mode)
+  //   - chord moments: c.slots.chord_moments[] (deterministic detection
+  //     from cortical timeseries crossing threshold)
+  //   - dimensions: RESULT.dimensions[] (per-second 7-system timeseries
+  //     used for the per-word colour mapping in the secondary view)
   const meta = (RESULT && RESULT.meta) || {};
+  const mf = meta.media_features || (RESULT && RESULT.media_features) || {};
+  const waveA = Array.isArray(mf.waveform_a) ? mf.waveform_a : [];
+  const waveB = Array.isArray(mf.waveform_b) ? mf.waveform_b : [];
   const textA = meta.text_a || (RESULT && RESULT.transcript_a) || (va.transcript || '');
   const textB = meta.text_b || (RESULT && RESULT.transcript_b) || (vb.transcript || '');
   const dimensions = (RESULT && RESULT.dimensions) || [];
+  const moments = [...(c.slots.chord_moments||[])].sort((p,q) => p.timestamp_seconds - q.timestamp_seconds);
+  const totalChords = moments.length;
+  const durA = Math.max(1, Math.round(va.duration_seconds || meta.text_a_timesteps || 30));
+  const durB = Math.max(1, Math.round(vb.duration_seconds || meta.text_b_timesteps || 30));
+  const noun = contentNoun();
+  const verb = contentVerb();
 
   return `
   <section class="frame" id="frame-2">
     <div class="frame-meta-row">
-      <div class="frame-num reveal">Frame 02 · Annotated Text</div>
-      <div class="frame-num-r reveal">${dimensions.length || 7} systems · per-word system attribution · 1Hz</div>
+      <div class="frame-num reveal">Frame 02 · The ${noun === 'video' ? 'Chord Progression' : (noun === 'audio clip' ? 'Audio Progression' : 'Spoken Progression')}</div>
+      <div class="frame-num-r reveal">${totalChords > 0 ? `${totalChords} chord${totalChords===1?'':'s'} · ` : ''}${dimensions.length || 7} systems · 1Hz</div>
     </div>
-    <h2 class="frame-h2 reveal d1">Each phrase is <em>colored</em> by the brain system most active at that point in the narrative.</h2>
-    <p class="frame-sub reveal d2">Same color = same system engaged. Divergence reveals where the texts differ in how they work on a reader's brain.</p>
+    <h2 class="frame-h2 reveal d1">How each ${noun} <em>plays its chords.</em></h2>
+    <p class="frame-sub reveal d2 has-badge" style="position:relative">
+      ${badge(c.slots.frame2_sub)}
+      ${c.slots.frame2_sub && c.slots.frame2_sub.value
+        ? esc(c.slots.frame2_sub.value)
+        : `Each ${noun} runs through TRIBE v2's seven cortical systems. A chord fires when two systems cross threshold at the same second and hold — that's where the cognitive strategy becomes visible.`}
+    </p>
 
-    <div class="dim-legend reveal d1">
-      ${CANONICAL_SYSTEMS.map(sys => `
-        <span class="dim-badge" style="--dim-color:${SYSTEM_COLOR[sys]}">
-          <span class="dim-dot"></span>${esc(SYSTEM_FULL[sys].toUpperCase())}
-        </span>`).join('')}
+    <!-- Two stacked waveform tracks. Each track shows the TTS-derived (text)
+         or original (audio) RMS envelope for that side, with chord pins
+         overlaid at their firing timestamps. -->
+    <div class="audio-tracks reveal d1">
+      ${renderAudioTrack('a', va.display_name, waveA, durA, moments.filter(m => m.video === 'video_a'), c)}
+      ${renderAudioTrack('b', vb.display_name, waveB, durB, moments.filter(m => m.video === 'video_b'), c)}
     </div>
 
-    <div class="text-compare-grid reveal d2">
-      <div class="text-panel a">
-        <div class="text-panel-head">
-          <span class="text-panel-badge">A</span>
-          <span class="text-panel-label">Version A</span>
-          <span class="text-panel-chars">${textA.length} chars</span>
-        </div>
-        <div class="text-body">${annotateText(textA, dimensions, 'a')}</div>
+    ${totalChords === 0
+      ? `<div class="chord-empty-note reveal">No chord crossed threshold this run — typical for shorter ${contentNounPlural()}. The seven systems still fired and shaped the response; you can see their interplay in the systems view below.</div>`
+      : ''}
+
+    <!-- Secondary view: per-word annotation by dominant brain system.
+         Useful for ${noun} mode to see which words pulled which systems. -->
+    <details class="annotated-text-details reveal d2">
+      <summary>Read along — phrase-by-phrase brain system attribution</summary>
+      <div class="dim-legend">
+        ${CANONICAL_SYSTEMS.map(sys => `
+          <span class="dim-badge" style="--dim-color:${SYSTEM_COLOR[sys]}">
+            <span class="dim-dot"></span>${esc(SYSTEM_FULL[sys].toUpperCase())}
+          </span>`).join('')}
       </div>
-      <div class="text-panel b">
-        <div class="text-panel-head">
-          <span class="text-panel-badge">B</span>
-          <span class="text-panel-label">Version B</span>
-          <span class="text-panel-chars">${textB.length} chars</span>
+      <div class="text-compare-grid">
+        <div class="text-panel a">
+          <div class="text-panel-head">
+            <span class="text-panel-badge">A</span>
+            <span class="text-panel-label">${esc(va.display_name)}</span>
+            <span class="text-panel-chars">${durA}s · ${textA.length} chars</span>
+          </div>
+          <div class="text-body">${annotateText(textA, dimensions, 'a')}</div>
         </div>
-        <div class="text-body">${annotateText(textB, dimensions, 'b')}</div>
+        <div class="text-panel b">
+          <div class="text-panel-head">
+            <span class="text-panel-badge">B</span>
+            <span class="text-panel-label">${esc(vb.display_name)}</span>
+            <span class="text-panel-chars">${durB}s · ${textB.length} chars</span>
+          </div>
+          <div class="text-body">${annotateText(textB, dimensions, 'b')}</div>
+        </div>
       </div>
-    </div>
+    </details>
   </section>`;
+}
+
+// Render one audio track: side label, waveform bars, optional chord pins.
+// `wave` is the 200-bin RMS envelope (values 0-1). When empty (waveform
+// pipeline failed or modality has no audio), we render a flat placeholder
+// so the layout still reads correctly.
+function renderAudioTrack(side, displayName, wave, durationSec, moments, c){
+  const label = (displayName || (side === 'a' ? 'Stimulus A' : 'Stimulus B')).toUpperCase();
+  const safeWave = (wave && wave.length) ? wave : new Array(80).fill(0.04);
+  // Build the bars as flexbox children so they auto-fit any width.
+  const barsHtml = safeWave.map(v => {
+    const h = Math.max(2, Math.min(100, v * 100));
+    return `<span class="awv-bar" style="height:${h.toFixed(1)}%"></span>`;
+  }).join('');
+  const pinsHtml = (moments || []).map((m, i) => {
+    const pct = Math.max(0, Math.min(100, (m.timestamp_seconds / durationSec) * 100));
+    const chordName = (c.slots.chord_meanings && c.slots.chord_meanings[m.chord_id] && c.slots.chord_meanings[m.chord_id].value && c.slots.chord_meanings[m.chord_id].value.name) || m.chord_id || 'chord';
+    const ts = `${Math.floor(m.timestamp_seconds/60)}:${Math.floor(m.timestamp_seconds%60).toString().padStart(2,'0')}`;
+    return `<div class="awv-pin" data-side="${side}" data-index="${i}" style="left:${pct}%">
+      <div class="awv-pin-stem"></div>
+      <div class="awv-pin-label">${esc(chordName)} <span class="awv-pin-ts">${ts}</span></div>
+    </div>`;
+  }).join('');
+  return `
+    <div class="audio-track audio-track--${side}">
+      <div class="awv-head">
+        <span class="awv-side-tag awv-side-tag--${side}">${side.toUpperCase()}</span>
+        <span class="awv-side-name">${esc(displayName || (side === 'a' ? 'Stimulus A' : 'Stimulus B'))}</span>
+        <span class="awv-side-meta">${durationSec}s · ${(wave && wave.length) ? 'TTS waveform' : 'no waveform'}</span>
+      </div>
+      <div class="awv-stage">
+        <div class="awv-bars">${barsHtml}</div>
+        <div class="awv-pin-layer">${pinsHtml}</div>
+      </div>
+    </div>`;
 }
 
 // Map a piece of text to colored spans where each word's color = the brain

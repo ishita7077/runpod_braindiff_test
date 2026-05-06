@@ -384,6 +384,36 @@ def _run_text(
     text_segments_b = [{"start": 0, "end": runtime_b, "text": text_b}]
     title_a = display_name_a or text_a[:60] or "Stimulus A"
     title_b = display_name_b or text_b[:60] or "Stimulus B"
+
+    # ─── Generate TTS waveforms so text mode has the same audio-shape view
+    # the results page renders for audio mode. The TRIBE pipeline already
+    # synthesises speech internally to feed audio features into the model
+    # but doesn't expose the audio file; we re-synthesise here with gTTS
+    # (cheap and identical voice) so the frontend can draw a waveform.
+    # Soft-fail: never block the brain payload on a TTS hiccup.
+    media_features_payload: dict[str, Any] | None = None
+    try:
+        from gtts import gTTS  # type: ignore
+        from backend.media_features import audio_envelope, WAVEFORM_BINS
+        wf_a: list[float] = []
+        wf_b: list[float] = []
+        for text, slot in ((text_a, "a"), (text_b, "b")):
+            try:
+                tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3")
+                tmp.close()
+                gTTS(text=text or " ", lang="en").save(tmp.name)
+                env = audio_envelope(tmp.name, bins=WAVEFORM_BINS) or []
+                if slot == "a": wf_a = env
+                else: wf_b = env
+            except Exception as werr:
+                log.warning("TTS waveform failed for slot %s: %s", slot, werr)
+            finally:
+                try: os.unlink(tmp.name)
+                except Exception: pass
+        if wf_a or wf_b:
+            media_features_payload = {"waveform_a": wf_a, "waveform_b": wf_b}
+    except Exception as exc:
+        log.warning("Text-mode waveform pipeline unavailable: %s", exc)
     results_content = _generate_results_content(
         job_id=job_id or "",
         scores_a=scores_a,
@@ -414,6 +444,7 @@ def _run_text(
         median_a=median_a,
         median_b=median_b,
         warnings=warnings,
+        media_features=media_features_payload,
         job_id=job_id,
         results_content=results_content,
         display_name_a=title_a,
