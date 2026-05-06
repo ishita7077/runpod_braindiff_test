@@ -26,10 +26,12 @@ Inputs:
 - Recipe A name + short description: {recipe_a_name} — {recipe_a_short}
 - Recipe B name + short description: {recipe_b_name} — {recipe_b_short}
 
+- Analysis brief tradeoff (anchor your body to this if it's set):
+{analysis_tradeoff}
+
 Voice exemplars (study carefully — these are the body anchors):
 {exemplars}
 
-Generate 3 candidate body paragraphs. Select the one that most clearly
-supports the headline AND ends with a sentence that pulls the reader into
-the rest of the page. Output only the selected paragraph as a single string.
-No explanation.
+Output ONLY the final body paragraph (2-3 sentences, ≤60 words). No prose
+preamble. No explanation. No "Body:" prefix. No JSON. No surrounding quotes.
+Plain text only.

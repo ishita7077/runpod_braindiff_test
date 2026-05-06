@@ -19,10 +19,19 @@ class BodySlot(Slot):
     template_name = "body.txt"
     max_new_tokens = 180
 
-    def __init__(self, *, headline_text: str, lead_insight: LeadInsight) -> None:
+    def __init__(
+        self,
+        *,
+        headline_text: str,
+        lead_insight: LeadInsight,
+        analysis_brief: dict[str, Any] | None = None,
+    ) -> None:
         super().__init__(validator=BodyValidator())
         self.headline_text = headline_text
         self.lead_insight = lead_insight
+        # Phase C.7: optional analysis brief threaded through so the body
+        # explains the same tradeoff the headline names.
+        self.analysis_brief = analysis_brief
 
     def build_template_context(self, inputs: NormalizedInputs) -> dict[str, Any]:
         a, b = inputs.video_a, inputs.video_b
@@ -42,6 +51,10 @@ class BodySlot(Slot):
         exemplars = voice_exemplars().get("body", [])
         exemplar_block = "\n".join(f"  {i+1}. {e}" for i, e in enumerate(exemplars[:4]))
 
+        tradeoff = ""
+        if isinstance(self.analysis_brief, dict):
+            tradeoff = str(self.analysis_brief.get("tradeoff") or "").strip()
+
         return {
             "headline":         self.headline_text,
             "video_a_title":    a.display_name,
@@ -53,4 +66,5 @@ class BodySlot(Slot):
             "recipe_a_short":   (match_a.description_template or "")[:140],
             "recipe_b_short":   (match_b.description_template or "")[:140],
             "exemplars":        exemplar_block,
+            "analysis_tradeoff": tradeoff or "(brief unavailable; rely on the lead insight)",
         }

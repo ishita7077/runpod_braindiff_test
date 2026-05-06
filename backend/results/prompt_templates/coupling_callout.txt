@@ -17,13 +17,12 @@ Inputs:
 - Video subject: {video_display_name}
 - Coupling type: {coupling_type} (strongest | weakest | anti)
 - System pair: {system_a} ↔ {system_b}
-- r-value: {r_value}
 - Qualitative descriptor: {descriptor}
 - This video's recipe: {recipe_name}
 
 Voice exemplars:
 {exemplars}
 
-Generate 2 candidate callouts in this voice. Select the one with the strongest
-recipe-relevant ending. Output only the selected 2-sentence callout as a
-single string. No explanation.
+Output ONLY the final 2-sentence callout. No prose preamble. No explanation.
+No surrounding quotes. No "Callout:" prefix. No JSON. No numeric values
+(no r-values, no percentages). Plain text only.

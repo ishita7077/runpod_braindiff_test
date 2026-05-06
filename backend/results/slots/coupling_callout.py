@@ -71,12 +71,14 @@ class CouplingCalloutSlot(Slot):
         exemplars = voice_exemplars().get("coupling_callout", [])
         exemplar_block = "\n".join(f"  {i+1}. {e}" for i, e in enumerate(exemplars[:4]))
 
+        # Phase C.4: r_value removed from the rendered prompt — it was
+        # contradicting the banned-pattern validator (no numeric values).
+        # The pair's r still influences the descriptor (strongest/weakest/anti).
         return {
             "video_display_name": video.display_name,
             "coupling_type":      self.coupling_type,
             "system_a":           pair.system_a,
             "system_b":           pair.system_b,
-            "r_value":            f"{pair.r:+.2f}",
             "descriptor":         _DESCRIPTOR[self.coupling_type],
             "recipe_name":        match.name,
             "exemplars":          exemplar_block,

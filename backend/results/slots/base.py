@@ -118,6 +118,29 @@ class Slot:
 
     # ------- the runner -------
 
+    # Phase C.5 — sampled generation + repair loop.
+    #
+    # Old behaviour: attempt 1 greedy, attempt 2 sampled. Two shots, no
+    # awareness of WHY attempt 1 failed.
+    #
+    # New behaviour:
+    #   1. sample (temperature self.temperature, do_sample=self.do_sample)
+    #   2. if invalid: REPAIR with the prior errors + prior raw text and
+    #      a lower temperature (deterministic-leaning) so the model can
+    #      correct the structural mistake.
+    #   3. if still invalid: a second sample with a different seed.
+    # Every attempt is recorded in raw_doc.attempts so the audit shows
+    # exactly what the model did at each step.
+
+    REPAIR_PROMPT_HEADER = (
+        "Your previous output failed validation. Fix it and return only the\n"
+        "corrected output (matching the format the original prompt requested).\n"
+        "Do not add explanation. Do not include the prior errors in the output.\n\n"
+        "Errors:\n{errors}\n\n"
+        "Previous output:\n{previous_output}\n\n"
+        "ORIGINAL PROMPT:\n{original_prompt}\n"
+    )
+
     async def run(
         self,
         *,
@@ -138,79 +161,126 @@ class Slot:
 
         seed = deterministic_seed(comparison_id, self.slot_address)
         candidates: list[Any] = []
+        # Per-attempt audit trail recorded in raw_doc.attempts (Phase C.5).
+        attempt_log: list[dict[str, Any]] = []
         validation: ValidationResult = ValidationResult(passed=False)
-        attempts = 0
         last_error: str | None = None
 
-        # Two attempts: first deterministic, retry with sampling at temperature 0.5.
-        for attempt in (1, 2):
-            attempts = attempt
+        attempt_plan: tuple[tuple[str, int, float, bool], ...] = (
+            # (kind, seed_offset, temperature, do_sample)
+            ("sample",  0, self.temperature, self.do_sample),
+            ("repair",  1, 0.35,             True),
+            ("sample",  2, self.temperature, True),
+        )
+
+        for attempt_idx, (kind, seed_offset, temp, do_sample) in enumerate(attempt_plan, start=1):
+            if kind == "repair":
+                if not attempt_log or attempt_log[-1].get("validation", {}).get("passed"):
+                    # Nothing to repair; stop.
+                    break
+                last = attempt_log[-1]
+                errors_str = last.get("validation", {}).get("errors_str", "unknown errors")
+                previous_output = last.get("raw_text", "")[:1500]
+                repair_prompt = self.REPAIR_PROMPT_HEADER.format(
+                    errors=errors_str,
+                    previous_output=previous_output,
+                    original_prompt=prompt,
+                )
+                req_prompt = repair_prompt
+            else:
+                if attempt_idx > 1 and attempt_log and attempt_log[-1].get("validation", {}).get("passed"):
+                    break
+                req_prompt = prompt
+
             req = GenerationRequest(
-                prompt=prompt,
+                prompt=req_prompt,
                 max_new_tokens=self.max_new_tokens,
-                temperature=self.temperature if attempt == 1 else 0.5,
+                temperature=temp,
                 top_p=self.top_p,
-                do_sample=False if attempt == 1 else True,
-                seed=seed + (attempt - 1),  # second attempt: nudge seed
+                do_sample=do_sample,
+                seed=seed + seed_offset,
             )
 
-            audit.emit("slot_model_called", slot=self.slot_address, attempt=attempt, prompt_hash=prompt_hash)
+            audit.emit(
+                "slot_model_called",
+                slot=self.slot_address,
+                attempt=attempt_idx,
+                prompt_hash=prompt_hash,
+                data={"attempt_kind": kind},
+            )
+
+            entry: dict[str, Any] = {
+                "kind": kind,
+                "attempt": attempt_idx,
+                "temperature": temp,
+                "do_sample": do_sample,
+                "seed": seed + seed_offset,
+            }
 
             try:
                 resp = await manager.generate(req)
             except Exception as exc:
                 last_error = f"{type(exc).__name__}: {exc}"
+                entry["error"] = last_error
+                entry["validation"] = {"passed": False, "errors_str": last_error}
+                attempt_log.append(entry)
                 audit.emit(
                     "slot_model_failed",
                     slot=self.slot_address,
-                    attempt=attempt,
+                    attempt=attempt_idx,
                     error_code="MODEL_CALL_FAILED",
                     error_detail=last_error,
                 )
-                if attempt == 2:
-                    break
-                audit.emit("slot_retry_started", slot=self.slot_address, attempt=2)
                 continue
 
             audit.emit(
                 "slot_model_returned",
                 slot=self.slot_address,
-                attempt=attempt,
+                attempt=attempt_idx,
                 latency_ms=resp.latency_ms,
             )
+            entry["raw_text"] = resp.text
+            entry["latency_ms"] = resp.latency_ms
 
             try:
                 selected = self.parse_selected(resp.text)
             except Exception as exc:
                 last_error = f"PARSE_ERROR: {exc}"
+                entry["error"] = last_error
+                entry["validation"] = {"passed": False, "errors_str": last_error}
+                attempt_log.append(entry)
                 audit.emit(
                     "slot_validation_failed",
                     slot=self.slot_address,
-                    attempt=attempt,
+                    attempt=attempt_idx,
                     error_code="OUTPUT_UNPARSEABLE",
-                    error_detail=str(exc),
+                    error_detail=last_error,
                 )
-                if attempt == 2:
-                    break
-                audit.emit("slot_retry_started", slot=self.slot_address, attempt=2)
                 continue
 
             candidates.append(selected)
-            validation = self.validator.validate(selected)
+            entry["parsed"] = selected if not isinstance(selected, str) else None
+            attempt_validation = self.validator.validate(selected)
+            entry["validation"] = {
+                "passed": attempt_validation.passed,
+                "errors": [e.as_dict() for e in attempt_validation.errors],
+                "errors_str": "; ".join(e.detail for e in attempt_validation.errors),
+            }
+            attempt_log.append(entry)
 
-            if validation.passed:
-                audit.emit("slot_validation_passed", slot=self.slot_address, attempt=attempt)
+            validation = attempt_validation
+
+            if attempt_validation.passed:
+                audit.emit("slot_validation_passed", slot=self.slot_address, attempt=attempt_idx)
                 break
 
             audit.emit(
                 "slot_validation_failed",
                 slot=self.slot_address,
-                attempt=attempt,
-                error_code=validation.errors[0].code if validation.errors else "VALIDATION_FAILED",
-                error_detail="; ".join(e.detail for e in validation.errors),
+                attempt=attempt_idx,
+                error_code=attempt_validation.errors[0].code if attempt_validation.errors else "VALIDATION_FAILED",
+                error_detail="; ".join(e.detail for e in attempt_validation.errors),
             )
-            if attempt == 1:
-                audit.emit("slot_retry_started", slot=self.slot_address, attempt=2)
 
         latency_ms = int((time.perf_counter() - start) * 1000)
 
@@ -236,17 +306,18 @@ class Slot:
             "prompt_rendered": prompt,
             "candidates": candidates,
             "selected":   candidates[-1] if (candidates and validation.passed) else None,
-            "attempts":   attempts,
+            "attempts":   attempt_log,
+            "attempts_count": len(attempt_log),
             "validation": validation.as_dict(),
             "latency_ms": latency_ms,
         }
-        raw_path.write_text(json.dumps(raw_doc, indent=2, ensure_ascii=False))
+        raw_path.write_text(json.dumps(raw_doc, indent=2, ensure_ascii=False, default=str))
 
         succeeded = validation.passed
         audit.emit(
             "slot_completed",
             slot=self.slot_address,
-            attempt=attempts,
+            attempt=len(attempt_log),
             latency_ms=latency_ms,
             raw_output_path=str(raw_path),
             error_code=None if succeeded else "VALIDATION_FAILED_FINAL",
@@ -258,7 +329,7 @@ class Slot:
             candidates=candidates,
             validation=validation,
             raw_path=raw_path,
-            attempts=attempts,
+            attempts=len(attempt_log),
             latency_ms=latency_ms,
             succeeded=succeeded,
         )

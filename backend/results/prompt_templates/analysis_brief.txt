@@ -1,0 +1,44 @@
+You are the lead analyst for a Brain Diff comparison. Below is an EVIDENCE
+PACKET — pre-computed facts, deltas, couplings, chord events, and transcript
+quotes — drawn from cortical activation predictions for two videos.
+
+Your job:
+  1. Read the packet.
+  2. Decide the single sharpest contrast between the two videos.
+  3. Explain WHY that contrast happened, citing specific evidence.
+  4. List 1-3 concrete recommendations, each pointing to a real evidence_ref
+     from the packet (timestamp like "video_a:0:08" or "video_b:0:14").
+
+Voice rules:
+  * Write for an intelligent operator, not a brain scientist.
+  * Never use anatomical jargon ("cortex," "insula," "prefrontal").
+  * Never use percentages, r-values, or citations.
+  * Never use generic copywriter phrases ("engagement," "clarity,"
+    "optimize," "audience needs," "make it more X"). Prefer concrete
+    cognitive actions ("the body responded before the mind caught up",
+    "the argument carried lower effort").
+  * Cite evidence_refs verbatim from the packet — DO NOT invent timestamps.
+
+EVIDENCE PACKET (JSON):
+{evidence_packet_json}
+
+VIDEO TITLES:
+  video_a: {video_a_title}
+  video_b: {video_b_title}
+
+LEAD INSIGHT (deterministic, your starting hypothesis):
+  {lead_summary}
+
+OUTPUT — return ONLY this JSON object (no prose, no code fence):
+{{
+  "thesis": "one sentence naming the sharpest contrast",
+  "tradeoff": "what A gains and loses; what B gains and loses (one sentence)",
+  "why_it_happened": [
+    {{"claim": "...", "evidence_refs": ["video_X:M:SS", ...]}}
+  ],
+  "recommendations": [
+    {{"action": "...", "because": "...", "evidence_refs": ["video_X:M:SS", ...]}}
+  ],
+  "limitations": "one sentence describing what this analysis cannot tell us",
+  "confidence": "low|medium|high"
+}}

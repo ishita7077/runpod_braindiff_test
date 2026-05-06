@@ -41,6 +41,7 @@ from .lib.input_normalizer import (
 from .lib.lead_insight import select_lead_insight
 from .lib.library_matcher import match_recipe
 from .lib.model_manager import use_real_content_model
+from .slots.analysis_brief import AnalysisBriefSlot
 from .slots.base import Slot
 from .slots.body import BodySlot
 from .slots.chord_contextual_meaning import ChordContextualMeaningSlot
@@ -461,26 +462,6 @@ def generate_content_for_worker(
 
     match_a = match_recipe(va)
     match_b = match_recipe(vb)
-    wave1: list[Slot] = [
-        HeadlineSlot(lead_insight=lead),
-        RecipeMatchSlot(video_key="video_a"),
-        RecipeMatchSlot(video_key="video_b"),
-        RecipeDescriptionSlot(video_key="video_a"),
-        RecipeDescriptionSlot(video_key="video_b"),
-        Frame2SubSlot(recipe_a_name=match_a.name, recipe_b_name=match_b.name),
-    ]
-    for vid_key in ("video_a", "video_b"):
-        for ctype in ("strongest", "weakest", "anti"):
-            wave1.append(CouplingCalloutSlot(video_key=vid_key, coupling_type=ctype))
-
-    firing_index = 0
-    for vid_key in ("video_a", "video_b"):
-        video = getattr(inputs, vid_key)
-        for ev in video.chord_events:
-            wave1.append(ChordContextualMeaningSlot(
-                firing_index=firing_index, video_key=vid_key, event=ev,
-            ))
-            firing_index += 1
 
     async def _run(slots):
         return await asyncio.gather(*[
@@ -518,6 +499,35 @@ def generate_content_for_worker(
             raise box["error"]
         return box.get("value")
 
+    # Phase C.7: wave 0 — produce the analysis_brief first so every section
+    # writer can anchor on the same chosen thesis/tradeoff.
+    brief_slot = AnalysisBriefSlot(lead_insight=lead)
+    [brief_result] = _run_coro(_run([brief_slot]))
+    analysis_brief: dict[str, Any] | None = None
+    if brief_result and brief_result.succeeded and isinstance(brief_result.selected, dict):
+        analysis_brief = brief_result.selected
+
+    wave1: list[Slot] = [
+        HeadlineSlot(lead_insight=lead, analysis_brief=analysis_brief),
+        RecipeMatchSlot(video_key="video_a"),
+        RecipeMatchSlot(video_key="video_b"),
+        RecipeDescriptionSlot(video_key="video_a"),
+        RecipeDescriptionSlot(video_key="video_b"),
+        Frame2SubSlot(recipe_a_name=match_a.name, recipe_b_name=match_b.name),
+    ]
+    for vid_key in ("video_a", "video_b"):
+        for ctype in ("strongest", "weakest", "anti"):
+            wave1.append(CouplingCalloutSlot(video_key=vid_key, coupling_type=ctype))
+
+    firing_index = 0
+    for vid_key in ("video_a", "video_b"):
+        video = getattr(inputs, vid_key)
+        for ev in video.chord_events:
+            wave1.append(ChordContextualMeaningSlot(
+                firing_index=firing_index, video_key=vid_key, event=ev,
+            ))
+            firing_index += 1
+
     wave1_results = _run_coro(_run(wave1))
     headline_result = next((r for r in wave1_results if r.slot_address == "headline"), None)
     headline_text = (
@@ -526,7 +536,7 @@ def generate_content_for_worker(
         else "(headline unavailable)"
     )
 
-    wave2 = [BodySlot(headline_text=headline_text, lead_insight=lead)]
+    wave2 = [BodySlot(headline_text=headline_text, lead_insight=lead, analysis_brief=analysis_brief)]
     _run_coro(_run(wave2))
 
     content = assemble_content(
@@ -536,8 +546,36 @@ def generate_content_for_worker(
         outputs_dir=out_dir, overrides_dir=overrides_dir, audit=audit,
     )
 
+    # Phase C.7: surface the analysis_brief on content.slots so the rich page
+    # can render thesis/tradeoff/why_it_happened/recommendations as primary
+    # blocks. We add it post-assembly because assemble_content predates the
+    # brief slot — the schema_version stays results_content.v1; the field is
+    # additive.
+    if isinstance(content, dict):
+        slots = content.setdefault("slots", {})
+        if analysis_brief is not None:
+            slots["analysis_brief"] = {
+                "value": analysis_brief,
+                "source": "llm",
+                "status": "ok",
+                "raw_path": str(brief_slot.slot_address) if brief_result else None,
+                "errors": [],
+            }
+        else:
+            errors_str = "; ".join(
+                e.detail for e in (brief_result.validation.errors if brief_result else [])
+            ) or "brief generation failed"
+            slots["analysis_brief"] = {
+                "value": None,
+                "source": "fallback",
+                "status": "generation_failed",
+                "raw_path": None,
+                "errors": [errors_str],
+            }
+
     content_audit = _summarise_content_sources(content)
     content_audit["input_mapping"] = input_audit
+    content_audit["analysis_brief_present"] = bool(analysis_brief)
     content_model = _describe_content_model(manager)
 
     audit.emit("comparison_completed", data={"content_audit": content_audit})
@@ -569,7 +607,7 @@ def _walk_slot_sources(slots: dict[str, Any]) -> list[tuple[str, str, str]]:
             return
         out.append((addr, str(slot.get("source", "missing")), str(slot.get("status", "missing"))))
 
-    for top_key in ("headline", "body", "frame2_sub"):
+    for top_key in ("headline", "body", "frame2_sub", "analysis_brief"):
         take(top_key, slots.get(top_key))
 
     for grouping in ("recipe_match", "recipe_description"):
