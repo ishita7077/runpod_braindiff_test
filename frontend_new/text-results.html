@@ -1211,23 +1211,37 @@ function renderConnectCard(side, video, matrix, integration, hubNode){
 }
 
 function renderCTA(c){
+  // Modality-aware CTA. The headline pivots on what the user just compared
+  // (text vs audio vs video) and the CTA verb matches.
+  const noun = contentNoun();
+  const nounPlural = contentNounPlural();
+  const verb = contentVerb();
+  const headline = noun === 'video'
+    ? `Compare two videos. <em>Watch the cortex pull apart.</em>`
+    : noun === 'audio clip'
+      ? `Compare two audio clips. <em>Hear the cortex diverge.</em>`
+      : `Compare two pieces of writing. <em>Read where the brain forks.</em>`;
   return `
   <section class="cta">
     <div class="cta-eyebrow">Brain Diff</div>
-    <p class="cta-headline">Compare two videos. <em>Watch the cortex pull apart.</em></p>
+    <p class="cta-headline">${headline}</p>
     <div class="cta-row">
-      <a class="cta-primary" href="/launch">Try Brain Diff</a>
-      <a class="cta-ghost" href="/methodology">Read the methodology</a>
-      <a class="cta-ghost" href="/research">Research</a>
+      <a class="cta-primary" href="/launch">Run another comparison</a>
+      <a class="cta-ghost" href="/methodology">How this works</a>
+      <a class="cta-ghost" href="/research">The research</a>
     </div>
   </section>`;
 }
 
 function renderFooter(c){
+  // Public-facing footer: keep brand voice, drop the implementation noise
+  // (TRIBEv2 SKU, CC BY-NC license string, raw comparison ID, voice hash)
+  // that leaked technical details to non-technical readers. Comparison ID
+  // moves to a copy-friendly position in the dev banner instead.
   return `
   <footer>
-    <div>Built on Meta FAIR's <span>TRIBEv2</span> · CC BY-NC · Population-average, cortical surface only</div>
-    <div>${esc(c.comparison_id)} · voice ${esc(c.assets.voice_exemplars_hash)}</div>
+    <div>Brain Diff — predicting the cortex from content. <a href="/methodology" style="color:inherit">Methodology</a> · <a href="/research" style="color:inherit">Research</a></div>
+    <div title="Comparison ID — handy for support">${esc((c.comparison_id || '').slice(0,8))}</div>
   </footer>`;
 }
 
