@@ -7,6 +7,11 @@ const { runtimeConfig } = require("../lib/config");
 function normalizeInput(body) {
   const payload = jsonOrEmpty(body);
   const modality = String(payload.modality || "text").toLowerCase();
+  // Display names: short, human-readable labels for each input. Auto-suggested
+  // on the launch page (extracted from text or filename) and editable by the
+  // user. Capped at 60 chars defensively. Stored in job metadata and forwarded
+  // to the worker so the entire UI uses the same labels everywhere.
+  const cap = (s, n) => (typeof s === "string" ? s.trim().slice(0, n) : "");
   return {
     modality,
     textA: typeof payload.text_a === "string" ? payload.text_a.trim() : "",
@@ -17,6 +22,8 @@ function normalizeInput(body) {
     mediaNameB: typeof payload.media_name_b === "string" ? payload.media_name_b.trim() : "",
     mediaDurationA: Number.isFinite(Number(payload.media_duration_a_s)) ? Number(payload.media_duration_a_s) : null,
     mediaDurationB: Number.isFinite(Number(payload.media_duration_b_s)) ? Number(payload.media_duration_b_s) : null,
+    displayNameA: cap(payload.display_name_a, 60),
+    displayNameB: cap(payload.display_name_b, 60),
     trimToShorter: payload.trim_to_shorter === true,
     turnstileToken: payload.turnstileToken || payload.turnstile_token || ""
   };
@@ -66,6 +73,8 @@ module.exports = async function handler(req, res) {
       text_b: input.textB || undefined,
       media_url_a: input.mediaUrlA || undefined,
       media_url_b: input.mediaUrlB || undefined,
+      display_name_a: input.displayNameA || undefined,
+      display_name_b: input.displayNameB || undefined,
       trim_to_shorter: input.trimToShorter || undefined,
       blob_token: input.modality === "audio" || input.modality === "video" ? cfg.blobReadWriteToken : undefined
     };
@@ -82,6 +91,8 @@ module.exports = async function handler(req, res) {
       modality: input.modality,
       mediaNameA: input.mediaNameA || null,
       mediaNameB: input.mediaNameB || null,
+      displayNameA: input.displayNameA || null,
+      displayNameB: input.displayNameB || null,
       mediaDurationA: input.mediaDurationA,
       mediaDurationB: input.mediaDurationB,
       trimToShorter: input.trimToShorter,

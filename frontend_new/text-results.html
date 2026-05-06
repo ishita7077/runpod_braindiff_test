@@ -468,6 +468,35 @@ const JOB_STATUS_URL = JOB_ID ? `/api/diff/status/${encodeURIComponent(JOB_ID)}`
 let CONTENT = null;
 let RESULT = null;  // full worker payload (dimensions, transcripts) — needed for the annotated text frame
 
+// ─── Modality copy helper ──────────────────────────────────────────────
+// Single source of truth for what to call "the thing being compared".
+// Used everywhere instead of hardcoded "video" so the text/audio results
+// page reads naturally for whichever modality actually ran.
+//   contentNoun()        → "video" | "audio clip" | "text"
+//   contentNounPlural()  → "videos" | "audio clips" | "texts"
+//   contentVerb()        → "watch" | "listen to" | "read"
+function currentModality(){
+  return (RESULT && RESULT.meta && RESULT.meta.modality) || 'text';
+}
+function contentNoun(){
+  const m = currentModality();
+  if (m === 'video') return 'video';
+  if (m === 'audio') return 'audio clip';
+  return 'text';
+}
+function contentNounPlural(){
+  const m = currentModality();
+  if (m === 'video') return 'videos';
+  if (m === 'audio') return 'audio clips';
+  return 'texts';
+}
+function contentVerb(){
+  const m = currentModality();
+  if (m === 'video') return 'watch';
+  if (m === 'audio') return 'listen to';
+  return 'read';
+}
+
 (async function boot(){
   if (JOB_ID)            return bootFromJob();
   if (COMPARISON_ID)     return bootFromStatic();

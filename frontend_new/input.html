@@ -170,6 +170,35 @@ h1.page-title em{font-style:italic;color:var(--accent);font-variation-settings:"
 .input-label{font-size:14px;font-weight:600;color:var(--ink);letter-spacing:-0.005em}
 .input-hint{font-size:11px;color:var(--ink-mute);font-family:'JetBrains Mono',monospace;letter-spacing:0.03em}
 .input-hint.warn{color:var(--accent)}
+
+/* Auto-named row above each Stimulus textarea / dropzone. Auto-suggested
+   from the first meaningful words of pasted text or from the uploaded
+   filename; user can edit. Sent to the worker as display_name_a/b. */
+.name-row{
+  display:flex;align-items:center;gap:10px;
+  padding:8px 12px;margin:6px 0 12px;
+  background:var(--panel-2,var(--surface));
+  border:1px solid var(--line-2);border-radius:8px;
+  font-size:13px;
+}
+.name-row-label{
+  font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.14em;
+  text-transform:uppercase;color:var(--ink-mute);flex-shrink:0;
+}
+.name-row input{
+  flex:1;min-width:0;border:none;background:transparent;outline:none;
+  font-family:'Inter Tight',system-ui,sans-serif;font-size:14px;font-weight:500;
+  color:var(--ink);padding:2px 0;
+}
+.name-row input::placeholder{color:var(--ink-mute);font-style:italic;font-weight:400}
+.name-row input:focus{color:var(--ink)}
+.name-row-hint{
+  font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.1em;
+  text-transform:uppercase;color:var(--ink-mute);flex-shrink:0;opacity:.6;
+  transition:opacity .15s;
+}
+.name-row:focus-within .name-row-hint{opacity:1}
+.name-row.has-suggestion{border-color:color-mix(in srgb,var(--accent) 25%,var(--line-2))}
 .mode-row{
   display:flex;align-items:center;gap:10px;flex-wrap:wrap;
   margin:0 0 14px;
@@ -361,6 +390,13 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
           </div>
           <span class="input-hint" id="countA">0 / 1000</span>
         </div>
+        <div class="name-row" id="nameRowA">
+          <label class="name-row-label" for="nameA">Call this</label>
+          <input id="nameA" type="text" maxlength="60" autocomplete="off"
+            placeholder="auto-named once you add content"
+            aria-label="Display name for Stimulus A" />
+          <span class="name-row-hint" id="nameHintA">edit if needed</span>
+        </div>
         <textarea id="textA" name="text_a" maxlength="1000" spellcheck="true"
           placeholder="Paste the first sample — the baseline, the control, the calmer take."></textarea>
         <input id="fileA" name="file_a" type="file" hidden />
@@ -376,6 +412,13 @@ textarea::placeholder{color:var(--ink-mute);opacity:0.7}
             <span class="input-label">Stimulus B</span>
           </div>
           <span class="input-hint" id="countB">0 / 1000</span>
+        </div>
+        <div class="name-row" id="nameRowB">
+          <label class="name-row-label" for="nameB">Call this</label>
+          <input id="nameB" type="text" maxlength="60" autocomplete="off"
+            placeholder="auto-named once you add content"
+            aria-label="Display name for Stimulus B" />
+          <span class="name-row-hint" id="nameHintB">edit if needed</span>
         </div>
         <textarea id="textB" name="text_b" maxlength="1000" spellcheck="true"
           placeholder="Paste the second sample — the variant, the experimental condition, the sharper take."></textarea>
@@ -641,6 +684,105 @@ function toggleTheme(){
   b.addEventListener('blur', refresh);
   refresh();
 
+  // ─────────────────────────────────────────────────────────────────
+  // Auto-naming — suggest a short label for each input as user types
+  // (text mode) or picks a file (audio/video). User can edit at any
+  // time; once they do, we stop overwriting their edit. Sent to the
+  // worker as display_name_a/b on submit.
+  // ─────────────────────────────────────────────────────────────────
+  const nameA = document.getElementById('nameA');
+  const nameB = document.getElementById('nameB');
+  const nameRowA = document.getElementById('nameRowA');
+  const nameRowB = document.getElementById('nameRowB');
+  // Track whether user has manually edited the name. Once they do, we
+  // never overwrite it via auto-suggestion.
+  let userEditedA = false;
+  let userEditedB = false;
+  nameA.addEventListener('input', () => { userEditedA = true; });
+  nameB.addEventListener('input', () => { userEditedB = true; });
+
+  const STOPWORDS = new Set([
+    'a','an','and','the','is','are','was','were','be','been','being',
+    'of','to','in','on','at','for','with','from','by','as','that','this',
+    'these','those','it','its','his','her','their','our','your','my',
+    'but','or','if','so','than','then','also','just','very','more','most',
+    'i','you','he','she','we','they','them','us','me'
+  ]);
+
+  function suggestNameFromText(text){
+    if (!text || typeof text !== 'string') return '';
+    const cleaned = text.trim().replace(/[“”"'`]/g, '');
+    if (!cleaned) return '';
+    // Take the first sentence (split on . ! ?), max 80 chars window.
+    const firstSentence = cleaned.split(/[.!?]/, 1)[0].slice(0, 80);
+    const tokens = firstSentence.split(/\s+/).filter(Boolean);
+    // Keep proper nouns (start with capital) and meaningful non-stopwords.
+    const meaningful = [];
+    for (const tok of tokens){
+      const word = tok.replace(/[^\w'-]/g, '');
+      if (!word) continue;
+      const lower = word.toLowerCase();
+      const isProper = /^[A-Z]/.test(word) && word.length > 1;
+      if (isProper || !STOPWORDS.has(lower)){
+        meaningful.push(word);
+      }
+      if (meaningful.length >= 5) break;
+    }
+    if (meaningful.length === 0) return '';
+    // Title-case all-lower words; preserve as-is for already-cased ones.
+    const cased = meaningful.map(w => {
+      if (/^[A-Z]/.test(w)) return w;
+      return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+    });
+    return cased.join(' ').slice(0, 60);
+  }
+
+  function suggestNameFromFile(filename){
+    if (!filename) return '';
+    // Drop extension, replace separators with spaces, title-case.
+    const noExt = filename.replace(/\.[^.]+$/, '');
+    const spaced = noExt.replace(/[_\-.]+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (!spaced) return '';
+    return spaced.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ').slice(0, 60);
+  }
+
+  function applyAutoName(input, row, suggestion, edited){
+    if (edited) return;             // user took control, never overwrite
+    if (!suggestion){
+      input.value = '';
+      row.classList.remove('has-suggestion');
+      return;
+    }
+    input.value = suggestion;
+    row.classList.add('has-suggestion');
+  }
+
+  function refreshAutoNames(){
+    if (mode === 'text'){
+      applyAutoName(nameA, nameRowA, suggestNameFromText(a.value), userEditedA);
+      applyAutoName(nameB, nameRowB, suggestNameFromText(b.value), userEditedB);
+    } else {
+      const fa = fileA.files && fileA.files[0];
+      const fb = fileB.files && fileB.files[0];
+      applyAutoName(nameA, nameRowA, fa ? suggestNameFromFile(fa.name) : '', userEditedA);
+      applyAutoName(nameB, nameRowB, fb ? suggestNameFromFile(fb.name) : '', userEditedB);
+    }
+  }
+  // Wire auto-naming into existing input/file events.
+  a.addEventListener('input', refreshAutoNames);
+  b.addEventListener('input', refreshAutoNames);
+  fileA.addEventListener('change', refreshAutoNames);
+  fileB.addEventListener('change', refreshAutoNames);
+  // When a preset example is loaded, the .value of textareas changes
+  // programmatically — manually re-run auto-naming for that path.
+  document.querySelectorAll('.example-btn').forEach(eb => {
+    eb.addEventListener('click', () => {
+      // Reset edit flags so auto-name overrides stale user input.
+      userEditedA = false; userEditedB = false;
+      refreshAutoNames();
+    });
+  });
+
   // Toast-wrapped versions of the old banner helpers. Never permanent.
   function toastIssues(hits, opts){
     opts = opts || {};
@@ -890,8 +1032,20 @@ function toggleTheme(){
     let job;
     try{
       let res;
+      // Resolve display names: whatever is in the input fields right now,
+      // falling back to the auto-suggestion if user cleared them, falling
+      // back to "Stimulus A/B" if all else fails. The worker uses these
+      // everywhere instead of "Version A" / raw input text.
+      const finalNameA = (nameA.value || '').trim() || 'Stimulus A';
+      const finalNameB = (nameB.value || '').trim() || 'Stimulus B';
       if (mode === 'text'){
-        const payload = { text_a: a.value, text_b: b.value, modality: 'text' };
+        const payload = {
+          text_a: a.value,
+          text_b: b.value,
+          modality: 'text',
+          display_name_a: finalNameA,
+          display_name_b: finalNameB,
+        };
         if (turnstileRequired) payload.turnstileToken = turnstileToken;
         res = await fetch('/api/diff/start', {
           method:'POST',
@@ -910,6 +1064,8 @@ function toggleTheme(){
           media_url_b: uploadB.url,
           media_name_a: fa.name,
           media_name_b: fb.name,
+          display_name_a: finalNameA,
+          display_name_b: finalNameB,
           media_duration_a_s: mediaPlan.a,
           media_duration_b_s: mediaPlan.b,
           trim_to_shorter: mediaPlan.trimToShorter

@@ -245,6 +245,8 @@ def _build_response(
     media_features: dict[str, Any] | None = None,
     job_id: str | None = None,
     results_content: dict[str, Any] | None = None,
+    display_name_a: str = "",
+    display_name_b: str = "",
 ) -> dict[str, Any]:
     request_id = str(uuid.uuid4())
     if not job_id:
@@ -288,6 +290,11 @@ def _build_response(
         "heatmap": heatmap,
         "atlas_peak": describe_peak_abs_delta(vertex_delta),
         "dimensions_count": len(diff),
+        # Display names — single source of truth for "what to call A and B" in
+        # the UI. Auto-suggested on the launch page (and optionally edited by
+        # the user) so we never fall back to "Stimulus A" / raw input text.
+        "display_name_a": display_name_a or "Stimulus A",
+        "display_name_b": display_name_b or "Stimulus B",
     }
     if modality == "text":
         # Back-compat: text mode keeps text_a/text_b at the meta top level
@@ -335,7 +342,14 @@ def _build_response(
     return response
 
 
-def _run_text(text_a: str, text_b: str, *, job_id: str | None = None) -> dict[str, Any]:
+def _run_text(
+    text_a: str,
+    text_b: str,
+    *,
+    job_id: str | None = None,
+    display_name_a: str = "",
+    display_name_b: str = "",
+) -> dict[str, Any]:
     started = time.perf_counter()
     warnings = _warnings_for_text(text_a, text_b)
     progress = emitter_for(job_id)
@@ -368,6 +382,8 @@ def _run_text(text_a: str, text_b: str, *, job_id: str | None = None) -> dict[st
     runtime_b = float(preds_b.shape[0])
     text_segments_a = [{"start": 0, "end": runtime_a, "text": text_a}]
     text_segments_b = [{"start": 0, "end": runtime_b, "text": text_b}]
+    title_a = display_name_a or text_a[:60] or "Stimulus A"
+    title_b = display_name_b or text_b[:60] or "Stimulus B"
     results_content = _generate_results_content(
         job_id=job_id or "",
         scores_a=scores_a,
@@ -376,8 +392,8 @@ def _run_text(text_a: str, text_b: str, *, job_id: str | None = None) -> dict[st
         transcript_segments_b=text_segments_b,
         duration_a_s=runtime_a,
         duration_b_s=runtime_b,
-        title_a=text_a[:60] or "Version A",
-        title_b=text_b[:60] or "Version B",
+        title_a=title_a,
+        title_b=title_b,
         progress=progress,
     )
     return _build_response(
@@ -400,6 +416,8 @@ def _run_text(text_a: str, text_b: str, *, job_id: str | None = None) -> dict[st
         warnings=warnings,
         job_id=job_id,
         results_content=results_content,
+        display_name_a=title_a,
+        display_name_b=title_b,
     )
 
 
@@ -411,6 +429,8 @@ def _run_media(
     job_id: str | None = None,
     blob_token: str = "",
     trim_to_shorter: bool = False,
+    display_name_a: str = "",
+    display_name_b: str = "",
 ) -> dict[str, Any]:
     started = time.perf_counter()
     warnings: list[str] = []
@@ -614,6 +634,27 @@ def _run_media(
         transcript_text_b = str(timing_b.get("transcript_text", "") or "")
         transcript_segs_a = list(timing_a.get("transcript_segments") or [])
         transcript_segs_b = list(timing_b.get("transcript_segments") or [])
+        # Resolve display titles. Priority:
+        #   1. user-supplied display_name_a/b from launch page (auto-suggested, editable)
+        #   2. media filename without extension (best-effort)
+        #   3. transcript first 60 chars
+        #   4. generic fallback
+        def _strip_ext(name: str) -> str:
+            if not name:
+                return ""
+            return name.rsplit(".", 1)[0] if "." in name else name
+        title_a = (
+            display_name_a
+            or _strip_ext((media_filenames or {}).get("a", ""))
+            or transcript_text_a[:60]
+            or ("Stimulus A" if modality != "video" else "Video A")
+        )
+        title_b = (
+            display_name_b
+            or _strip_ext((media_filenames or {}).get("b", ""))
+            or transcript_text_b[:60]
+            or ("Stimulus B" if modality != "video" else "Video B")
+        )
         results_content = _generate_results_content(
             job_id=job_id or "",
             scores_a=scores_a,
@@ -622,8 +663,8 @@ def _run_media(
             transcript_segments_b=transcript_segs_b,
             duration_a_s=float(media_durations.get("a", dur_a) if media_durations else dur_a),
             duration_b_s=float(media_durations.get("b", dur_b) if media_durations else dur_b),
-            title_a=(media_filenames or {}).get("a", "") or transcript_text_a[:60] or "Video A",
-            title_b=(media_filenames or {}).get("b", "") or transcript_text_b[:60] or "Video B",
+            title_a=title_a,
+            title_b=title_b,
             progress=progress,
         )
         return _build_response(
@@ -649,6 +690,8 @@ def _run_media(
             media_features=media_features_payload,
             job_id=job_id,
             results_content=results_content,
+            display_name_a=title_a,
+            display_name_b=title_b,
         )
     finally:
         for path in temp_files:
@@ -678,12 +721,21 @@ def handler(event: dict[str, Any]) -> dict[str, Any]:
     progress.emit("worker_started", "Worker booted, loading inputs...")
 
     mode = (payload.get("mode") or "text").strip().lower()
+    # User-supplied display names (auto-suggested on the launch page, optionally
+    # edited). When present, the worker uses them as titles instead of the raw
+    # input text or filename. Stored on result.meta.display_name_a/b so the
+    # whole UI can read them from one place.
+    display_name_a = (payload.get("display_name_a") or "").strip()
+    display_name_b = (payload.get("display_name_b") or "").strip()
     if mode == "text":
         text_a = (payload.get("text_a") or "").strip()
         text_b = (payload.get("text_b") or "").strip()
         if not text_a or not text_b:
             raise ValueError("text_a and text_b are required for mode=text")
-        result = _run_text(text_a=text_a, text_b=text_b, job_id=job_id)
+        result = _run_text(
+            text_a=text_a, text_b=text_b, job_id=job_id,
+            display_name_a=display_name_a, display_name_b=display_name_b,
+        )
         progress.emit("done", "Done")
         return result
     if mode not in {"audio", "video"}:
@@ -699,6 +751,8 @@ def handler(event: dict[str, Any]) -> dict[str, Any]:
         job_id=job_id,
         blob_token=blob_token,
         trim_to_shorter=trim_to_shorter,
+        display_name_a=display_name_a,
+        display_name_b=display_name_b,
     )
     progress.emit("done", "Done")
     return result

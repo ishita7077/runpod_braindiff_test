@@ -807,8 +807,10 @@ function toggleTheme(){
   const RUN_KIND = RUN_MODE === 'video' ? 'videos' : (RUN_MODE === 'audio' ? 'audio files' : 'texts');
   const RUN_DONE_COPY = RUN_MODE === 'text' ? 'Two texts, one cortex.' : 'Two media samples, one cortex.';
   function resultsPageForMode(){
-    if (RUN_MODE === 'audio') return './audio-results.html';
-    if (RUN_MODE === 'text')  return './text-results.html';
+    // Text and audio share the same page — both come down to a TTS-derived
+    // waveform + the same TRIBE-driven cortical timeseries. Video keeps the
+    // dedicated results.html that has the visual chord progression view.
+    if (RUN_MODE === 'audio' || RUN_MODE === 'text') return './text-results.html';
     return './results.html';
   }
 
