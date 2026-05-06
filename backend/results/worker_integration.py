@@ -446,7 +446,36 @@ def generate_content_for_worker(
             for s in slots
         ])
 
-    wave1_results = asyncio.run(_run(wave1))
+    def _run_coro(coro):
+        """Run a coroutine whether or not the caller is already inside a
+        running event loop. asyncio.run() raises RuntimeError when called
+        from inside an active loop (which is what happens here when the
+        worker has already spun up async machinery for TRIBE / model
+        loading). We detect that case and run the coro in a fresh thread
+        with its own loop so it can complete cleanly.
+        """
+        try:
+            asyncio.get_running_loop()
+            inside_loop = True
+        except RuntimeError:
+            inside_loop = False
+        if not inside_loop:
+            return asyncio.run(coro)
+        import threading
+        box = {}
+        def _runner():
+            try:
+                box["value"] = asyncio.run(coro)
+            except Exception as exc:  # noqa: BLE001
+                box["error"] = exc
+        t = threading.Thread(target=_runner, daemon=False)
+        t.start()
+        t.join()
+        if "error" in box:
+            raise box["error"]
+        return box.get("value")
+
+    wave1_results = _run_coro(_run(wave1))
     headline_result = next((r for r in wave1_results if r.slot_address == "headline"), None)
     headline_text = (
         headline_result.selected
@@ -455,7 +484,7 @@ def generate_content_for_worker(
     )
 
     wave2 = [BodySlot(headline_text=headline_text, lead_insight=lead)]
-    asyncio.run(_run(wave2))
+    _run_coro(_run(wave2))
 
     content = assemble_content(
         comparison_id=cmp_id, run_id=rid,
