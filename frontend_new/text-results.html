@@ -140,7 +140,7 @@ nav.scrolled{background:rgba(247,242,234,.96);backdrop-filter:blur(16px);border-
 .d1{transition-delay:.1s}.d2{transition-delay:.22s}.d3{transition-delay:.34s}
 
 /* ── FRAME ─── */
-.frame{padding:5.5rem 3rem 5rem;max-width:1400px;margin:0 auto;border-top:1px solid var(--line)}
+.frame{padding:4rem 3rem 4.5rem;max-width:1400px;margin:0 auto;border-top:1px solid var(--line)}
 .frame-meta-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.4rem}
 .frame-num{font-family:var(--ff-mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--red);font-weight:500;display:flex;align-items:center;gap:.6rem}
 .frame-num::after{content:'';display:inline-block;width:24px;height:1px;background:var(--red);opacity:.5}
@@ -478,6 +478,19 @@ body:not(.dev-mode) .src-badge{display:none !important}
   border-radius:8px;background:var(--cream-2);
 }
 .callouts-empty p{font-family:var(--ff-body);font-size:.95rem;color:var(--ink-mid);line-height:1.55;margin:0}
+
+/* Hero share button — sits in the top-right where the raw filename
+   string used to be. Copies the comparison URL on click. */
+.hero-share-btn{
+  display:inline-flex;align-items:center;gap:.45rem;
+  background:transparent;border:1px solid var(--line-strong);
+  border-radius:6px;padding:.4rem .7rem;cursor:pointer;
+  font-family:var(--ff-mono);font-size:9.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-dim);
+  transition:border-color .15s,color .15s,background-color .15s;
+}
+.hero-share-btn:hover{border-color:var(--red);color:var(--red);background:var(--red-bg)}
+.hero-share-icon{font-size:13px;line-height:1;display:inline-block;transform:translateY(-1px)}
 </style>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -667,6 +680,15 @@ function acceptContent(json){
   }
   CONTENT = json;
   window.CONTENT = json;  // expose for the ES module that mounts the brain
+  // Update document title to the comparison ("A vs B — Brain Diff") so
+  // browser tabs are scannable when the user runs many comparisons.
+  try {
+    const va = json.videos && json.videos.video_a;
+    const vb = json.videos && json.videos.video_b;
+    if (va && vb && va.display_name && vb.display_name){
+      document.title = `${va.display_name} vs ${vb.display_name} — Brain Diff`;
+    }
+  } catch(_) {}
   document.getElementById('dev-comparison-id').textContent =
     `comparison_id=${CONTENT.comparison_id} · run_id=${CONTENT.run_id.slice(0,8)}…`;
   document.getElementById('nav-tag').textContent = `Results — ${CONTENT.comparison_id.slice(0,8)}`;
@@ -694,6 +716,22 @@ function acceptContent(json){
   // the contrast in the comparison panel is mirrored in the cortical view.
   try { mountResultsBrain(); }
   catch (err) { console.warn('Hero brain mount failed:', err && err.message); }
+  // Wire the hero share button — copies the current URL so users can pass
+  // a comparison around. Falls back to a prompt if Clipboard API is missing.
+  try {
+    const sb = document.getElementById('heroShareBtn');
+    if (sb) sb.addEventListener('click', async () => {
+      const url = window.location.href;
+      const lab = sb.querySelector('.hero-share-label');
+      const orig = lab ? lab.textContent : 'Copy link';
+      try {
+        await navigator.clipboard.writeText(url);
+        if (lab) { lab.textContent = 'Copied!'; setTimeout(() => { lab.textContent = orig; }, 1600); }
+      } catch (_) {
+        window.prompt('Copy this comparison link:', url);
+      }
+    });
+  } catch (_) {}
 }
 
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
@@ -748,7 +786,12 @@ function renderHero(c, va, vb){
   <section class="hero">
     <div class="hero-meta-row">
       <div class="hero-eyebrow-meta">Brain Diff · ${c.comparison_id.slice(0,8)}</div>
-      <div class="hero-files">${esc(c.analysis_version)}</div>
+      <div class="hero-files">
+        <button class="hero-share-btn" id="heroShareBtn" type="button" title="Copy link to this comparison">
+          <span class="hero-share-icon" aria-hidden="true">⎘</span>
+          <span class="hero-share-label">Copy link</span>
+        </button>
+      </div>
     </div>
     <h1 class="hero-versus">
       <span class="a-name">${esc(va.display_name)}</span>
@@ -998,20 +1041,31 @@ function renderAudioTrack(side, displayName, wave, durationSec, moments, c){
     </div>`;
 }
 
+// Stop words: skipped from annotation so the meaningful words stand out
+// instead of every "the / and / is" being underlined.
+const ANNOTATION_STOPWORDS = new Set([
+  'a','an','the','and','or','but','if','so','yet','for','nor','as','at','by',
+  'in','of','on','to','up','via','with','from','into','onto','over','than',
+  'is','are','was','were','be','been','being','am',
+  'do','does','did','done','doing','have','has','had','having',
+  'this','that','these','those','it','its','they','them','their','theirs',
+  'i','me','my','mine','you','your','yours','we','us','our','ours','he','him','his','she','her','hers',
+  'not','no','yes','too','very','just','also','only','really','quite',
+  'will','would','can','could','should','shall','may','might','must',
+  'about','than','then','here','there','where','when','what','which','who','whom','whose','how','why',
+]);
+
 // Map a piece of text to colored spans where each word's color = the brain
 // system with the highest absolute timeseries value at that word's mapped
-// timestep. Falls back to plain text if dimensions are missing.
+// timestep. Skips stop-words so the highlighted vocabulary is the
+// meaning-carrying words, not every "the". Falls back to plain text if
+// dimensions are missing.
 function annotateText(text, dimensions, side){
   if (!text || !dimensions || !dimensions.length) return esc(text || '');
-  // Find the longest timeseries on this side; assume all dimensions have
-  // identical length (TRIBE produces parallel per-second arrays).
   const seriesKey = side === 'a' ? 'timeseries_a' : 'timeseries_b';
   const numSteps = (dimensions[0] && dimensions[0][seriesKey] && dimensions[0][seriesKey].length) || 0;
   if (numSteps === 0) return esc(text);
 
-  // Tokenise on whitespace, preserving runs of spaces so re-rendering keeps
-  // the original text shape. Each word maps to the timestep covering its
-  // character position.
   const charsPerStep = Math.max(1, text.length / numSteps);
   const tokens = text.split(/(\s+)/);  // keep separators as tokens
   let pos = 0;
@@ -1020,10 +1074,16 @@ function annotateText(text, dimensions, side){
     if (/^\s+$/.test(tok)) { pos += tok.length; return tok; }
     const step = Math.min(numSteps - 1, Math.floor(pos / charsPerStep));
     pos += tok.length;
+    // Skip stop-words and very short tokens (punctuation, single letters).
+    const bare = tok.replace(/[^\w'-]/g, '').toLowerCase();
+    if (!bare || bare.length < 3 || ANNOTATION_STOPWORDS.has(bare)) return esc(tok);
     const dom = dominantSystem(dimensions, seriesKey, step);
     if (!dom) return esc(tok);
     const color = SYSTEM_COLOR[dom] || '#888';
-    return `<span class="txt-seg" data-sys="${dom}" style="background:${hexAlpha(color, 0.16)};border-bottom:1.5px solid ${color}">${esc(tok)}</span>`;
+    const sysName = SYSTEM_FULL[dom] || dom;
+    // Stronger highlight: 28% bg + 2.5px underline so the system actually
+    // reads as the dominant colour, plus a tooltip with the system name.
+    return `<span class="txt-seg" data-sys="${dom}" title="${esc(sysName)}" style="background:${hexAlpha(color, 0.28)};border-bottom:2.5px solid ${color}">${esc(tok)}</span>`;
   }).join('');
 }
 
