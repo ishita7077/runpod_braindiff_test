@@ -562,10 +562,88 @@ function render(){
   const c = CONTENT, va = c.videos.video_a, vb = c.videos.video_b;
   document.getElementById('page-root').innerHTML =
     renderHero(c, va, vb) +
+    renderAnalysisBrief(c) +
     renderFrame2(c, va, vb) +
     renderFrame3(c, va, vb) +
     renderCTA(c) +
     renderFooter(c);
+}
+
+// Phase E.1 — analysis_brief render block.
+// The brief is the LLM's structured analysis: thesis, tradeoff, why, evidence
+// map, recommendations, limitations. We render it under the hero so the page
+// LEADS with the model's interpretation, not a wall of charts. When the brief
+// failed (source !== "llm" or value missing), the block is omitted entirely
+// rather than rendering placeholder copy.
+function renderAnalysisBrief(c){
+  const slot = c.slots && c.slots.analysis_brief;
+  const brief = slot && slot.value;
+  if (!slot || slot.source !== 'llm' || !brief || typeof brief !== 'object') return '';
+  const why = Array.isArray(brief.why_it_happened) ? brief.why_it_happened : [];
+  const recs = Array.isArray(brief.recommendations) ? brief.recommendations : [];
+  const conf = String(brief.confidence || '').toUpperCase();
+  const limitations = String(brief.limitations || '').trim();
+
+  const whyHTML = why.length ? `
+    <div class="ab-section">
+      <div class="ab-section-eyebrow">Why this happened</div>
+      <ul class="ab-list">
+        ${why.map(w => `
+          <li>
+            <span class="ab-claim">${esc(w.claim || '')}</span>
+            ${(Array.isArray(w.evidence_refs) && w.evidence_refs.length)
+              ? `<span class="ab-refs">${w.evidence_refs.map(r => `<code>${esc(r)}</code>`).join(' · ')}</span>`
+              : ''}
+          </li>`).join('')}
+      </ul>
+    </div>` : '';
+
+  const recHTML = recs.length ? `
+    <div class="ab-section">
+      <div class="ab-section-eyebrow">Recommendations</div>
+      <ol class="ab-list">
+        ${recs.map(r => `
+          <li>
+            <span class="ab-action">${esc(r.action || '')}</span>
+            ${r.because ? `<span class="ab-because">${esc(r.because)}</span>` : ''}
+            ${(Array.isArray(r.evidence_refs) && r.evidence_refs.length)
+              ? `<span class="ab-refs">${r.evidence_refs.map(rr => `<code>${esc(rr)}</code>`).join(' · ')}</span>`
+              : ''}
+          </li>`).join('')}
+      </ol>
+    </div>` : '';
+
+  const limitsHTML = limitations
+    ? `<div class="ab-limitations"><span class="ab-limit-eyebrow">What this can't tell you</span> ${esc(limitations)}</div>`
+    : '';
+
+  return `
+  <section class="analysis-brief" id="analysis-brief">
+    <div class="ab-eyebrow">Frame 01.5 · Analysis Brief ${conf ? `<span class="ab-confidence">confidence: ${esc(conf)}</span>` : ''}</div>
+    <h2 class="ab-thesis">${esc(brief.thesis || '')}</h2>
+    ${brief.tradeoff ? `<p class="ab-tradeoff">${esc(brief.tradeoff)}</p>` : ''}
+    ${whyHTML}
+    ${recHTML}
+    ${limitsHTML}
+  </section>
+  <style>
+    .analysis-brief{max-width:980px;margin:0 auto;padding:36px 24px 48px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .ab-eyebrow{font-family:var(--ff-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:18px;display:flex;justify-content:space-between;align-items:center}
+    .ab-confidence{font-family:var(--ff-mono);font-size:10px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.18em}
+    .ab-thesis{font-family:var(--ff-display);font-size:28px;line-height:1.25;font-weight:400;margin:0 0 14px;color:var(--ink)}
+    .ab-tradeoff{font-family:var(--ff-body);font-size:18px;line-height:1.6;color:var(--ink-mid);margin:0 0 28px}
+    .ab-section{margin-bottom:24px}
+    .ab-section-eyebrow{font-family:var(--ff-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:10px}
+    .ab-list{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:10px}
+    .ab-list li{font-family:var(--ff-body);font-size:16px;line-height:1.55;color:var(--ink)}
+    .ab-claim,.ab-action{display:block;color:var(--ink)}
+    .ab-because{display:block;color:var(--ink-mid);font-style:italic;margin-top:2px}
+    .ab-refs{display:block;margin-top:4px;font-family:var(--ff-mono);font-size:11px;color:var(--ink-dim);letter-spacing:.04em}
+    .ab-refs code{background:rgba(26,20,16,0.05);padding:1px 6px;border-radius:3px;color:var(--ink-mid)}
+    .ab-limitations{margin-top:18px;padding-top:14px;border-top:1px dashed var(--line);font-family:var(--ff-mono);font-size:12px;color:var(--ink-dim);line-height:1.6}
+    .ab-limit-eyebrow{display:inline-block;text-transform:uppercase;letter-spacing:.18em;font-size:10px;color:var(--ink-faint);margin-right:8px}
+    @media (max-width:680px){.ab-thesis{font-size:22px}.ab-tradeoff{font-size:16px}}
+  </style>`;
 }
 
 function renderHero(c, va, vb){

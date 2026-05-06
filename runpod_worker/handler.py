@@ -79,6 +79,20 @@ from runpod_worker.progress import emitter_for
 # response is scoped to that job.
 _BOOT_GPU_AUDIT = GPUAuditCollector()
 
+# Phase E.1: process-level GPU job lock.
+#
+# RunPod Serverless can route multiple concurrent jobs to the same worker
+# process when max_workers > 1 at the endpoint level. Inside one process we
+# run TRIBE inference, prediction A and B, content model inference, and (in
+# media mode) ffmpeg + WhisperX simultaneously. None of those tolerate VRAM
+# contention well today, and we have no GPU memory measurements outside the
+# new gpu_audit telemetry.
+#
+# Until measured, in-process concurrency is locked to 1. To raise it,
+# benchmark with the Phase D harness AND re-run a real two-job concurrency
+# smoke (Phase E.2). Set BRAIN_DIFF_GPU_JOB_CONCURRENCY=N to override.
+GPU_JOB_LOCK = threading.Semaphore(int(os.getenv("BRAIN_DIFF_GPU_JOB_CONCURRENCY", "1")))
+
 MODEL_REVISION = os.getenv("TRIBEV2_REVISION", "facebook/tribev2")
 ATLAS_DIR = os.getenv("BRAIN_DIFF_ATLAS_DIR", "atlases")
 MAX_DOWNLOAD_MB = int(os.getenv("RUNPOD_MEDIA_MAX_MB", "200"))
@@ -394,6 +408,28 @@ def _run_text(
     display_name_a: str = "",
     display_name_b: str = "",
 ) -> dict[str, Any]:
+    # Phase E.1: serialise heavy GPU work at the process level. The semaphore
+    # is a no-op when BRAIN_DIFF_GPU_JOB_CONCURRENCY=1 (default) and one job is
+    # in flight; extra jobs wait here. We acquire BEFORE starting the timer
+    # so latency reported in the response reflects the actual compute, not
+    # queue time (queue time is observable on the RunPod side).
+    with GPU_JOB_LOCK:
+        return _run_text_locked(
+            text_a, text_b,
+            job_id=job_id,
+            display_name_a=display_name_a,
+            display_name_b=display_name_b,
+        )
+
+
+def _run_text_locked(
+    text_a: str,
+    text_b: str,
+    *,
+    job_id: str | None = None,
+    display_name_a: str = "",
+    display_name_b: str = "",
+) -> dict[str, Any]:
     started = time.perf_counter()
     warnings = _warnings_for_text(text_a, text_b)
     progress = emitter_for(job_id)
@@ -504,6 +540,29 @@ def _run_text(
 
 
 def _run_media(
+    modality: str,
+    media_url_a: str,
+    media_url_b: str,
+    *,
+    job_id: str | None = None,
+    blob_token: str = "",
+    trim_to_shorter: bool = False,
+    display_name_a: str = "",
+    display_name_b: str = "",
+) -> dict[str, Any]:
+    # Phase E.1: same lock pattern as _run_text. Media jobs hold the GPU
+    # for tens of seconds (TRIBE + Gemma) so multiple concurrent media jobs
+    # in one process were the highest-risk OOM path.
+    with GPU_JOB_LOCK:
+        return _run_media_locked(
+            modality, media_url_a, media_url_b,
+            job_id=job_id, blob_token=blob_token,
+            trim_to_shorter=trim_to_shorter,
+            display_name_a=display_name_a, display_name_b=display_name_b,
+        )
+
+
+def _run_media_locked(
     modality: str,
     media_url_a: str,
     media_url_b: str,
