@@ -95,6 +95,19 @@ async function fetchJob(id) {
   const job = await res.json();
   if (job.status === "error") throw new Error(job.error?.message || "RunPod returned an error for this job.");
   if (job.status !== "done") throw new Error("This job is not finished yet. Open the run page and wait for completion.");
+  // Phase B.2: prefer the canonical rich page when results_content is present.
+  // Reaching this legacy debug page on a real production job means an old
+  // bookmark, an outdated admin link, or someone explicitly debugging. We
+  // redirect to /results.html unless ?legacy=1 forces this view.
+  const wantsLegacy = params.get("legacy") === "1";
+  const richContent = job.result && job.result.results_content;
+  if (!wantsLegacy && richContent && richContent.schema_version === "results_content.v1") {
+    const target = `/results.html?jobId=${encodeURIComponent(id)}&from=video-legacy`;
+    location.replace(target);
+    // location.replace is async-ish; throw to halt this page's render so the
+    // user doesn't see the legacy markup flash on slow navigations.
+    throw new Error("redirecting_to_canonical_results");
+  }
   return adaptResult(job);
 }
 

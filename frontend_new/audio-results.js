@@ -90,6 +90,16 @@ async function fetchJob(id) {
   const job = await res.json();
   if (job.status === "error") throw new Error(job.error?.message || "RunPod returned an error for this job.");
   if (job.status !== "done") throw new Error("This job is not finished yet. Open the run page and wait for completion.");
+  // Phase B.2: prefer the canonical rich page when results_content is present.
+  // The polished text+audio rich page lives at /text-results.html; redirect
+  // there unless ?legacy=1 forces this view.
+  const wantsLegacy = params.get("legacy") === "1";
+  const richContent = job.result && job.result.results_content;
+  if (!wantsLegacy && richContent && richContent.schema_version === "results_content.v1") {
+    const target = `/text-results.html?jobId=${encodeURIComponent(id)}&from=audio-legacy`;
+    location.replace(target);
+    throw new Error("redirecting_to_canonical_results");
+  }
   return adaptResult(job);
 }
 

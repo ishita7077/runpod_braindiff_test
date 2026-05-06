@@ -807,9 +807,24 @@ function toggleTheme(){
   const RUN_KIND = RUN_MODE === 'video' ? 'videos' : (RUN_MODE === 'audio' ? 'audio files' : 'texts');
   const RUN_DONE_COPY = RUN_MODE === 'text' ? 'Two texts, one cortex.' : 'Two media samples, one cortex.';
   function resultsPageForMode(){
-    // Text and audio share the same page — both come down to a TTS-derived
-    // waveform + the same TRIBE-driven cortical timeseries. Video keeps the
-    // dedicated results.html that has the visual chord progression view.
+    // Routing contract (Phase B.1): every completed job lands on a rich page
+    // that reads result.results_content. Two rich pages exist today —
+    //   * results.html       — video (chord progression, networks, brain)
+    //   * text-results.html  — text + audio (TTS waveform, annotated text)
+    // The legacy pages (video-results.html, audio-results.html) are NOT in
+    // this routing; they survive only as admin debug links and now self-
+    // redirect to the canonical rich page on hit.
+    //
+    // Escape hatch: append ?legacy=1 to the run page URL if you actually
+    // want the legacy view (e.g. comparing pre/post Phase B output). The
+    // legacy pages still honour ?legacy=1 to suppress the auto-redirect.
+    var forceLegacy = false;
+    try { forceLegacy = (params.get('legacy') === '1'); } catch(_) {}
+    if (forceLegacy){
+      if (RUN_MODE === 'audio') return './audio-results.html';
+      if (RUN_MODE === 'video') return './video-results.html';
+      // Text has no legacy page; fall through to text-results.html.
+    }
     if (RUN_MODE === 'audio' || RUN_MODE === 'text') return './text-results.html';
     return './results.html';
   }

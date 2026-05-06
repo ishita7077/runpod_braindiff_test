@@ -727,12 +727,16 @@ function base64ToFile(b64, filename) {
 }
 
 // ── Render ─────────────────────────────────────────────────────────────────
+// Phase B.1: admin links land on the canonical rich pages. The old
+// `audio-results.html` / `video-results.html` debug pages are still reachable
+// at their static URLs (and now self-redirect to the rich page when
+// results_content is present), but the admin UI no longer points at them.
 function resultUrl(run) {
   if (!run.jobId) return null;
-  const base = `?job=${encodeURIComponent(run.jobId)}`;
-  if (run.mod === 'text') return `/text-results-demo.html${base}`;
-  if (run.mod === 'audio') return `/audio-results.html${base}`;
-  if (run.mod === 'video') return `/video-results.html${base}`;
+  const base = `?jobId=${encodeURIComponent(run.jobId)}`;
+  if (run.mod === 'text') return `/text-results.html${base}`;
+  if (run.mod === 'audio') return `/text-results.html${base}`;
+  if (run.mod === 'video') return `/results.html${base}`;
   return `/results.html${base}`;
 }
 
