@@ -469,6 +469,15 @@ body:not(.dev-mode) .src-badge{display:none !important}
   content:'▸';display:inline-block;transition:transform .2s;font-size:13px;
 }
 .annotated-text-details[open] > summary::before{transform:rotate(90deg)}
+
+/* Frame 03 — graceful empty state for coupling callouts when Gemma's
+   output failed validation across the board (no slot has content). */
+.callouts-empty{
+  margin:0 auto 1.8rem;max-width:680px;text-align:center;
+  padding:1.4rem 1.6rem;border:1px dashed var(--line-strong);
+  border-radius:8px;background:var(--cream-2);
+}
+.callouts-empty p{font-family:var(--ff-body);font-size:.95rem;color:var(--ink-mid);line-height:1.55;margin:0}
 </style>
 <script type="importmap">
 { "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
@@ -1045,6 +1054,7 @@ function chordName(c, id){
 function renderFrame3(c, va, vb){
   const matchA = c.slots.recipe_match.video_a.value, matchB = c.slots.recipe_match.video_b.value;
   const callouts = c.slots.coupling_callouts;
+  const meta = (RESULT && RESULT.meta) || {};
   return `
   <section class="frame" id="frame-3">
     <div class="frame-meta-row">
@@ -1052,7 +1062,7 @@ function renderFrame3(c, va, vb){
       <div class="frame-num-r reveal">7 systems · within-${esc(contentNoun())} coupling and per-dimension comparison</div>
     </div>
     <h2 class="frame-h2 reveal d1">The systems behind <em>each play.</em></h2>
-    <p class="frame-sub reveal d2"><em>${esc(va.display_name)}'s ${esc(matchA.name)}</em> and <em>${esc(vb.display_name)}'s ${esc(matchB.name)}</em> are built from the same seven cortical systems — but coupled differently and pulled at different times. <em>Network Coordination</em> shows how each video's systems coupled within itself. <em>Dimension Detail</em> breaks down each system's full time series across both videos.</p>
+    <p class="frame-sub reveal d2"><em>${esc(va.display_name)}</em> ran <em>${esc(matchA.name)}</em>; <em>${esc(vb.display_name)}</em> ran <em>${esc(matchB.name)}</em>. Both are built from the same seven cortical systems — coupled differently and pulled at different times. <em>Network Coordination</em> shows how each ${esc(contentNoun())}'s systems coupled within itself. <em>Dimension Detail</em> breaks down each system's full time series across both ${esc(contentNounPlural())}.</p>
     <div class="reveal d1">
       <div class="frame3-tabs">
         <button class="frame3-tab active" data-panel="network">Network Coordination</button>
@@ -1105,9 +1115,18 @@ function renderFrame3(c, va, vb){
                 <text x="32" y="44" text-anchor="end">1.0</text><text x="32" y="134" text-anchor="end">0.75</text>
                 <text x="32" y="224" text-anchor="end">0.50</text><text x="32" y="314" text-anchor="end">0.25</text>
                 <text x="32" y="386" text-anchor="end">0.0</text>
-                <text x="40" y="395" text-anchor="middle">0:00</text><text x="215" y="395" text-anchor="middle">0:15</text>
-                <text x="390" y="395" text-anchor="middle">0:30</text><text x="565" y="395" text-anchor="middle">0:45</text>
-                <text x="740" y="395" text-anchor="middle">${fmtTime(va.duration_seconds||60)}</text>
+                ${(() => {
+                  // Generate evenly-spaced x-axis time labels based on the
+                  // actual duration. For short inputs (≤30s) we get 5 ticks
+                  // at 0/¼/½/¾/end; for longer ones the same proportions
+                  // hold so the labels never overlap or stretch.
+                  const dur = Math.max(1, va.duration_seconds || meta.text_a_timesteps || 30);
+                  const xs = [40, 215, 390, 565, 740];
+                  return xs.map((x, i) => {
+                    const t = (i / (xs.length - 1)) * dur;
+                    return `<text x="${x}" y="395" text-anchor="middle">${fmtTime(t)}</text>`;
+                  }).join('');
+                })()}
               </g>
               <path id="curve-a-fill" fill="rgba(42,107,133,0.10)" stroke="none"/>
               <path id="curve-b-fill" fill="rgba(199,61,36,0.10)" stroke="none"/>
@@ -1137,11 +1156,18 @@ function renderFrame3(c, va, vb){
 }
 
 function renderCallouts(c, va, vb, callouts){
-  // Cleo strongest, MrBeast strongest, Cleo weakest, MrBeast weakest. anti hidden behind reveal.
+  // Renders the four coupling callouts (A-strongest, B-strongest, A-weakest,
+  // B-anti). Defensive on every level: callouts may be missing entirely, a
+  // slot may be present-but-fallback, or its .value may be a stub string. We
+  // surface the slot only if it has a non-trivial value so the user never
+  // sees an empty card.
+  callouts = callouts || {video_a: {}, video_b: {}};
+  const va_c = callouts.video_a || {};
+  const vb_c = callouts.video_b || {};
   const cards = [];
   const make = (klass, sideLabel, headerText, slot, hidden, id) => {
-    if (!slot) return;
-    const v = slot.value || '(no callout)';
+    if (!slot || !slot.value || !String(slot.value).trim()) return;
+    const v = slot.value;
     cards.push(`<div class="connect-callout ${klass} ${hidden?'is-hidden':''} has-badge"${id?` id="${id}"`:''}>
       ${badge(slot)}
       <div class="cc-eyebrow">${esc(sideLabel)} · ${esc(headerText)}</div>
@@ -1149,16 +1175,19 @@ function renderCallouts(c, va, vb, callouts){
       <div class="cc-text">${esc(v)}</div>
     </div>`);
   };
-  // Show 2 strongest visible per spec.
-  make('cleo-strong', (va.display_name||'').toUpperCase(), 'STRONGEST COUPLING', callouts.video_a.strongest);
-  make('beast-strong', (vb.display_name||'').toUpperCase(), 'STRONGEST COUPLING', callouts.video_b.strongest);
-  // Anti-coupling: hide the THIRD slot (vb anti) behind reveal button per user spec.
-  make('cleo-weak', (va.display_name||'').toUpperCase(), 'WEAKEST COUPLING', callouts.video_a.weakest, true, 'co-cleo-weak');
-  make('beast-weak', (vb.display_name||'').toUpperCase(), 'ANTI-COUPLING', callouts.video_b.anti, true, 'co-beast-anti');
+  make('cleo-strong', (va.display_name||'').toUpperCase(), 'STRONGEST COUPLING', va_c.strongest);
+  make('beast-strong', (vb.display_name||'').toUpperCase(), 'STRONGEST COUPLING', vb_c.strongest);
+  make('cleo-weak', (va.display_name||'').toUpperCase(), 'WEAKEST COUPLING', va_c.weakest, true, 'co-cleo-weak');
+  make('beast-weak', (vb.display_name||'').toUpperCase(), 'ANTI-COUPLING', vb_c.anti, true, 'co-beast-anti');
+  if (cards.length === 0){
+    return `<div class="callouts-empty">
+      <p>The coupling callouts are still being generated for this comparison. The matrices and dimension view below show the underlying data.</p>
+    </div>`;
+  }
   return `<div class="connect-callouts-grid" id="callouts-grid">
     ${cards.slice(0,2).join('')}
     ${cards.slice(2).join('')}
-    <button class="callout-reveal-btn" id="reveal-btn">Reveal weak + anti-coupling →</button>
+    ${cards.length > 2 ? `<button class="callout-reveal-btn" id="reveal-btn">Reveal weak + anti-coupling →</button>` : ''}
   </div>`;
 }
 
@@ -1167,7 +1196,7 @@ function renderConnectCard(side, video, matrix, integration, hubNode){
   return `
   <div class="connect-card">
     <div class="connect-card-header">
-      <span class="connect-card-label ${side}">${esc(video.display_name)} · Video ${side.toUpperCase()}</span>
+      <span class="connect-card-label ${side}">${esc(video.display_name)} · ${side.toUpperCase()}</span>
       <span class="connect-card-title">${esc(titleByIntegration)}</span>
     </div>
     <div class="connect-svg-wrap">
