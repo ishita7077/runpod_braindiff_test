@@ -1,0 +1,40 @@
+{
+  "name": "visceral_vs_analytical",
+  "description": "A: a sharp visceral hook, low effort. B: a careful analytical argument, high effort + language depth. Tests anti-coupling detection.",
+  "video_a_id": "fix02_a",
+  "video_b_id": "fix02_b",
+  "video_a_title": "The hook",
+  "video_b_title": "The argument",
+  "duration_a_s": 22,
+  "duration_b_s": 22,
+  "transcript_segments_a": [
+    {"start": 0, "end": 5, "text": "Stop. Look at this number."},
+    {"start": 5, "end": 10, "text": "Forty percent of your customers leave in the first week."},
+    {"start": 10, "end": 16, "text": "That's not a churn problem. That's a betrayal."},
+    {"start": 16, "end": 22, "text": "And it starts the moment they swipe into onboarding."}
+  ],
+  "transcript_segments_b": [
+    {"start": 0, "end": 6, "text": "Let's separate two things often confused: activation and retention."},
+    {"start": 6, "end": 12, "text": "Activation is the moment a user does the core action."},
+    {"start": 12, "end": 18, "text": "Retention is whether that action becomes a habit."},
+    {"start": 18, "end": 22, "text": "You can win activation and still lose retention."}
+  ],
+  "timeseries_a": {
+    "personal_resonance":  [0.30, 0.55, 0.70, 0.80, 0.84, 0.82, 0.78, 0.74, 0.70, 0.66, 0.62, 0.60, 0.58, 0.55, 0.50, 0.46, 0.42, 0.38, 0.35, 0.32, 0.30, 0.28, 0.25],
+    "attention":           [0.55, 0.78, 0.88, 0.92, 0.92, 0.90, 0.85, 0.80, 0.74, 0.70, 0.66, 0.62, 0.60, 0.58, 0.55, 0.52, 0.50, 0.48, 0.45, 0.42, 0.40, 0.38, 0.35],
+    "brain_effort":        [0.20, 0.18, 0.16, 0.15, 0.15, 0.16, 0.17, 0.18, 0.20, 0.22, 0.25, 0.28, 0.30, 0.32, 0.34, 0.35, 0.36, 0.36, 0.35, 0.34, 0.32, 0.30, 0.28],
+    "gut_reaction":        [0.40, 0.65, 0.85, 0.92, 0.95, 0.93, 0.88, 0.82, 0.74, 0.66, 0.58, 0.50, 0.44, 0.38, 0.34, 0.30, 0.28, 0.26, 0.25, 0.24, 0.22, 0.20, 0.18],
+    "memory_encoding":     [0.30, 0.40, 0.48, 0.54, 0.58, 0.60, 0.60, 0.58, 0.56, 0.52, 0.48, 0.44, 0.40, 0.36, 0.32, 0.28, 0.24, 0.22, 0.20, 0.18, 0.16, 0.15, 0.14],
+    "social_thinking":     [0.40, 0.50, 0.55, 0.58, 0.60, 0.62, 0.62, 0.60, 0.58, 0.54, 0.50, 0.46, 0.42, 0.38, 0.34, 0.30, 0.28, 0.25, 0.22, 0.20, 0.18, 0.16, 0.14],
+    "language_depth":      [0.30, 0.34, 0.36, 0.38, 0.38, 0.36, 0.34, 0.32, 0.30, 0.28, 0.26, 0.24, 0.22, 0.20, 0.18, 0.16, 0.16, 0.16, 0.16, 0.16, 0.16, 0.16, 0.16]
+  },
+  "timeseries_b": {
+    "personal_resonance":  [0.20, 0.22, 0.24, 0.26, 0.28, 0.30, 0.32, 0.32, 0.30, 0.28, 0.26, 0.24, 0.22, 0.22, 0.22, 0.22, 0.22, 0.22, 0.22, 0.22, 0.22, 0.22, 0.22],
+    "attention":           [0.45, 0.55, 0.62, 0.66, 0.68, 0.70, 0.72, 0.72, 0.70, 0.68, 0.66, 0.64, 0.62, 0.62, 0.64, 0.66, 0.68, 0.68, 0.68, 0.66, 0.64, 0.62, 0.60],
+    "brain_effort":        [0.50, 0.62, 0.72, 0.80, 0.85, 0.88, 0.90, 0.90, 0.88, 0.84, 0.80, 0.76, 0.74, 0.74, 0.76, 0.80, 0.84, 0.88, 0.90, 0.90, 0.88, 0.86, 0.82],
+    "gut_reaction":        [0.18, 0.16, 0.14, 0.12, 0.10, 0.10, 0.10, 0.10, 0.10, 0.11, 0.12, 0.12, 0.12, 0.12, 0.11, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10],
+    "memory_encoding":     [0.30, 0.40, 0.50, 0.58, 0.65, 0.70, 0.74, 0.76, 0.76, 0.74, 0.72, 0.70, 0.68, 0.66, 0.66, 0.68, 0.70, 0.72, 0.72, 0.72, 0.70, 0.68, 0.66],
+    "social_thinking":     [0.40, 0.45, 0.50, 0.54, 0.58, 0.60, 0.60, 0.58, 0.56, 0.52, 0.48, 0.46, 0.46, 0.48, 0.50, 0.52, 0.54, 0.55, 0.55, 0.54, 0.52, 0.50, 0.48],
+    "language_depth":      [0.55, 0.66, 0.76, 0.84, 0.88, 0.90, 0.91, 0.90, 0.88, 0.84, 0.80, 0.78, 0.76, 0.76, 0.78, 0.82, 0.86, 0.88, 0.90, 0.90, 0.88, 0.86, 0.82]
+  }
+}

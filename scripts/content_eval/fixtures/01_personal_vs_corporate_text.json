@@ -1,0 +1,40 @@
+{
+  "name": "personal_vs_corporate_text",
+  "description": "Two short essays on the same topic, one in plain personal voice, the other in corporate jargon. Tests whether the brief picks up the personal-resonance / language-depth contrast.",
+  "video_a_id": "fix01_a",
+  "video_b_id": "fix01_b",
+  "video_a_title": "Plain voice",
+  "video_b_title": "Corporate voice",
+  "duration_a_s": 25,
+  "duration_b_s": 25,
+  "transcript_segments_a": [
+    {"start": 0, "end": 6, "text": "I built this because I kept losing track of what I had read."},
+    {"start": 6, "end": 13, "text": "If you're someone who reads a lot, you know the feeling."},
+    {"start": 13, "end": 19, "text": "It's small. It saves your highlights. That's it."},
+    {"start": 19, "end": 25, "text": "Try it for a week and tell me what you'd change."}
+  ],
+  "transcript_segments_b": [
+    {"start": 0, "end": 6, "text": "We are excited to announce a transformative new platform."},
+    {"start": 6, "end": 13, "text": "Our solution leverages AI to optimize your reading workflow."},
+    {"start": 13, "end": 19, "text": "Drive engagement, increase productivity, and unlock insights."},
+    {"start": 19, "end": 25, "text": "Sign up today to participate in the future of knowledge work."}
+  ],
+  "timeseries_a": {
+    "personal_resonance":  [0.20, 0.40, 0.65, 0.78, 0.82, 0.85, 0.86, 0.84, 0.80, 0.74, 0.70, 0.68, 0.65, 0.62, 0.60, 0.58, 0.55, 0.52, 0.48, 0.45, 0.40, 0.35, 0.30, 0.28, 0.25, 0.22],
+    "attention":           [0.30, 0.45, 0.55, 0.60, 0.65, 0.70, 0.72, 0.74, 0.72, 0.70, 0.68, 0.66, 0.62, 0.58, 0.55, 0.52, 0.50, 0.48, 0.46, 0.45, 0.42, 0.40, 0.38, 0.36, 0.35, 0.34],
+    "brain_effort":        [0.25, 0.30, 0.35, 0.38, 0.40, 0.42, 0.40, 0.38, 0.36, 0.34, 0.32, 0.30, 0.28, 0.26, 0.25, 0.24, 0.22, 0.20, 0.18, 0.18, 0.18, 0.20, 0.22, 0.25, 0.28, 0.30],
+    "gut_reaction":        [0.30, 0.45, 0.55, 0.62, 0.66, 0.68, 0.65, 0.60, 0.55, 0.50, 0.45, 0.42, 0.38, 0.34, 0.30, 0.28, 0.25, 0.22, 0.20, 0.18, 0.16, 0.14, 0.12, 0.10, 0.10, 0.10],
+    "memory_encoding":     [0.20, 0.30, 0.40, 0.45, 0.50, 0.52, 0.55, 0.58, 0.60, 0.62, 0.64, 0.66, 0.65, 0.62, 0.58, 0.55, 0.50, 0.45, 0.40, 0.36, 0.32, 0.28, 0.25, 0.22, 0.20, 0.18],
+    "social_thinking":     [0.40, 0.50, 0.58, 0.62, 0.65, 0.68, 0.70, 0.70, 0.68, 0.66, 0.62, 0.58, 0.55, 0.50, 0.45, 0.42, 0.38, 0.36, 0.34, 0.32, 0.30, 0.28, 0.26, 0.24, 0.22, 0.20],
+    "language_depth":      [0.30, 0.38, 0.42, 0.44, 0.46, 0.48, 0.50, 0.50, 0.48, 0.46, 0.44, 0.42, 0.40, 0.38, 0.36, 0.34, 0.32, 0.30, 0.28, 0.26, 0.24, 0.22, 0.20, 0.18, 0.16, 0.15]
+  },
+  "timeseries_b": {
+    "personal_resonance":  [0.20, 0.18, 0.15, 0.13, 0.12, 0.10, 0.10, 0.12, 0.14, 0.15, 0.15, 0.14, 0.13, 0.12, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.20, 0.20, 0.20],
+    "attention":           [0.40, 0.42, 0.40, 0.36, 0.32, 0.30, 0.28, 0.26, 0.25, 0.26, 0.28, 0.30, 0.32, 0.34, 0.36, 0.38, 0.40, 0.40, 0.40, 0.39, 0.38, 0.36, 0.35, 0.34, 0.33, 0.32],
+    "brain_effort":        [0.50, 0.62, 0.72, 0.78, 0.82, 0.84, 0.85, 0.84, 0.80, 0.75, 0.70, 0.66, 0.62, 0.60, 0.62, 0.66, 0.70, 0.74, 0.78, 0.82, 0.84, 0.85, 0.83, 0.80, 0.76, 0.72],
+    "gut_reaction":        [0.18, 0.16, 0.14, 0.12, 0.10, 0.10, 0.10, 0.10, 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.16, 0.15, 0.14, 0.13, 0.12, 0.11, 0.10, 0.10, 0.10, 0.10, 0.10, 0.10],
+    "memory_encoding":     [0.30, 0.35, 0.36, 0.34, 0.30, 0.26, 0.24, 0.22, 0.20, 0.18, 0.18, 0.18, 0.20, 0.22, 0.24, 0.26, 0.28, 0.30, 0.30, 0.30, 0.28, 0.26, 0.24, 0.22, 0.20, 0.18],
+    "social_thinking":     [0.55, 0.60, 0.62, 0.60, 0.56, 0.50, 0.45, 0.40, 0.36, 0.32, 0.30, 0.30, 0.32, 0.36, 0.40, 0.44, 0.48, 0.50, 0.52, 0.54, 0.55, 0.55, 0.54, 0.52, 0.50, 0.48],
+    "language_depth":      [0.55, 0.65, 0.74, 0.80, 0.84, 0.86, 0.86, 0.84, 0.80, 0.75, 0.70, 0.66, 0.62, 0.60, 0.60, 0.62, 0.66, 0.70, 0.74, 0.78, 0.80, 0.82, 0.82, 0.80, 0.76, 0.72]
+  }
+}
