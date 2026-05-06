@@ -373,7 +373,46 @@ footer span{color:var(--red)}
 .text-body{padding:24px 24px 28px;font-family:var(--ff-body);font-size:17px;line-height:1.78;color:var(--ink)}
 .txt-seg{border-radius:2px;padding:0 1px;transition:background-color .15s,border-color .15s}
 .txt-seg:hover{filter:brightness(1.1)}
+
+/* Hero brain canvas (real fsaverage5 mesh from lib/brain.js, the same one
+   used on the landing page). Replaces the previous flat 2D SVG. */
+.hero-brain-stage{position:relative;width:100%;aspect-ratio:1/1;max-width:560px;margin:0 auto}
+.hero-brain-canvas{width:100%;height:100%;display:block}
+.hero-brain-caption{
+  display:flex;flex-direction:column;align-items:center;gap:.35rem;
+  margin-top:1.25rem;text-align:center;
+}
+.hero-brain-cap-eyebrow{
+  font-family:var(--ff-mono);font-size:9.5px;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--red);font-weight:500;
+}
+.hero-brain-cap-text{
+  font-family:var(--ff-mono);font-size:10.5px;letter-spacing:.04em;
+  color:var(--ink-dim);
+}
+
+/* Reversed hero grid: comparison panel LEFT, brain RIGHT. The original
+   layout had brain LEFT and the recipe-match card crammed into the right
+   sidebar — with text/audio (no thumbnails) the brain is the visual
+   anchor and the recipe comparison gets the prime reading column. */
+.hero-grid--reversed{grid-template-columns:1fr 1.05fr;gap:3.5rem;margin-top:2.4rem}
+
+/* Headline size variants — auto-applied based on word count. The hero used
+   to look stranded when Gemma produced 4-word sentences; sizing it up
+   makes short outputs feel intentional, not skinny. */
+.hero-h1--short{font-size:clamp(2.6rem,5.5vw,4.4rem);line-height:1.05;margin-bottom:1.2rem}
+.hero-h1--medium{font-size:clamp(2.0rem,3.8vw,3.0rem);line-height:1.1;margin-bottom:1.1rem}
+
+/* CTAs row pulled out of the hero LHS into its own full-width row below. */
+.hero-cta-row{margin-top:2.5rem;max-width:840px}
+
+/* Hide the FALLBACK / LLM source badges in production. They're useful for
+   dev (?dev=1) but leak as visible chrome to users in normal viewing. */
+body:not(.dev-mode) .src-badge{display:none !important}
 </style>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
 </head>
 <body>
 
@@ -558,6 +597,7 @@ function acceptContent(json){
       `Expected <code>results_content.v1</code>, got <code>${escapeHtmlText(json.schema_version || 'unknown')}</code>. The worker and the page are out of sync — redeploy.`);
   }
   CONTENT = json;
+  window.CONTENT = json;  // expose for the ES module that mounts the brain
   document.getElementById('dev-comparison-id').textContent =
     `comparison_id=${CONTENT.comparison_id} · run_id=${CONTENT.run_id.slice(0,8)}…`;
   document.getElementById('nav-tag').textContent = `Results — ${CONTENT.comparison_id.slice(0,8)}`;
@@ -580,6 +620,11 @@ function acceptContent(json){
     console.error('initInteractions() failed', err);
     // Page is rendered; just log the interaction failure (scrubber/network won't work).
   }
+  // Mount the real fsaverage5 brain (the one from the landing page) into
+  // the hero canvas. Coloring driven by per-system means delta (B - A) so
+  // the contrast in the comparison panel is mirrored in the cortical view.
+  try { mountResultsBrain(); }
+  catch (err) { console.warn('Hero brain mount failed:', err && err.message); }
 }
 
 function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
@@ -622,41 +667,57 @@ function renderHero(c, va, vb){
   const headline = c.slots.headline, body = c.slots.body;
   const matchA = c.slots.recipe_match.video_a.value, matchB = c.slots.recipe_match.video_b.value;
   const descA = c.slots.recipe_description.video_a, descB = c.slots.recipe_description.video_b;
+  const noun = contentNounPlural();
+  // Auto-tighten the headline display: short headlines (<6 words) get extra
+  // visual weight + tighter line-height; long ones stay readable. Avoids the
+  // "tiny stranded sentence in a big box" failure mode the user flagged.
+  const wc = (headline.value || '').trim().split(/\s+/).filter(Boolean).length;
+  const headlineSizeClass = wc <= 6 ? 'hero-h1 hero-h1--short'
+                          : wc <= 14 ? 'hero-h1 hero-h1--medium'
+                          : 'hero-h1';
   return `
   <section class="hero">
     <div class="hero-meta-row">
       <div class="hero-eyebrow-meta">Brain Diff · ${c.comparison_id.slice(0,8)}</div>
-      <div class="hero-files">${esc(va.id)}.mp4 · ${esc(vb.id)}.mp4 · ${esc(c.analysis_version)}</div>
+      <div class="hero-files">${esc(c.analysis_version)}</div>
     </div>
     <h1 class="hero-versus">
       <span class="a-name">${esc(va.display_name)}</span>
       <span class="vs-mark">vs</span>
       <span class="b-name">${esc(vb.display_name)}</span>
     </h1>
-    <div class="hero-grid">
+    <div class="hero-eyebrow">Frame 01 · Two Cognitive Recipes</div>
+    <h2 class="${headlineSizeClass} has-badge">${badge(headline)}${twoToneHeadline(headline.value, va, vb)}</h2>
+    <p class="hero-body has-badge">${badge(body)}${esc(body.value)}</p>
+
+    <div class="hero-grid hero-grid--reversed">
       <div class="hero-lhs">
-        <div class="hero-eyebrow">Frame 01 · Two Cognitive Recipes</div>
-        <h2 class="hero-h1 has-badge">${badge(headline)}${twoToneHeadline(headline.value, va, vb)}</h2>
-        <p class="hero-body has-badge">${badge(body)}${esc(body.value)}</p>
-        <div class="action-cta-grid">
-          <button class="action-cta" onclick="document.getElementById('frame-2').scrollIntoView({behavior:'smooth'})">
-            <div><div class="action-cta-num">01</div><div class="action-cta-title">Read the annotated text</div></div>
-            <div class="action-cta-arrow">↓</div>
-          </button>
-          <button class="action-cta" onclick="document.getElementById('frame-3').scrollIntoView({behavior:'smooth'})">
-            <div><div class="action-cta-num">02</div><div class="action-cta-title">Inspect the system-level view</div></div>
-            <div class="action-cta-arrow">↓</div>
-          </button>
-          <button class="action-cta" onclick="window.location.href='/launch'">
-            <div><div class="action-cta-num">03</div><div class="action-cta-title">Compare your own two texts</div></div>
-            <div class="action-cta-arrow">↗</div>
-          </button>
-        </div>
-      </div>
-      <div class="hero-rhs">
-        ${renderBrain(c, va, vb)}
         ${renderStrategyInsight(c, va, vb, matchA, matchB, descA, descB)}
       </div>
+      <div class="hero-rhs">
+        <div class="hero-brain-stage">
+          <canvas id="heroResultsBrain" class="hero-brain-canvas" aria-label="Cortical contrast between ${esc(va.display_name)} and ${esc(vb.display_name)}"></canvas>
+        </div>
+        <div class="hero-brain-caption">
+          <span class="hero-brain-cap-eyebrow">Cortical contrast</span>
+          <span class="hero-brain-cap-text">Warmer = ${esc(vb.display_name)} stronger · Cooler = ${esc(va.display_name)} stronger</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="action-cta-grid hero-cta-row">
+      <button class="action-cta" onclick="document.getElementById('frame-2').scrollIntoView({behavior:'smooth'})">
+        <div><div class="action-cta-num">01</div><div class="action-cta-title">${contentVerb() === 'read' ? 'Read the annotated text' : (contentVerb() === 'listen to' ? 'Hear it second-by-second' : 'Watch the chord progression')}</div></div>
+        <div class="action-cta-arrow">↓</div>
+      </button>
+      <button class="action-cta" onclick="document.getElementById('frame-3').scrollIntoView({behavior:'smooth'})">
+        <div><div class="action-cta-num">02</div><div class="action-cta-title">Inspect the system-level view</div></div>
+        <div class="action-cta-arrow">↓</div>
+      </button>
+      <button class="action-cta" onclick="window.location.href='/launch'">
+        <div><div class="action-cta-num">03</div><div class="action-cta-title">Compare your own two ${esc(noun)}</div></div>
+        <div class="action-cta-arrow">↗</div>
+      </button>
     </div>
   </section>`;
 }
@@ -858,7 +919,7 @@ function renderFrame3(c, va, vb){
   <section class="frame" id="frame-3">
     <div class="frame-meta-row">
       <div class="frame-num reveal">Frame 03 · The Systems Behind Each Play</div>
-      <div class="frame-num-r reveal">7 systems · within-video coupling and per-dimension comparison</div>
+      <div class="frame-num-r reveal">7 systems · within-${esc(contentNoun())} coupling and per-dimension comparison</div>
     </div>
     <h2 class="frame-h2 reveal d1">The systems behind <em>each play.</em></h2>
     <p class="frame-sub reveal d2"><em>${esc(va.display_name)}'s ${esc(matchA.name)}</em> and <em>${esc(vb.display_name)}'s ${esc(matchB.name)}</em> are built from the same seven cortical systems — but coupled differently and pulled at different times. <em>Network Coordination</em> shows how each video's systems coupled within itself. <em>Dimension Detail</em> breaks down each system's full time series across both videos.</p>
@@ -1426,6 +1487,63 @@ function drawTV(dim){
     document.getElementById('curve-b-fill').setAttribute('d', pB + ` L ${x(n-1)} ${yD(0)} L ${x(0)} ${yD(0)} Z`);
   }
 }
+</script>
+
+<!-- ─── Hero brain mount — uses the SAME landing-page Three.js component ─── -->
+<script type="module">
+import { mountBrain } from './lib/brain.js';
+
+// Bridge from the classic <script> world (where CONTENT lives) to the ES
+// module world (where mountBrain lives). The classic script calls
+// window.mountResultsBrain() after each render() and we look up CONTENT
+// off window then.
+window.mountResultsBrain = function mountResultsBrain(){
+  const canvas = document.getElementById('heroResultsBrain');
+  if (!canvas) return;
+  const c = window.CONTENT;
+  if (!c || !c.videos) return;
+  const va = c.videos.video_a, vb = c.videos.video_b;
+  if (!va || !vb || !va.system_means || !vb.system_means) return;
+
+  // Map the 7 system keys (the names the schema uses) to the brain.js
+  // region keys. They are mostly identical except attention -> attention_salience.
+  const SYSTEM_TO_BRAIN_REGION = {
+    personal_resonance: 'personal_resonance',
+    attention:          'attention_salience',
+    brain_effort:       'brain_effort',
+    gut_reaction:       'gut_reaction',
+    memory_encoding:    'memory_encoding',
+    social_thinking:    'social_thinking',
+    language_depth:     'language_depth',
+  };
+
+  // Signed delta per region: positive = B stronger, negative = A stronger.
+  // Matches the brain.js paint convention used by the landing page compare
+  // brain so the warm/cool colour story is consistent everywhere.
+  const diffRegions = {};
+  for (const [sysKey, regionKey] of Object.entries(SYSTEM_TO_BRAIN_REGION)){
+    const a = Number(va.system_means[sysKey] || 0);
+    const b = Number(vb.system_means[sysKey] || 0);
+    diffRegions[regionKey] = b - a;
+  }
+
+  try {
+    mountBrain(canvas, {
+      rotation: true,
+      rotationSpeed: 0.06,
+      useRealMesh: true,
+      diffRegions,
+    });
+  } catch (err) {
+    console.error('[text-results] mountBrain failed:', err);
+  }
+};
+
+// Expose CONTENT to the module by re-reading it on every call (it's set on
+// window from the classic script). Belt-and-braces bridge.
+Object.defineProperty(window, 'CONTENT_FOR_BRAIN', {
+  get(){ return window.CONTENT; },
+});
 </script>
 </body>
 </html>
